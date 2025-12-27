@@ -34,6 +34,9 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
                 it.requestMatchers("/api/auth/**").permitAll()
+                it.requestMatchers("/api/health/**").permitAll()
+                it.requestMatchers("/actuator/health/**").permitAll()
+                it.requestMatchers("/actuator/info").permitAll()
                 it.anyRequest().authenticated()
             }
             .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)

@@ -16,21 +16,18 @@ class LoggingExampleService {
 
     @Loggable(logParameters = true, logReturnValue = true, level = LogLevel.DEBUG)
     fun exampleMethodWithFullLogging(param1: String, param2: Int): String {
-        // This method will log parameters, return value, and execution time
         Thread.sleep(100) // Simulate some work
         return "Result for $param1 with $param2"
     }
 
     @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
     fun exampleMethodWithMinimalLogging() {
-        // This method will only log entry and exit without parameters or return values
         logger.info("Doing some internal work...")
     }
 
     @Loggable(logExecutionTime = true, level = LogLevel.WARN)
     fun slowMethod() {
-        // This method will be flagged for slow execution
-        Thread.sleep(600) // Simulate slow operation
+        Thread.sleep(600)
     }
 
     @Loggable(level = LogLevel.ERROR)
@@ -38,7 +35,6 @@ class LoggingExampleService {
         throw RuntimeException("This is a test exception for logging")
     }
 
-    // Method without @Loggable annotation - will still be monitored by PerformanceMonitoringAspect
     fun regularMethod() {
         logger.info("This is a regular method without custom logging annotation")
     }
