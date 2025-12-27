@@ -34,12 +34,14 @@ configurations {
 
 repositories {
 	mavenCentral()
-	maven { url = uri("https://repo.spring.io/snapshot") }
 }
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.springframework:spring-aop")
+	implementation("org.aspectj:aspectjweaver")
+	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-authorization-server")
 	compileOnly("org.projectlombok:lombok")
@@ -50,6 +52,7 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-security-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+	testImplementation("com.h2database:h2")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

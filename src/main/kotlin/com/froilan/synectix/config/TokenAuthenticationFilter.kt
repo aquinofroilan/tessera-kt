@@ -35,7 +35,6 @@ class TokenAuthenticationFilter(
                     val authentication = UsernamePasswordAuthenticationToken(user, null, authorities)
                     SecurityContextHolder.getContext().authentication = authentication
                 } else {
-                    // Token expired, maybe delete it?
                     sessionTokenRepository.delete(sessionToken)
                 }
             }

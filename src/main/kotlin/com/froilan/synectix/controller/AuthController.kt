@@ -1,17 +1,24 @@
 package com.froilan.synectix.controller
 
+import com.froilan.synectix.annotation.Loggable
+import com.froilan.synectix.annotation.LogLevel
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.service.AuthService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import java.util.concurrent.ConcurrentHashMap
 import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/api/auth")
+@Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
 class AuthController(
     private val authService: AuthService
 ) {
@@ -43,7 +50,7 @@ class AuthController(
             val response = authService.login(request)
             resetAttempts(clientIp)
             ResponseEntity.ok(response)
-        } catch (e: IllegalArgumentException) {
+        } catch (_: IllegalArgumentException) {
             recordFailedAttempt(clientIp)
             ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("error" to "Invalid credentials"))
         }
@@ -59,7 +66,7 @@ class AuthController(
     }
 
     private fun isBlocked(ip: String): Boolean {
-        val (attempts, blockedUntil) = loginAttempts[ip] ?: return false
+        val (_, blockedUntil) = loginAttempts[ip] ?: return false
         if (LocalDateTime.now().isBefore(blockedUntil)) {
             return true
         }
