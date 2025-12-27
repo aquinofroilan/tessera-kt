@@ -1,25 +1,21 @@
 package com.froilan.synectix.model
 
-import jakarta.persistence.*
+import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.mongodb.core.index.Indexed
 import java.time.LocalDateTime
 
-@Entity
-@Table(name = "session_tokens")
+@Document(collection = "session_tokens")
 data class SessionToken(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    val id: String? = null,
 
-    @Column(unique = true, nullable = false)
+    @Indexed(unique = true)
     val token: String,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    val user: User,
+    val userId: String,
 
-    @Column(nullable = false)
     val expiryAt: LocalDateTime,
 
-    @Column(nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now()
 )

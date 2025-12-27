@@ -1,6 +1,7 @@
 package com.froilan.synectix.config
 
 import com.froilan.synectix.repository.SessionTokenRepository
+import com.froilan.synectix.repository.UserRepository
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -13,7 +14,8 @@ import java.time.LocalDateTime
 
 @Component
 class TokenAuthenticationFilter(
-    private val sessionTokenRepository: SessionTokenRepository
+    private val sessionTokenRepository: SessionTokenRepository,
+    private val userRepository: UserRepository
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -30,10 +32,13 @@ class TokenAuthenticationFilter(
             if (sessionTokenOpt.isPresent) {
                 val sessionToken = sessionTokenOpt.get()
                 if (sessionToken.expiryAt.isAfter(LocalDateTime.now())) {
-                    val user = sessionToken.user
-                    val authorities = user.roles.map { SimpleGrantedAuthority("ROLE_$it") }
-                    val authentication = UsernamePasswordAuthenticationToken(user, null, authorities)
-                    SecurityContextHolder.getContext().authentication = authentication
+                    val userOpt = userRepository.findById(sessionToken.userId)
+                    if (userOpt.isPresent) {
+                        val user = userOpt.get()
+                        val authorities = user.roles.map { SimpleGrantedAuthority("ROLE_$it") }
+                        val authentication = UsernamePasswordAuthenticationToken(user, null, authorities)
+                        SecurityContextHolder.getContext().authentication = authentication
+                    }
                 } else {
                     sessionTokenRepository.delete(sessionToken)
                 }

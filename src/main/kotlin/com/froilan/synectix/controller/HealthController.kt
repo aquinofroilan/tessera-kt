@@ -7,14 +7,14 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.data.mongodb.core.MongoTemplate
 import java.time.LocalDateTime
-import javax.sql.DataSource
 
 @RestController
 @RequestMapping("/api/health")
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.DEBUG)
 class HealthController(
-    @Autowired private val dataSource: DataSource
+    @Autowired private val mongoTemplate: MongoTemplate
 ) {
 
     @GetMapping
@@ -80,22 +80,15 @@ class HealthController(
 
     private fun checkDatabaseHealth(): Map<String, Any> {
         return try {
-            dataSource.connection.use { connection ->
-                val isValid = connection.isValid(5)
-                if (isValid) {
-                    mapOf(
-                        "status" to "UP",
-                        "database" to connection.metaData.databaseProductName,
-                        "driver" to connection.metaData.driverName,
-                        "url" to connection.metaData.url.replace(Regex("password=[^&;]*"), "password=***")
-                    )
-                } else {
-                    mapOf(
-                        "status" to "DOWN",
-                        "error" to "Database connection is not valid"
-                    )
-                }
-            }
+            val db = mongoTemplate.db
+            val serverStatus = db.runCommand(org.bson.Document("serverStatus", 1))
+
+            mapOf(
+                "status" to "UP",
+                "database" to "MongoDB",
+                "version" to (serverStatus.get("version") ?: "unknown"),
+                "databaseName" to db.name
+            )
         } catch (e: Exception) {
             mapOf(
                 "status" to "DOWN",

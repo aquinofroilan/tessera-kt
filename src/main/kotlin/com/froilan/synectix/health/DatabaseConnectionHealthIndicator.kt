@@ -2,28 +2,26 @@ package com.froilan.synectix.health
 
 import org.springframework.boot.health.contributor.Health
 import org.springframework.boot.health.contributor.HealthIndicator
+import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.stereotype.Component
+import com.mongodb.client.MongoDatabase
 
 @Component
 class DatabaseConnectionHealthIndicator(
-    private val dataSource: javax.sql.DataSource
+    private val mongoTemplate: MongoTemplate
 ) : HealthIndicator {
 
     override fun health(): Health {
         return try {
-            dataSource.connection.use { connection ->
-                if (connection.isValid(5)) {
-                    Health.up()
-                        .withDetail("database", connection.metaData.databaseProductName)
-                        .withDetail("driver", connection.metaData.driverName)
-                        .withDetail("status", "Connected")
-                        .build()
-                } else {
-                    Health.down()
-                        .withDetail("error", "Database connection is not valid")
-                        .build()
-                }
-            }
+            val db: MongoDatabase = mongoTemplate.db
+            val serverStatus = db.runCommand(org.bson.Document("serverStatus", 1))
+
+            Health.up()
+                .withDetail("database", "MongoDB")
+                .withDetail("version", serverStatus.get("version")?.toString() ?: "unknown")
+                .withDetail("status", "Connected")
+                .withDetail("databaseName", db.name)
+                .build()
         } catch (e: Exception) {
             Health.down()
                 .withDetail("error", e.message ?: "Unknown database error")

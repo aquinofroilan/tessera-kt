@@ -8,12 +8,17 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
-import javax.sql.DataSource
+import org.springframework.data.mongodb.core.MongoTemplate
 import org.mockito.Mockito.`when`
-import java.sql.Connection
-import java.sql.DatabaseMetaData
+import com.mongodb.client.MongoDatabase
+import org.bson.Document
+import org.springframework.context.annotation.Import
+import com.froilan.synectix.aspect.LoggingAspect
+import com.froilan.synectix.repository.SessionTokenRepository
+import com.froilan.synectix.repository.UserRepository
 
-@WebMvcTest(HealthController::class)
+@WebMvcTest(controllers = [HealthController::class])
+@Import(LoggingAspect::class)
 @ActiveProfiles("test")
 class HealthControllerTest {
 
@@ -21,22 +26,23 @@ class HealthControllerTest {
     private lateinit var mockMvc: MockMvc
 
     @MockitoBean
-    private lateinit var dataSource: DataSource
+    private lateinit var mongoTemplate: MongoTemplate
 
     @MockitoBean
-    private lateinit var connection: Connection
+    private lateinit var mongoDatabase: MongoDatabase
 
     @MockitoBean
-    private lateinit var metaData: DatabaseMetaData
+    private lateinit var sessionTokenRepository: SessionTokenRepository
+
+    @MockitoBean
+    private lateinit var userRepository: UserRepository
 
     @Test
     fun `should return health status UP when database is healthy`() {
-        `when`(dataSource.connection).thenReturn(connection)
-        `when`(connection.isValid(5)).thenReturn(true)
-        `when`(connection.metaData).thenReturn(metaData)
-        `when`(metaData.databaseProductName).thenReturn("H2")
-        `when`(metaData.driverName).thenReturn("H2 JDBC Driver")
-        `when`(metaData.url).thenReturn("jdbc:h2:mem:testdb")
+        val serverStatus = Document("version", "7.0.0")
+        `when`(mongoTemplate.db).thenReturn(mongoDatabase)
+        `when`(mongoDatabase.name).thenReturn("synectix-test")
+        `when`(mongoDatabase.runCommand(org.mockito.ArgumentMatchers.any(Document::class.java))).thenReturn(serverStatus)
 
         mockMvc.perform(get("/api/health"))
             .andExpect(status().isOk)
@@ -56,12 +62,10 @@ class HealthControllerTest {
 
     @Test
     fun `should return detailed health information`() {
-        `when`(dataSource.connection).thenReturn(connection)
-        `when`(connection.isValid(5)).thenReturn(true)
-        `when`(connection.metaData).thenReturn(metaData)
-        `when`(metaData.databaseProductName).thenReturn("H2")
-        `when`(metaData.driverName).thenReturn("H2 JDBC Driver")
-        `when`(metaData.url).thenReturn("jdbc:h2:mem:testdb")
+        val serverStatus = Document("version", "7.0.0")
+        `when`(mongoTemplate.db).thenReturn(mongoDatabase)
+        `when`(mongoDatabase.name).thenReturn("synectix-test")
+        `when`(mongoDatabase.runCommand(org.mockito.ArgumentMatchers.any(Document::class.java))).thenReturn(serverStatus)
 
         mockMvc.perform(get("/api/health/detailed"))
             .andExpect(status().isOk)
@@ -74,7 +78,7 @@ class HealthControllerTest {
 
     @Test
     fun `should return service unavailable when database is down`() {
-        `when`(dataSource.connection).thenThrow(RuntimeException("Database connection failed"))
+        `when`(mongoTemplate.db).thenThrow(RuntimeException("Database connection failed"))
 
         mockMvc.perform(get("/api/health"))
             .andExpect(status().isServiceUnavailable)

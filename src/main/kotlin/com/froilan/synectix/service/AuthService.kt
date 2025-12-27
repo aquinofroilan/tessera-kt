@@ -12,7 +12,6 @@ import com.froilan.synectix.repository.UserRepository
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import java.security.SecureRandom
 import java.time.LocalDateTime
 import java.util.Base64
@@ -31,7 +30,6 @@ class AuthService(
     private val tokenValidityHours = 24L
 
 
-    @Transactional
     fun register(request: RegisterRequest): User {
         if (userRepository.existsByUsername(request.username)) {
             throw IllegalArgumentException("Username already exists")
@@ -48,7 +46,6 @@ class AuthService(
         return userRepository.save(user)
     }
 
-    @Transactional
     @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
     fun login(request: LoginRequest): AuthResponse {
         val user = userRepository.findByUsername(request.username)
@@ -63,7 +60,7 @@ class AuthService(
 
         val sessionToken = SessionToken(
             token = token,
-            user = user,
+            userId = user.id,
             expiryAt = expiryAt
         )
         sessionTokenRepository.save(sessionToken)
@@ -76,7 +73,6 @@ class AuthService(
         )
     }
 
-    @Transactional
     fun logout(token: String) {
         sessionTokenRepository.deleteByToken(token)
     }
