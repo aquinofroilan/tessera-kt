@@ -6,8 +6,8 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 
-@Document(collection =  "organizations")
-data class Organizations(
+@Document(collection = "organizations")
+data class Organization(
     @Id
     val uuid: String = UUID.randomUUID().toString(),
 

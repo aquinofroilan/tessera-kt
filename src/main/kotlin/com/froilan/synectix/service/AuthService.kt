@@ -54,7 +54,7 @@ class AuthService(
 
         val user = User(
             username = request.username,
-            passwordHash = passwordEncoder.encode(request.password) as String,
+            passwordHash = passwordEncoder.encode(request.password),
             firstName = request.firstName,
             lastName = request.lastName,
             email = request.email,
