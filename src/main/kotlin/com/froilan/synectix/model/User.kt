@@ -24,6 +24,8 @@ data class User(
 
     val isActive: Boolean = true,
 
+    val organizationId: String,
+
     val roles: List<String> = listOf("USER"),
 
     val createdAt: LocalDateTime = LocalDateTime.now(),

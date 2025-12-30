@@ -3,8 +3,10 @@ package com.froilan.synectix.service
 import com.froilan.synectix.dto.AuthResponse
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
+import com.froilan.synectix.model.Organizations
 import com.froilan.synectix.model.SessionToken
 import com.froilan.synectix.model.User
+import com.froilan.synectix.repository.OrganizationRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -18,6 +20,7 @@ import java.util.*
 @Service
 class AuthService(
     private val userRepository: UserRepository,
+    private val organizationRepository: OrganizationRepository,
     private val sessionTokenRepository: SessionTokenRepository,
     private val passwordEncoder: PasswordEncoder,
 ) {
@@ -28,19 +31,34 @@ class AuthService(
 
     @Transactional
     fun register(request: RegisterRequest): User {
-        if (userRepository.existsByUsername(request.username)) {
-            throw IllegalArgumentException("Username already exists")
-        }
-        if (userRepository.existsByEmail(request.email)) {
-            throw IllegalArgumentException("Email already exists")
-        }
+        if (userRepository.existsByUsername(request.username)) throw IllegalArgumentException("Username already exists")
+
+        if (userRepository.existsByEmail(request.email)) throw IllegalArgumentException("Email already exists")
+
+        if (organizationRepository.existsByOrgSlug(request.orgSlug)) throw IllegalArgumentException("Organization slug already exists")
+
+        if (organizationRepository.existsByName(request.orgName)) throw IllegalArgumentException("Organization name already exists")
+
+        val organization = Organizations(
+            name = request.orgName,
+            orgSlug = request.orgSlug,
+            description = request.orgDescription,
+            baseCurrency = request.orgBaseCurrency,
+            fiscalYearStart = request.orgFiscalYearStart,
+            tradeName = request.orgTradeName,
+            timezone = request.orgTimezone,
+            legalName = request.orgLegalName,
+        )
+
+        val savedOrganization = organizationRepository.save(organization)
 
         val user = User(
             username = request.username,
             passwordHash = passwordEncoder.encode(request.password) as String,
             firstName = request.firstName,
             lastName = request.lastName,
-            email = request.email
+            email = request.email,
+            organizationId = savedOrganization.uuid
         )
         return userRepository.save(user)
     }
