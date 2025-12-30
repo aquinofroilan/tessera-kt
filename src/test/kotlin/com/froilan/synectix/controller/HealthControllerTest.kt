@@ -39,11 +39,13 @@ class HealthControllerTest {
 
     @Test
     fun `should return health status UP when database is healthy`() {
+        // Given
         val serverStatus = Document("version", "7.0.0")
         `when`(mongoTemplate.db).thenReturn(mongoDatabase)
         `when`(mongoDatabase.name).thenReturn("synectix-test")
         `when`(mongoDatabase.runCommand(org.mockito.ArgumentMatchers.any(Document::class.java))).thenReturn(serverStatus)
 
+        // When & Then
         mockMvc.perform(get("/api/health"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.status").value("UP"))
@@ -62,11 +64,13 @@ class HealthControllerTest {
 
     @Test
     fun `should return detailed health information`() {
+        // Given
         val serverStatus = Document("version", "7.0.0")
         `when`(mongoTemplate.db).thenReturn(mongoDatabase)
         `when`(mongoDatabase.name).thenReturn("synectix-test")
         `when`(mongoDatabase.runCommand(org.mockito.ArgumentMatchers.any(Document::class.java))).thenReturn(serverStatus)
 
+        // When & Then
         mockMvc.perform(get("/api/health/detailed"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.status").value("UP"))
@@ -78,8 +82,10 @@ class HealthControllerTest {
 
     @Test
     fun `should return service unavailable when database is down`() {
+        // Given
         `when`(mongoTemplate.db).thenThrow(RuntimeException("Database connection failed"))
 
+        // When & Then
         mockMvc.perform(get("/api/health"))
             .andExpect(status().isServiceUnavailable)
             .andExpect(jsonPath("$.status").value("DOWN"))

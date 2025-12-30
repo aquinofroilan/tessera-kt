@@ -9,7 +9,7 @@ import java.util.UUID
 @Document(collection = "users")
 data class User(
     @Id
-    val id: String = UUID.randomUUID().toString(),
+    val uuid: String = UUID.randomUUID().toString(),
 
     @Indexed(unique = true)
     val username: String,
@@ -18,7 +18,13 @@ data class User(
 
     val email: String,
 
-    val roles: Set<String> = setOf("USER"),
+    val firstName: String,
+
+    val lastName: String,
+
+    val isActive: Boolean = true,
+
+    val roles: List<String> = listOf("USER"),
 
     val createdAt: LocalDateTime = LocalDateTime.now(),
 

@@ -8,12 +8,14 @@ data class LoginRequest(
 data class RegisterRequest(
     val username: String,
     val password: String,
-    val email: String
+    val email: String,
+    val firstName: String,
+    val lastName: String
 )
 
 data class AuthResponse(
     val token: String,
     val username: String,
-    val roles: Set<String>,
+    val roles: List<String>,
     val expiresAt: String
 )

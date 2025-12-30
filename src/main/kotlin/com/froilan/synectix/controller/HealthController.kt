@@ -86,7 +86,7 @@ class HealthController(
             mapOf(
                 "status" to "UP",
                 "database" to "MongoDB",
-                "version" to (serverStatus.get("version") ?: "unknown"),
+                "version" to (serverStatus["version"]?.toString() ?: "unknown"),
                 "databaseName" to db.name
             )
         } catch (e: Exception) {

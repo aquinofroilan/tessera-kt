@@ -32,7 +32,7 @@ class AuthController(
     fun register(@RequestBody request: RegisterRequest): ResponseEntity<Any> {
         return try {
             val user = authService.register(request)
-            ResponseEntity.status(HttpStatus.CREATED).body(mapOf("message" to "User registered successfully", "userId" to user.id))
+            ResponseEntity.status(HttpStatus.CREATED).body(mapOf("message" to "User registered successfully", "userId" to user.uuid))
         } catch (e: IllegalArgumentException) {
             ResponseEntity.badRequest().body(mapOf("error" to e.message))
         }

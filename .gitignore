@@ -38,3 +38,10 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+### Environment Variables ###
+.env
+*.env
+.env.local
+.env.production
+.env.staging

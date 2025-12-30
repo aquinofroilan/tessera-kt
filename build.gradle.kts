@@ -38,9 +38,10 @@ repositories {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
-	implementation("org.springframework.boot:spring-boot-actuator")
-	implementation("org.aspectj:aspectjweaver")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-health:4.0.1")
+	implementation("org.aspectj:aspectjweaver")
+	implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-authorization-server")
 	implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
