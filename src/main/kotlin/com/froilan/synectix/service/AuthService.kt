@@ -9,6 +9,7 @@ import com.froilan.synectix.model.User
 import com.froilan.synectix.repository.OrganizationRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -31,36 +32,44 @@ class AuthService(
 
     @Transactional
     fun register(request: RegisterRequest): User {
-        if (userRepository.existsByUsername(request.username)) throw IllegalArgumentException("Username already exists")
+        try {
+            val organization = Organizations(
+                name = request.orgName,
+                orgSlug = request.orgSlug,
+                description = request.orgDescription,
+                baseCurrency = request.orgBaseCurrency,
+                fiscalYearStart = request.orgFiscalYearStart,
+                tradeName = request.orgTradeName,
+                timezone = request.orgTimezone,
+                legalName = request.orgLegalName,
+            )
+            val savedOrganization = organizationRepository.save(organization)
 
-        if (userRepository.existsByEmail(request.email)) throw IllegalArgumentException("Email already exists")
+            val user = User(
+                username = request.username,
+                passwordHash = passwordEncoder.encode(request.password) as String,
+                firstName = request.firstName,
+                lastName = request.lastName,
+                email = request.email,
+                organizationId = savedOrganization.uuid
+            )
+            return userRepository.save(user)
 
-        if (organizationRepository.existsByOrgSlug(request.orgSlug)) throw IllegalArgumentException("Organization slug already exists")
-
-        if (organizationRepository.existsByName(request.orgName)) throw IllegalArgumentException("Organization name already exists")
-
-        val organization = Organizations(
-            name = request.orgName,
-            orgSlug = request.orgSlug,
-            description = request.orgDescription,
-            baseCurrency = request.orgBaseCurrency,
-            fiscalYearStart = request.orgFiscalYearStart,
-            tradeName = request.orgTradeName,
-            timezone = request.orgTimezone,
-            legalName = request.orgLegalName,
-        )
-
-        val savedOrganization = organizationRepository.save(organization)
-
-        val user = User(
-            username = request.username,
-            passwordHash = passwordEncoder.encode(request.password),
-            firstName = request.firstName,
-            lastName = request.lastName,
-            email = request.email,
-            organizationId = savedOrganization.uuid
-        )
-        return userRepository.save(user)
+        } catch (e: DuplicateKeyException) {
+            val errorMessage = e.message ?: ""
+            when {
+                errorMessage.contains("username", ignoreCase = true) ->
+                    throw IllegalArgumentException("Username already exists")
+                errorMessage.contains("email", ignoreCase = true) ->
+                    throw IllegalArgumentException("Email already exists")
+                errorMessage.contains("orgSlug", ignoreCase = true) ->
+                    throw IllegalArgumentException("Organization slug already exists")
+                errorMessage.contains("name", ignoreCase = true) ->
+                    throw IllegalArgumentException("Organization name already exists")
+                else ->
+                    throw IllegalArgumentException("Duplicate entry: ${e.message}")
+            }
+        }
     }
 
     @Transactional

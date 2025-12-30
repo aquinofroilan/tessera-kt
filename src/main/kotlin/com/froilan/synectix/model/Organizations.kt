@@ -7,13 +7,14 @@ import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 
 @Document(collection = "organizations")
-data class Organization(
+data class Organizations(
     @Id
     val uuid: String = UUID.randomUUID().toString(),
 
     @Indexed(unique = true)
     val orgSlug: String,
 
+    @Indexed(unique = true)
     val name: String,
 
     val description: String? = null,

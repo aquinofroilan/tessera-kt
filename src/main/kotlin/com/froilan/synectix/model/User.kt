@@ -1,6 +1,8 @@
 package com.froilan.synectix.model
 
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.index.Indexed
 import java.time.LocalDateTime
@@ -14,13 +16,14 @@ data class User(
     @Indexed(unique = true)
     val username: String,
 
-    val passwordHash: String,
-
+    @Indexed(unique = true)
     val email: String,
 
     val firstName: String,
 
     val lastName: String,
+
+    val passwordHash: String,
 
     val isActive: Boolean = true,
 
@@ -28,7 +31,9 @@ data class User(
 
     val roles: List<String> = listOf("USER"),
 
-    val createdAt: LocalDateTime = LocalDateTime.now(),
+    @CreatedDate
+    var createdAt: LocalDateTime? = null,
 
-    var updatedAt: LocalDateTime = LocalDateTime.now()
+    @LastModifiedDate
+    var updatedAt: LocalDateTime? = null
 )
