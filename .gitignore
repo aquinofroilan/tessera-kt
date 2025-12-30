@@ -41,7 +41,14 @@ out/
 
 ### Environment Variables ###
 .env
+env
 *.env
 .env.local
 .env.production
 .env.staging
+
+# Logs
+.logs
+.log
+*.log.*
+*.log

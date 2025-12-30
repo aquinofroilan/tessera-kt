@@ -40,10 +40,10 @@ class HealthControllerTest {
     @Test
     fun `should return health status UP when database is healthy`() {
         // Given
-        val serverStatus = Document("version", "7.0.0")
+        val buildInfo = Document("version", "7.0.0")
         `when`(mongoTemplate.db).thenReturn(mongoDatabase)
         `when`(mongoDatabase.name).thenReturn("synectix-test")
-        `when`(mongoDatabase.runCommand(org.mockito.ArgumentMatchers.any(Document::class.java))).thenReturn(serverStatus)
+        `when`(mongoDatabase.runCommand(org.mockito.ArgumentMatchers.any(Document::class.java))).thenReturn(buildInfo)
 
         // When & Then
         mockMvc.perform(get("/api/health"))
@@ -65,10 +65,10 @@ class HealthControllerTest {
     @Test
     fun `should return detailed health information`() {
         // Given
-        val serverStatus = Document("version", "7.0.0")
+        val buildInfo = Document("version", "7.0.0")
         `when`(mongoTemplate.db).thenReturn(mongoDatabase)
         `when`(mongoDatabase.name).thenReturn("synectix-test")
-        `when`(mongoDatabase.runCommand(org.mockito.ArgumentMatchers.any(Document::class.java))).thenReturn(serverStatus)
+        `when`(mongoDatabase.runCommand(org.mockito.ArgumentMatchers.any(Document::class.java))).thenReturn(buildInfo)
 
         // When & Then
         mockMvc.perform(get("/api/health/detailed"))

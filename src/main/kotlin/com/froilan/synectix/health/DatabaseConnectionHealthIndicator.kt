@@ -13,11 +13,10 @@ class DatabaseConnectionHealthIndicator(
     override fun health(): Health {
         return try {
             val db = mongoTemplate.db
-            val serverStatus = db.runCommand(org.bson.Document("serverStatus", 1))
+            db.runCommand(org.bson.Document("ping", 1))
 
             Health.up()
                 .withDetail("database", "MongoDB")
-                .withDetail("version", serverStatus.get("version")?.toString() ?: "unknown")
                 .withDetail("status", "Connected")
                 .withDetail("databaseName", db.name)
                 .build()

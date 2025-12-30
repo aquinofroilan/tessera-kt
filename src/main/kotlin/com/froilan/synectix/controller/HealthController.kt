@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.MongoTemplate
 import java.time.LocalDateTime
 
 @RestController
-@RequestMapping("/api/health")
+@RequestMapping("/health")
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.DEBUG)
 class HealthController(
     @Autowired private val mongoTemplate: MongoTemplate
@@ -81,12 +81,13 @@ class HealthController(
     private fun checkDatabaseHealth(): Map<String, Any> {
         return try {
             val db = mongoTemplate.db
-            val serverStatus = db.runCommand(org.bson.Document("serverStatus", 1))
+            // Use ping command instead of buildInfo as it requires fewer permissions
+            db.runCommand(org.bson.Document("ping", 1))
 
             mapOf(
                 "status" to "UP",
                 "database" to "MongoDB",
-                "version" to (serverStatus["version"]?.toString() ?: "unknown"),
+                "status_detail" to "Connected",
                 "databaseName" to db.name
             )
         } catch (e: Exception) {

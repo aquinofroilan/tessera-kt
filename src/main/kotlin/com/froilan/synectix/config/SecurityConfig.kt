@@ -33,8 +33,8 @@ class SecurityConfig(
             .cors { it.configurationSource(corsConfigurationSource()) }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
-                it.requestMatchers("/api/auth/**").permitAll()
-                it.requestMatchers("/api/health/**").permitAll()
+                it.requestMatchers("/auth/**").permitAll()
+                it.requestMatchers("/health/**").permitAll()
                 it.requestMatchers("/actuator/health/**").permitAll()
                 it.requestMatchers("/actuator/info").permitAll()
                 it.anyRequest().authenticated()

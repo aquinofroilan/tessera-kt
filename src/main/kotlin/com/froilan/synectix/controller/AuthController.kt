@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.time.LocalDateTime
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
 class AuthController(
     private val authService: AuthService
@@ -28,7 +28,7 @@ class AuthController(
     private val MAX_ATTEMPTS = 5
     private val BLOCK_DURATION_MINUTES = 15L
 
-    @PostMapping("/register")
+    @PostMapping("/signup")
     fun register(@RequestBody request: RegisterRequest): ResponseEntity<Any> {
         return try {
             val user = authService.register(request)
@@ -38,7 +38,7 @@ class AuthController(
         }
     }
 
-    @PostMapping("/login")
+    @PostMapping("/signin")
     fun login(@RequestBody request: LoginRequest, httpRequest: HttpServletRequest): ResponseEntity<Any> {
         val clientIp = httpRequest.remoteAddr
 
@@ -70,7 +70,6 @@ class AuthController(
         if (LocalDateTime.now().isBefore(blockedUntil)) {
             return true
         }
-        // Block expired
         if (LocalDateTime.now().isAfter(blockedUntil) && blockedUntil != LocalDateTime.MIN) {
              loginAttempts.remove(ip)
              return false
