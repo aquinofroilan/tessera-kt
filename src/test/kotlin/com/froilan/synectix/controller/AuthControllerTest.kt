@@ -20,7 +20,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.time.LocalDateTime
 
 @WebMvcTest(controllers = [AuthController::class])
-@Import(LoggingAspect::class)
+@Import(LoggingAspect::class, com.froilan.synectix.config.TestSecurityConfig::class)
 @ActiveProfiles("test")
 class AuthControllerTest {
 
@@ -86,12 +86,17 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson)
         )
+            .andDo { result ->
+                println("Response status: ${result.response.status}")
+                println("Response body: ${result.response.contentAsString}")
+            }
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.message").value("User registered successfully"))
             .andExpect(jsonPath("$.userId").value(savedUser.uuid))
     }
 
     @Test
+    
     fun `POST signup should return 400 when username already exists`() {
         // Given
         val requestJson = """
@@ -125,6 +130,7 @@ class AuthControllerTest {
     }
 
     @Test
+    
     fun `POST signup should return 400 when email already exists`() {
         // Given
         val requestJson = """
@@ -160,6 +166,7 @@ class AuthControllerTest {
     // ========== Signin Tests ==========
 
     @Test
+    
     fun `POST signin should return 200 with token when login is successful`() {
         // Given
         val requestJson = """
@@ -192,6 +199,7 @@ class AuthControllerTest {
     }
 
     @Test
+    
     fun `POST signin should return 400 when credentials are invalid`() {
         // Given
         val requestJson = """

@@ -5,6 +5,7 @@ plugins {
 	kotlin("plugin.spring") version "2.3.0"
 	id("org.springframework.boot") version "4.0.1"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("org.jlleitschuh.gradle.ktlint") version "12.1.0" // Kotlin linting
 }
 
 group = "com.froilan"
@@ -67,4 +68,15 @@ kotlin {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+// ========== Ktlint Configuration ==========
+ktlint {
+	version.set("1.0.1")
+	android.set(false)
+	ignoreFailures.set(false) // Fail build on lint errors
+	reporters {
+		reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
+		reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
+	}
 }
