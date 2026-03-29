@@ -11,7 +11,6 @@ import kotlin.system.measureTimeMillis
 @Aspect
 @Component
 class PerformanceMonitoringAspect {
-
     private val logger: Logger = LoggerFactory.getLogger(PerformanceMonitoringAspect::class.java)
 
     @Around("execution(* com.froilan.synectix.service..*(..))")
@@ -19,9 +18,10 @@ class PerformanceMonitoringAspect {
         val methodName = "${joinPoint.target.javaClass.simpleName}.${joinPoint.signature.name}"
 
         var result: Any?
-        val executionTime = measureTimeMillis {
-            result = joinPoint.proceed()
-        }
+        val executionTime =
+            measureTimeMillis {
+                result = joinPoint.proceed()
+            }
 
         if (executionTime > 1000) {
             logger.warn("SLOW OPERATION: $methodName took ${executionTime}ms")
@@ -37,9 +37,10 @@ class PerformanceMonitoringAspect {
         val methodName = "${joinPoint.target.javaClass.simpleName}.${joinPoint.signature.name}"
 
         var result: Any?
-        val executionTime = measureTimeMillis {
-            result = joinPoint.proceed()
-        }
+        val executionTime =
+            measureTimeMillis {
+                result = joinPoint.proceed()
+            }
 
         logger.info("Controller $methodName executed in ${executionTime}ms")
 
@@ -51,9 +52,10 @@ class PerformanceMonitoringAspect {
         val methodName = "${joinPoint.target.javaClass.simpleName}.${joinPoint.signature.name}"
 
         var result: Any?
-        val executionTime = measureTimeMillis {
-            result = joinPoint.proceed()
-        }
+        val executionTime =
+            measureTimeMillis {
+                result = joinPoint.proceed()
+            }
 
         if (executionTime > 200) {
             logger.warn("SLOW DB QUERY: $methodName took ${executionTime}ms")

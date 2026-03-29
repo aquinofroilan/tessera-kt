@@ -8,6 +8,8 @@ import java.util.Optional
 @Repository
 interface OrganizationRepository : MongoRepository<Organizations, String> {
     fun findByOrgSlug(orgSlug: String): Optional<Organizations>
+
     fun existsByOrgSlug(orgSlug: String): Boolean
+
     fun existsByName(name: String): Boolean
 }

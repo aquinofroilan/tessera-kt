@@ -7,24 +7,24 @@ import org.springframework.stereotype.Component
 
 @Component
 class DatabaseConnectionHealthIndicator(
-    private val mongoTemplate: MongoTemplate
+    private val mongoTemplate: MongoTemplate,
 ) : HealthIndicator {
-
-    override fun health(): Health {
-        return try {
+    override fun health(): Health =
+        try {
             val db = mongoTemplate.db
             db.runCommand(org.bson.Document("ping", 1))
 
-            Health.up()
+            Health
+                .up()
                 .withDetail("database", "MongoDB")
                 .withDetail("status", "Connected")
                 .withDetail("databaseName", db.name)
                 .build()
         } catch (e: Exception) {
-            Health.down()
+            Health
+                .down()
                 .withDetail("error", e.message ?: "Unknown database error")
                 .withException(e)
                 .build()
         }
-    }
 }

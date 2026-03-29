@@ -15,7 +15,6 @@ import kotlin.system.measureTimeMillis
 @Aspect
 @Component
 class LoggingAspect {
-
     @Around("@annotation(com.froilan.synectix.annotation.Loggable) || @within(com.froilan.synectix.annotation.Loggable)")
     fun logExecutionTime(joinPoint: ProceedingJoinPoint): Any? {
         val logger = LoggerFactory.getLogger(joinPoint.target.javaClass)
@@ -28,9 +27,11 @@ class LoggingAspect {
         val args = joinPoint.args
 
         if (loggableAnnotation.logParameters && args.isNotEmpty()) {
-            val params = args.mapIndexed { index, arg ->
-                "${signature.parameterNames?.getOrNull(index) ?: "arg$index"}=${maskSensitiveData(arg)}"
-            }.joinToString(", ")
+            val params =
+                args
+                    .mapIndexed { index, arg ->
+                        "${signature.parameterNames?.getOrNull(index) ?: "arg$index"}=${maskSensitiveData(arg)}"
+                    }.joinToString(", ")
             logMessage(logger, loggableAnnotation.level, "→ Entering $methodName with parameters: [$params]")
         } else {
             logMessage(logger, loggableAnnotation.level, "→ Entering $methodName")
@@ -41,9 +42,10 @@ class LoggingAspect {
 
         try {
             if (loggableAnnotation.logExecutionTime) {
-                executionTime = measureTimeMillis {
-                    result = joinPoint.proceed()
-                }
+                executionTime =
+                    measureTimeMillis {
+                        result = joinPoint.proceed()
+                    }
             } else {
                 result = joinPoint.proceed()
             }
@@ -59,18 +61,29 @@ class LoggingAspect {
             return result
         } catch (exception: Throwable) {
             val timeMessage = if (loggableAnnotation.logExecutionTime && executionTime > 0) " (${executionTime}ms)" else ""
-            logMessage(logger, LogLevel.ERROR, "✗ Exception in $methodName$timeMessage: ${exception.javaClass.simpleName} - ${exception.message}")
+            logMessage(
+                logger,
+                LogLevel.ERROR,
+                "✗ Exception in $methodName$timeMessage: ${exception.javaClass.simpleName} - ${exception.message}",
+            )
             throw exception
         }
     }
 
-    private fun getLoggableAnnotation(method: Method, targetClass: Class<*>): Loggable? {
+    private fun getLoggableAnnotation(
+        method: Method,
+        targetClass: Class<*>,
+    ): Loggable? {
         method.getAnnotation(Loggable::class.java)?.let { return it }
 
         return targetClass.getAnnotation(Loggable::class.java)
     }
 
-    private fun logMessage(logger: Logger, level: LogLevel, message: String) {
+    private fun logMessage(
+        logger: Logger,
+        level: LogLevel,
+        message: String,
+    ) {
         when (level) {
             LogLevel.TRACE -> logger.trace(message)
             LogLevel.DEBUG -> logger.debug(message)
@@ -80,8 +93,8 @@ class LoggingAspect {
         }
     }
 
-    private fun maskSensitiveData(obj: Any?): String {
-        return when {
+    private fun maskSensitiveData(obj: Any?): String =
+        when {
             obj == null -> "null"
             obj.toString().contains("password", ignoreCase = true) -> "***MASKED***"
             obj.toString().contains("token", ignoreCase = true) -> "***MASKED***"
@@ -89,5 +102,4 @@ class LoggingAspect {
             obj.toString().length > 100 -> obj.toString().take(100) + "... (truncated)"
             else -> obj.toString()
         }
-    }
 }

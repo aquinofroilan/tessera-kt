@@ -13,7 +13,7 @@ data class SynectixProperties(
     var name: String = "Synectix ERP System",
     var version: String = "0.0.1-SNAPSHOT",
     var description: String = "Synectix an ERP System",
-    var environment: String = "development"
+    var environment: String = "development",
 )
 
 /**
@@ -23,7 +23,7 @@ data class SynectixProperties(
 @ConfigurationProperties(prefix = "spring.data.mongodb")
 data class DatabaseProperties(
     var uri: String = "mongodb://localhost:27017/synectix",
-    var database: String = "synectix"
+    var database: String = "synectix",
 )
 
 /**
@@ -32,10 +32,11 @@ data class DatabaseProperties(
 @Component
 @ConfigurationProperties(prefix = "security")
 data class SecurityProperties(
-    var jwt: JwtProperties = JwtProperties()
+    var jwt: JwtProperties = JwtProperties(),
 ) {
     data class JwtProperties(
         var secret: String = "\${JWT_SECRET:default-secret}",
-        var expiration: Long = 86400000L // 24 hours in milliseconds
+        // 24 hours in milliseconds
+        var expiration: Long = 86400000L,
     )
 }

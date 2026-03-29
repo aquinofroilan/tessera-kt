@@ -6,13 +6,15 @@ import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDateTime
 import java.util.UUID
 
-@Document(collection = "session_tokens")
-data class SessionToken(
+@Document(collection = "refresh_tokens")
+data class RefreshToken(
     @Id
     val id: String = UUID.randomUUID().toString(),
     @Indexed(unique = true)
     val token: String,
     val userId: String,
+    val sessionTokenId: String,
+    @Indexed(expireAfterSeconds = 0)
     val expiryAt: LocalDateTime,
     val createdAt: LocalDateTime = LocalDateTime.now(),
 )
