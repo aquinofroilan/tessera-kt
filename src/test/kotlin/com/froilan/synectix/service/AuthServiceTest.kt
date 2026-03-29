@@ -447,6 +447,71 @@ class AuthServiceTest {
         verify(sessionTokenRepository, times(1)).deleteByToken(token)
     }
 
+    // --- Session Management Tests ---
+
+    @Test
+    fun `listSessions should return only non-expired sessions`() {
+        val userId = "user-123"
+        val activeSessions =
+            listOf(
+                SessionToken(id = "s1", token = "t1", userId = userId, expiryAt = LocalDateTime.now().plusHours(12)),
+                SessionToken(id = "s2", token = "t2", userId = userId, expiryAt = LocalDateTime.now().minusHours(1)),
+            )
+        `when`(sessionTokenRepository.findByUserId(userId)).thenReturn(activeSessions)
+
+        val result = authService.listSessions(userId)
+
+        assertEquals(1, result.size)
+        assertEquals("s1", result[0].id)
+    }
+
+    @Test
+    fun `revokeSession should delete session and its refresh token`() {
+        val userId = "user-123"
+        val session = SessionToken(id = "s1", token = "t1", userId = userId, expiryAt = LocalDateTime.now().plusHours(12))
+
+        `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
+
+        authService.revokeSession(userId, "s1")
+
+        verify(refreshTokenRepository).deleteBySessionTokenId("s1")
+        verify(sessionTokenRepository).deleteById("s1")
+    }
+
+    @Test
+    fun `revokeSession should throw when session belongs to different user`() {
+        val session = SessionToken(id = "s1", token = "t1", userId = "other-user", expiryAt = LocalDateTime.now().plusHours(12))
+
+        `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
+
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.revokeSession("user-123", "s1")
+            }
+        assertEquals("Session not found", exception.message)
+    }
+
+    @Test
+    fun `revokeOtherSessions should keep current session and delete others`() {
+        val userId = "user-123"
+        val currentToken = "current-token"
+        val sessions =
+            listOf(
+                SessionToken(id = "s1", token = currentToken, userId = userId, expiryAt = LocalDateTime.now().plusHours(12)),
+                SessionToken(id = "s2", token = "other-token", userId = userId, expiryAt = LocalDateTime.now().plusHours(12)),
+            )
+        `when`(sessionTokenRepository.findByUserId(userId)).thenReturn(sessions)
+
+        authService.revokeOtherSessions(userId, currentToken)
+
+        verify(refreshTokenRepository).deleteBySessionTokenId("s2")
+        verify(sessionTokenRepository).deleteById("s2")
+        verify(refreshTokenRepository, never()).deleteBySessionTokenId("s1")
+        verify(sessionTokenRepository, never()).deleteById("s1")
+    }
+
+    // --- Change Password Tests ---
+
     @Test
     fun `changePassword should update password with valid current password`() {
         val user = createMockUser()
