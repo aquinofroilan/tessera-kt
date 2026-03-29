@@ -10,4 +10,6 @@ interface SessionTokenRepository : MongoRepository<SessionToken, String> {
     fun findByToken(token: String): Optional<SessionToken>
 
     fun deleteByToken(token: String)
+
+    fun deleteByUserId(userId: String)
 }

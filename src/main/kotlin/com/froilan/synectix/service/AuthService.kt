@@ -4,10 +4,12 @@ import com.froilan.synectix.dto.AuthResponse
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.model.Organizations
+import com.froilan.synectix.model.PasswordResetToken
 import com.froilan.synectix.model.RefreshToken
 import com.froilan.synectix.model.SessionToken
 import com.froilan.synectix.model.User
 import com.froilan.synectix.repository.OrganizationRepository
+import com.froilan.synectix.repository.PasswordResetTokenRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
@@ -31,6 +33,7 @@ class AuthService(
     private val organizationRepository: OrganizationRepository,
     private val sessionTokenRepository: SessionTokenRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
+    private val passwordResetTokenRepository: PasswordResetTokenRepository,
     private val mongoTemplate: MongoTemplate,
     private val tokenHasher: TokenHasher,
     private val passwordEncoder: PasswordEncoder,
@@ -38,6 +41,8 @@ class AuthService(
     private val tokenValidityMs: Long,
     @Value("\${security.jwt.refresh-expiration:2592000000}")
     private val refreshTokenValidityMs: Long,
+    @Value("\${security.password-reset.expiration-minutes:60}")
+    private val resetTokenExpiryMinutes: Long,
 ) {
     private val secureRandom = SecureRandom()
 
@@ -198,6 +203,73 @@ class AuthService(
             expiresAt = expiryAt.toString(),
             refreshTokenExpiresAt = refreshExpiryAt.toString(),
         )
+    }
+
+    @Transactional
+    fun changePassword(
+        user: User,
+        currentPassword: String,
+        newPassword: String,
+    ) {
+        if (!passwordEncoder.matches(currentPassword, user.passwordHash)) {
+            throw IllegalArgumentException("Current password is incorrect")
+        }
+        if (currentPassword == newPassword) {
+            throw IllegalArgumentException("New password must be different from current password")
+        }
+        val updatedUser = user.copy(passwordHash = passwordEncoder.encode(newPassword) as String)
+        userRepository.save(updatedUser)
+    }
+
+    @Transactional
+    fun forgotPassword(email: String): String? {
+        val user = userRepository.findByEmail(email).orElse(null) ?: return null
+
+        if (!user.isActive) {
+            return null
+        }
+
+        passwordResetTokenRepository.deleteByUserId(user.uuid)
+
+        val rawToken = generateToken()
+        val resetToken =
+            PasswordResetToken(
+                tokenHash = tokenHasher.hash(rawToken),
+                userId = user.uuid,
+                expiryAt = LocalDateTime.now().plusMinutes(resetTokenExpiryMinutes),
+            )
+        passwordResetTokenRepository.save(resetToken)
+
+        return rawToken
+    }
+
+    @Transactional
+    fun resetPassword(
+        token: String,
+        newPassword: String,
+    ) {
+        val tokenHash = tokenHasher.hash(token)
+        val resetToken =
+            passwordResetTokenRepository
+                .findByTokenHash(tokenHash)
+                .orElseThrow { IllegalArgumentException("Invalid or expired reset token") }
+
+        if (!resetToken.expiryAt.isAfter(LocalDateTime.now())) {
+            passwordResetTokenRepository.deleteById(resetToken.id)
+            throw IllegalArgumentException("Invalid or expired reset token")
+        }
+
+        val user =
+            userRepository
+                .findById(resetToken.userId)
+                .orElseThrow { IllegalArgumentException("Invalid or expired reset token") }
+
+        val updatedUser = user.copy(passwordHash = passwordEncoder.encode(newPassword) as String)
+        userRepository.save(updatedUser)
+
+        passwordResetTokenRepository.deleteByUserId(user.uuid)
+        sessionTokenRepository.deleteByUserId(user.uuid)
+        refreshTokenRepository.deleteByUserId(user.uuid)
     }
 
     @Transactional
