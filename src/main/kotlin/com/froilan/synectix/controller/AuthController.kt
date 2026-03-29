@@ -26,8 +26,11 @@ class AuthController(
 
     // Simple in-memory rate limiting (IP -> (Attempts, BlockedUntil))
     private val loginAttempts = ConcurrentHashMap<String, Pair<Int, LocalDateTime>>()
-    private val MAX_ATTEMPTS = 5
-    private val BLOCK_DURATION_MINUTES = 15L
+
+    companion object {
+        private const val MAX_ATTEMPTS = 5
+        private const val BLOCK_DURATION_MINUTES = 15L
+    }
 
     @PostMapping("/signup")
     fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<Any> {
