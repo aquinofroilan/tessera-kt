@@ -9,6 +9,8 @@ import java.util.Optional
 interface SessionTokenRepository : MongoRepository<SessionToken, String> {
     fun findByToken(token: String): Optional<SessionToken>
 
+    fun findByUserId(userId: String): List<SessionToken>
+
     fun deleteByToken(token: String)
 
     fun deleteByUserId(userId: String)

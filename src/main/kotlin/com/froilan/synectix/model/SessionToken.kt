@@ -14,5 +14,7 @@ data class SessionToken(
     val token: String,
     val userId: String,
     val expiryAt: LocalDateTime,
+    val ipAddress: String? = null,
+    val userAgent: String? = null,
     val createdAt: LocalDateTime = LocalDateTime.now(),
 )

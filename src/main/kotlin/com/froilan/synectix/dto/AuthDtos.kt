@@ -69,6 +69,15 @@ data class ResetPasswordRequest(
     val newPassword: String,
 )
 
+data class SessionResponse(
+    val id: String,
+    val ipAddress: String?,
+    val userAgent: String?,
+    val createdAt: String,
+    val expiresAt: String,
+    val current: Boolean,
+)
+
 data class AuthResponse(
     val accessToken: String,
     val refreshToken: String,
