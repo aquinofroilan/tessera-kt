@@ -1,0 +1,118 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  JAVA_VERSION: '21'
+  JAVA_DISTRIBUTION: 'temurin'
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+        env:
+          MONGO_INITDB_ROOT_USERNAME: testuser
+          MONGO_INITDB_ROOT_PASSWORD: testpass
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Kotlin Linter
+        run: ./gradlew ktlintCheck
+
+      - name: Build with Gradle
+        run: ./gradlew build -x test
+
+      - name: Run Tests
+        env:
+          TEST_MONGODB_URI: mongodb://testuser:testpass@localhost:27017/synectix-test?authSource=admin
+          MONGODB_URI: mongodb://testuser:testpass@localhost:27017/synectix?authSource=admin
+          JWT_SECRET: test-secret-key-for-ci-cd
+        run: ./gradlew test
+
+      - name: Start Application in Background
+        env:
+          MONGODB_URI: mongodb://testuser:testpass@localhost:27017/synectix?authSource=admin
+          JWT_SECRET: test-secret-key-for-ci-cd
+        run: |
+          ./gradlew bootJar
+          java -jar build/libs/*.jar &
+          APP_PID=$!
+          echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+          echo "Application started with PID: $APP_PID"
+
+      - name: Wait for Application Startup
+        run: |
+          echo "Waiting for application to start..."
+          for i in {1..30}; do
+            if curl -f http://localhost:8080/api/health > /dev/null 2>&1; then
+              echo "Application is up!"
+              break
+            fi
+            echo "Attempt $i: Application not ready yet..."
+            sleep 2
+          done
+
+      - name: Health Check - Ping Health Endpoint
+        run: |
+          echo "Testing health endpoint..."
+          HEALTH_RESPONSE=$(curl -s http://localhost:8080/api/health)
+          echo "Health response: $HEALTH_RESPONSE"
+
+          # Check if status is UP
+          if echo "$HEALTH_RESPONSE" | grep -q '"status":"UP"'; then
+            echo "✓ Health check passed - Application is running!"
+          else
+            echo "✗ Health check failed - Application is not healthy"
+            exit 1
+          fi
+
+      - name: Stop Application
+        if: always()
+        run: |
+          if [ ! -z "$APP_PID" ]; then
+            echo "Stopping application (PID: $APP_PID)..."
+            kill $APP_PID || true
+          fi
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: build/test-results/
+          retention-days: 7
+
+      - name: Upload Build Artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-jar
+          path: build/libs/*.jar
+          retention-days: 7
