@@ -2,14 +2,20 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.annotation.LogLevel
 import com.froilan.synectix.annotation.Loggable
+import com.froilan.synectix.dto.ChangePasswordRequest
+import com.froilan.synectix.dto.ForgotPasswordRequest
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RefreshRequest
 import com.froilan.synectix.dto.RegisterRequest
+import com.froilan.synectix.dto.ResetPasswordRequest
+import com.froilan.synectix.model.User
 import com.froilan.synectix.service.AuthService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
@@ -24,12 +30,17 @@ import java.util.concurrent.ConcurrentHashMap
 class AuthController(
     private val authService: AuthService,
 ) {
+    private val log = LoggerFactory.getLogger(AuthController::class.java)
+
     // Simple in-memory rate limiting (IP -> (Attempts, BlockedUntil))
     private val loginAttempts = ConcurrentHashMap<String, Pair<Int, LocalDateTime>>()
+
+    private val forgotPasswordThrottle = ConcurrentHashMap<String, LocalDateTime>()
 
     companion object {
         private const val MAX_ATTEMPTS = 5
         private const val BLOCK_DURATION_MINUTES = 15L
+        private const val FORGOT_PASSWORD_THROTTLE_MINUTES = 2L
     }
 
     @PostMapping("/signup")
@@ -83,6 +94,58 @@ class AuthController(
             ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(mapOf("error" to (e.message ?: "Invalid or expired refresh token")))
+        }
+
+    @PostMapping("/change-password")
+    fun changePassword(
+        @Valid @RequestBody request: ChangePasswordRequest,
+    ): ResponseEntity<Any> {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val user =
+            authentication?.principal as? User
+                ?: return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(mapOf("error" to "Authentication required"))
+
+        return try {
+            authService.changePassword(user, request.currentPassword, request.newPassword)
+            ResponseEntity.ok(mapOf("message" to "Password changed successfully"))
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Password change failed")))
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    fun forgotPassword(
+        @Valid @RequestBody request: ForgotPasswordRequest,
+    ): ResponseEntity<Any> {
+        val email = request.email.lowercase()
+        val lastRequest = forgotPasswordThrottle[email]
+        if (lastRequest != null && lastRequest.plusMinutes(FORGOT_PASSWORD_THROTTLE_MINUTES).isAfter(LocalDateTime.now())) {
+            return ResponseEntity.ok(
+                mapOf("message" to "If an account with that email exists, a password reset link has been sent."),
+            )
+        }
+
+        forgotPasswordThrottle[email] = LocalDateTime.now()
+        val resetToken = authService.forgotPassword(email)
+        if (resetToken != null) {
+            log.info("Password reset token generated for email: {}", email)
+        }
+        return ResponseEntity.ok(
+            mapOf("message" to "If an account with that email exists, a password reset link has been sent."),
+        )
+    }
+
+    @PostMapping("/reset-password")
+    fun resetPassword(
+        @Valid @RequestBody request: ResetPasswordRequest,
+    ): ResponseEntity<Any> =
+        try {
+            authService.resetPassword(request.token, request.newPassword)
+            ResponseEntity.ok(mapOf("message" to "Password has been reset successfully"))
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Password reset failed")))
         }
 
     @PostMapping("/logout")
