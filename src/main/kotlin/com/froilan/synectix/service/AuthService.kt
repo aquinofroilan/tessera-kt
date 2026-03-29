@@ -68,7 +68,7 @@ class AuthService(
                     passwordHash = passwordEncoder.encode(request.password) as String,
                     firstName = request.firstName,
                     lastName = request.lastName,
-                    email = request.email,
+                    email = request.email.lowercase(),
                     organizationId = savedOrganization.uuid,
                 )
             return userRepository.save(user)
@@ -250,12 +250,12 @@ class AuthService(
     ) {
         val tokenHash = tokenHasher.hash(token)
         val resetToken =
-            passwordResetTokenRepository
-                .findByTokenHash(tokenHash)
-                .orElseThrow { IllegalArgumentException("Invalid or expired reset token") }
+            mongoTemplate.findAndRemove(
+                Query.query(Criteria.where("tokenHash").`is`(tokenHash)),
+                PasswordResetToken::class.java,
+            ) ?: throw IllegalArgumentException("Invalid or expired reset token")
 
         if (!resetToken.expiryAt.isAfter(LocalDateTime.now())) {
-            passwordResetTokenRepository.deleteById(resetToken.id)
             throw IllegalArgumentException("Invalid or expired reset token")
         }
 
