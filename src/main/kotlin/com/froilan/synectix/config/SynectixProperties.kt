@@ -36,7 +36,6 @@ data class SecurityProperties(
 ) {
     data class JwtProperties(
         var secret: String = "\${JWT_SECRET:default-secret}",
-        // 24 hours in milliseconds
         var expiration: Long = 86400000L,
     )
 }

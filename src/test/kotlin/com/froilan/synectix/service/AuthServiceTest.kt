@@ -3,10 +3,12 @@ package com.froilan.synectix.service
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.model.Organizations
+import com.froilan.synectix.model.PasswordResetToken
 import com.froilan.synectix.model.RefreshToken
 import com.froilan.synectix.model.SessionToken
 import com.froilan.synectix.model.User
 import com.froilan.synectix.repository.OrganizationRepository
+import com.froilan.synectix.repository.PasswordResetTokenRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
@@ -37,6 +39,7 @@ class AuthServiceTest {
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var sessionTokenRepository: SessionTokenRepository
     private lateinit var refreshTokenRepository: RefreshTokenRepository
+    private lateinit var passwordResetTokenRepository: PasswordResetTokenRepository
     private lateinit var mongoTemplate: MongoTemplate
     private lateinit var tokenHasher: TokenHasher
     private lateinit var passwordEncoder: PasswordEncoder
@@ -47,6 +50,7 @@ class AuthServiceTest {
         organizationRepository = mock(OrganizationRepository::class.java)
         sessionTokenRepository = mock(SessionTokenRepository::class.java)
         refreshTokenRepository = mock(RefreshTokenRepository::class.java)
+        passwordResetTokenRepository = mock(PasswordResetTokenRepository::class.java)
         mongoTemplate = mock(MongoTemplate::class.java)
         tokenHasher = mock(TokenHasher::class.java)
         passwordEncoder = mock(PasswordEncoder::class.java)
@@ -59,11 +63,13 @@ class AuthServiceTest {
                 organizationRepository = organizationRepository,
                 sessionTokenRepository = sessionTokenRepository,
                 refreshTokenRepository = refreshTokenRepository,
+                passwordResetTokenRepository = passwordResetTokenRepository,
                 mongoTemplate = mongoTemplate,
                 tokenHasher = tokenHasher,
                 passwordEncoder = passwordEncoder,
                 tokenValidityMs = 86400000L,
                 refreshTokenValidityMs = 2592000000L,
+                resetTokenExpiryMinutes = 60L,
             )
     }
 
@@ -439,6 +445,136 @@ class AuthServiceTest {
 
         verify(refreshTokenRepository, times(1)).deleteBySessionTokenId(sessionToken.id)
         verify(sessionTokenRepository, times(1)).deleteByToken(token)
+    }
+
+    @Test
+    fun `changePassword should update password with valid current password`() {
+        val user = createMockUser()
+        `when`(passwordEncoder.matches("currentPass", user.passwordHash)).thenReturn(true)
+        `when`(passwordEncoder.encode("NewSecurePass123!")).thenReturn("newEncodedPassword")
+        `when`(userRepository.save(any<User>())).thenAnswer { it.arguments[0] }
+
+        authService.changePassword(user, "currentPass", "NewSecurePass123!")
+
+        val userCaptor = argumentCaptor<User>()
+        verify(userRepository).save(userCaptor.capture())
+        assertEquals("newEncodedPassword", userCaptor.firstValue.passwordHash)
+        verify(sessionTokenRepository).deleteByUserId(user.uuid)
+        verify(refreshTokenRepository).deleteByUserId(user.uuid)
+    }
+
+    @Test
+    fun `changePassword should throw when current password is incorrect`() {
+        val user = createMockUser()
+        `when`(passwordEncoder.matches("wrongPass", user.passwordHash)).thenReturn(false)
+
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.changePassword(user, "wrongPass", "NewSecurePass123!")
+            }
+        assertEquals("Current password is incorrect", exception.message)
+    }
+
+    @Test
+    fun `changePassword should throw when new password is same as current`() {
+        val user = createMockUser()
+        `when`(passwordEncoder.matches("samePass", user.passwordHash)).thenReturn(true)
+
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.changePassword(user, "samePass", "samePass")
+            }
+        assertEquals("New password must be different from current password", exception.message)
+    }
+
+    @Test
+    fun `forgotPassword should return reset token for valid email`() {
+        val user = createMockUser()
+        `when`(userRepository.findByEmail(user.email)).thenReturn(Optional.of(user))
+        `when`(passwordResetTokenRepository.save(any<PasswordResetToken>())).thenAnswer { it.arguments[0] }
+
+        val result = authService.forgotPassword(user.email)
+
+        assertNotNull(result)
+        assertTrue(result!!.isNotEmpty())
+        verify(passwordResetTokenRepository).deleteByUserId(user.uuid)
+        verify(passwordResetTokenRepository).save(any<PasswordResetToken>())
+    }
+
+    @Test
+    fun `forgotPassword should return null for unknown email`() {
+        `when`(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty())
+
+        val result = authService.forgotPassword("unknown@example.com")
+
+        assertEquals(null, result)
+        verify(passwordResetTokenRepository, never()).save(any())
+    }
+
+    @Test
+    fun `forgotPassword should return null for inactive user`() {
+        val inactiveUser = createMockUser().copy(isActive = false)
+        `when`(userRepository.findByEmail(inactiveUser.email)).thenReturn(Optional.of(inactiveUser))
+
+        val result = authService.forgotPassword(inactiveUser.email)
+
+        assertEquals(null, result)
+        verify(passwordResetTokenRepository, never()).save(any())
+    }
+
+    @Test
+    fun `resetPassword should update password and invalidate all sessions`() {
+        val user = createMockUser()
+        val resetToken =
+            PasswordResetToken(
+                tokenHash = "hashed-valid-token",
+                userId = user.uuid,
+                expiryAt = LocalDateTime.now().plusMinutes(30),
+            )
+
+        `when`(passwordResetTokenRepository.findByTokenHash("hashed-valid-token")).thenReturn(Optional.of(resetToken))
+        `when`(mongoTemplate.findAndRemove(any(), eq(PasswordResetToken::class.java))).thenReturn(resetToken)
+        `when`(userRepository.findById(user.uuid)).thenReturn(Optional.of(user))
+        `when`(passwordEncoder.encode("NewPassword123!")).thenReturn("newEncodedPass")
+        `when`(userRepository.save(any<User>())).thenAnswer { it.arguments[0] }
+
+        authService.resetPassword("valid-token", "NewPassword123!")
+
+        verify(userRepository).save(any<User>())
+        verify(sessionTokenRepository).deleteByUserId(user.uuid)
+        verify(refreshTokenRepository).deleteByUserId(user.uuid)
+    }
+
+    @Test
+    fun `resetPassword should throw for invalid token`() {
+        `when`(passwordResetTokenRepository.findByTokenHash(any())).thenReturn(Optional.empty())
+
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.resetPassword("invalid-token", "NewPassword123!")
+            }
+        assertEquals("Invalid or expired reset token", exception.message)
+    }
+
+    @Test
+    fun `resetPassword should throw for expired token without consuming it permanently`() {
+        val expiredToken =
+            PasswordResetToken(
+                tokenHash = "hashed-expired-token",
+                userId = "user-123",
+                expiryAt = LocalDateTime.now().minusMinutes(10),
+            )
+
+        `when`(passwordResetTokenRepository.findByTokenHash("hashed-expired-token"))
+            .thenReturn(Optional.of(expiredToken))
+
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.resetPassword("expired-token", "NewPassword123!")
+            }
+        assertEquals("Invalid or expired reset token", exception.message)
+        verify(passwordResetTokenRepository).deleteById(expiredToken.id)
+        verify(mongoTemplate, never()).findAndRemove(any(), eq(PasswordResetToken::class.java))
     }
 
     private fun createValidRegisterRequest() =

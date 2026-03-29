@@ -7,10 +7,12 @@ import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.model.User
 import com.froilan.synectix.repository.OrganizationRepository
+import com.froilan.synectix.repository.PasswordResetTokenRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.service.AuthService
+import com.froilan.synectix.util.TokenHasher
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -53,6 +55,12 @@ class AuthControllerTest {
 
     @MockitoBean
     private lateinit var refreshTokenRepository: RefreshTokenRepository
+
+    @MockitoBean
+    private lateinit var passwordResetTokenRepository: PasswordResetTokenRepository
+
+    @MockitoBean
+    private lateinit var tokenHasher: TokenHasher
 
     @Test
     fun `POST signup should return 201 when registration is successful`() {
@@ -485,5 +493,129 @@ class AuthControllerTest {
         )
 
         verify(authService, times(1)).logout(token)
+    }
+
+    @Test
+    fun `POST forgot-password should return 200 regardless of email existence`() {
+        val requestJson =
+            """
+            {
+                "email": "unknown@example.com"
+            }
+            """.trimIndent()
+
+        `when`(authService.forgotPassword(any<String>())).thenReturn(null)
+
+        mockMvc
+            .perform(
+                post("/auth/forgot-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestJson),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.message").exists())
+    }
+
+    @Test
+    fun `POST forgot-password should return 400 when email is blank`() {
+        val requestJson =
+            """
+            {
+                "email": ""
+            }
+            """.trimIndent()
+
+        mockMvc
+            .perform(
+                post("/auth/forgot-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestJson),
+            ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `POST forgot-password should throttle repeated requests for same email`() {
+        val requestJson =
+            """
+            {
+                "email": "throttle@example.com"
+            }
+            """.trimIndent()
+
+        `when`(authService.forgotPassword(any<String>())).thenReturn("reset-token")
+
+        mockMvc
+            .perform(
+                post("/auth/forgot-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestJson),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/auth/forgot-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestJson),
+            ).andExpect(status().isOk)
+
+        verify(authService, times(1)).forgotPassword(any<String>())
+    }
+
+    @Test
+    fun `POST reset-password should return 200 with valid token`() {
+        val requestJson =
+            """
+            {
+                "token": "valid-reset-token",
+                "newPassword": "NewSecurePass123!"
+            }
+            """.trimIndent()
+
+        mockMvc
+            .perform(
+                post("/auth/reset-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestJson),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.message").value("Password has been reset successfully"))
+    }
+
+    @Test
+    fun `POST reset-password should return 400 with invalid token`() {
+        val requestJson =
+            """
+            {
+                "token": "invalid-token",
+                "newPassword": "NewSecurePass123!"
+            }
+            """.trimIndent()
+
+        `when`(authService.resetPassword(any<String>(), any<String>()))
+            .thenThrow(IllegalArgumentException("Invalid or expired reset token"))
+
+        mockMvc
+            .perform(
+                post("/auth/reset-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestJson),
+            ).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.error").value("Invalid or expired reset token"))
+    }
+
+    @Test
+    fun `POST reset-password should return 400 when password is too short`() {
+        val requestJson =
+            """
+            {
+                "token": "valid-token",
+                "newPassword": "short"
+            }
+            """.trimIndent()
+
+        mockMvc
+            .perform(
+                post("/auth/reset-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestJson),
+            ).andExpect(status().isBadRequest)
     }
 }

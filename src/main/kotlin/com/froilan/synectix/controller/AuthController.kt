@@ -2,21 +2,28 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.annotation.LogLevel
 import com.froilan.synectix.annotation.Loggable
+import com.froilan.synectix.dto.ChangePasswordRequest
+import com.froilan.synectix.dto.ForgotPasswordRequest
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RefreshRequest
 import com.froilan.synectix.dto.RegisterRequest
+import com.froilan.synectix.dto.ResetPasswordRequest
+import com.froilan.synectix.model.User
 import com.froilan.synectix.service.AuthService
+import com.github.benmanes.caffeine.cache.Caffeine
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.time.LocalDateTime
-import java.util.concurrent.ConcurrentHashMap
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 @RestController
 @RequestMapping("/auth")
@@ -24,12 +31,33 @@ import java.util.concurrent.ConcurrentHashMap
 class AuthController(
     private val authService: AuthService,
 ) {
-    // Simple in-memory rate limiting (IP -> (Attempts, BlockedUntil))
-    private val loginAttempts = ConcurrentHashMap<String, Pair<Int, LocalDateTime>>()
+    private val log = LoggerFactory.getLogger(AuthController::class.java)
+
+    private val loginAttemptCounts =
+        Caffeine
+            .newBuilder()
+            .expireAfterWrite(BLOCK_DURATION_MINUTES, TimeUnit.MINUTES)
+            .maximumSize(10_000)
+            .build<String, Int>()
+
+    private val blockedIps =
+        Caffeine
+            .newBuilder()
+            .expireAfterWrite(BLOCK_DURATION_MINUTES, TimeUnit.MINUTES)
+            .maximumSize(10_000)
+            .build<String, Boolean>()
+
+    private val forgotPasswordThrottle =
+        Caffeine
+            .newBuilder()
+            .expireAfterWrite(FORGOT_PASSWORD_THROTTLE_MINUTES, TimeUnit.MINUTES)
+            .maximumSize(10_000)
+            .build<String, Boolean>()
 
     companion object {
         private const val MAX_ATTEMPTS = 5
         private const val BLOCK_DURATION_MINUTES = 15L
+        private const val FORGOT_PASSWORD_THROTTLE_MINUTES = 2L
     }
 
     @PostMapping("/signup")
@@ -85,6 +113,58 @@ class AuthController(
                 .body(mapOf("error" to (e.message ?: "Invalid or expired refresh token")))
         }
 
+    @PostMapping("/change-password")
+    fun changePassword(
+        @Valid @RequestBody request: ChangePasswordRequest,
+    ): ResponseEntity<Any> {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val user =
+            authentication?.principal as? User
+                ?: return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(mapOf("error" to "Authentication required"))
+
+        return try {
+            authService.changePassword(user, request.currentPassword, request.newPassword)
+            ResponseEntity.ok(mapOf("message" to "Password changed successfully"))
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Password change failed")))
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    fun forgotPassword(
+        @Valid @RequestBody request: ForgotPasswordRequest,
+    ): ResponseEntity<Any> {
+        val email = request.email.lowercase(Locale.ROOT)
+        if (forgotPasswordThrottle.getIfPresent(email) != null) {
+            return ResponseEntity.ok(
+                mapOf("message" to "If an account with that email exists, a password reset link has been sent."),
+            )
+        }
+
+        forgotPasswordThrottle.put(email, true)
+        try {
+            authService.forgotPassword(email)
+        } catch (e: Exception) {
+            log.error("Forgot-password flow failed", e)
+        }
+        return ResponseEntity.ok(
+            mapOf("message" to "If an account with that email exists, a password reset link has been sent."),
+        )
+    }
+
+    @PostMapping("/reset-password")
+    fun resetPassword(
+        @Valid @RequestBody request: ResetPasswordRequest,
+    ): ResponseEntity<Any> =
+        try {
+            authService.resetPassword(request.token, request.newPassword)
+            ResponseEntity.ok(mapOf("message" to "Password has been reset successfully"))
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Password reset failed")))
+        }
+
     @PostMapping("/logout")
     fun logout(
         @RequestHeader("Authorization") authHeader: String?,
@@ -96,30 +176,18 @@ class AuthController(
         return ResponseEntity.ok(mapOf("message" to "Logged out successfully"))
     }
 
-    private fun isBlocked(ip: String): Boolean {
-        val (_, blockedUntil) = loginAttempts[ip] ?: return false
-        if (LocalDateTime.now().isBefore(blockedUntil)) {
-            return true
-        }
-        if (LocalDateTime.now().isAfter(blockedUntil) && blockedUntil != LocalDateTime.MIN) {
-            loginAttempts.remove(ip)
-            return false
-        }
-        return false
-    }
+    private fun isBlocked(ip: String): Boolean = blockedIps.getIfPresent(ip) != null
 
     private fun recordFailedAttempt(ip: String) {
-        val (attempts, _) = loginAttempts.getOrDefault(ip, 0 to LocalDateTime.MIN)
-        val newAttempts = attempts + 1
-
-        if (newAttempts >= MAX_ATTEMPTS) {
-            loginAttempts[ip] = newAttempts to LocalDateTime.now().plusMinutes(BLOCK_DURATION_MINUTES)
-        } else {
-            loginAttempts[ip] = newAttempts to LocalDateTime.MIN
+        val newCount = loginAttemptCounts.asMap().merge(ip, 1, Int::plus) ?: 1
+        if (newCount >= MAX_ATTEMPTS) {
+            blockedIps.put(ip, true)
+            loginAttemptCounts.invalidate(ip)
         }
     }
 
     private fun resetAttempts(ip: String) {
-        loginAttempts.remove(ip)
+        loginAttemptCounts.invalidate(ip)
+        blockedIps.invalidate(ip)
     }
 }

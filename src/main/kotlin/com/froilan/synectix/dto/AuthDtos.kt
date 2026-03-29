@@ -47,6 +47,28 @@ data class RefreshRequest(
     val refreshToken: String,
 )
 
+data class ChangePasswordRequest(
+    @field:NotBlank(message = "Current password is required")
+    val currentPassword: String,
+    @field:NotBlank(message = "New password is required")
+    @field:Size(min = 8, message = "New password must be at least 8 characters")
+    val newPassword: String,
+)
+
+data class ForgotPasswordRequest(
+    @field:NotBlank(message = "Email is required")
+    @field:Email(message = "Email must be valid")
+    val email: String,
+)
+
+data class ResetPasswordRequest(
+    @field:NotBlank(message = "Reset token is required")
+    val token: String,
+    @field:NotBlank(message = "New password is required")
+    @field:Size(min = 8, message = "New password must be at least 8 characters")
+    val newPassword: String,
+)
+
 data class AuthResponse(
     val accessToken: String,
     val refreshToken: String,
