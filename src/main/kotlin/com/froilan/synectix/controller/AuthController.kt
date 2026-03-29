@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 @RestController
@@ -33,13 +32,19 @@ class AuthController(
 ) {
     private val log = LoggerFactory.getLogger(AuthController::class.java)
 
-    // In-memory rate limiting with automatic eviction
-    private val loginAttempts =
+    private val loginAttemptCounts =
         Caffeine
             .newBuilder()
             .expireAfterWrite(BLOCK_DURATION_MINUTES, TimeUnit.MINUTES)
             .maximumSize(10_000)
-            .build<String, Pair<Int, LocalDateTime>>()
+            .build<String, Int>()
+
+    private val blockedIps =
+        Caffeine
+            .newBuilder()
+            .expireAfterWrite(BLOCK_DURATION_MINUTES, TimeUnit.MINUTES)
+            .maximumSize(10_000)
+            .build<String, Boolean>()
 
     private val forgotPasswordThrottle =
         Caffeine
@@ -138,10 +143,8 @@ class AuthController(
         }
 
         forgotPasswordThrottle.put(email, true)
-        val resetToken = authService.forgotPassword(email)
-        if (resetToken != null) {
-            log.info("Password reset token generated for email: {}", email)
-        }
+        authService.forgotPassword(email)
+        log.info("Password reset flow completed for request")
         return ResponseEntity.ok(
             mapOf("message" to "If an account with that email exists, a password reset link has been sent."),
         )
@@ -169,27 +172,21 @@ class AuthController(
         return ResponseEntity.ok(mapOf("message" to "Logged out successfully"))
     }
 
-    private fun isBlocked(ip: String): Boolean {
-        val (_, blockedUntil) = loginAttempts.getIfPresent(ip) ?: return false
-        if (LocalDateTime.now().isBefore(blockedUntil)) {
-            return true
-        }
-        loginAttempts.invalidate(ip)
-        return false
-    }
+    private fun isBlocked(ip: String): Boolean = blockedIps.getIfPresent(ip) != null
 
     private fun recordFailedAttempt(ip: String) {
-        val (attempts, _) = loginAttempts.getIfPresent(ip) ?: (0 to LocalDateTime.MIN)
-        val newAttempts = attempts + 1
+        val current = loginAttemptCounts.getIfPresent(ip) ?: 0
+        val newCount = current + 1
+        loginAttemptCounts.put(ip, newCount)
 
-        if (newAttempts >= MAX_ATTEMPTS) {
-            loginAttempts.put(ip, newAttempts to LocalDateTime.now().plusMinutes(BLOCK_DURATION_MINUTES))
-        } else {
-            loginAttempts.put(ip, newAttempts to LocalDateTime.MIN)
+        if (newCount >= MAX_ATTEMPTS) {
+            blockedIps.put(ip, true)
+            loginAttemptCounts.invalidate(ip)
         }
     }
 
     private fun resetAttempts(ip: String) {
-        loginAttempts.invalidate(ip)
+        loginAttemptCounts.invalidate(ip)
+        blockedIps.invalidate(ip)
     }
 }
