@@ -127,11 +127,9 @@ class AuthService(
 
     @Transactional
     fun refresh(refreshToken: String): AuthResponse {
-        // Atomically find and remove to prevent concurrent reuse
-        val existing = mongoTemplate.findAndRemove(
-            Query.query(Criteria.where("token").`is`(refreshToken)),
-            RefreshToken::class.java,
-        ) ?: throw IllegalArgumentException("Invalid or expired refresh token")
+        // Validate the refresh token exists and is usable (non-atomic read for validation)
+        val existing = refreshTokenRepository.findByToken(refreshToken)
+            .orElseThrow { IllegalArgumentException("Invalid or expired refresh token") }
 
         if (!existing.expiryAt.isAfter(LocalDateTime.now())) {
             throw IllegalArgumentException("Invalid or expired refresh token")
@@ -144,7 +142,7 @@ class AuthService(
             throw IllegalArgumentException("User account is inactive")
         }
 
-        // Save new pair first to avoid locking user out if save fails
+        // Save new token pair first to avoid lockout if writes fail on standalone MongoDB
         val accessTokenStr = generateToken()
         val expiryAt = LocalDateTime.now().plus(tokenValidityMs, ChronoUnit.MILLIS)
 
@@ -166,7 +164,20 @@ class AuthService(
         )
         refreshTokenRepository.save(newRefreshToken)
 
-        // Delete old session (refresh token already removed by findAndRemove)
+        // Atomically consume the old refresh token — prevents concurrent reuse.
+        // If findAndRemove returns null, another request already consumed it; roll back.
+        val consumed = mongoTemplate.findAndRemove(
+            Query.query(Criteria.where("token").`is`(refreshToken)),
+            RefreshToken::class.java,
+        )
+        if (consumed == null) {
+            // Another concurrent request already consumed this token — clean up our new pair
+            refreshTokenRepository.deleteByToken(refreshTokenStr)
+            sessionTokenRepository.deleteById(savedSession.id)
+            throw IllegalArgumentException("Invalid or expired refresh token")
+        }
+
+        // Delete old session token
         sessionTokenRepository.deleteById(existing.sessionTokenId)
 
         return AuthResponse(

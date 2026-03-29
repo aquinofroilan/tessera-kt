@@ -326,10 +326,11 @@ class AuthServiceTest {
             expiryAt = LocalDateTime.now().plusDays(30),
         )
 
-        `when`(mongoTemplate.findAndRemove(any(), eq(RefreshToken::class.java))).thenReturn(existingRefreshToken)
+        `when`(refreshTokenRepository.findByToken(oldRefreshTokenStr)).thenReturn(Optional.of(existingRefreshToken))
         `when`(userRepository.findById(user.uuid)).thenReturn(Optional.of(user))
         `when`(sessionTokenRepository.save(any<SessionToken>())).thenAnswer { it.arguments[0] }
         `when`(refreshTokenRepository.save(any<RefreshToken>())).thenAnswer { it.arguments[0] }
+        `when`(mongoTemplate.findAndRemove(any(), eq(RefreshToken::class.java))).thenReturn(existingRefreshToken)
 
         val result = authService.refresh(oldRefreshTokenStr)
 
@@ -351,7 +352,7 @@ class AuthServiceTest {
             expiryAt = LocalDateTime.now().minusHours(1),
         )
 
-        `when`(mongoTemplate.findAndRemove(any(), eq(RefreshToken::class.java))).thenReturn(expiredRefreshToken)
+        `when`(refreshTokenRepository.findByToken(expiredTokenStr)).thenReturn(Optional.of(expiredRefreshToken))
 
         val exception = assertThrows<IllegalArgumentException> {
             authService.refresh(expiredTokenStr)
@@ -363,7 +364,7 @@ class AuthServiceTest {
     fun `refresh should throw exception with invalid refresh token`() {
         val invalidTokenStr = "invalid-refresh-token"
 
-        `when`(mongoTemplate.findAndRemove(any(), eq(RefreshToken::class.java))).thenReturn(null)
+        `when`(refreshTokenRepository.findByToken(invalidTokenStr)).thenReturn(Optional.empty())
 
         val exception = assertThrows<IllegalArgumentException> {
             authService.refresh(invalidTokenStr)
@@ -382,7 +383,7 @@ class AuthServiceTest {
             expiryAt = LocalDateTime.now().plusDays(30),
         )
 
-        `when`(mongoTemplate.findAndRemove(any(), eq(RefreshToken::class.java))).thenReturn(existingRefreshToken)
+        `when`(refreshTokenRepository.findByToken(refreshTokenStr)).thenReturn(Optional.of(existingRefreshToken))
         `when`(userRepository.findById(inactiveUser.uuid)).thenReturn(Optional.of(inactiveUser))
 
         val exception = assertThrows<IllegalArgumentException> {
