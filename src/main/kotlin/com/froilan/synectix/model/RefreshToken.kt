@@ -18,6 +18,7 @@ data class RefreshToken(
 
     val sessionTokenId: String,
 
+    @Indexed(expireAfterSeconds = 0)
     val expiryAt: LocalDateTime,
 
     val createdAt: LocalDateTime = LocalDateTime.now(),

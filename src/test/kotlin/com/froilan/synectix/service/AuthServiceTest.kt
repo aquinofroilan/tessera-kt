@@ -326,7 +326,7 @@ class AuthServiceTest {
 
         assertNotNull(result.accessToken)
         assertNotNull(result.refreshToken)
-        assertTrue(result.accessToken != oldRefreshTokenStr)
+        assertTrue(result.accessToken != oldSessionToken.token)
         assertTrue(result.refreshToken != oldRefreshTokenStr)
 
         verify(refreshTokenRepository).deleteByToken(oldRefreshTokenStr)
@@ -385,7 +385,7 @@ class AuthServiceTest {
 
 
     @Test
-    fun `logout should delete session token`() {
+    fun `logout should do nothing when session token is not found`() {
         val token = "test-token-123"
 
         `when`(sessionTokenRepository.findByToken(token)).thenReturn(Optional.empty())
@@ -393,6 +393,8 @@ class AuthServiceTest {
         authService.logout(token)
 
         verify(sessionTokenRepository, times(1)).findByToken(token)
+        verify(refreshTokenRepository, org.mockito.Mockito.never()).deleteBySessionTokenId(any())
+        verify(sessionTokenRepository, org.mockito.Mockito.never()).deleteByToken(any())
     }
 
     @Test

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.SecureRandom
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 @Service
@@ -90,7 +91,7 @@ class AuthService(
         }
 
         val accessTokenStr = generateToken()
-        val expiryAt = LocalDateTime.now().plusSeconds(tokenValidityMs / 1000)
+        val expiryAt = LocalDateTime.now().plus(tokenValidityMs, ChronoUnit.MILLIS)
 
         val sessionToken = SessionToken(
             token = accessTokenStr,
@@ -100,7 +101,7 @@ class AuthService(
         val savedSession = sessionTokenRepository.save(sessionToken)
 
         val refreshTokenStr = generateToken()
-        val refreshExpiryAt = LocalDateTime.now().plusSeconds(refreshTokenValidityMs / 1000)
+        val refreshExpiryAt = LocalDateTime.now().plus(refreshTokenValidityMs, ChronoUnit.MILLIS)
 
         val refreshToken = RefreshToken(
             token = refreshTokenStr,
@@ -136,11 +137,9 @@ class AuthService(
             throw IllegalArgumentException("User account is inactive")
         }
 
-        refreshTokenRepository.deleteByToken(existing.token)
-        sessionTokenRepository.deleteById(existing.sessionTokenId)
-
+        // Save new pair first to avoid locking user out if save fails
         val accessTokenStr = generateToken()
-        val expiryAt = LocalDateTime.now().plusSeconds(tokenValidityMs / 1000)
+        val expiryAt = LocalDateTime.now().plus(tokenValidityMs, ChronoUnit.MILLIS)
 
         val sessionToken = SessionToken(
             token = accessTokenStr,
@@ -150,7 +149,7 @@ class AuthService(
         val savedSession = sessionTokenRepository.save(sessionToken)
 
         val refreshTokenStr = generateToken()
-        val refreshExpiryAt = LocalDateTime.now().plusSeconds(refreshTokenValidityMs / 1000)
+        val refreshExpiryAt = LocalDateTime.now().plus(refreshTokenValidityMs, ChronoUnit.MILLIS)
 
         val newRefreshToken = RefreshToken(
             token = refreshTokenStr,
@@ -159,6 +158,10 @@ class AuthService(
             expiryAt = refreshExpiryAt,
         )
         refreshTokenRepository.save(newRefreshToken)
+
+        // Delete old pair after new pair is persisted
+        refreshTokenRepository.deleteByToken(existing.token)
+        sessionTokenRepository.deleteById(existing.sessionTokenId)
 
         return AuthResponse(
             accessToken = accessTokenStr,

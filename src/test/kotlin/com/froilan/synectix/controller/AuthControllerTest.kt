@@ -2,7 +2,6 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.aspect.LoggingAspect
 import com.froilan.synectix.dto.LoginRequest
-import com.froilan.synectix.dto.RefreshRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.model.User
 import com.froilan.synectix.repository.RefreshTokenRepository

@@ -60,7 +60,8 @@ class AuthController(
             if (e.message != "User account is inactive") {
                 recordFailedAttempt(clientIp)
             }
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("error" to e.message))
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(mapOf("error" to (e.message ?: "Invalid username or password")))
         }
     }
 
@@ -70,7 +71,8 @@ class AuthController(
             val response = authService.refresh(request.refreshToken)
             ResponseEntity.ok(response)
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("error" to e.message))
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(mapOf("error" to (e.message ?: "Invalid or expired refresh token")))
         }
     }
 
