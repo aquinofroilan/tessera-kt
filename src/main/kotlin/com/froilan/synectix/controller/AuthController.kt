@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 @RestController
@@ -135,7 +136,7 @@ class AuthController(
     fun forgotPassword(
         @Valid @RequestBody request: ForgotPasswordRequest,
     ): ResponseEntity<Any> {
-        val email = request.email.lowercase()
+        val email = request.email.lowercase(Locale.ROOT)
         if (forgotPasswordThrottle.getIfPresent(email) != null) {
             return ResponseEntity.ok(
                 mapOf("message" to "If an account with that email exists, a password reset link has been sent."),

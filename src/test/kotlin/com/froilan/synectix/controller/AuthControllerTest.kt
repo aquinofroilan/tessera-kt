@@ -533,6 +533,34 @@ class AuthControllerTest {
     }
 
     @Test
+    fun `POST forgot-password should throttle repeated requests for same email`() {
+        val requestJson =
+            """
+            {
+                "email": "throttle@example.com"
+            }
+            """.trimIndent()
+
+        `when`(authService.forgotPassword(any<String>())).thenReturn("reset-token")
+
+        mockMvc
+            .perform(
+                post("/auth/forgot-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestJson),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                post("/auth/forgot-password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestJson),
+            ).andExpect(status().isOk)
+
+        verify(authService, times(1)).forgotPassword(any<String>())
+    }
+
+    @Test
     fun `POST reset-password should return 200 with valid token`() {
         val requestJson =
             """

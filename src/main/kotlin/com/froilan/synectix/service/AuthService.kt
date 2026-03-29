@@ -26,6 +26,7 @@ import java.security.SecureRandom
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.Base64
+import java.util.Locale
 
 @Service
 class AuthService(
@@ -68,7 +69,7 @@ class AuthService(
                     passwordHash = passwordEncoder.encode(request.password) as String,
                     firstName = request.firstName,
                     lastName = request.lastName,
-                    email = request.email.lowercase(),
+                    email = request.email.lowercase(Locale.ROOT),
                     organizationId = savedOrganization.uuid,
                 )
             return userRepository.save(user)
@@ -226,7 +227,8 @@ class AuthService(
 
     @Transactional
     fun forgotPassword(email: String): String? {
-        val user = userRepository.findByEmailIgnoreCase(email).orElse(null) ?: return null
+        val normalizedEmail = email.lowercase(Locale.ROOT)
+        val user = userRepository.findByEmail(normalizedEmail).orElse(null) ?: return null
 
         if (!user.isActive) {
             return null
