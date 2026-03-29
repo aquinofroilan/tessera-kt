@@ -8,7 +8,10 @@ import java.util.Optional
 @Repository
 interface RefreshTokenRepository : MongoRepository<RefreshToken, String> {
     fun findByToken(token: String): Optional<RefreshToken>
+
     fun deleteByToken(token: String)
+
     fun deleteBySessionTokenId(sessionTokenId: String)
+
     fun deleteByUserId(userId: String)
 }

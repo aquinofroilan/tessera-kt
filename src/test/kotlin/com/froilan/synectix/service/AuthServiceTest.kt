@@ -10,8 +10,8 @@ import com.froilan.synectix.repository.OrganizationRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
@@ -31,7 +31,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class AuthServiceTest {
-
     private lateinit var authService: AuthService
     private lateinit var userRepository: UserRepository
     private lateinit var organizationRepository: OrganizationRepository
@@ -49,43 +48,45 @@ class AuthServiceTest {
         mongoTemplate = mock(MongoTemplate::class.java)
         passwordEncoder = mock(PasswordEncoder::class.java)
 
-        authService = AuthService(
-            userRepository = userRepository,
-            organizationRepository = organizationRepository,
-            sessionTokenRepository = sessionTokenRepository,
-            refreshTokenRepository = refreshTokenRepository,
-            mongoTemplate = mongoTemplate,
-            passwordEncoder = passwordEncoder,
-            tokenValidityMs = 86400000L,
-            refreshTokenValidityMs = 2592000000L,
-        )
+        authService =
+            AuthService(
+                userRepository = userRepository,
+                organizationRepository = organizationRepository,
+                sessionTokenRepository = sessionTokenRepository,
+                refreshTokenRepository = refreshTokenRepository,
+                mongoTemplate = mongoTemplate,
+                passwordEncoder = passwordEncoder,
+                tokenValidityMs = 86400000L,
+                refreshTokenValidityMs = 2592000000L,
+            )
     }
-
 
     @Test
     fun `register should create organization and user successfully`() {
         val request = createValidRegisterRequest()
         val encodedPassword = "encodedPassword123"
-        val savedOrg = Organizations(
-            uuid = "org-123",
-            name = request.orgName,
-            orgSlug = request.orgSlug,
-            description = request.orgDescription,
-            baseCurrency = request.orgBaseCurrency,
-            fiscalYearStart = request.orgFiscalYearStart,
-            timezone = request.orgTimezone,
-            legalName = request.orgLegalName,
-            tradeName = request.orgTradeName,
-        )
-        val savedUser = User(
-            uuid = "user-123",
-            username = request.username,
-            email = request.email,
-            firstName = request.firstName,
-            lastName = request.lastName,
-            passwordHash = encodedPassword,
-            organizationId = savedOrg.uuid,
-        )
+        val savedOrg =
+            Organizations(
+                uuid = "org-123",
+                name = request.orgName,
+                orgSlug = request.orgSlug,
+                description = request.orgDescription,
+                baseCurrency = request.orgBaseCurrency,
+                fiscalYearStart = request.orgFiscalYearStart,
+                timezone = request.orgTimezone,
+                legalName = request.orgLegalName,
+                tradeName = request.orgTradeName,
+            )
+        val savedUser =
+            User(
+                uuid = "user-123",
+                username = request.username,
+                email = request.email,
+                firstName = request.firstName,
+                lastName = request.lastName,
+                passwordHash = encodedPassword,
+                organizationId = savedOrg.uuid,
+            )
 
         `when`(passwordEncoder.encode(request.password)).thenReturn(encodedPassword)
         `when`(organizationRepository.save(any<Organizations>())).thenReturn(savedOrg)
@@ -115,9 +116,10 @@ class AuthServiceTest {
         `when`(userRepository.save(any<User>()))
             .thenThrow(DuplicateKeyException("E11000 duplicate key error collection: synectix.users index: username"))
 
-        val exception = assertThrows<IllegalArgumentException> {
-            authService.register(request)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.register(request)
+            }
         assertEquals("Username already exists", exception.message)
     }
 
@@ -130,9 +132,10 @@ class AuthServiceTest {
         `when`(userRepository.save(any<User>()))
             .thenThrow(DuplicateKeyException("E11000 duplicate key error collection: synectix.users index: email"))
 
-        val exception = assertThrows<IllegalArgumentException> {
-            authService.register(request)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.register(request)
+            }
         assertEquals("Email already exists", exception.message)
     }
 
@@ -142,9 +145,10 @@ class AuthServiceTest {
         `when`(organizationRepository.save(any<Organizations>()))
             .thenThrow(DuplicateKeyException("E11000 duplicate key error collection: synectix.organizations index: orgSlug"))
 
-        val exception = assertThrows<IllegalArgumentException> {
-            authService.register(request)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.register(request)
+            }
         assertEquals("Organization slug already exists", exception.message)
     }
 
@@ -154,9 +158,10 @@ class AuthServiceTest {
         `when`(organizationRepository.save(any<Organizations>()))
             .thenThrow(DuplicateKeyException("E11000 duplicate key error collection: synectix.organizations index: name"))
 
-        val exception = assertThrows<IllegalArgumentException> {
-            authService.register(request)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.register(request)
+            }
         assertEquals("Organization name already exists", exception.message)
     }
 
@@ -177,20 +182,20 @@ class AuthServiceTest {
         assertEquals(encodedPassword, userCaptor.firstValue.passwordHash)
     }
 
-
     @Test
     fun `login should return auth response with valid credentials`() {
         val request = LoginRequest(username = "testuser", password = "password123")
-        val user = User(
-            uuid = "user-123",
-            username = request.username,
-            email = "test@example.com",
-            firstName = "Test",
-            lastName = "User",
-            passwordHash = "encodedPassword",
-            organizationId = "org-123",
-            roles = listOf("USER", "ADMIN"),
-        )
+        val user =
+            User(
+                uuid = "user-123",
+                username = request.username,
+                email = "test@example.com",
+                firstName = "Test",
+                lastName = "User",
+                passwordHash = "encodedPassword",
+                organizationId = "org-123",
+                roles = listOf("USER", "ADMIN"),
+            )
         val savedToken = createMockSessionToken()
 
         `when`(userRepository.findByUsername(request.username)).thenReturn(Optional.of(user))
@@ -238,9 +243,10 @@ class AuthServiceTest {
         val request = LoginRequest(username = "nonexistent", password = "password123")
         `when`(userRepository.findByUsername(request.username)).thenReturn(Optional.empty())
 
-        val exception = assertThrows<IllegalArgumentException> {
-            authService.login(request)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.login(request)
+            }
         assertEquals("Invalid username or password", exception.message)
     }
 
@@ -252,9 +258,10 @@ class AuthServiceTest {
         `when`(userRepository.findByUsername(request.username)).thenReturn(Optional.of(user))
         `when`(passwordEncoder.matches(request.password, user.passwordHash)).thenReturn(false)
 
-        val exception = assertThrows<IllegalArgumentException> {
-            authService.login(request)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.login(request)
+            }
         assertEquals("Invalid username or password", exception.message)
     }
 
@@ -306,25 +313,26 @@ class AuthServiceTest {
 
         `when`(userRepository.findByUsername(request.username)).thenReturn(Optional.of(inactiveUser))
 
-        val exception = assertThrows<IllegalArgumentException> {
-            authService.login(request)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.login(request)
+            }
         assertEquals("User account is inactive", exception.message)
     }
-
 
     @Test
     fun `refresh should return new token pair with valid refresh token`() {
         val oldRefreshTokenStr = "old-refresh-token"
         val user = createMockUser()
         val oldSessionToken = createMockSessionToken()
-        val existingRefreshToken = RefreshToken(
-            id = "rt-123",
-            token = oldRefreshTokenStr,
-            userId = user.uuid,
-            sessionTokenId = oldSessionToken.id,
-            expiryAt = LocalDateTime.now().plusDays(30),
-        )
+        val existingRefreshToken =
+            RefreshToken(
+                id = "rt-123",
+                token = oldRefreshTokenStr,
+                userId = user.uuid,
+                sessionTokenId = oldSessionToken.id,
+                expiryAt = LocalDateTime.now().plusDays(30),
+            )
 
         `when`(refreshTokenRepository.findByToken(oldRefreshTokenStr)).thenReturn(Optional.of(existingRefreshToken))
         `when`(userRepository.findById(user.uuid)).thenReturn(Optional.of(user))
@@ -345,18 +353,20 @@ class AuthServiceTest {
     @Test
     fun `refresh should throw exception with expired refresh token`() {
         val expiredTokenStr = "expired-refresh-token"
-        val expiredRefreshToken = RefreshToken(
-            token = expiredTokenStr,
-            userId = "user-123",
-            sessionTokenId = "session-123",
-            expiryAt = LocalDateTime.now().minusHours(1),
-        )
+        val expiredRefreshToken =
+            RefreshToken(
+                token = expiredTokenStr,
+                userId = "user-123",
+                sessionTokenId = "session-123",
+                expiryAt = LocalDateTime.now().minusHours(1),
+            )
 
         `when`(refreshTokenRepository.findByToken(expiredTokenStr)).thenReturn(Optional.of(expiredRefreshToken))
 
-        val exception = assertThrows<IllegalArgumentException> {
-            authService.refresh(expiredTokenStr)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.refresh(expiredTokenStr)
+            }
         assertEquals("Invalid or expired refresh token", exception.message)
     }
 
@@ -366,9 +376,10 @@ class AuthServiceTest {
 
         `when`(refreshTokenRepository.findByToken(invalidTokenStr)).thenReturn(Optional.empty())
 
-        val exception = assertThrows<IllegalArgumentException> {
-            authService.refresh(invalidTokenStr)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.refresh(invalidTokenStr)
+            }
         assertEquals("Invalid or expired refresh token", exception.message)
     }
 
@@ -376,22 +387,23 @@ class AuthServiceTest {
     fun `refresh should throw exception when user is inactive`() {
         val refreshTokenStr = "valid-refresh-token"
         val inactiveUser = createMockUser().copy(isActive = false)
-        val existingRefreshToken = RefreshToken(
-            token = refreshTokenStr,
-            userId = inactiveUser.uuid,
-            sessionTokenId = "session-123",
-            expiryAt = LocalDateTime.now().plusDays(30),
-        )
+        val existingRefreshToken =
+            RefreshToken(
+                token = refreshTokenStr,
+                userId = inactiveUser.uuid,
+                sessionTokenId = "session-123",
+                expiryAt = LocalDateTime.now().plusDays(30),
+            )
 
         `when`(refreshTokenRepository.findByToken(refreshTokenStr)).thenReturn(Optional.of(existingRefreshToken))
         `when`(userRepository.findById(inactiveUser.uuid)).thenReturn(Optional.of(inactiveUser))
 
-        val exception = assertThrows<IllegalArgumentException> {
-            authService.refresh(refreshTokenStr)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.refresh(refreshTokenStr)
+            }
         assertEquals("User account is inactive", exception.message)
     }
-
 
     @Test
     fun `logout should do nothing when session token is not found`() {
@@ -419,49 +431,52 @@ class AuthServiceTest {
         verify(sessionTokenRepository, times(1)).deleteByToken(token)
     }
 
+    private fun createValidRegisterRequest() =
+        RegisterRequest(
+            username = "testuser",
+            password = "SecurePass123!",
+            email = "test@example.com",
+            firstName = "Test",
+            lastName = "User",
+            orgName = "Test Organization",
+            orgSlug = "test-org",
+            orgDescription = "A test organization",
+            orgBaseCurrency = "USD",
+            orgFiscalYearStart = LocalDateTime.of(2024, 1, 1, 0, 0),
+            orgTimezone = "UTC",
+            orgLegalName = "Test Organization LLC",
+            orgTradeName = "Test Org",
+        )
 
-    private fun createValidRegisterRequest() = RegisterRequest(
-        username = "testuser",
-        password = "SecurePass123!",
-        email = "test@example.com",
-        firstName = "Test",
-        lastName = "User",
-        orgName = "Test Organization",
-        orgSlug = "test-org",
-        orgDescription = "A test organization",
-        orgBaseCurrency = "USD",
-        orgFiscalYearStart = LocalDateTime.of(2024, 1, 1, 0, 0),
-        orgTimezone = "UTC",
-        orgLegalName = "Test Organization LLC",
-        orgTradeName = "Test Org",
-    )
+    private fun createMockOrganization() =
+        Organizations(
+            uuid = "org-123",
+            name = "Test Organization",
+            orgSlug = "test-org",
+            description = "Test description",
+            baseCurrency = "USD",
+            fiscalYearStart = LocalDateTime.of(2024, 1, 1, 0, 0),
+            timezone = "UTC",
+            legalName = "Test Organization LLC",
+            tradeName = "Test Org",
+        )
 
-    private fun createMockOrganization() = Organizations(
-        uuid = "org-123",
-        name = "Test Organization",
-        orgSlug = "test-org",
-        description = "Test description",
-        baseCurrency = "USD",
-        fiscalYearStart = LocalDateTime.of(2024, 1, 1, 0, 0),
-        timezone = "UTC",
-        legalName = "Test Organization LLC",
-        tradeName = "Test Org",
-    )
+    private fun createMockUser() =
+        User(
+            uuid = "user-123",
+            username = "testuser",
+            email = "test@example.com",
+            firstName = "Test",
+            lastName = "User",
+            passwordHash = "encodedPassword",
+            organizationId = "org-123",
+        )
 
-    private fun createMockUser() = User(
-        uuid = "user-123",
-        username = "testuser",
-        email = "test@example.com",
-        firstName = "Test",
-        lastName = "User",
-        passwordHash = "encodedPassword",
-        organizationId = "org-123",
-    )
-
-    private fun createMockSessionToken() = SessionToken(
-        id = "token-123",
-        token = "generated-token",
-        userId = "user-123",
-        expiryAt = LocalDateTime.now().plusHours(24),
-    )
+    private fun createMockSessionToken() =
+        SessionToken(
+            id = "token-123",
+            token = "generated-token",
+            userId = "user-123",
+            expiryAt = LocalDateTime.now().plusHours(24),
+        )
 }

@@ -37,32 +37,33 @@ class AuthService(
     @Value("\${security.jwt.refresh-expiration:2592000000}")
     private val refreshTokenValidityMs: Long,
 ) {
-
     private val secureRandom = SecureRandom()
 
     @Transactional
     fun register(request: RegisterRequest): User {
         try {
-            val organization = Organizations(
-                name = request.orgName,
-                orgSlug = request.orgSlug,
-                description = request.orgDescription,
-                baseCurrency = request.orgBaseCurrency,
-                fiscalYearStart = request.orgFiscalYearStart,
-                tradeName = request.orgTradeName,
-                timezone = request.orgTimezone,
-                legalName = request.orgLegalName,
-            )
+            val organization =
+                Organizations(
+                    name = request.orgName,
+                    orgSlug = request.orgSlug,
+                    description = request.orgDescription,
+                    baseCurrency = request.orgBaseCurrency,
+                    fiscalYearStart = request.orgFiscalYearStart,
+                    tradeName = request.orgTradeName,
+                    timezone = request.orgTimezone,
+                    legalName = request.orgLegalName,
+                )
             val savedOrganization = organizationRepository.save(organization)
 
-            val user = User(
-                username = request.username,
-                passwordHash = passwordEncoder.encode(request.password) as String,
-                firstName = request.firstName,
-                lastName = request.lastName,
-                email = request.email,
-                organizationId = savedOrganization.uuid,
-            )
+            val user =
+                User(
+                    username = request.username,
+                    passwordHash = passwordEncoder.encode(request.password) as String,
+                    firstName = request.firstName,
+                    lastName = request.lastName,
+                    email = request.email,
+                    organizationId = savedOrganization.uuid,
+                )
             return userRepository.save(user)
         } catch (e: DuplicateKeyException) {
             val errorMessage = e.message ?: ""
@@ -83,8 +84,10 @@ class AuthService(
 
     @Transactional
     fun login(request: LoginRequest): AuthResponse {
-        val user = userRepository.findByUsername(request.username)
-            .orElseThrow { IllegalArgumentException("Invalid username or password") }
+        val user =
+            userRepository
+                .findByUsername(request.username)
+                .orElseThrow { IllegalArgumentException("Invalid username or password") }
 
         if (!user.isActive) {
             throw IllegalArgumentException("User account is inactive")
@@ -97,22 +100,24 @@ class AuthService(
         val accessTokenStr = generateToken()
         val expiryAt = LocalDateTime.now().plus(tokenValidityMs, ChronoUnit.MILLIS)
 
-        val sessionToken = SessionToken(
-            token = accessTokenStr,
-            expiryAt = expiryAt,
-            userId = user.uuid,
-        )
+        val sessionToken =
+            SessionToken(
+                token = accessTokenStr,
+                expiryAt = expiryAt,
+                userId = user.uuid,
+            )
         val savedSession = sessionTokenRepository.save(sessionToken)
 
         val refreshTokenStr = generateToken()
         val refreshExpiryAt = LocalDateTime.now().plus(refreshTokenValidityMs, ChronoUnit.MILLIS)
 
-        val refreshToken = RefreshToken(
-            token = refreshTokenStr,
-            userId = user.uuid,
-            sessionTokenId = savedSession.id,
-            expiryAt = refreshExpiryAt,
-        )
+        val refreshToken =
+            RefreshToken(
+                token = refreshTokenStr,
+                userId = user.uuid,
+                sessionTokenId = savedSession.id,
+                expiryAt = refreshExpiryAt,
+            )
         refreshTokenRepository.save(refreshToken)
 
         return AuthResponse(
@@ -127,15 +132,19 @@ class AuthService(
 
     @Transactional
     fun refresh(refreshToken: String): AuthResponse {
-        val existing = refreshTokenRepository.findByToken(refreshToken)
-            .orElseThrow { IllegalArgumentException("Invalid or expired refresh token") }
+        val existing =
+            refreshTokenRepository
+                .findByToken(refreshToken)
+                .orElseThrow { IllegalArgumentException("Invalid or expired refresh token") }
 
         if (!existing.expiryAt.isAfter(LocalDateTime.now())) {
             throw IllegalArgumentException("Invalid or expired refresh token")
         }
 
-        val user = userRepository.findById(existing.userId)
-            .orElseThrow { IllegalArgumentException("Invalid or expired refresh token") }
+        val user =
+            userRepository
+                .findById(existing.userId)
+                .orElseThrow { IllegalArgumentException("Invalid or expired refresh token") }
 
         if (!user.isActive) {
             throw IllegalArgumentException("User account is inactive")
@@ -144,28 +153,31 @@ class AuthService(
         val accessTokenStr = generateToken()
         val expiryAt = LocalDateTime.now().plus(tokenValidityMs, ChronoUnit.MILLIS)
 
-        val sessionToken = SessionToken(
-            token = accessTokenStr,
-            expiryAt = expiryAt,
-            userId = user.uuid,
-        )
+        val sessionToken =
+            SessionToken(
+                token = accessTokenStr,
+                expiryAt = expiryAt,
+                userId = user.uuid,
+            )
         val savedSession = sessionTokenRepository.save(sessionToken)
 
         val refreshTokenStr = generateToken()
         val refreshExpiryAt = LocalDateTime.now().plus(refreshTokenValidityMs, ChronoUnit.MILLIS)
 
-        val newRefreshToken = RefreshToken(
-            token = refreshTokenStr,
-            userId = user.uuid,
-            sessionTokenId = savedSession.id,
-            expiryAt = refreshExpiryAt,
-        )
+        val newRefreshToken =
+            RefreshToken(
+                token = refreshTokenStr,
+                userId = user.uuid,
+                sessionTokenId = savedSession.id,
+                expiryAt = refreshExpiryAt,
+            )
         refreshTokenRepository.save(newRefreshToken)
 
-        val consumed = mongoTemplate.findAndRemove(
-            Query.query(Criteria.where("token").`is`(refreshToken)),
-            RefreshToken::class.java,
-        )
+        val consumed =
+            mongoTemplate.findAndRemove(
+                Query.query(Criteria.where("token").`is`(refreshToken)),
+                RefreshToken::class.java,
+            )
         if (consumed == null) {
             refreshTokenRepository.deleteByToken(refreshTokenStr)
             sessionTokenRepository.deleteById(savedSession.id)

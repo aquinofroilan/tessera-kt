@@ -16,7 +16,6 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing
 @Configuration
 @EnableMongoAuditing
 class MongoConfig : AbstractMongoClientConfiguration() {
-
     private val log = LoggerFactory.getLogger(MongoConfig::class.java)
 
     @Value("\${spring.data.mongodb.uri}")
@@ -28,16 +27,27 @@ class MongoConfig : AbstractMongoClientConfiguration() {
     }
 
     @Bean
-    fun transactionManager(dbFactory: MongoDatabaseFactory): MongoTransactionManager {
-        return MongoTransactionManager(dbFactory)
-    }
+    fun transactionManager(dbFactory: MongoDatabaseFactory): MongoTransactionManager = MongoTransactionManager(dbFactory)
 
     override fun mongoClient(): MongoClient {
         val connectionString = ConnectionString(mongoUri)
-        val settings = MongoClientSettings.builder()
-            .applyConnectionString(connectionString)
-            .build()
-        log.debug("MongoDB connecting — database: {}, hosts: {}, credentials: {}", getDatabaseName(), connectionString.hosts, if (connectionString.credential != null) "configured" else "none")
+        val settings =
+            MongoClientSettings
+                .builder()
+                .applyConnectionString(connectionString)
+                .build()
+        log.debug(
+            "MongoDB connecting — database: {}, hosts: {}, credentials: {}",
+            getDatabaseName(),
+            connectionString.hosts,
+            if (connectionString.credential !=
+                null
+            ) {
+                "configured"
+            } else {
+                "none"
+            },
+        )
 
         return MongoClients.create(settings)
     }

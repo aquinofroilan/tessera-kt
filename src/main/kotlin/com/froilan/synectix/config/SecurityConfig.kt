@@ -14,7 +14,6 @@ import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
-
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
@@ -22,17 +21,15 @@ class SecurityConfig(
     @Value("\${spring.web.cors.allowed-origins:http://localhost:3000,http://localhost:8080}")
     private val corsAllowedOrigins: String,
 ) {
-
     @Bean
-    fun passwordEncoder(): PasswordEncoder {
-        return Argon2PasswordEncoder(   
+    fun passwordEncoder(): PasswordEncoder =
+        Argon2PasswordEncoder(
             16,
             32,
             1,
             65536,
-            3
+            3,
         )
-    }
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -46,8 +43,7 @@ class SecurityConfig(
                 it.requestMatchers("/actuator/health/**").permitAll()
                 it.requestMatchers("/actuator/info").permitAll()
                 it.anyRequest().authenticated()
-            }
-            .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+            }.addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
     }
@@ -62,5 +58,4 @@ class SecurityConfig(
         source.registerCorsConfiguration("/**", configuration)
         return source
     }
-
 }

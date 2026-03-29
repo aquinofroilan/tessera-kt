@@ -11,5 +11,5 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy
 class SynectixApplication
 
 fun main(args: Array<String>) {
-	runApplication<SynectixApplication>(*args)
+    runApplication<SynectixApplication>(*args)
 }

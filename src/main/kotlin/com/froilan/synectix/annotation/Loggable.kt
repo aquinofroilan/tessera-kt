@@ -15,23 +15,24 @@ annotation class Loggable(
      * Whether to log method parameters
      */
     val logParameters: Boolean = true,
-
     /**
      * Whether to log return values
      */
     val logReturnValue: Boolean = true,
-
     /**
      * Whether to log execution time
      */
     val logExecutionTime: Boolean = true,
-
     /**
      * Log level to use (INFO, DEBUG, WARN, ERROR)
      */
-    val level: LogLevel = LogLevel.INFO
+    val level: LogLevel = LogLevel.INFO,
 )
 
 enum class LogLevel {
-    TRACE, DEBUG, INFO, WARN, ERROR
+    TRACE,
+    DEBUG,
+    INFO,
+    WARN,
+    ERROR,
 }

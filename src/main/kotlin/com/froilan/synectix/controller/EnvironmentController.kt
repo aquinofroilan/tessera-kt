@@ -12,9 +12,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/environment")
 class EnvironmentController(
-    private val synectixProperties: SynectixProperties
+    private val synectixProperties: SynectixProperties,
 ) {
-
     @Value("\${APP_ENVIRONMENT:development}")
     private lateinit var environment: String
 
@@ -25,32 +24,32 @@ class EnvironmentController(
      * Get application environment information.
      */
     @GetMapping("/info")
-    fun getEnvironmentInfo(): Map<String, Any> {
-        return mapOf(
-            "application" to mapOf(
-                "name" to synectixProperties.name,
-                "version" to synectixProperties.version,
-                "description" to synectixProperties.description,
-                "environment" to synectixProperties.environment
-            ),
-            "server" to mapOf(
-                "port" to serverPort,
-                "environment" to environment
-            ),
-            "message" to "Environment variables loaded successfully!"
+    fun getEnvironmentInfo(): Map<String, Any> =
+        mapOf(
+            "application" to
+                mapOf(
+                    "name" to synectixProperties.name,
+                    "version" to synectixProperties.version,
+                    "description" to synectixProperties.description,
+                    "environment" to synectixProperties.environment,
+                ),
+            "server" to
+                mapOf(
+                    "port" to serverPort,
+                    "environment" to environment,
+                ),
+            "message" to "Environment variables loaded successfully!",
         )
-    }
 
     /**
      * Get all environment variables (for debugging - remove in production).
      */
     @GetMapping("/variables")
-    fun getAllEnvironmentVariables(): Map<String, String> {
-        return System.getenv().filterKeys { key ->
+    fun getAllEnvironmentVariables(): Map<String, String> =
+        System.getenv().filterKeys { key ->
             key.startsWith("APP_") ||
-            key.startsWith("SERVER_") ||
-            key.startsWith("LOG_LEVEL_") ||
-            key == "MONGODB_DATABASE"
+                key.startsWith("SERVER_") ||
+                key.startsWith("LOG_LEVEL_") ||
+                key == "MONGODB_DATABASE"
         }
-    }
 }

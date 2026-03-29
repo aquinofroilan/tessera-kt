@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component
 @Aspect
 @Component
 class ExceptionLoggingAspect {
-
     private val logger: Logger = LoggerFactory.getLogger(ExceptionLoggingAspect::class.java)
 
     @AfterThrowing(pointcut = "execution(* com.froilan.synectix.service..*(..))", throwing = "exception")

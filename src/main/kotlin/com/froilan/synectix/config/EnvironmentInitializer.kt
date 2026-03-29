@@ -12,7 +12,6 @@ import java.io.File
  * This runs before the Spring application context is created.
  */
 class EnvironmentInitializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
-
     override fun initialize(applicationContext: ConfigurableApplicationContext) {
         val environment: ConfigurableEnvironment = applicationContext.environment
 
@@ -21,11 +20,13 @@ class EnvironmentInitializer : ApplicationContextInitializer<ConfigurableApplica
 
         if (envFile.exists() && envFile.isFile) {
             try {
-                val dotenv = Dotenv.configure()
-                    .directory(projectRoot.absolutePath)
-                    .filename(".env")
-                    .ignoreIfMissing()
-                    .load()
+                val dotenv =
+                    Dotenv
+                        .configure()
+                        .directory(projectRoot.absolutePath)
+                        .filename(".env")
+                        .ignoreIfMissing()
+                        .load()
 
                 val envMap = mutableMapOf<String, Any>()
                 dotenv.entries().forEach { entry ->
@@ -53,7 +54,8 @@ class EnvironmentInitializer : ApplicationContextInitializer<ConfigurableApplica
         while (currentDir.parent != null) {
             if (File(currentDir, "gradlew").exists() ||
                 File(currentDir, "gradlew.bat").exists() ||
-                File(currentDir, "build.gradle.kts").exists()) {
+                File(currentDir, "build.gradle.kts").exists()
+            ) {
                 return currentDir
             }
             currentDir = currentDir.parentFile
