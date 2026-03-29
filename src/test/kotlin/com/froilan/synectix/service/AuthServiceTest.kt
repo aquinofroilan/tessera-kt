@@ -530,7 +530,7 @@ class AuthServiceTest {
                 expiryAt = LocalDateTime.now().plusMinutes(30),
             )
 
-        `when`(passwordResetTokenRepository.findByTokenHash("hashed-valid-token")).thenReturn(Optional.of(resetToken))
+        `when`(mongoTemplate.findAndRemove(any(), eq(PasswordResetToken::class.java))).thenReturn(resetToken)
         `when`(userRepository.findById(user.uuid)).thenReturn(Optional.of(user))
         `when`(passwordEncoder.encode("NewPassword123!")).thenReturn("newEncodedPass")
         `when`(userRepository.save(any<User>())).thenAnswer { it.arguments[0] }
@@ -538,14 +538,13 @@ class AuthServiceTest {
         authService.resetPassword("valid-token", "NewPassword123!")
 
         verify(userRepository).save(any<User>())
-        verify(passwordResetTokenRepository).deleteByUserId(user.uuid)
         verify(sessionTokenRepository).deleteByUserId(user.uuid)
         verify(refreshTokenRepository).deleteByUserId(user.uuid)
     }
 
     @Test
     fun `resetPassword should throw for invalid token`() {
-        `when`(passwordResetTokenRepository.findByTokenHash(any())).thenReturn(Optional.empty())
+        `when`(mongoTemplate.findAndRemove(any(), eq(PasswordResetToken::class.java))).thenReturn(null)
 
         val exception =
             assertThrows<IllegalArgumentException> {
@@ -563,14 +562,13 @@ class AuthServiceTest {
                 expiryAt = LocalDateTime.now().minusMinutes(10),
             )
 
-        `when`(passwordResetTokenRepository.findByTokenHash("hashed-expired-token")).thenReturn(Optional.of(expiredToken))
+        `when`(mongoTemplate.findAndRemove(any(), eq(PasswordResetToken::class.java))).thenReturn(expiredToken)
 
         val exception =
             assertThrows<IllegalArgumentException> {
                 authService.resetPassword("expired-token", "NewPassword123!")
             }
         assertEquals("Invalid or expired reset token", exception.message)
-        verify(passwordResetTokenRepository).deleteById(expiredToken.id)
     }
 
     private fun createValidRegisterRequest() =
