@@ -39,6 +39,8 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
                 it.requestMatchers("/auth/change-password").authenticated()
+                it.requestMatchers("/auth/sessions/**").authenticated()
+                it.requestMatchers("/auth/sessions").authenticated()
                 it.requestMatchers("/auth/**").permitAll()
                 it.requestMatchers("/health/**").permitAll()
                 it.requestMatchers("/actuator/health/**").permitAll()

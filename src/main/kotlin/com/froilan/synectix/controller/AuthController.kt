@@ -87,7 +87,12 @@ class AuthController(
         }
 
         return try {
-            val response = authService.login(request)
+            val response =
+                authService.login(
+                    request,
+                    ipAddress = clientIp,
+                    userAgent = httpRequest.getHeader("User-Agent"),
+                )
             resetAttempts(clientIp)
             ResponseEntity.ok(response)
         } catch (e: IllegalArgumentException) {
