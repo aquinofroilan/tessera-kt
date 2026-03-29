@@ -532,6 +532,7 @@ class AuthServiceTest {
                 expiryAt = LocalDateTime.now().plusMinutes(30),
             )
 
+        `when`(passwordResetTokenRepository.findByTokenHash("hashed-valid-token")).thenReturn(Optional.of(resetToken))
         `when`(mongoTemplate.findAndRemove(any(), eq(PasswordResetToken::class.java))).thenReturn(resetToken)
         `when`(userRepository.findById(user.uuid)).thenReturn(Optional.of(user))
         `when`(passwordEncoder.encode("NewPassword123!")).thenReturn("newEncodedPass")
@@ -546,7 +547,7 @@ class AuthServiceTest {
 
     @Test
     fun `resetPassword should throw for invalid token`() {
-        `when`(mongoTemplate.findAndRemove(any(), eq(PasswordResetToken::class.java))).thenReturn(null)
+        `when`(passwordResetTokenRepository.findByTokenHash(any())).thenReturn(Optional.empty())
 
         val exception =
             assertThrows<IllegalArgumentException> {
@@ -556,7 +557,7 @@ class AuthServiceTest {
     }
 
     @Test
-    fun `resetPassword should throw for expired token`() {
+    fun `resetPassword should throw for expired token without consuming it permanently`() {
         val expiredToken =
             PasswordResetToken(
                 tokenHash = "hashed-expired-token",
@@ -564,13 +565,16 @@ class AuthServiceTest {
                 expiryAt = LocalDateTime.now().minusMinutes(10),
             )
 
-        `when`(mongoTemplate.findAndRemove(any(), eq(PasswordResetToken::class.java))).thenReturn(expiredToken)
+        `when`(passwordResetTokenRepository.findByTokenHash("hashed-expired-token"))
+            .thenReturn(Optional.of(expiredToken))
 
         val exception =
             assertThrows<IllegalArgumentException> {
                 authService.resetPassword("expired-token", "NewPassword123!")
             }
         assertEquals("Invalid or expired reset token", exception.message)
+        verify(passwordResetTokenRepository).deleteById(expiredToken.id)
+        verify(mongoTemplate, never()).findAndRemove(any(), eq(PasswordResetToken::class.java))
     }
 
     private fun createValidRegisterRequest() =
