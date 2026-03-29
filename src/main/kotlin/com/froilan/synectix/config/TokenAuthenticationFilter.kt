@@ -33,7 +33,7 @@ class TokenAuthenticationFilter(
                 val sessionToken = sessionTokenOpt.get()
                 if (sessionToken.expiryAt.isAfter(LocalDateTime.now())) {
                     val userOpt = userRepository.findById(sessionToken.userId)
-                    if (userOpt.isPresent) {
+                    if (userOpt.isPresent && userOpt.get().isActive) {
                         val user = userOpt.get()
                         val authorities = user.roles.map { SimpleGrantedAuthority("ROLE_$it") }
                         val authentication = UsernamePasswordAuthenticationToken(user, null, authorities)

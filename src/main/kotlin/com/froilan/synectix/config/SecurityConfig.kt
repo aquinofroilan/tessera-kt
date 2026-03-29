@@ -1,5 +1,6 @@
 package com.froilan.synectix.config
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -17,7 +18,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    private val tokenAuthenticationFilter: TokenAuthenticationFilter
+    private val tokenAuthenticationFilter: TokenAuthenticationFilter,
+    @Value("\${spring.web.cors.allowed-origins:http://localhost:3000,http://localhost:8080}")
+    private val corsAllowedOrigins: String,
 ) {
 
     @Bean
@@ -52,7 +55,7 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf("*") // Configure as needed
+        configuration.allowedOrigins = corsAllowedOrigins.split(",").map { it.trim() }
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
         configuration.allowedHeaders = listOf("*")
         val source = UrlBasedCorsConfigurationSource()
