@@ -10,6 +10,7 @@ import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.dto.ResetPasswordRequest
 import com.froilan.synectix.model.User
 import com.froilan.synectix.service.AuthService
+import com.github.benmanes.caffeine.cache.Caffeine
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDateTime
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 
 @RestController
 @RequestMapping("/auth")
@@ -32,10 +33,20 @@ class AuthController(
 ) {
     private val log = LoggerFactory.getLogger(AuthController::class.java)
 
-    // Simple in-memory rate limiting (IP -> (Attempts, BlockedUntil))
-    private val loginAttempts = ConcurrentHashMap<String, Pair<Int, LocalDateTime>>()
+    // In-memory rate limiting with automatic eviction
+    private val loginAttempts =
+        Caffeine
+            .newBuilder()
+            .expireAfterWrite(BLOCK_DURATION_MINUTES, TimeUnit.MINUTES)
+            .maximumSize(10_000)
+            .build<String, Pair<Int, LocalDateTime>>()
 
-    private val forgotPasswordThrottle = ConcurrentHashMap<String, LocalDateTime>()
+    private val forgotPasswordThrottle =
+        Caffeine
+            .newBuilder()
+            .expireAfterWrite(FORGOT_PASSWORD_THROTTLE_MINUTES, TimeUnit.MINUTES)
+            .maximumSize(10_000)
+            .build<String, Boolean>()
 
     companion object {
         private const val MAX_ATTEMPTS = 5
@@ -120,14 +131,13 @@ class AuthController(
         @Valid @RequestBody request: ForgotPasswordRequest,
     ): ResponseEntity<Any> {
         val email = request.email.lowercase()
-        val lastRequest = forgotPasswordThrottle[email]
-        if (lastRequest != null && lastRequest.plusMinutes(FORGOT_PASSWORD_THROTTLE_MINUTES).isAfter(LocalDateTime.now())) {
+        if (forgotPasswordThrottle.getIfPresent(email) != null) {
             return ResponseEntity.ok(
                 mapOf("message" to "If an account with that email exists, a password reset link has been sent."),
             )
         }
 
-        forgotPasswordThrottle[email] = LocalDateTime.now()
+        forgotPasswordThrottle.put(email, true)
         val resetToken = authService.forgotPassword(email)
         if (resetToken != null) {
             log.info("Password reset token generated for email: {}", email)
@@ -160,29 +170,26 @@ class AuthController(
     }
 
     private fun isBlocked(ip: String): Boolean {
-        val (_, blockedUntil) = loginAttempts[ip] ?: return false
+        val (_, blockedUntil) = loginAttempts.getIfPresent(ip) ?: return false
         if (LocalDateTime.now().isBefore(blockedUntil)) {
             return true
         }
-        if (LocalDateTime.now().isAfter(blockedUntil) && blockedUntil != LocalDateTime.MIN) {
-            loginAttempts.remove(ip)
-            return false
-        }
+        loginAttempts.invalidate(ip)
         return false
     }
 
     private fun recordFailedAttempt(ip: String) {
-        val (attempts, _) = loginAttempts.getOrDefault(ip, 0 to LocalDateTime.MIN)
+        val (attempts, _) = loginAttempts.getIfPresent(ip) ?: (0 to LocalDateTime.MIN)
         val newAttempts = attempts + 1
 
         if (newAttempts >= MAX_ATTEMPTS) {
-            loginAttempts[ip] = newAttempts to LocalDateTime.now().plusMinutes(BLOCK_DURATION_MINUTES)
+            loginAttempts.put(ip, newAttempts to LocalDateTime.now().plusMinutes(BLOCK_DURATION_MINUTES))
         } else {
-            loginAttempts[ip] = newAttempts to LocalDateTime.MIN
+            loginAttempts.put(ip, newAttempts to LocalDateTime.MIN)
         }
     }
 
     private fun resetAttempts(ip: String) {
-        loginAttempts.remove(ip)
+        loginAttempts.invalidate(ip)
     }
 }
