@@ -11,7 +11,7 @@ data class RefreshToken(
     @Id
     val id: String = UUID.randomUUID().toString(),
     @Indexed(unique = true)
-    val token: String,
+    val tokenHash: String,
     val userId: String,
     val sessionTokenId: String,
     @Indexed(expireAfterSeconds = 0)

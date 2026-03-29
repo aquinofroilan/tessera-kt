@@ -11,6 +11,7 @@ import com.froilan.synectix.repository.OrganizationRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
+import com.froilan.synectix.util.TokenHasher
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.mongodb.core.MongoTemplate
@@ -31,6 +32,7 @@ class AuthService(
     private val sessionTokenRepository: SessionTokenRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val mongoTemplate: MongoTemplate,
+    private val tokenHasher: TokenHasher,
     private val passwordEncoder: PasswordEncoder,
     @Value("\${security.jwt.expiration:86400000}")
     private val tokenValidityMs: Long,
@@ -113,7 +115,7 @@ class AuthService(
 
         val refreshToken =
             RefreshToken(
-                token = refreshTokenStr,
+                tokenHash = tokenHasher.hash(refreshTokenStr),
                 userId = user.uuid,
                 sessionTokenId = savedSession.id,
                 expiryAt = refreshExpiryAt,
@@ -132,9 +134,10 @@ class AuthService(
 
     @Transactional
     fun refresh(refreshToken: String): AuthResponse {
+        val refreshTokenHash = tokenHasher.hash(refreshToken)
         val existing =
             refreshTokenRepository
-                .findByToken(refreshToken)
+                .findByTokenHash(refreshTokenHash)
                 .orElseThrow { IllegalArgumentException("Invalid or expired refresh token") }
 
         if (!existing.expiryAt.isAfter(LocalDateTime.now())) {
@@ -162,11 +165,12 @@ class AuthService(
         val savedSession = sessionTokenRepository.save(sessionToken)
 
         val refreshTokenStr = generateToken()
+        val newRefreshTokenHash = tokenHasher.hash(refreshTokenStr)
         val refreshExpiryAt = LocalDateTime.now().plus(refreshTokenValidityMs, ChronoUnit.MILLIS)
 
         val newRefreshToken =
             RefreshToken(
-                token = refreshTokenStr,
+                tokenHash = newRefreshTokenHash,
                 userId = user.uuid,
                 sessionTokenId = savedSession.id,
                 expiryAt = refreshExpiryAt,
@@ -175,11 +179,11 @@ class AuthService(
 
         val consumed =
             mongoTemplate.findAndRemove(
-                Query.query(Criteria.where("token").`is`(refreshToken)),
+                Query.query(Criteria.where("tokenHash").`is`(refreshTokenHash)),
                 RefreshToken::class.java,
             )
         if (consumed == null) {
-            refreshTokenRepository.deleteByToken(refreshTokenStr)
+            refreshTokenRepository.deleteByTokenHash(newRefreshTokenHash)
             sessionTokenRepository.deleteById(savedSession.id)
             throw IllegalArgumentException("Invalid or expired refresh token")
         }

@@ -10,6 +10,7 @@ import com.froilan.synectix.repository.OrganizationRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
+import com.froilan.synectix.util.TokenHasher
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -37,6 +38,7 @@ class AuthServiceTest {
     private lateinit var sessionTokenRepository: SessionTokenRepository
     private lateinit var refreshTokenRepository: RefreshTokenRepository
     private lateinit var mongoTemplate: MongoTemplate
+    private lateinit var tokenHasher: TokenHasher
     private lateinit var passwordEncoder: PasswordEncoder
 
     @BeforeEach
@@ -46,7 +48,10 @@ class AuthServiceTest {
         sessionTokenRepository = mock(SessionTokenRepository::class.java)
         refreshTokenRepository = mock(RefreshTokenRepository::class.java)
         mongoTemplate = mock(MongoTemplate::class.java)
+        tokenHasher = mock(TokenHasher::class.java)
         passwordEncoder = mock(PasswordEncoder::class.java)
+
+        `when`(tokenHasher.hash(any())).thenAnswer { "hashed-${it.arguments[0]}" }
 
         authService =
             AuthService(
@@ -55,6 +60,7 @@ class AuthServiceTest {
                 sessionTokenRepository = sessionTokenRepository,
                 refreshTokenRepository = refreshTokenRepository,
                 mongoTemplate = mongoTemplate,
+                tokenHasher = tokenHasher,
                 passwordEncoder = passwordEncoder,
                 tokenValidityMs = 86400000L,
                 refreshTokenValidityMs = 2592000000L,
@@ -323,18 +329,19 @@ class AuthServiceTest {
     @Test
     fun `refresh should return new token pair with valid refresh token`() {
         val oldRefreshTokenStr = "old-refresh-token"
+        val oldRefreshTokenHash = "hashed-$oldRefreshTokenStr"
         val user = createMockUser()
         val oldSessionToken = createMockSessionToken()
         val existingRefreshToken =
             RefreshToken(
                 id = "rt-123",
-                token = oldRefreshTokenStr,
+                tokenHash = oldRefreshTokenHash,
                 userId = user.uuid,
                 sessionTokenId = oldSessionToken.id,
                 expiryAt = LocalDateTime.now().plusDays(30),
             )
 
-        `when`(refreshTokenRepository.findByToken(oldRefreshTokenStr)).thenReturn(Optional.of(existingRefreshToken))
+        `when`(refreshTokenRepository.findByTokenHash(oldRefreshTokenHash)).thenReturn(Optional.of(existingRefreshToken))
         `when`(userRepository.findById(user.uuid)).thenReturn(Optional.of(user))
         `when`(sessionTokenRepository.save(any<SessionToken>())).thenAnswer { it.arguments[0] }
         `when`(refreshTokenRepository.save(any<RefreshToken>())).thenAnswer { it.arguments[0] }
@@ -353,15 +360,16 @@ class AuthServiceTest {
     @Test
     fun `refresh should throw exception with expired refresh token`() {
         val expiredTokenStr = "expired-refresh-token"
+        val expiredTokenHash = "hashed-$expiredTokenStr"
         val expiredRefreshToken =
             RefreshToken(
-                token = expiredTokenStr,
+                tokenHash = expiredTokenHash,
                 userId = "user-123",
                 sessionTokenId = "session-123",
                 expiryAt = LocalDateTime.now().minusHours(1),
             )
 
-        `when`(refreshTokenRepository.findByToken(expiredTokenStr)).thenReturn(Optional.of(expiredRefreshToken))
+        `when`(refreshTokenRepository.findByTokenHash(expiredTokenHash)).thenReturn(Optional.of(expiredRefreshToken))
 
         val exception =
             assertThrows<IllegalArgumentException> {
@@ -373,8 +381,9 @@ class AuthServiceTest {
     @Test
     fun `refresh should throw exception with invalid refresh token`() {
         val invalidTokenStr = "invalid-refresh-token"
+        val invalidTokenHash = "hashed-$invalidTokenStr"
 
-        `when`(refreshTokenRepository.findByToken(invalidTokenStr)).thenReturn(Optional.empty())
+        `when`(refreshTokenRepository.findByTokenHash(invalidTokenHash)).thenReturn(Optional.empty())
 
         val exception =
             assertThrows<IllegalArgumentException> {
@@ -386,16 +395,17 @@ class AuthServiceTest {
     @Test
     fun `refresh should throw exception when user is inactive`() {
         val refreshTokenStr = "valid-refresh-token"
+        val refreshTokenHash = "hashed-$refreshTokenStr"
         val inactiveUser = createMockUser().copy(isActive = false)
         val existingRefreshToken =
             RefreshToken(
-                token = refreshTokenStr,
+                tokenHash = refreshTokenHash,
                 userId = inactiveUser.uuid,
                 sessionTokenId = "session-123",
                 expiryAt = LocalDateTime.now().plusDays(30),
             )
 
-        `when`(refreshTokenRepository.findByToken(refreshTokenStr)).thenReturn(Optional.of(existingRefreshToken))
+        `when`(refreshTokenRepository.findByTokenHash(refreshTokenHash)).thenReturn(Optional.of(existingRefreshToken))
         `when`(userRepository.findById(inactiveUser.uuid)).thenReturn(Optional.of(inactiveUser))
 
         val exception =
