@@ -91,7 +91,11 @@ class AuthService(
     }
 
     @Transactional
-    fun login(request: LoginRequest): AuthResponse {
+    fun login(
+        request: LoginRequest,
+        ipAddress: String? = null,
+        userAgent: String? = null,
+    ): AuthResponse {
         val user =
             userRepository
                 .findByUsername(request.username)
@@ -113,6 +117,8 @@ class AuthService(
                 token = accessTokenStr,
                 expiryAt = expiryAt,
                 userId = user.uuid,
+                ipAddress = ipAddress,
+                userAgent = userAgent,
             )
         val savedSession = sessionTokenRepository.save(sessionToken)
 
@@ -282,6 +288,41 @@ class AuthService(
         passwordResetTokenRepository.deleteByUserId(user.uuid)
         sessionTokenRepository.deleteByUserId(user.uuid)
         refreshTokenRepository.deleteByUserId(user.uuid)
+    }
+
+    fun listSessions(userId: String): List<SessionToken> =
+        sessionTokenRepository
+            .findByUserId(userId)
+            .filter { it.expiryAt.isAfter(LocalDateTime.now()) }
+
+    @Transactional
+    fun revokeSession(
+        userId: String,
+        sessionId: String,
+    ) {
+        val session =
+            sessionTokenRepository.findById(sessionId).orElseThrow {
+                IllegalArgumentException("Session not found")
+            }
+        if (session.userId != userId) {
+            throw IllegalArgumentException("Session not found")
+        }
+        refreshTokenRepository.deleteBySessionTokenId(session.id)
+        sessionTokenRepository.deleteById(session.id)
+    }
+
+    @Transactional
+    fun revokeOtherSessions(
+        userId: String,
+        currentToken: String,
+    ) {
+        val sessions = sessionTokenRepository.findByUserId(userId)
+        for (session in sessions) {
+            if (session.token != currentToken) {
+                refreshTokenRepository.deleteBySessionTokenId(session.id)
+                sessionTokenRepository.deleteById(session.id)
+            }
+        }
     }
 
     @Transactional
