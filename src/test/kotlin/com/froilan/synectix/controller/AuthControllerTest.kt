@@ -37,9 +37,6 @@ class AuthControllerTest {
     private lateinit var userRepository: com.froilan.synectix.repository.UserRepository
 
     @MockitoBean
-    private lateinit var tokenAuthenticationFilter: com.froilan.synectix.config.TokenAuthenticationFilter
-
-    @MockitoBean
     private lateinit var organizationRepository: com.froilan.synectix.repository.OrganizationRepository
 
     @MockitoBean
@@ -274,7 +271,7 @@ class AuthControllerTest {
 
     @Test
     
-    fun `POST signin should return 400 when credentials are invalid`() {
+    fun `POST signin should return 401 when credentials are invalid`() {
         val requestJson = """
             {
                 "username": "testuser",
@@ -290,7 +287,7 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson)
         )
-            .andExpect(status().isBadRequest)
+            .andExpect(status().isUnauthorized)
             .andExpect(jsonPath("$.error").value("Invalid username or password"))
     }
 

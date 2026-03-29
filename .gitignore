@@ -52,3 +52,6 @@ env
 .log
 *.log.*
 *.log
+
+# Config
+settings.local.json

@@ -18,7 +18,7 @@ import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
 
 @WebMvcTest(controllers = [HealthController::class])
-@Import(LoggingAspect::class)
+@Import(LoggingAspect::class, com.froilan.synectix.config.TestSecurityConfig::class)
 @ActiveProfiles("test")
 class HealthControllerTest {
 
@@ -46,7 +46,7 @@ class HealthControllerTest {
         `when`(mongoDatabase.runCommand(org.mockito.ArgumentMatchers.any(Document::class.java))).thenReturn(buildInfo)
 
         // When & Then
-        mockMvc.perform(get("/api/health"))
+        mockMvc.perform(get("/health"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.status").value("UP"))
             .andExpect(jsonPath("$.application").value("Synectix ERP System"))
@@ -56,7 +56,7 @@ class HealthControllerTest {
 
     @Test
     fun `should return simple health status`() {
-        mockMvc.perform(get("/api/health/simple"))
+        mockMvc.perform(get("/health/simple"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.status").value("UP"))
             .andExpect(jsonPath("$.message").value("Synectix application is running"))
@@ -71,7 +71,7 @@ class HealthControllerTest {
         `when`(mongoDatabase.runCommand(org.mockito.ArgumentMatchers.any(Document::class.java))).thenReturn(buildInfo)
 
         // When & Then
-        mockMvc.perform(get("/api/health/detailed"))
+        mockMvc.perform(get("/health/detailed"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.status").value("UP"))
             .andExpect(jsonPath("$.application.name").value("Synectix ERP System"))
@@ -86,7 +86,7 @@ class HealthControllerTest {
         `when`(mongoTemplate.db).thenThrow(RuntimeException("Database connection failed"))
 
         // When & Then
-        mockMvc.perform(get("/api/health"))
+        mockMvc.perform(get("/health"))
             .andExpect(status().isServiceUnavailable)
             .andExpect(jsonPath("$.status").value("DOWN"))
             .andExpect(jsonPath("$.database.status").value("DOWN"))
