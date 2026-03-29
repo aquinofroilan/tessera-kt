@@ -9,7 +9,7 @@ import java.util.Optional
 interface UserRepository : MongoRepository<User, String> {
     fun findByUsername(username: String): Optional<User>
 
-    fun findByEmail(email: String): Optional<User>
+    fun findByEmailIgnoreCase(email: String): Optional<User>
 
     fun existsByUsername(username: String): Boolean
 

@@ -219,11 +219,15 @@ class AuthService(
         }
         val updatedUser = user.copy(passwordHash = passwordEncoder.encode(newPassword) as String)
         userRepository.save(updatedUser)
+
+        // Invalidate all existing sessions after password change
+        sessionTokenRepository.deleteByUserId(user.uuid)
+        refreshTokenRepository.deleteByUserId(user.uuid)
     }
 
     @Transactional
     fun forgotPassword(email: String): String? {
-        val user = userRepository.findByEmail(email).orElse(null) ?: return null
+        val user = userRepository.findByEmailIgnoreCase(email).orElse(null) ?: return null
 
         if (!user.isActive) {
             return null

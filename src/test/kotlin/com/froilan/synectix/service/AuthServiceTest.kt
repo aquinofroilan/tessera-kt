@@ -459,6 +459,8 @@ class AuthServiceTest {
         val userCaptor = argumentCaptor<User>()
         verify(userRepository).save(userCaptor.capture())
         assertEquals("newEncodedPassword", userCaptor.firstValue.passwordHash)
+        verify(sessionTokenRepository).deleteByUserId(user.uuid)
+        verify(refreshTokenRepository).deleteByUserId(user.uuid)
     }
 
     @Test
@@ -488,7 +490,7 @@ class AuthServiceTest {
     @Test
     fun `forgotPassword should return reset token for valid email`() {
         val user = createMockUser()
-        `when`(userRepository.findByEmail(user.email)).thenReturn(Optional.of(user))
+        `when`(userRepository.findByEmailIgnoreCase(user.email)).thenReturn(Optional.of(user))
         `when`(passwordResetTokenRepository.save(any<PasswordResetToken>())).thenAnswer { it.arguments[0] }
 
         val result = authService.forgotPassword(user.email)
@@ -501,7 +503,7 @@ class AuthServiceTest {
 
     @Test
     fun `forgotPassword should return null for unknown email`() {
-        `when`(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty())
+        `when`(userRepository.findByEmailIgnoreCase("unknown@example.com")).thenReturn(Optional.empty())
 
         val result = authService.forgotPassword("unknown@example.com")
 
@@ -512,7 +514,7 @@ class AuthServiceTest {
     @Test
     fun `forgotPassword should return null for inactive user`() {
         val inactiveUser = createMockUser().copy(isActive = false)
-        `when`(userRepository.findByEmail(inactiveUser.email)).thenReturn(Optional.of(inactiveUser))
+        `when`(userRepository.findByEmailIgnoreCase(inactiveUser.email)).thenReturn(Optional.of(inactiveUser))
 
         val result = authService.forgotPassword(inactiveUser.email)
 
