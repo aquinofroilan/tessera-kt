@@ -179,10 +179,7 @@ class AuthController(
     private fun isBlocked(ip: String): Boolean = blockedIps.getIfPresent(ip) != null
 
     private fun recordFailedAttempt(ip: String) {
-        val current = loginAttemptCounts.getIfPresent(ip) ?: 0
-        val newCount = current + 1
-        loginAttemptCounts.put(ip, newCount)
-
+        val newCount = loginAttemptCounts.asMap().merge(ip, 1, Int::plus) ?: 1
         if (newCount >= MAX_ATTEMPTS) {
             blockedIps.put(ip, true)
             loginAttemptCounts.invalidate(ip)
