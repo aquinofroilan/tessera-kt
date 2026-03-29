@@ -3,6 +3,7 @@ package com.froilan.synectix.controller
 import com.froilan.synectix.annotation.Loggable
 import com.froilan.synectix.annotation.LogLevel
 import com.froilan.synectix.dto.LoginRequest
+import com.froilan.synectix.dto.RefreshRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.service.AuthService
 import jakarta.servlet.http.HttpServletRequest
@@ -59,6 +60,16 @@ class AuthController(
             if (e.message != "User account is inactive") {
                 recordFailedAttempt(clientIp)
             }
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("error" to e.message))
+        }
+    }
+
+    @PostMapping("/refresh")
+    fun refresh(@Valid @RequestBody request: RefreshRequest): ResponseEntity<Any> {
+        return try {
+            val response = authService.refresh(request.refreshToken)
+            ResponseEntity.ok(response)
+        } catch (e: IllegalArgumentException) {
             ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("error" to e.message))
         }
     }

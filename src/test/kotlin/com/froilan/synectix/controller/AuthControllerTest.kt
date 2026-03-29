@@ -2,8 +2,10 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.aspect.LoggingAspect
 import com.froilan.synectix.dto.LoginRequest
+import com.froilan.synectix.dto.RefreshRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.model.User
+import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.service.AuthService
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
@@ -42,6 +44,9 @@ class AuthControllerTest {
     @MockitoBean
     private lateinit var passwordEncoder: org.springframework.security.crypto.password.PasswordEncoder
 
+    @MockitoBean
+    private lateinit var refreshTokenRepository: RefreshTokenRepository
+
 
     @Test
     fun `POST signup should return 201 when registration is successful`() {
@@ -70,7 +75,7 @@ class AuthControllerTest {
             firstName = "New",
             lastName = "User",
             passwordHash = "encodedPassword",
-            organizationId = "org-123"
+            organizationId = "org-123",
         )
 
         `when`(authService.register(any<RegisterRequest>())).thenReturn(savedUser)
@@ -78,7 +83,7 @@ class AuthControllerTest {
         mockMvc.perform(
             post("/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson)
+                .content(requestJson),
         )
             .andDo { result ->
                 println("Response status: ${result.response.status}")
@@ -90,7 +95,6 @@ class AuthControllerTest {
     }
 
     @Test
-    
     fun `POST signup should return 400 when username already exists`() {
         val requestJson = """
             {
@@ -112,20 +116,17 @@ class AuthControllerTest {
         `when`(authService.register(any<RegisterRequest>()))
             .thenThrow(IllegalArgumentException("Username already exists"))
 
-        // When & Then
         mockMvc.perform(
             post("/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson)
+                .content(requestJson),
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Username already exists"))
     }
 
     @Test
-    
     fun `POST signup should return 400 when email already exists`() {
-        // Given
         val requestJson = """
             {
                 "username": "newuser",
@@ -146,11 +147,10 @@ class AuthControllerTest {
         `when`(authService.register(any<RegisterRequest>()))
             .thenThrow(IllegalArgumentException("Email already exists"))
 
-        // When & Then
         mockMvc.perform(
             post("/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson)
+                .content(requestJson),
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Email already exists"))
@@ -178,7 +178,7 @@ class AuthControllerTest {
         mockMvc.perform(
             post("/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson)
+                .content(requestJson),
         )
             .andExpect(status().isBadRequest)
     }
@@ -205,7 +205,7 @@ class AuthControllerTest {
         mockMvc.perform(
             post("/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson)
+                .content(requestJson),
         )
             .andExpect(status().isBadRequest)
     }
@@ -232,14 +232,13 @@ class AuthControllerTest {
         mockMvc.perform(
             post("/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson)
+                .content(requestJson),
         )
             .andExpect(status().isBadRequest)
     }
 
 
     @Test
-    
     fun `POST signin should return 200 with token when login is successful`() {
         val requestJson = """
             {
@@ -249,10 +248,12 @@ class AuthControllerTest {
         """.trimIndent()
 
         val authResponse = com.froilan.synectix.dto.AuthResponse(
-            token = "generated-token-123",
+            accessToken = "generated-token-123",
+            refreshToken = "generated-refresh-token-123",
             username = "testuser",
             roles = listOf("USER"),
-            expiresAt = LocalDateTime.now().plusHours(24).toString()
+            expiresAt = LocalDateTime.now().plusHours(24).toString(),
+            refreshTokenExpiresAt = LocalDateTime.now().plusDays(30).toString(),
         )
 
         `when`(authService.login(any<LoginRequest>())).thenReturn(authResponse)
@@ -260,17 +261,16 @@ class AuthControllerTest {
         mockMvc.perform(
             post("/auth/signin")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson)
+                .content(requestJson),
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.token").value(authResponse.token))
+            .andExpect(jsonPath("$.accessToken").value(authResponse.accessToken))
             .andExpect(jsonPath("$.username").value(authResponse.username))
             .andExpect(jsonPath("$.roles[0]").value("USER"))
             .andExpect(jsonPath("$.expiresAt").exists())
     }
 
     @Test
-    
     fun `POST signin should return 401 when credentials are invalid`() {
         val requestJson = """
             {
@@ -285,7 +285,7 @@ class AuthControllerTest {
         mockMvc.perform(
             post("/auth/signin")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson)
+                .content(requestJson),
         )
             .andExpect(status().isUnauthorized)
             .andExpect(jsonPath("$.error").value("Invalid username or password"))
@@ -303,7 +303,7 @@ class AuthControllerTest {
         mockMvc.perform(
             post("/auth/signin")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson)
+                .content(requestJson),
         )
             .andExpect(status().isBadRequest)
     }
@@ -320,7 +320,7 @@ class AuthControllerTest {
         mockMvc.perform(
             post("/auth/signin")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson)
+                .content(requestJson),
         )
             .andExpect(status().isBadRequest)
     }
@@ -340,10 +340,75 @@ class AuthControllerTest {
         mockMvc.perform(
             post("/auth/signin")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson)
+                .content(requestJson),
         )
             .andExpect(status().isUnauthorized)
             .andExpect(jsonPath("$.error").value("User account is inactive"))
+    }
+
+    @Test
+    fun `POST refresh should return 200 with new tokens when refresh token is valid`() {
+        val requestJson = """
+            {
+                "refreshToken": "valid-refresh-token-123"
+            }
+        """.trimIndent()
+
+        val authResponse = com.froilan.synectix.dto.AuthResponse(
+            accessToken = "new-access-token-456",
+            refreshToken = "new-refresh-token-789",
+            username = "testuser",
+            roles = listOf("USER"),
+            expiresAt = LocalDateTime.now().plusHours(24).toString(),
+            refreshTokenExpiresAt = LocalDateTime.now().plusDays(30).toString(),
+        )
+
+        `when`(authService.refresh(any<String>())).thenReturn(authResponse)
+
+        mockMvc.perform(
+            post("/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.accessToken").exists())
+            .andExpect(jsonPath("$.refreshToken").exists())
+    }
+
+    @Test
+    fun `POST refresh should return 401 when refresh token is invalid`() {
+        val requestJson = """
+            {
+                "refreshToken": "invalid-refresh-token"
+            }
+        """.trimIndent()
+
+        `when`(authService.refresh(any<String>()))
+            .thenThrow(IllegalArgumentException("Invalid or expired refresh token"))
+
+        mockMvc.perform(
+            post("/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson),
+        )
+            .andExpect(status().isUnauthorized)
+            .andExpect(jsonPath("$.error").value("Invalid or expired refresh token"))
+    }
+
+    @Test
+    fun `POST refresh should return 400 when refresh token field is blank`() {
+        val requestJson = """
+            {
+                "refreshToken": ""
+            }
+        """.trimIndent()
+
+        mockMvc.perform(
+            post("/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson),
+        )
+            .andExpect(status().isBadRequest)
     }
 
     @Test
@@ -353,7 +418,7 @@ class AuthControllerTest {
 
         mockMvc.perform(
             post("/auth/logout")
-                .header("Authorization", authHeader)
+                .header("Authorization", authHeader),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("Logged out successfully"))
@@ -362,7 +427,7 @@ class AuthControllerTest {
     @Test
     fun `POST logout should return 200 when no authorization header is provided`() {
         mockMvc.perform(
-            post("/auth/logout")
+            post("/auth/logout"),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("Logged out successfully"))
@@ -372,7 +437,7 @@ class AuthControllerTest {
     fun `POST logout should return 200 when authorization header is empty`() {
         mockMvc.perform(
             post("/auth/logout")
-                .header("Authorization", "")
+                .header("Authorization", ""),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("Logged out successfully"))
@@ -382,7 +447,7 @@ class AuthControllerTest {
     fun `POST logout should return 200 when authorization header has invalid format`() {
         mockMvc.perform(
             post("/auth/logout")
-                .header("Authorization", "InvalidFormat token-123")
+                .header("Authorization", "InvalidFormat token-123"),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("Logged out successfully"))
@@ -395,7 +460,7 @@ class AuthControllerTest {
 
         mockMvc.perform(
             post("/auth/logout")
-                .header("Authorization", authHeader)
+                .header("Authorization", authHeader),
         )
 
         org.mockito.Mockito.verify(authService, org.mockito.Mockito.times(1)).logout(token)
