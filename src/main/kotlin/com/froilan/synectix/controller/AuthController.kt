@@ -144,8 +144,11 @@ class AuthController(
         }
 
         forgotPasswordThrottle.put(email, true)
-        authService.forgotPassword(email)
-        log.info("Password reset flow completed for request")
+        try {
+            authService.forgotPassword(email)
+        } catch (e: Exception) {
+            log.error("Forgot-password flow failed", e)
+        }
         return ResponseEntity.ok(
             mapOf("message" to "If an account with that email exists, a password reset link has been sent."),
         )
