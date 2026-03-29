@@ -447,7 +447,6 @@ class AuthServiceTest {
         verify(sessionTokenRepository, times(1)).deleteByToken(token)
     }
 
-    // --- Session Management Tests ---
 
     @Test
     fun `listSessions should return only non-expired sessions`() {
@@ -510,7 +509,6 @@ class AuthServiceTest {
         verify(sessionTokenRepository, never()).deleteById("s1")
     }
 
-    // --- Change Password Tests ---
 
     @Test
     fun `changePassword should update password with valid current password`() {
