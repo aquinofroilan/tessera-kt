@@ -165,11 +165,12 @@ class AuthService(
         val savedSession = sessionTokenRepository.save(sessionToken)
 
         val refreshTokenStr = generateToken()
+        val newRefreshTokenHash = tokenHasher.hash(refreshTokenStr)
         val refreshExpiryAt = LocalDateTime.now().plus(refreshTokenValidityMs, ChronoUnit.MILLIS)
 
         val newRefreshToken =
             RefreshToken(
-                tokenHash = tokenHasher.hash(refreshTokenStr),
+                tokenHash = newRefreshTokenHash,
                 userId = user.uuid,
                 sessionTokenId = savedSession.id,
                 expiryAt = refreshExpiryAt,
@@ -182,7 +183,7 @@ class AuthService(
                 RefreshToken::class.java,
             )
         if (consumed == null) {
-            refreshTokenRepository.deleteByTokenHash(tokenHasher.hash(refreshTokenStr))
+            refreshTokenRepository.deleteByTokenHash(newRefreshTokenHash)
             sessionTokenRepository.deleteById(savedSession.id)
             throw IllegalArgumentException("Invalid or expired refresh token")
         }

@@ -1,18 +1,26 @@
 package com.froilan.synectix.controller
 
 import com.froilan.synectix.aspect.LoggingAspect
+import com.froilan.synectix.config.TestSecurityConfig
+import com.froilan.synectix.dto.AuthResponse
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.model.User
+import com.froilan.synectix.repository.OrganizationRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
+import com.froilan.synectix.repository.SessionTokenRepository
+import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.service.AuthService
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -22,7 +30,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 
 @WebMvcTest(controllers = [AuthController::class])
-@Import(LoggingAspect::class, com.froilan.synectix.config.TestSecurityConfig::class)
+@Import(LoggingAspect::class, TestSecurityConfig::class)
 @ActiveProfiles("test")
 class AuthControllerTest {
     @Autowired
@@ -32,16 +40,16 @@ class AuthControllerTest {
     private lateinit var authService: AuthService
 
     @MockitoBean
-    private lateinit var sessionTokenRepository: com.froilan.synectix.repository.SessionTokenRepository
+    private lateinit var sessionTokenRepository: SessionTokenRepository
 
     @MockitoBean
-    private lateinit var userRepository: com.froilan.synectix.repository.UserRepository
+    private lateinit var userRepository: UserRepository
 
     @MockitoBean
-    private lateinit var organizationRepository: com.froilan.synectix.repository.OrganizationRepository
+    private lateinit var organizationRepository: OrganizationRepository
 
     @MockitoBean
-    private lateinit var passwordEncoder: org.springframework.security.crypto.password.PasswordEncoder
+    private lateinit var passwordEncoder: PasswordEncoder
 
     @MockitoBean
     private lateinit var refreshTokenRepository: RefreshTokenRepository
@@ -252,7 +260,7 @@ class AuthControllerTest {
             """.trimIndent()
 
         val authResponse =
-            com.froilan.synectix.dto.AuthResponse(
+            AuthResponse(
                 accessToken = "generated-token-123",
                 refreshToken = "generated-refresh-token-123",
                 username = "testuser",
@@ -365,7 +373,7 @@ class AuthControllerTest {
             """.trimIndent()
 
         val authResponse =
-            com.froilan.synectix.dto.AuthResponse(
+            AuthResponse(
                 accessToken = "new-access-token-456",
                 refreshToken = "new-refresh-token-789",
                 username = "testuser",
@@ -476,8 +484,6 @@ class AuthControllerTest {
                 .header("Authorization", authHeader),
         )
 
-        org.mockito.Mockito
-            .verify(authService, org.mockito.Mockito.times(1))
-            .logout(token)
+        verify(authService, times(1)).logout(token)
     }
 }

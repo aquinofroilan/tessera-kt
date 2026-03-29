@@ -1,11 +1,13 @@
 package com.froilan.synectix.controller
 
 import com.froilan.synectix.aspect.LoggingAspect
+import com.froilan.synectix.config.TestSecurityConfig
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
 import com.mongodb.client.MongoDatabase
 import org.bson.Document
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
@@ -19,7 +21,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(controllers = [HealthController::class])
-@Import(LoggingAspect::class, com.froilan.synectix.config.TestSecurityConfig::class)
+@Import(LoggingAspect::class, TestSecurityConfig::class)
 @ActiveProfiles("test")
 class HealthControllerTest {
     @Autowired
@@ -42,7 +44,7 @@ class HealthControllerTest {
         val buildInfo = Document("version", "7.0.0")
         `when`(mongoTemplate.db).thenReturn(mongoDatabase)
         `when`(mongoDatabase.name).thenReturn("synectix-test")
-        `when`(mongoDatabase.runCommand(org.mockito.ArgumentMatchers.any(Document::class.java))).thenReturn(buildInfo)
+        `when`(mongoDatabase.runCommand(ArgumentMatchers.any(Document::class.java))).thenReturn(buildInfo)
 
         mockMvc
             .perform(get("/health"))
@@ -67,7 +69,7 @@ class HealthControllerTest {
         val buildInfo = Document("version", "7.0.0")
         `when`(mongoTemplate.db).thenReturn(mongoDatabase)
         `when`(mongoDatabase.name).thenReturn("synectix-test")
-        `when`(mongoDatabase.runCommand(org.mockito.ArgumentMatchers.any(Document::class.java))).thenReturn(buildInfo)
+        `when`(mongoDatabase.runCommand(ArgumentMatchers.any(Document::class.java))).thenReturn(buildInfo)
 
         mockMvc
             .perform(get("/health/detailed"))
