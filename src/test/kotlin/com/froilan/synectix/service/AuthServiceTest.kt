@@ -45,11 +45,9 @@ class AuthServiceTest {
         )
     }
 
-    // ========== Registration Tests ==========
 
     @Test
     fun `register should create organization and user successfully`() {
-        // Given
         val request = createValidRegisterRequest()
         val encodedPassword = "encodedPassword123"
         val savedOrg = Organizations(
@@ -77,19 +75,15 @@ class AuthServiceTest {
         `when`(organizationRepository.save(any<Organizations>())).thenReturn(savedOrg)
         `when`(userRepository.save(any<User>())).thenReturn(savedUser)
 
-        // When
         val result = authService.register(request)
 
-        // Then
         assertNotNull(result)
         assertEquals(request.username, result.username)
         assertEquals(request.email, result.email)
         assertEquals(savedOrg.uuid, result.organizationId)
 
-        // Verify organization was saved
         verify(organizationRepository, times(1)).save(any<Organizations>())
 
-        // Verify user was saved with correct data
         val userCaptor = argumentCaptor<User>()
         verify(userRepository, times(1)).save(userCaptor.capture())
         assertEquals(encodedPassword, userCaptor.firstValue.passwordHash)
@@ -98,7 +92,6 @@ class AuthServiceTest {
 
     @Test
     fun `register should throw exception when username already exists`() {
-        // Given
         val request = createValidRegisterRequest()
         `when`(passwordEncoder.encode(any())).thenReturn("encodedPassword")
         `when`(organizationRepository.save(any<Organizations>()))
@@ -106,7 +99,6 @@ class AuthServiceTest {
         `when`(userRepository.save(any<User>()))
             .thenThrow(DuplicateKeyException("E11000 duplicate key error collection: synectix.users index: username"))
 
-        // When & Then
         val exception = assertThrows<IllegalArgumentException> {
             authService.register(request)
         }
@@ -115,7 +107,6 @@ class AuthServiceTest {
 
     @Test
     fun `register should throw exception when email already exists`() {
-        // Given
         val request = createValidRegisterRequest()
         `when`(passwordEncoder.encode(any())).thenReturn("encodedPassword")
         `when`(organizationRepository.save(any<Organizations>()))
@@ -123,7 +114,6 @@ class AuthServiceTest {
         `when`(userRepository.save(any<User>()))
             .thenThrow(DuplicateKeyException("E11000 duplicate key error collection: synectix.users index: email"))
 
-        // When & Then
         val exception = assertThrows<IllegalArgumentException> {
             authService.register(request)
         }
@@ -132,12 +122,10 @@ class AuthServiceTest {
 
     @Test
     fun `register should throw exception when organization slug already exists`() {
-        // Given
         val request = createValidRegisterRequest()
         `when`(organizationRepository.save(any<Organizations>()))
             .thenThrow(DuplicateKeyException("E11000 duplicate key error collection: synectix.organizations index: orgSlug"))
 
-        // When & Then
         val exception = assertThrows<IllegalArgumentException> {
             authService.register(request)
         }
@@ -146,12 +134,10 @@ class AuthServiceTest {
 
     @Test
     fun `register should throw exception when organization name already exists`() {
-        // Given
         val request = createValidRegisterRequest()
         `when`(organizationRepository.save(any<Organizations>()))
             .thenThrow(DuplicateKeyException("E11000 duplicate key error collection: synectix.organizations index: name"))
 
-        // When & Then
         val exception = assertThrows<IllegalArgumentException> {
             authService.register(request)
         }
@@ -160,7 +146,6 @@ class AuthServiceTest {
 
     @Test
     fun `register should encode password before saving`() {
-        // Given
         val request = createValidRegisterRequest()
         val encodedPassword = "super-secure-encoded-password"
 
@@ -168,17 +153,14 @@ class AuthServiceTest {
         `when`(organizationRepository.save(any<Organizations>())).thenReturn(createMockOrganization())
         `when`(userRepository.save(any<User>())).thenReturn(createMockUser())
 
-        // When
         authService.register(request)
 
-        // Then
         verify(passwordEncoder, times(1)).encode(request.password)
         val userCaptor = argumentCaptor<User>()
         verify(userRepository).save(userCaptor.capture())
         assertEquals(encodedPassword, userCaptor.firstValue.passwordHash)
     }
 
-    // ========== Login Tests ==========
 
     @Test
     fun `login should return auth response with valid credentials`() {
@@ -205,10 +187,8 @@ class AuthServiceTest {
         `when`(passwordEncoder.matches(request.password, user.passwordHash)).thenReturn(true)
         `when`(sessionTokenRepository.save(any<SessionToken>())).thenReturn(savedToken)
 
-        // When
         val result = authService.login(request)
 
-        // Then
         assertNotNull(result)
         assertEquals(user.username, result.username)
         assertEquals(user.roles, result.roles)
@@ -220,11 +200,9 @@ class AuthServiceTest {
 
     @Test
     fun `login should throw exception with invalid username`() {
-        // Given
         val request = LoginRequest(username = "nonexistent", password = "password123")
         `when`(userRepository.findByUsername(request.username)).thenReturn(Optional.empty())
 
-        // When & Then
         val exception = assertThrows<IllegalArgumentException> {
             authService.login(request)
         }
@@ -233,14 +211,12 @@ class AuthServiceTest {
 
     @Test
     fun `login should throw exception with invalid password`() {
-        // Given
         val request = LoginRequest(username = "testuser", password = "wrongpassword")
         val user = createMockUser()
 
         `when`(userRepository.findByUsername(request.username)).thenReturn(Optional.of(user))
         `when`(passwordEncoder.matches(request.password, user.passwordHash)).thenReturn(false)
 
-        // When & Then
         val exception = assertThrows<IllegalArgumentException> {
             authService.login(request)
         }
@@ -249,7 +225,6 @@ class AuthServiceTest {
 
     @Test
     fun `login should create session token with 24 hour expiry`() {
-        // Given
         val request = LoginRequest(username = "testuser", password = "password123")
         val user = createMockUser()
 
@@ -257,17 +232,14 @@ class AuthServiceTest {
         `when`(passwordEncoder.matches(request.password, user.passwordHash)).thenReturn(true)
         `when`(sessionTokenRepository.save(any<SessionToken>())).thenReturn(createMockSessionToken())
 
-        // When
         authService.login(request)
 
-        // Then
         val tokenCaptor = argumentCaptor<SessionToken>()
         verify(sessionTokenRepository).save(tokenCaptor.capture())
 
         val capturedToken = tokenCaptor.firstValue
         assertEquals(user.uuid, capturedToken.userId)
 
-        // Verify expiry is approximately 24 hours from now (with 1 minute tolerance)
         val expectedExpiry = LocalDateTime.now().plusHours(24)
         val actualExpiry = capturedToken.expiryAt
         assertTrue(actualExpiry.isAfter(expectedExpiry.minusMinutes(1)))
@@ -276,7 +248,6 @@ class AuthServiceTest {
 
     @Test
     fun `login should generate secure random token`() {
-        // Given
         val request = LoginRequest(username = "testuser", password = "password123")
         val user = createMockUser()
 
@@ -284,32 +255,38 @@ class AuthServiceTest {
         `when`(passwordEncoder.matches(request.password, user.passwordHash)).thenReturn(true)
         `when`(sessionTokenRepository.save(any<SessionToken>())).thenAnswer { it.arguments[0] }
 
-        // When
         val result1 = authService.login(request)
         val result2 = authService.login(request)
 
-        // Then
-        // Tokens should be different (randomly generated)
         assertTrue(result1.token != result2.token)
-        // Token should be base64 URL-safe (no padding)
         assertTrue(result1.token.matches(Regex("^[A-Za-z0-9_-]+$")))
     }
 
-    // ========== Logout Tests ==========
+    @Test
+    fun `login should throw exception when user account is inactive`() {
+
+        val request = LoginRequest(username = "testuser", password = "password123")
+        val inactiveUser = createMockUser().copy(isActive = false)
+
+        `when`(userRepository.findByUsername(request.username)).thenReturn(Optional.of(inactiveUser))
+
+
+        val exception = assertThrows<IllegalArgumentException> {
+            authService.login(request)
+        }
+        assertEquals("User account is inactive", exception.message)
+    }
+
 
     @Test
     fun `logout should delete session token`() {
-        // Given
         val token = "test-token-123"
 
-        // When
         authService.logout(token)
 
-        // Then
         verify(sessionTokenRepository, times(1)).deleteByToken(token)
     }
 
-    // ========== Helper Methods ==========
 
     private fun createValidRegisterRequest() = RegisterRequest(
         username = "testuser",

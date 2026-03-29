@@ -5,7 +5,7 @@ plugins {
 	kotlin("plugin.spring") version "2.3.0"
 	id("org.springframework.boot") version "4.0.1"
 	id("io.spring.dependency-management") version "1.1.7"
-	id("org.jlleitschuh.gradle.ktlint") version "12.1.0" // Kotlin linting
+	id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
 }
 
 group = "com.froilan"
@@ -40,6 +40,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-health:4.0.1")
 	implementation("org.aspectj:aspectjweaver")
 	implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
@@ -70,11 +71,10 @@ tasks.withType<Test> {
 	useJUnitPlatform()
 }
 
-// ========== Ktlint Configuration ==========
 ktlint {
-	version.set("1.0.1")
+	version.set("1.2.1")
 	android.set(false)
-	ignoreFailures.set(false) // Fail build on lint errors
+	ignoreFailures.set(false)
 	reporters {
 		reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
 		reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)

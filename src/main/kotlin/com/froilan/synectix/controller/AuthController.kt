@@ -6,6 +6,7 @@ import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.service.AuthService
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
@@ -29,7 +30,7 @@ class AuthController(
     private val BLOCK_DURATION_MINUTES = 15L
 
     @PostMapping("/signup")
-    fun register(@RequestBody request: RegisterRequest): ResponseEntity<Any> {
+    fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<Any> {
         return try {
             val user = authService.register(request)
             ResponseEntity.status(HttpStatus.CREATED).body(mapOf("message" to "User registered successfully", "userId" to user.uuid))
@@ -39,7 +40,7 @@ class AuthController(
     }
 
     @PostMapping("/signin")
-    fun login(@RequestBody request: LoginRequest, httpRequest: HttpServletRequest): ResponseEntity<Any> {
+    fun login(@Valid @RequestBody request: LoginRequest, httpRequest: HttpServletRequest): ResponseEntity<Any> {
         val clientIp = httpRequest.remoteAddr
 
         if (isBlocked(clientIp)) {
@@ -50,9 +51,12 @@ class AuthController(
             val response = authService.login(request)
             resetAttempts(clientIp)
             ResponseEntity.ok(response)
-        } catch (_: IllegalArgumentException) {
-            recordFailedAttempt(clientIp)
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("error" to "Invalid credentials"))
+        } catch (e: IllegalArgumentException) {
+            // Only record failed attempt for wrong credentials, not for inactive accounts
+            if (e.message != "User account is inactive") {
+                recordFailedAttempt(clientIp)
+            }
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("error" to e.message))
         }
     }
 

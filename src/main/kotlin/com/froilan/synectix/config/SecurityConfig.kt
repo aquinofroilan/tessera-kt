@@ -6,7 +6,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
@@ -23,7 +22,13 @@ class SecurityConfig(
 
     @Bean
     fun passwordEncoder(): PasswordEncoder {
-        return BCryptPasswordEncoder()
+        return Argon2PasswordEncoder(
+            16,  // saltLength
+            32,  // hashLength
+            1,   // parallelism
+            65536, // memory (64MB)
+            3    // iterations
+        )
     }
 
     @Bean
@@ -55,14 +60,4 @@ class SecurityConfig(
         return source
     }
 
-    @Bean
-    fun argon2PasswordEncoder(): PasswordEncoder {
-            return Argon2PasswordEncoder(
-                16,
-                32,
-                1,
-                65536,
-                3
-            )
-    }
 }

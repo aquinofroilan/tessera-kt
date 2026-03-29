@@ -77,6 +77,10 @@ class AuthService(
         val user = userRepository.findByUsername(request.username)
             .orElseThrow { IllegalArgumentException("Invalid username or password") }
 
+        if (!user.isActive) {
+            throw IllegalArgumentException("User account is inactive")
+        }
+
         if (!passwordEncoder.matches(request.password, user.passwordHash)) {
             throw IllegalArgumentException("Invalid username or password")
         }
