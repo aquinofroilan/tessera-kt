@@ -13,13 +13,16 @@ import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.DuplicateKeyException
+import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.SecureRandom
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.util.Base64
 
 @Service
 class AuthService(
@@ -27,6 +30,7 @@ class AuthService(
     private val organizationRepository: OrganizationRepository,
     private val sessionTokenRepository: SessionTokenRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
+    private val mongoTemplate: MongoTemplate,
     private val passwordEncoder: PasswordEncoder,
     @Value("\${security.jwt.expiration:86400000}")
     private val tokenValidityMs: Long,
@@ -123,10 +127,13 @@ class AuthService(
 
     @Transactional
     fun refresh(refreshToken: String): AuthResponse {
-        val existing = refreshTokenRepository.findByToken(refreshToken)
-            .orElseThrow { IllegalArgumentException("Invalid or expired refresh token") }
+        // Atomically find and remove to prevent concurrent reuse
+        val existing = mongoTemplate.findAndRemove(
+            Query.query(Criteria.where("token").`is`(refreshToken)),
+            RefreshToken::class.java,
+        ) ?: throw IllegalArgumentException("Invalid or expired refresh token")
 
-        if (existing.expiryAt.isBefore(LocalDateTime.now())) {
+        if (!existing.expiryAt.isAfter(LocalDateTime.now())) {
             throw IllegalArgumentException("Invalid or expired refresh token")
         }
 
@@ -159,8 +166,7 @@ class AuthService(
         )
         refreshTokenRepository.save(newRefreshToken)
 
-        // Delete old pair after new pair is persisted
-        refreshTokenRepository.deleteByToken(existing.token)
+        // Delete old session (refresh token already removed by findAndRemove)
         sessionTokenRepository.deleteById(existing.sessionTokenId)
 
         return AuthResponse(

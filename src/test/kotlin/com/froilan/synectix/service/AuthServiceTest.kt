@@ -13,13 +13,19 @@ import com.froilan.synectix.repository.UserRepository
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertThrows
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
 import org.springframework.dao.DuplicateKeyException
+import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
-import java.util.*
+import java.util.Optional
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -31,6 +37,7 @@ class AuthServiceTest {
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var sessionTokenRepository: SessionTokenRepository
     private lateinit var refreshTokenRepository: RefreshTokenRepository
+    private lateinit var mongoTemplate: MongoTemplate
     private lateinit var passwordEncoder: PasswordEncoder
 
     @BeforeEach
@@ -39,6 +46,7 @@ class AuthServiceTest {
         organizationRepository = mock(OrganizationRepository::class.java)
         sessionTokenRepository = mock(SessionTokenRepository::class.java)
         refreshTokenRepository = mock(RefreshTokenRepository::class.java)
+        mongoTemplate = mock(MongoTemplate::class.java)
         passwordEncoder = mock(PasswordEncoder::class.java)
 
         authService = AuthService(
@@ -46,6 +54,7 @@ class AuthServiceTest {
             organizationRepository = organizationRepository,
             sessionTokenRepository = sessionTokenRepository,
             refreshTokenRepository = refreshTokenRepository,
+            mongoTemplate = mongoTemplate,
             passwordEncoder = passwordEncoder,
             tokenValidityMs = 86400000L,
             refreshTokenValidityMs = 2592000000L,
@@ -317,7 +326,7 @@ class AuthServiceTest {
             expiryAt = LocalDateTime.now().plusDays(30),
         )
 
-        `when`(refreshTokenRepository.findByToken(oldRefreshTokenStr)).thenReturn(Optional.of(existingRefreshToken))
+        `when`(mongoTemplate.findAndRemove(any(), eq(RefreshToken::class.java))).thenReturn(existingRefreshToken)
         `when`(userRepository.findById(user.uuid)).thenReturn(Optional.of(user))
         `when`(sessionTokenRepository.save(any<SessionToken>())).thenAnswer { it.arguments[0] }
         `when`(refreshTokenRepository.save(any<RefreshToken>())).thenAnswer { it.arguments[0] }
@@ -329,7 +338,6 @@ class AuthServiceTest {
         assertTrue(result.accessToken != oldSessionToken.token)
         assertTrue(result.refreshToken != oldRefreshTokenStr)
 
-        verify(refreshTokenRepository).deleteByToken(oldRefreshTokenStr)
         verify(sessionTokenRepository).deleteById(oldSessionToken.id)
     }
 
@@ -343,7 +351,7 @@ class AuthServiceTest {
             expiryAt = LocalDateTime.now().minusHours(1),
         )
 
-        `when`(refreshTokenRepository.findByToken(expiredTokenStr)).thenReturn(Optional.of(expiredRefreshToken))
+        `when`(mongoTemplate.findAndRemove(any(), eq(RefreshToken::class.java))).thenReturn(expiredRefreshToken)
 
         val exception = assertThrows<IllegalArgumentException> {
             authService.refresh(expiredTokenStr)
@@ -355,7 +363,7 @@ class AuthServiceTest {
     fun `refresh should throw exception with invalid refresh token`() {
         val invalidTokenStr = "invalid-refresh-token"
 
-        `when`(refreshTokenRepository.findByToken(invalidTokenStr)).thenReturn(Optional.empty())
+        `when`(mongoTemplate.findAndRemove(any(), eq(RefreshToken::class.java))).thenReturn(null)
 
         val exception = assertThrows<IllegalArgumentException> {
             authService.refresh(invalidTokenStr)
@@ -374,7 +382,7 @@ class AuthServiceTest {
             expiryAt = LocalDateTime.now().plusDays(30),
         )
 
-        `when`(refreshTokenRepository.findByToken(refreshTokenStr)).thenReturn(Optional.of(existingRefreshToken))
+        `when`(mongoTemplate.findAndRemove(any(), eq(RefreshToken::class.java))).thenReturn(existingRefreshToken)
         `when`(userRepository.findById(inactiveUser.uuid)).thenReturn(Optional.of(inactiveUser))
 
         val exception = assertThrows<IllegalArgumentException> {
@@ -393,8 +401,8 @@ class AuthServiceTest {
         authService.logout(token)
 
         verify(sessionTokenRepository, times(1)).findByToken(token)
-        verify(refreshTokenRepository, org.mockito.Mockito.never()).deleteBySessionTokenId(any())
-        verify(sessionTokenRepository, org.mockito.Mockito.never()).deleteByToken(any())
+        verify(refreshTokenRepository, never()).deleteBySessionTokenId(any())
+        verify(sessionTokenRepository, never()).deleteByToken(any())
     }
 
     @Test
