@@ -47,7 +47,6 @@ class EnvironmentController(
     @GetMapping("/variables")
     fun getAllEnvironmentVariables(): Map<String, String> {
         return System.getenv().filterKeys { key ->
-            // Only show application-specific environment variables for security
             key.startsWith("APP_") ||
             key.startsWith("SERVER_") ||
             key.startsWith("LOG_LEVEL_") ||

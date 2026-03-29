@@ -81,7 +81,6 @@ class HealthController(
     private fun checkDatabaseHealth(): Map<String, Any> {
         return try {
             val db = mongoTemplate.db
-            // Use ping command instead of buildInfo as it requires fewer permissions
             db.runCommand(org.bson.Document("ping", 1))
 
             mapOf(

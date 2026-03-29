@@ -25,12 +25,12 @@ class SecurityConfig(
 
     @Bean
     fun passwordEncoder(): PasswordEncoder {
-        return Argon2PasswordEncoder(
-            16,  // saltLength
-            32,  // hashLength
-            1,   // parallelism
-            65536, // memory (64MB)
-            3    // iterations
+        return Argon2PasswordEncoder(   
+            16,
+            32,
+            1,
+            65536,
+            3
         )
     }
 

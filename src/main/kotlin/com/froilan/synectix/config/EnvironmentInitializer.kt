@@ -16,7 +16,6 @@ class EnvironmentInitializer : ApplicationContextInitializer<ConfigurableApplica
     override fun initialize(applicationContext: ConfigurableApplicationContext) {
         val environment: ConfigurableEnvironment = applicationContext.environment
 
-        // Look for .env file in the project root (where gradlew is located)
         val projectRoot = findProjectRoot()
         val envFile = File(projectRoot, ".env")
 
@@ -28,13 +27,11 @@ class EnvironmentInitializer : ApplicationContextInitializer<ConfigurableApplica
                     .ignoreIfMissing()
                     .load()
 
-                // Convert dotenv entries to a map
                 val envMap = mutableMapOf<String, Any>()
                 dotenv.entries().forEach { entry ->
                     envMap[entry.key] = entry.value
                 }
 
-                // Add the properties to Spring's environment with high priority
                 val propertySource = MapPropertySource("dotenv", envMap)
                 environment.propertySources.addFirst(propertySource)
 
@@ -53,7 +50,6 @@ class EnvironmentInitializer : ApplicationContextInitializer<ConfigurableApplica
     private fun findProjectRoot(): File {
         var currentDir = File(System.getProperty("user.dir"))
 
-        // Look for gradlew or build.gradle.kts to identify project root
         while (currentDir.parent != null) {
             if (File(currentDir, "gradlew").exists() ||
                 File(currentDir, "gradlew.bat").exists() ||
@@ -63,7 +59,6 @@ class EnvironmentInitializer : ApplicationContextInitializer<ConfigurableApplica
             currentDir = currentDir.parentFile
         }
 
-        // Fallback to current directory
         return File(System.getProperty("user.dir"))
     }
 }

@@ -56,7 +56,6 @@ class AuthController(
             resetAttempts(clientIp)
             ResponseEntity.ok(response)
         } catch (e: IllegalArgumentException) {
-            // Only record failed attempt for wrong credentials, not for inactive accounts
             if (e.message != "User account is inactive") {
                 recordFailedAttempt(clientIp)
             }

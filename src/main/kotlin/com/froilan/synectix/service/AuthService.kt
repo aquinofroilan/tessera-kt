@@ -127,7 +127,6 @@ class AuthService(
 
     @Transactional
     fun refresh(refreshToken: String): AuthResponse {
-        // Validate the refresh token exists and is usable (non-atomic read for validation)
         val existing = refreshTokenRepository.findByToken(refreshToken)
             .orElseThrow { IllegalArgumentException("Invalid or expired refresh token") }
 
@@ -142,7 +141,6 @@ class AuthService(
             throw IllegalArgumentException("User account is inactive")
         }
 
-        // Save new token pair first to avoid lockout if writes fail on standalone MongoDB
         val accessTokenStr = generateToken()
         val expiryAt = LocalDateTime.now().plus(tokenValidityMs, ChronoUnit.MILLIS)
 
@@ -164,20 +162,16 @@ class AuthService(
         )
         refreshTokenRepository.save(newRefreshToken)
 
-        // Atomically consume the old refresh token — prevents concurrent reuse.
-        // If findAndRemove returns null, another request already consumed it; roll back.
         val consumed = mongoTemplate.findAndRemove(
             Query.query(Criteria.where("token").`is`(refreshToken)),
             RefreshToken::class.java,
         )
         if (consumed == null) {
-            // Another concurrent request already consumed this token — clean up our new pair
             refreshTokenRepository.deleteByToken(refreshTokenStr)
             sessionTokenRepository.deleteById(savedSession.id)
             throw IllegalArgumentException("Invalid or expired refresh token")
         }
 
-        // Delete old session token
         sessionTokenRepository.deleteById(existing.sessionTokenId)
 
         return AuthResponse(
