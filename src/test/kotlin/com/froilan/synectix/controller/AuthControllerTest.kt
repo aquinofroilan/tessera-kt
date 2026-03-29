@@ -17,7 +17,8 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 
 @WebMvcTest(controllers = [AuthController::class])
@@ -238,7 +239,7 @@ class AuthControllerTest {
 
 
     @Test
-    fun `POST signin should return 200 with token when login is successful`() {
+    fun `POST signin should return 200 with tokens when login is successful`() {
         val requestJson = """
             {
                 "username": "testuser",
