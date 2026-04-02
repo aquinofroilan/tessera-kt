@@ -56,22 +56,25 @@ jobs:
           JWT_SECRET: test-secret-key-for-ci-cd
         run: ./gradlew test
 
-      - name: Start Application in Background
+      - name: Start Application and Health Check
         env:
           MONGODB_URI: mongodb://testuser:testpass@localhost:27017/synectix?authSource=admin
           JWT_SECRET: test-secret-key-for-ci-cd
         run: |
           ./gradlew bootJar
-          java -jar build/libs/*.jar &
+          java -jar build/libs/*.jar > app.log 2>&1 &
           APP_PID=$!
           echo "APP_PID=$APP_PID" >> $GITHUB_ENV
           echo "Application started with PID: $APP_PID"
 
-      - name: Wait for Application Startup
-        run: |
           echo "Waiting for application to start..."
           for i in {1..30}; do
-            if curl -f http://localhost:8080/api/health > /dev/null 2>&1; then
+            if ! kill -0 $APP_PID 2>/dev/null; then
+              echo "Application process died. Logs:"
+              cat app.log
+              exit 1
+            fi
+            if curl -sf http://localhost:8080/api/health > /dev/null 2>&1; then
               echo "Application is up!"
               break
             fi
@@ -79,17 +82,15 @@ jobs:
             sleep 2
           done
 
-      - name: Health Check - Ping Health Endpoint
-        run: |
           echo "Testing health endpoint..."
-          HEALTH_RESPONSE=$(curl -s http://localhost:8080/api/health)
+          HEALTH_RESPONSE=$(curl -sf http://localhost:8080/api/health)
           echo "Health response: $HEALTH_RESPONSE"
 
-          # Check if status is UP
           if echo "$HEALTH_RESPONSE" | grep -q '"status":"UP"'; then
-            echo "✓ Health check passed - Application is running!"
+            echo "Health check passed!"
           else
-            echo "✗ Health check failed - Application is not healthy"
+            echo "Health check failed. Logs:"
+            cat app.log
             exit 1
           fi
 
