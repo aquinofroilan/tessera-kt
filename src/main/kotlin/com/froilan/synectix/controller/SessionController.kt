@@ -43,13 +43,20 @@ class SessionController(
 
     @DeleteMapping("/{sessionId}")
     fun revokeSession(
+        @RequestHeader("Authorization") authHeader: String,
         @PathVariable sessionId: String,
     ): ResponseEntity<Any> {
-        val user = extractUser() ?: return unauthorized()
+        val (user, currentToken) =
+            extractUserAndToken(authHeader)
+                ?: return unauthorized()
 
         return try {
-            authService.revokeSession(user.uuid, sessionId)
+            authService.revokeSession(user.uuid, sessionId, currentToken)
             ResponseEntity.ok(mapOf("message" to "Session revoked"))
+        } catch (e: IllegalStateException) {
+            ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(mapOf("error" to (e.message ?: "Cannot revoke the current session")))
         } catch (e: IllegalArgumentException) {
             ResponseEntity
                 .status(HttpStatus.NOT_FOUND)

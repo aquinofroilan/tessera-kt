@@ -466,7 +466,7 @@ class AuthServiceTest {
 
         `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
 
-        authService.revokeSession(userId, "s1")
+        authService.revokeSession(userId, "s1", "other-token")
 
         verify(refreshTokenRepository).deleteBySessionTokenId("s1")
         verify(sessionTokenRepository).deleteById("s1")
@@ -480,9 +480,24 @@ class AuthServiceTest {
 
         val exception =
             assertThrows<IllegalArgumentException> {
-                authService.revokeSession("user-123", "s1")
+                authService.revokeSession("user-123", "s1", "other-token")
             }
         assertEquals("Session not found", exception.message)
+    }
+
+    @Test
+    fun `revokeSession should throw when attempting to revoke the current session`() {
+        val userId = "user-123"
+        val currentToken = "current-token"
+        val session = SessionToken(id = "s1", token = currentToken, userId = userId, expiryAt = LocalDateTime.now().plusHours(12))
+
+        `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
+
+        val exception =
+            assertThrows<IllegalStateException> {
+                authService.revokeSession(userId, "s1", currentToken)
+            }
+        assertEquals("Cannot revoke the current session", exception.message)
     }
 
     @Test

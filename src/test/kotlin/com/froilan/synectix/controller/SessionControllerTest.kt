@@ -133,20 +133,37 @@ class SessionControllerTest {
     @Test
     fun `DELETE session by id should return 200 on success`() {
         mockMvc
-            .perform(delete("/auth/sessions/s1"))
-            .andExpect(status().isOk)
+            .perform(
+                delete("/auth/sessions/s2")
+                    .header("Authorization", "Bearer $currentToken"),
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("Session revoked"))
     }
 
     @Test
     fun `DELETE session by id should return 404 for non-owned session`() {
-        `when`(authService.revokeSession(any(), any()))
+        `when`(authService.revokeSession(any(), any(), any()))
             .thenThrow(IllegalArgumentException("Session not found"))
 
         mockMvc
-            .perform(delete("/auth/sessions/non-existent"))
-            .andExpect(status().isNotFound)
+            .perform(
+                delete("/auth/sessions/non-existent")
+                    .header("Authorization", "Bearer $currentToken"),
+            ).andExpect(status().isNotFound)
             .andExpect(jsonPath("$.error").value("Session not found"))
+    }
+
+    @Test
+    fun `DELETE session by id should return 400 when revoking the current session`() {
+        `when`(authService.revokeSession(any(), any(), any()))
+            .thenThrow(IllegalStateException("Cannot revoke the current session"))
+
+        mockMvc
+            .perform(
+                delete("/auth/sessions/s1")
+                    .header("Authorization", "Bearer $currentToken"),
+            ).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.error").value("Cannot revoke the current session"))
     }
 
     @Test

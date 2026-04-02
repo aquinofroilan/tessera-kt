@@ -297,6 +297,7 @@ class AuthService(
     fun revokeSession(
         userId: String,
         sessionId: String,
+        currentToken: String,
     ) {
         val session =
             sessionTokenRepository.findById(sessionId).orElseThrow {
@@ -304,6 +305,9 @@ class AuthService(
             }
         if (session.userId != userId) {
             throw IllegalArgumentException("Session not found")
+        }
+        if (session.token == currentToken) {
+            throw IllegalStateException("Cannot revoke the current session")
         }
         refreshTokenRepository.deleteBySessionTokenId(session.id)
         sessionTokenRepository.deleteById(session.id)
