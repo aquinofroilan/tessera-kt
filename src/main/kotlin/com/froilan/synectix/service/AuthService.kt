@@ -291,9 +291,7 @@ class AuthService(
     }
 
     fun listSessions(userId: String): List<SessionToken> =
-        sessionTokenRepository
-            .findByUserId(userId)
-            .filter { it.expiryAt.isAfter(LocalDateTime.now()) }
+        sessionTokenRepository.findByUserIdAndExpiryAtAfter(userId, LocalDateTime.now())
 
     @Transactional
     fun revokeSession(
@@ -316,13 +314,12 @@ class AuthService(
         userId: String,
         currentToken: String,
     ) {
-        val sessions = sessionTokenRepository.findByUserId(userId)
-        for (session in sessions) {
-            if (session.token != currentToken) {
-                refreshTokenRepository.deleteBySessionTokenId(session.id)
-                sessionTokenRepository.deleteById(session.id)
-            }
-        }
+        val otherSessions = sessionTokenRepository.findByUserIdAndTokenNot(userId, currentToken)
+        if (otherSessions.isEmpty()) return
+
+        val sessionIds = otherSessions.map { it.id }
+        refreshTokenRepository.deleteBySessionTokenIdIn(sessionIds)
+        sessionTokenRepository.deleteAllById(sessionIds)
     }
 
     @Transactional

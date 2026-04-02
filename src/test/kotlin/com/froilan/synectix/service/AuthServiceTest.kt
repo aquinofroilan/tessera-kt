@@ -447,16 +447,11 @@ class AuthServiceTest {
         verify(sessionTokenRepository, times(1)).deleteByToken(token)
     }
 
-
     @Test
     fun `listSessions should return only non-expired sessions`() {
         val userId = "user-123"
-        val activeSessions =
-            listOf(
-                SessionToken(id = "s1", token = "t1", userId = userId, expiryAt = LocalDateTime.now().plusHours(12)),
-                SessionToken(id = "s2", token = "t2", userId = userId, expiryAt = LocalDateTime.now().minusHours(1)),
-            )
-        `when`(sessionTokenRepository.findByUserId(userId)).thenReturn(activeSessions)
+        val activeSession = SessionToken(id = "s1", token = "t1", userId = userId, expiryAt = LocalDateTime.now().plusHours(12))
+        `when`(sessionTokenRepository.findByUserIdAndExpiryAtAfter(eq(userId), any())).thenReturn(listOf(activeSession))
 
         val result = authService.listSessions(userId)
 
@@ -491,24 +486,20 @@ class AuthServiceTest {
     }
 
     @Test
-    fun `revokeOtherSessions should keep current session and delete others`() {
+    fun `revokeOtherSessions should keep current session and delete others in bulk`() {
         val userId = "user-123"
         val currentToken = "current-token"
-        val sessions =
+        val otherSessions =
             listOf(
-                SessionToken(id = "s1", token = currentToken, userId = userId, expiryAt = LocalDateTime.now().plusHours(12)),
                 SessionToken(id = "s2", token = "other-token", userId = userId, expiryAt = LocalDateTime.now().plusHours(12)),
             )
-        `when`(sessionTokenRepository.findByUserId(userId)).thenReturn(sessions)
+        `when`(sessionTokenRepository.findByUserIdAndTokenNot(userId, currentToken)).thenReturn(otherSessions)
 
         authService.revokeOtherSessions(userId, currentToken)
 
-        verify(refreshTokenRepository).deleteBySessionTokenId("s2")
-        verify(sessionTokenRepository).deleteById("s2")
-        verify(refreshTokenRepository, never()).deleteBySessionTokenId("s1")
-        verify(sessionTokenRepository, never()).deleteById("s1")
+        verify(refreshTokenRepository).deleteBySessionTokenIdIn(listOf("s2"))
+        verify(sessionTokenRepository).deleteAllById(listOf("s2"))
     }
-
 
     @Test
     fun `changePassword should update password with valid current password`() {
