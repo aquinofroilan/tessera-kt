@@ -290,8 +290,7 @@ class AuthService(
         refreshTokenRepository.deleteByUserId(user.uuid)
     }
 
-    fun listSessions(userId: String): List<SessionToken> =
-        sessionTokenRepository.findByUserIdAndExpiryAtAfter(userId, LocalDateTime.now())
+    fun listSessions(userId: String): List<SessionToken> = sessionTokenRepository.findByUserIdAndExpiryAtAfter(userId, LocalDateTime.now())
 
     @Transactional
     fun revokeSession(
