@@ -411,15 +411,15 @@ class AuthService(
                 .findAllById(orgIds)
                 .associateBy { it.uuid }
 
-        return orgIds.mapNotNull { orgId ->
-            val org = orgsById[orgId] ?: return@mapNotNull null
+        return orgIds.map { orgId ->
+            val org = orgsById[orgId]
             UserOrganizationResponse(
                 organizationId = orgId,
-                name = org.name,
-                orgSlug = org.orgSlug,
+                name = org?.name ?: "Unknown",
+                orgSlug = org?.orgSlug ?: "unknown",
                 roles = user.orgRoleNames(orgId).distinct(),
                 isCurrent = orgId == currentOrgId,
-                isActive = org.isActive,
+                isActive = org?.isActive ?: false,
             )
         }
     }

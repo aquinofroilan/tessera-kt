@@ -9,8 +9,8 @@ import com.froilan.synectix.dto.RefreshRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.dto.ResetPasswordRequest
 import com.froilan.synectix.dto.SwitchOrganizationRequest
-import com.froilan.synectix.model.SessionToken
 import com.froilan.synectix.model.User
+import com.froilan.synectix.security.SessionContext
 import com.froilan.synectix.service.AuthService
 import com.github.benmanes.caffeine.cache.Caffeine
 import jakarta.servlet.http.HttpServletRequest
@@ -183,13 +183,13 @@ class AuthController(
                 ?: return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(mapOf("error" to "Authentication required"))
-        val sessionToken =
-            authentication.details as? SessionToken
+        val sessionContext =
+            authentication.details as? SessionContext
                 ?: return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(mapOf("error" to "Authentication required"))
 
-        val orgs = authService.listUserOrganizations(user, sessionToken.organizationId ?: user.organizationId)
+        val orgs = authService.listUserOrganizations(user, sessionContext.organizationId)
         return ResponseEntity.ok(orgs)
     }
 

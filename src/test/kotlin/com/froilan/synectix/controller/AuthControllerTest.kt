@@ -7,7 +7,6 @@ import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.dto.UserOrganizationResponse
 import com.froilan.synectix.model.RoleAssignment
-import com.froilan.synectix.model.SessionToken
 import com.froilan.synectix.model.User
 import com.froilan.synectix.repository.OrganizationRepository
 import com.froilan.synectix.repository.PasswordResetTokenRepository
@@ -15,6 +14,7 @@ import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.security.RolePermissionCache
+import com.froilan.synectix.security.SessionContext
 import com.froilan.synectix.security.SynectixPermissionEvaluator
 import com.froilan.synectix.service.AuthService
 import com.froilan.synectix.util.TokenHasher
@@ -644,13 +644,7 @@ class AuthControllerTest {
                 organizationId = "org-123",
                 roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
             )
-        val session =
-            SessionToken(
-                token = "test-token",
-                userId = user.uuid,
-                organizationId = "org-123",
-                expiryAt = LocalDateTime.now().plusHours(24),
-            )
+        val session = SessionContext(sessionId = "session-123", organizationId = "org-123")
         setupAuth(user, session)
 
         val orgs =
@@ -692,13 +686,7 @@ class AuthControllerTest {
                         RoleAssignment("MEMBER", "org-456"),
                     ),
             )
-        val session =
-            SessionToken(
-                token = "test-token",
-                userId = user.uuid,
-                organizationId = "org-123",
-                expiryAt = LocalDateTime.now().plusHours(24),
-            )
+        val session = SessionContext(sessionId = "session-123", organizationId = "org-123")
         setupAuth(user, session)
 
         val switchResponse =
@@ -737,13 +725,7 @@ class AuthControllerTest {
                 organizationId = "org-123",
                 roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
             )
-        val session =
-            SessionToken(
-                token = "test-token",
-                userId = user.uuid,
-                organizationId = "org-123",
-                expiryAt = LocalDateTime.now().plusHours(24),
-            )
+        val session = SessionContext(sessionId = "session-123", organizationId = "org-123")
         setupAuth(user, session)
 
         `when`(authService.switchOrganization(any(), any(), anyOrNull(), anyOrNull()))
@@ -760,7 +742,7 @@ class AuthControllerTest {
 
     private fun setupAuth(
         user: User,
-        session: SessionToken,
+        session: SessionContext,
     ) {
         val authorities = user.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
         val authentication = UsernamePasswordAuthenticationToken(user, null, authorities)

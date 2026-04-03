@@ -3,6 +3,7 @@ package com.froilan.synectix.config
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.security.RolePermissionCache
+import com.froilan.synectix.security.SessionContext
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -41,7 +42,11 @@ class TokenAuthenticationFilter(
                             user.roleAssignments.filter {
                                 it.organizationId == activeOrgId || it.organizationId == null
                             }
-                        val roleAuthorities = activeRoleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
+                        val roleAuthorities =
+                            activeRoleAssignments
+                                .map { it.role }
+                                .distinct()
+                                .map { SimpleGrantedAuthority("ROLE_$it") }
                         val permissionAuthorities =
                             activeRoleAssignments
                                 .flatMap { rolePermissionCache.getPermissions(it.role) }
@@ -49,7 +54,11 @@ class TokenAuthenticationFilter(
                                 .map { SimpleGrantedAuthority(it) }
                         val authorities = roleAuthorities + permissionAuthorities
                         val authentication = UsernamePasswordAuthenticationToken(user, null, authorities)
-                        authentication.details = sessionToken
+                        authentication.details =
+                            SessionContext(
+                                sessionId = sessionToken.id,
+                                organizationId = activeOrgId,
+                            )
                         SecurityContextHolder.getContext().authentication = authentication
                     }
                 } else {
