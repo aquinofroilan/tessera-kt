@@ -46,7 +46,7 @@ class RoleSeederTest {
     }
 
     @Test
-    fun `should not save when roles exist with correct permissions`() {
+    fun `should skip existing role when permissions are already correct`() {
         val existingOwner =
             Role(
                 name = "OWNER",
@@ -66,7 +66,6 @@ class RoleSeederTest {
                         Permissions.ENVIRONMENT_READ,
                     ),
             )
-        `when`(roleRepository.findByName("OWNER")).thenReturn(Optional.of(existingOwner))
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
         `when`(roleRepository.findByName("OWNER")).thenReturn(Optional.of(existingOwner))
         `when`(roleRepository.save(any<Role>())).thenAnswer { it.arguments[0] }
