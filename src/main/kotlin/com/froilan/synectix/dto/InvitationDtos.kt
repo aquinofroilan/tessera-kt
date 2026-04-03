@@ -23,6 +23,18 @@ data class AcceptInvitationRequest(
     val lastName: String? = null,
 )
 
+data class ValidateInvitationRequest(
+    @field:NotBlank(message = "Invitation token is required")
+    val token: String,
+)
+
+data class ValidateInvitationResponse(
+    val email: String,
+    val role: String,
+    val organizationId: String,
+    val existingUser: Boolean,
+)
+
 data class InvitationResponse(
     val id: String,
     val email: String,

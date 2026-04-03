@@ -2,6 +2,7 @@ package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.AcceptInvitationRequest
 import com.froilan.synectix.dto.CreateInvitationRequest
+import com.froilan.synectix.dto.ValidateInvitationResponse
 import com.froilan.synectix.model.Invitation
 import com.froilan.synectix.model.InvitationStatus
 import com.froilan.synectix.model.RoleAssignment
@@ -82,6 +83,24 @@ class InvitationService(
         }
 
         return rawToken
+    }
+
+    fun validateInvitation(token: String): ValidateInvitationResponse {
+        val tokenHash = tokenHasher.hash(token)
+        val invitation =
+            invitationRepository.findByTokenHash(tokenHash).orElseThrow {
+                IllegalArgumentException("Invalid or expired invitation token")
+            }
+        if (invitation.status != InvitationStatus.PENDING || !invitation.expiryAt.isAfter(LocalDateTime.now())) {
+            throw IllegalArgumentException("Invalid or expired invitation token")
+        }
+        val existingUser = userRepository.findByEmail(invitation.email).isPresent
+        return ValidateInvitationResponse(
+            email = invitation.email,
+            role = invitation.role,
+            organizationId = invitation.organizationId,
+            existingUser = existingUser,
+        )
     }
 
     @Transactional

@@ -2,6 +2,7 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.aspect.LoggingAspect
 import com.froilan.synectix.config.TestSecurityConfig
+import com.froilan.synectix.dto.ValidateInvitationResponse
 import com.froilan.synectix.model.Invitation
 import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.User
@@ -165,6 +166,42 @@ class InvitationControllerTest {
             .andExpect(jsonPath("$[0].email").value("user1@example.com"))
             .andExpect(jsonPath("$[0].role").value("MEMBER"))
             .andExpect(jsonPath("$[0].status").value("PENDING"))
+    }
+
+    @Test
+    fun `POST invitations validate should return invitation details`() {
+        val response =
+            ValidateInvitationResponse(
+                email = "invited@example.com",
+                role = "MEMBER",
+                organizationId = "org-123",
+                existingUser = false,
+            )
+        `when`(invitationService.validateInvitation(any())).thenReturn(response)
+
+        mockMvc
+            .perform(
+                post("/auth/invitations/validate")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"token": "valid-token"}"""),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.email").value("invited@example.com"))
+            .andExpect(jsonPath("$.role").value("MEMBER"))
+            .andExpect(jsonPath("$.existingUser").value(false))
+    }
+
+    @Test
+    fun `POST invitations validate should return 400 for invalid token`() {
+        `when`(invitationService.validateInvitation(any()))
+            .thenThrow(IllegalArgumentException("Invalid or expired invitation token"))
+
+        mockMvc
+            .perform(
+                post("/auth/invitations/validate")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"token": "bad-token"}"""),
+            ).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.error").value("Invalid or expired invitation token"))
     }
 
     @Test

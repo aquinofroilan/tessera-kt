@@ -5,6 +5,7 @@ import com.froilan.synectix.annotation.Loggable
 import com.froilan.synectix.dto.AcceptInvitationRequest
 import com.froilan.synectix.dto.CreateInvitationRequest
 import com.froilan.synectix.dto.InvitationResponse
+import com.froilan.synectix.dto.ValidateInvitationRequest
 import com.froilan.synectix.model.User
 import com.froilan.synectix.service.InvitationService
 import jakarta.validation.Valid
@@ -62,6 +63,17 @@ class InvitationController(
             }
         return ResponseEntity.ok(invitations)
     }
+
+    @PostMapping("/validate")
+    fun validateInvitation(
+        @Valid @RequestBody request: ValidateInvitationRequest,
+    ): ResponseEntity<Any> =
+        try {
+            val result = invitationService.validateInvitation(request.token)
+            ResponseEntity.ok(result)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Invalid invitation token")))
+        }
 
     @PostMapping("/accept")
     fun acceptInvitation(

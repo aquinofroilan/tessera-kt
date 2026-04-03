@@ -134,6 +134,42 @@ class InvitationServiceTest {
     }
 
     @Test
+    fun `validateInvitation should return invitation details with existingUser false`() {
+        val invitation = createMockInvitation()
+
+        `when`(invitationRepository.findByTokenHash("hashed-valid-token")).thenReturn(Optional.of(invitation))
+        `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
+
+        val result = invitationService.validateInvitation("valid-token")
+
+        assertEquals(invitation.email, result.email)
+        assertEquals(invitation.role, result.role)
+        assertEquals(invitation.organizationId, result.organizationId)
+        assertEquals(false, result.existingUser)
+    }
+
+    @Test
+    fun `validateInvitation should return existingUser true when email registered`() {
+        val invitation = createMockInvitation()
+        val existingUser = createMockUser().copy(email = invitation.email)
+
+        `when`(invitationRepository.findByTokenHash("hashed-valid-token")).thenReturn(Optional.of(invitation))
+        `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.of(existingUser))
+
+        val result = invitationService.validateInvitation("valid-token")
+
+        assertEquals(true, result.existingUser)
+    }
+
+    @Test
+    fun `validateInvitation should throw for invalid token`() {
+        `when`(invitationRepository.findByTokenHash("hashed-bad-token")).thenReturn(Optional.empty())
+
+        val exception = assertThrows<IllegalArgumentException> { invitationService.validateInvitation("bad-token") }
+        assertEquals("Invalid or expired invitation token", exception.message)
+    }
+
+    @Test
     fun `acceptInvitation should create new user when email not registered`() {
         val request =
             AcceptInvitationRequest(
