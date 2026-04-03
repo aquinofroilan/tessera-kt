@@ -75,7 +75,11 @@ class InvitationService(
                 invitedBy = inviter.uuid,
                 expiryAt = LocalDateTime.now().plusHours(invitationExpiryHours),
             )
-        invitationRepository.save(invitation)
+        try {
+            invitationRepository.save(invitation)
+        } catch (e: DuplicateKeyException) {
+            throw IllegalArgumentException("An invitation has already been sent to this email")
+        }
 
         return rawToken
     }
