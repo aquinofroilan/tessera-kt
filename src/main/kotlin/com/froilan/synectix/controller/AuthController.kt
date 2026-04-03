@@ -154,7 +154,6 @@ class AuthController(
         try {
             authService.forgotPassword(email)
         } catch (e: Exception) {
-            // Broad catch intentional: always return 200 to prevent account enumeration
             log.error("Forgot-password flow failed", e)
         }
         return ResponseEntity.ok(
