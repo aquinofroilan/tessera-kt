@@ -6,6 +6,7 @@ import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.env.ConfigurableEnvironment
 import org.springframework.core.env.MapPropertySource
 import java.io.File
+import java.io.IOException
 
 /**
  * Initializer to load environment variables from .env file in the project root.
@@ -37,7 +38,9 @@ class EnvironmentInitializer : ApplicationContextInitializer<ConfigurableApplica
                 environment.propertySources.addFirst(propertySource)
 
                 println("Loaded ${envMap.size} environment variables from .env file")
-            } catch (e: Exception) {
+            } catch (e: IOException) {
+                println("Warning: Could not load .env file: ${e.message}")
+            } catch (e: IllegalStateException) {
                 println("Warning: Could not load .env file: ${e.message}")
             }
         } else {
