@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ production, staging ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ production, staging ]
 
 env:
   JAVA_VERSION: '21'
