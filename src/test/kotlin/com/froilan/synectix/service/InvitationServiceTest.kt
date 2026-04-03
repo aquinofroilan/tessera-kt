@@ -9,6 +9,7 @@ import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.RoleLevel
 import com.froilan.synectix.model.User
 import com.froilan.synectix.repository.InvitationRepository
+import org.springframework.dao.DuplicateKeyException
 import com.froilan.synectix.repository.RoleRepository
 import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.util.TokenHasher
@@ -254,6 +255,30 @@ class InvitationServiceTest {
 
         val exception = assertThrows<IllegalArgumentException> { invitationService.acceptInvitation(request) }
         assertEquals("Invalid or expired invitation token", exception.message)
+    }
+
+    @Test
+    fun `acceptInvitation should throw when username already exists`() {
+        val request =
+            AcceptInvitationRequest(
+                token = "raw-token",
+                username = "taken",
+                password = "SecurePass123!",
+                firstName = "New",
+                lastName = "User",
+            )
+        val invitation = createMockInvitation()
+
+        `when`(invitationRepository.findByTokenHash("hashed-raw-token")).thenReturn(Optional.of(invitation))
+        `when`(mongoTemplate.findAndModify(any(), any(), any<FindAndModifyOptions>(), eq(Invitation::class.java)))
+            .thenReturn(invitation.copy(status = InvitationStatus.ACCEPTED))
+        `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
+        `when`(passwordEncoder.encode("SecurePass123!")).thenReturn("encodedPassword")
+        `when`(userRepository.save(any<User>()))
+            .thenThrow(DuplicateKeyException("E11000 duplicate key error collection: synectix.users index: username"))
+
+        val exception = assertThrows<IllegalArgumentException> { invitationService.acceptInvitation(request) }
+        assertEquals("Username already exists", exception.message)
     }
 
     @Test

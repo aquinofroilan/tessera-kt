@@ -12,6 +12,7 @@ import com.froilan.synectix.repository.RoleRepository
 import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.util.TokenHasher
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.mongodb.core.FindAndModifyOptions
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
@@ -144,7 +145,19 @@ class InvitationService(
                         ),
                     ),
             )
-        return userRepository.save(newUser)
+        return try {
+            userRepository.save(newUser)
+        } catch (e: DuplicateKeyException) {
+            val errorMessage = e.message ?: ""
+            when {
+                errorMessage.contains("username", ignoreCase = true) ->
+                    throw IllegalArgumentException("Username already exists")
+                errorMessage.contains("email", ignoreCase = true) ->
+                    throw IllegalArgumentException("Email already exists")
+                else ->
+                    throw IllegalArgumentException("Duplicate entry: ${e.message}")
+            }
+        }
     }
 
     @Transactional
