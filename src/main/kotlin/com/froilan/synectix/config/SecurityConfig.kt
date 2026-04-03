@@ -4,6 +4,7 @@ import com.froilan.synectix.security.SynectixPermissionEvaluator
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
@@ -45,6 +46,10 @@ class SecurityConfig(
             .authorizeHttpRequests {
                 it.requestMatchers("/auth/change-password").authenticated()
                 it.requestMatchers("/auth/sessions", "/auth/sessions/**").authenticated()
+                it.requestMatchers(HttpMethod.POST, "/auth/invitations").authenticated()
+                it.requestMatchers(HttpMethod.GET, "/auth/invitations").authenticated()
+                it.requestMatchers(HttpMethod.DELETE, "/auth/invitations/*").authenticated()
+                it.requestMatchers("/auth/organizations", "/auth/organizations/**").authenticated()
                 it.requestMatchers("/auth/**").permitAll()
                 it.requestMatchers("/health/**").permitAll()
                 it.requestMatchers("/actuator/health/**").permitAll()

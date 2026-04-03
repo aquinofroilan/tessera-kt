@@ -5,6 +5,8 @@ import com.froilan.synectix.config.TestSecurityConfig
 import com.froilan.synectix.dto.AuthResponse
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
+import com.froilan.synectix.dto.UserOrganizationResponse
+import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.User
 import com.froilan.synectix.repository.OrganizationRepository
 import com.froilan.synectix.repository.PasswordResetTokenRepository
@@ -12,6 +14,7 @@ import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.security.RolePermissionCache
+import com.froilan.synectix.security.SessionContext
 import com.froilan.synectix.security.SynectixPermissionEvaluator
 import com.froilan.synectix.service.AuthService
 import com.froilan.synectix.util.TokenHasher
@@ -25,10 +28,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -276,6 +283,7 @@ class AuthControllerTest {
                 refreshToken = "generated-refresh-token-123",
                 username = "testuser",
                 roles = listOf("OWNER"),
+                organizationId = "org-123",
                 expiresAt = LocalDateTime.now().plusHours(24).toString(),
                 refreshTokenExpiresAt = LocalDateTime.now().plusDays(30).toString(),
             )
@@ -389,6 +397,7 @@ class AuthControllerTest {
                 refreshToken = "new-refresh-token-789",
                 username = "testuser",
                 roles = listOf("OWNER"),
+                organizationId = "org-123",
                 expiresAt = LocalDateTime.now().plusHours(24).toString(),
                 refreshTokenExpiresAt = LocalDateTime.now().plusDays(30).toString(),
             )
@@ -620,5 +629,124 @@ class AuthControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson),
             ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `GET organizations should return org list for authenticated user`() {
+        val user =
+            User(
+                uuid = "user-123",
+                username = "testuser",
+                email = "test@example.com",
+                firstName = "Test",
+                lastName = "User",
+                passwordHash = "encoded",
+                organizationId = "org-123",
+                roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
+            )
+        val session = SessionContext(sessionId = "session-123", organizationId = "org-123")
+        setupAuth(user, session)
+
+        val orgs =
+            listOf(
+                UserOrganizationResponse(
+                    organizationId = "org-123",
+                    name = "Test Org",
+                    orgSlug = "test-org",
+                    roles = listOf("OWNER"),
+                    isCurrent = true,
+                    isActive = true,
+                ),
+            )
+        `when`(authService.listUserOrganizations(any(), any())).thenReturn(orgs)
+
+        mockMvc
+            .perform(get("/auth/organizations"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].organizationId").value("org-123"))
+            .andExpect(jsonPath("$[0].current").value(true))
+            .andExpect(jsonPath("$[0].active").value(true))
+    }
+
+    @Test
+    fun `POST organizations switch should return new token pair`() {
+        val user =
+            User(
+                uuid = "user-123",
+                username = "testuser",
+                email = "test@example.com",
+                firstName = "Test",
+                lastName = "User",
+                passwordHash = "encoded",
+                organizationId = "org-123",
+                roleAssignments =
+                    listOf(
+                        RoleAssignment("OWNER", "org-123"),
+                        RoleAssignment("MEMBER", "org-456"),
+                    ),
+            )
+        val session = SessionContext(sessionId = "session-123", organizationId = "org-123")
+        setupAuth(user, session)
+
+        val switchResponse =
+            AuthResponse(
+                accessToken = "new-token",
+                refreshToken = "new-refresh",
+                username = "testuser",
+                roles = listOf("MEMBER"),
+                organizationId = "org-456",
+                expiresAt = LocalDateTime.now().plusHours(24).toString(),
+                refreshTokenExpiresAt = LocalDateTime.now().plusDays(30).toString(),
+            )
+        `when`(authService.switchOrganization(any(), any(), anyOrNull(), anyOrNull())).thenReturn(switchResponse)
+
+        mockMvc
+            .perform(
+                post("/auth/organizations/switch")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"organizationId": "org-456"}"""),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.organizationId").value("org-456"))
+            .andExpect(jsonPath("$.roles[0]").value("MEMBER"))
+            .andExpect(jsonPath("$.accessToken").value("new-token"))
+    }
+
+    @Test
+    fun `POST organizations switch should return 400 for unauthorized org`() {
+        val user =
+            User(
+                uuid = "user-123",
+                username = "testuser",
+                email = "test@example.com",
+                firstName = "Test",
+                lastName = "User",
+                passwordHash = "encoded",
+                organizationId = "org-123",
+                roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
+            )
+        val session = SessionContext(sessionId = "session-123", organizationId = "org-123")
+        setupAuth(user, session)
+
+        `when`(authService.switchOrganization(any(), any(), anyOrNull(), anyOrNull()))
+            .thenThrow(IllegalArgumentException("You do not have access to this organization"))
+
+        mockMvc
+            .perform(
+                post("/auth/organizations/switch")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"organizationId": "org-999"}"""),
+            ).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.error").value("You do not have access to this organization"))
+    }
+
+    private fun setupAuth(
+        user: User,
+        session: SessionContext,
+    ) {
+        val authorities = user.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
+        val authentication = UsernamePasswordAuthenticationToken(user, null, authorities)
+        authentication.details = session
+        SecurityContextHolder.getContext().authentication = authentication
     }
 }

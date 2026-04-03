@@ -8,7 +8,7 @@ import com.froilan.synectix.model.RefreshToken
 import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.SessionToken
 import com.froilan.synectix.model.User
-import com.froilan.synectix.model.effectiveRoleNames
+import com.froilan.synectix.model.orgRoleNames
 import com.froilan.synectix.repository.OrganizationRepository
 import com.froilan.synectix.repository.PasswordResetTokenRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
@@ -31,7 +31,9 @@ import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
 import java.util.Optional
+import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -59,6 +61,7 @@ class AuthServiceTest {
         passwordEncoder = mock(PasswordEncoder::class.java)
 
         `when`(tokenHasher.hash(any())).thenAnswer { "hashed-${it.arguments[0]}" }
+        `when`(tokenHasher.generate(any())).thenAnswer { UUID.randomUUID().toString() }
 
         authService =
             AuthService(
@@ -227,7 +230,8 @@ class AuthServiceTest {
 
         assertNotNull(result)
         assertEquals(user.username, result.username)
-        assertEquals(user.effectiveRoleNames(), result.roles)
+        assertEquals(user.orgRoleNames(user.organizationId), result.roles)
+        assertEquals(user.organizationId, result.organizationId)
         assertNotNull(result.accessToken)
         assertNotNull(result.expiresAt)
 
@@ -670,6 +674,137 @@ class AuthServiceTest {
             orgLegalName = "Test Organization LLC",
             orgTradeName = "Test Org",
         )
+
+    @Test
+    fun `switchOrganization should return new token pair scoped to target org`() {
+        val user =
+            createMockUser().copy(
+                roleAssignments =
+                    listOf(
+                        RoleAssignment("OWNER", "org-123"),
+                        RoleAssignment("MEMBER", "org-456"),
+                    ),
+            )
+        val targetOrg = createMockOrganization().copy(uuid = "org-456")
+
+        `when`(organizationRepository.findById("org-456")).thenReturn(Optional.of(targetOrg))
+        `when`(sessionTokenRepository.save(any<SessionToken>())).thenAnswer { it.arguments[0] }
+        `when`(refreshTokenRepository.save(any<RefreshToken>())).thenAnswer { it.arguments[0] }
+
+        val result = authService.switchOrganization(user, "org-456")
+
+        assertEquals("org-456", result.organizationId)
+        assertEquals(listOf("MEMBER"), result.roles)
+        assertNotNull(result.accessToken)
+        assertNotNull(result.refreshToken)
+
+        val sessionCaptor = argumentCaptor<SessionToken>()
+        verify(sessionTokenRepository).save(sessionCaptor.capture())
+        assertEquals("org-456", sessionCaptor.firstValue.organizationId)
+    }
+
+    @Test
+    fun `switchOrganization should throw when user has no role in target org`() {
+        val user = createMockUser()
+
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.switchOrganization(user, "org-999")
+            }
+        assertEquals("You do not have access to this organization", exception.message)
+    }
+
+    @Test
+    fun `switchOrganization should throw when org not found`() {
+        val user =
+            createMockUser().copy(
+                roleAssignments =
+                    listOf(
+                        RoleAssignment("MEMBER", "org-123"),
+                        RoleAssignment("MEMBER", "org-missing"),
+                    ),
+            )
+
+        `when`(organizationRepository.findById("org-missing")).thenReturn(Optional.empty())
+
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.switchOrganization(user, "org-missing")
+            }
+        assertEquals("Organization not found", exception.message)
+    }
+
+    @Test
+    fun `switchOrganization should throw when org is inactive`() {
+        val user =
+            createMockUser().copy(
+                roleAssignments =
+                    listOf(
+                        RoleAssignment("MEMBER", "org-123"),
+                        RoleAssignment("MEMBER", "org-inactive"),
+                    ),
+            )
+        val inactiveOrg = createMockOrganization().copy(uuid = "org-inactive", isActive = false)
+
+        `when`(organizationRepository.findById("org-inactive")).thenReturn(Optional.of(inactiveOrg))
+
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.switchOrganization(user, "org-inactive")
+            }
+        assertEquals("Organization is not active", exception.message)
+    }
+
+    @Test
+    fun `listUserOrganizations should return orgs with current indicator`() {
+        val user =
+            createMockUser().copy(
+                roleAssignments =
+                    listOf(
+                        RoleAssignment("OWNER", "org-123"),
+                        RoleAssignment("MEMBER", "org-456"),
+                    ),
+            )
+        val org1 = createMockOrganization().copy(uuid = "org-123", name = "Org One", orgSlug = "org-one")
+        val org2 = createMockOrganization().copy(uuid = "org-456", name = "Org Two", orgSlug = "org-two")
+
+        `when`(organizationRepository.findAllById(listOf("org-123", "org-456"))).thenReturn(listOf(org1, org2))
+
+        val result = authService.listUserOrganizations(user, "org-123")
+
+        assertEquals(2, result.size)
+        val current = result.first { it.isCurrent }
+        assertEquals("org-123", current.organizationId)
+        assertEquals(listOf("OWNER"), current.roles)
+
+        val other = result.first { !it.isCurrent }
+        assertEquals("org-456", other.organizationId)
+        assertEquals(listOf("MEMBER"), other.roles)
+    }
+
+    @Test
+    fun `listUserOrganizations should include inactive orgs with isActive false`() {
+        val user =
+            createMockUser().copy(
+                roleAssignments =
+                    listOf(
+                        RoleAssignment("OWNER", "org-123"),
+                        RoleAssignment("MEMBER", "org-inactive"),
+                    ),
+            )
+        val activeOrg = createMockOrganization().copy(uuid = "org-123")
+        val inactiveOrg = createMockOrganization().copy(uuid = "org-inactive", isActive = false)
+
+        `when`(organizationRepository.findAllById(listOf("org-123", "org-inactive"))).thenReturn(listOf(activeOrg, inactiveOrg))
+
+        val result = authService.listUserOrganizations(user, "org-123")
+
+        assertEquals(2, result.size)
+        val active = result.first { it.organizationId == "org-123" }
+        assertTrue(active.isActive)
+        val inactive = result.first { it.organizationId == "org-inactive" }
+        assertFalse(inactive.isActive)
+    }
 
     private fun createMockOrganization() =
         Organizations(

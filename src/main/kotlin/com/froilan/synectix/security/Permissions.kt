@@ -13,4 +13,7 @@ object Permissions {
     const val ORGANIZATION_DELETE = "organization:delete"
 
     const val ENVIRONMENT_READ = "environment:read"
+
+    const val INVITATION_READ = "invitation:read"
+    const val INVITATION_WRITE = "invitation:write"
 }

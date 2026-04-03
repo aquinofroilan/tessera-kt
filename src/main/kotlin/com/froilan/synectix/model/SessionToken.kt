@@ -13,6 +13,7 @@ data class SessionToken(
     @Indexed(unique = true)
     val token: String,
     val userId: String,
+    val organizationId: String? = null,
     @Indexed(expireAfterSeconds = 0)
     val expiryAt: LocalDateTime,
     val ipAddress: String? = null,
