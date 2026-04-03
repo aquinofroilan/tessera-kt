@@ -52,6 +52,7 @@ class InvitationServiceTest {
         passwordEncoder = mock(PasswordEncoder::class.java)
 
         `when`(tokenHasher.hash(any())).thenAnswer { "hashed-${it.arguments[0]}" }
+        `when`(tokenHasher.generate(any())).thenReturn("generated-test-token")
 
         invitationService =
             InvitationService(

@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import java.security.SecureRandom
+import java.util.Base64
 import java.util.HexFormat
 
 @Component
@@ -23,6 +25,14 @@ class TokenHasher(
                 e,
             )
         }
+    }
+
+    private val secureRandom = SecureRandom()
+
+    fun generate(byteLength: Int = 32): String {
+        val bytes = ByteArray(byteLength)
+        secureRandom.nextBytes(bytes)
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
     }
 
     fun hash(token: String): String {

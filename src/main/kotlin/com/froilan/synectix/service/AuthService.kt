@@ -24,10 +24,8 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.security.SecureRandom
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import java.util.Base64
 import java.util.Locale
 
 @Service
@@ -47,8 +45,6 @@ class AuthService(
     @Value("\${security.password-reset.expiration-minutes:60}")
     private val resetTokenExpiryMinutes: Long,
 ) {
-    private val secureRandom = SecureRandom()
-
     @Transactional
     fun register(request: RegisterRequest): User {
         try {
@@ -340,9 +336,5 @@ class AuthService(
         }
     }
 
-    private fun generateToken(): String {
-        val bytes = ByteArray(32)
-        secureRandom.nextBytes(bytes)
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
-    }
+    private fun generateToken(): String = tokenHasher.generate()
 }

@@ -31,6 +31,7 @@ import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
 import java.util.Optional
+import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
@@ -59,6 +60,7 @@ class AuthServiceTest {
         passwordEncoder = mock(PasswordEncoder::class.java)
 
         `when`(tokenHasher.hash(any())).thenAnswer { "hashed-${it.arguments[0]}" }
+        `when`(tokenHasher.generate(any())).thenAnswer { UUID.randomUUID().toString() }
 
         authService =
             AuthService(

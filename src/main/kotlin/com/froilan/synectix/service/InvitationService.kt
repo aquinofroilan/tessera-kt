@@ -22,9 +22,7 @@ import org.springframework.data.mongodb.core.query.Update
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.security.SecureRandom
 import java.time.LocalDateTime
-import java.util.Base64
 import java.util.Locale
 
 @Service
@@ -38,8 +36,6 @@ class InvitationService(
     @Value("\${security.invitation.expiration-hours:72}")
     private val invitationExpiryHours: Long,
 ) {
-    private val secureRandom = SecureRandom()
-
     @Transactional
     fun invite(
         request: CreateInvitationRequest,
@@ -69,7 +65,7 @@ class InvitationService(
             invitationRepository.save(pendingInvitation.copy(status = InvitationStatus.EXPIRED))
         }
 
-        val rawToken = generateToken()
+        val rawToken = tokenHasher.generate()
         val invitation =
             Invitation(
                 email = normalizedEmail,
@@ -211,10 +207,4 @@ class InvitationService(
             InvitationStatus.PENDING,
             LocalDateTime.now(),
         )
-
-    private fun generateToken(): String {
-        val bytes = ByteArray(32)
-        secureRandom.nextBytes(bytes)
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
-    }
 }
