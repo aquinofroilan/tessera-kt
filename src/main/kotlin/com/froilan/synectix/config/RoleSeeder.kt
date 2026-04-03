@@ -94,7 +94,7 @@ class RoleSeeder(
                 if (current.description != role.description ||
                     current.level != role.level ||
                     current.isDefault != role.isDefault ||
-                    current.permissions != role.permissions
+                    current.permissions.toSet() != role.permissions.toSet()
                 ) {
                     roleRepository.save(
                         current.copy(
