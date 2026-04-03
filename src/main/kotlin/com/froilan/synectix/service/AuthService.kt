@@ -409,7 +409,6 @@ class AuthService(
         val orgsById =
             organizationRepository
                 .findAllById(orgIds)
-                .filter { it.isActive }
                 .associateBy { it.uuid }
 
         return orgIds.mapNotNull { orgId ->
@@ -418,8 +417,9 @@ class AuthService(
                 organizationId = orgId,
                 name = org.name,
                 orgSlug = org.orgSlug,
-                roles = user.orgRoleNames(orgId),
+                roles = user.orgRoleNames(orgId).distinct(),
                 isCurrent = orgId == currentOrgId,
+                isActive = org.isActive,
             )
         }
     }

@@ -99,4 +99,5 @@ data class UserOrganizationResponse(
     val orgSlug: String,
     val roles: List<String>,
     val isCurrent: Boolean,
+    val isActive: Boolean,
 )
