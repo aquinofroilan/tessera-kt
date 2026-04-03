@@ -2,6 +2,7 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.aspect.LoggingAspect
 import com.froilan.synectix.config.TestSecurityConfig
+import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.SessionToken
 import com.froilan.synectix.model.User
 import com.froilan.synectix.repository.OrganizationRepository
@@ -9,6 +10,8 @@ import com.froilan.synectix.repository.PasswordResetTokenRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
+import com.froilan.synectix.security.RolePermissionCache
+import com.froilan.synectix.security.SynectixPermissionEvaluator
 import com.froilan.synectix.service.AuthService
 import com.froilan.synectix.util.TokenHasher
 import org.junit.jupiter.api.BeforeEach
@@ -32,7 +35,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 
 @WebMvcTest(controllers = [SessionController::class])
-@Import(LoggingAspect::class, TestSecurityConfig::class)
+@Import(LoggingAspect::class, TestSecurityConfig::class, SynectixPermissionEvaluator::class)
 @ActiveProfiles("test")
 class SessionControllerTest {
     @Autowired
@@ -62,6 +65,9 @@ class SessionControllerTest {
     @MockitoBean
     private lateinit var tokenHasher: TokenHasher
 
+    @MockitoBean
+    private lateinit var rolePermissionCache: RolePermissionCache
+
     private val testUser =
         User(
             uuid = "user-123",
@@ -71,14 +77,20 @@ class SessionControllerTest {
             lastName = "User",
             passwordHash = "encoded",
             organizationId = "org-123",
+            roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
         )
 
     private val currentToken = "current-bearer-token"
 
     @BeforeEach
     fun setup() {
-        val authorities = testUser.roles.map { SimpleGrantedAuthority("ROLE_$it") }
-        val authentication = UsernamePasswordAuthenticationToken(testUser, null, authorities)
+        setupAuthWithPermissions("session:read", "session:delete")
+    }
+
+    private fun setupAuthWithPermissions(vararg permissions: String) {
+        val roleAuthorities = testUser.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
+        val permissionAuthorities = permissions.map { SimpleGrantedAuthority(it) }
+        val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
         SecurityContextHolder.getContext().authentication = authentication
     }
 
@@ -174,5 +186,27 @@ class SessionControllerTest {
                     .header("Authorization", "Bearer $currentToken"),
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("All other sessions revoked"))
+    }
+
+    @Test
+    fun `GET sessions should return 403 without session read permission`() {
+        setupAuthWithPermissions()
+
+        mockMvc
+            .perform(
+                get("/auth/sessions")
+                    .header("Authorization", "Bearer $currentToken"),
+            ).andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `DELETE session should return 403 without session delete permission`() {
+        setupAuthWithPermissions("session:read")
+
+        mockMvc
+            .perform(
+                delete("/auth/sessions/s2")
+                    .header("Authorization", "Bearer $currentToken"),
+            ).andExpect(status().isForbidden)
     }
 }

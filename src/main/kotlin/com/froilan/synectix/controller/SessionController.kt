@@ -5,6 +5,7 @@ import com.froilan.synectix.model.User
 import com.froilan.synectix.service.AuthService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -19,6 +20,7 @@ class SessionController(
     private val authService: AuthService,
 ) {
     @GetMapping
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasAuthority('session:read')")
     fun listSessions(
         @RequestHeader("Authorization") authHeader: String,
     ): ResponseEntity<Any> {
@@ -42,6 +44,7 @@ class SessionController(
     }
 
     @DeleteMapping("/{sessionId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasAuthority('session:delete')")
     fun revokeSession(
         @RequestHeader("Authorization") authHeader: String,
         @PathVariable sessionId: String,
@@ -65,6 +68,7 @@ class SessionController(
     }
 
     @DeleteMapping
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasAuthority('session:delete')")
     fun revokeOtherSessions(
         @RequestHeader("Authorization") authHeader: String,
     ): ResponseEntity<Any> {

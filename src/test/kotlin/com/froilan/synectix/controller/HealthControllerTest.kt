@@ -4,6 +4,8 @@ import com.froilan.synectix.aspect.LoggingAspect
 import com.froilan.synectix.config.TestSecurityConfig
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
+import com.froilan.synectix.security.RolePermissionCache
+import com.froilan.synectix.security.SynectixPermissionEvaluator
 import com.mongodb.client.MongoDatabase
 import org.bson.Document
 import org.junit.jupiter.api.Test
@@ -12,6 +14,7 @@ import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
+import org.springframework.dao.DataAccessResourceFailureException
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -21,7 +24,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(controllers = [HealthController::class])
-@Import(LoggingAspect::class, TestSecurityConfig::class)
+@Import(LoggingAspect::class, TestSecurityConfig::class, SynectixPermissionEvaluator::class)
 @ActiveProfiles("test")
 class HealthControllerTest {
     @Autowired
@@ -38,6 +41,9 @@ class HealthControllerTest {
 
     @MockitoBean
     private lateinit var userRepository: UserRepository
+
+    @MockitoBean
+    private lateinit var rolePermissionCache: RolePermissionCache
 
     @Test
     fun `should return health status UP when database is healthy`() {
@@ -83,7 +89,7 @@ class HealthControllerTest {
 
     @Test
     fun `should return service unavailable when database is down`() {
-        `when`(mongoTemplate.db).thenThrow(RuntimeException("Database connection failed"))
+        `when`(mongoTemplate.db).thenThrow(DataAccessResourceFailureException("Database connection failed"))
 
         mockMvc
             .perform(get("/health"))

@@ -11,6 +11,8 @@ import com.froilan.synectix.repository.PasswordResetTokenRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
+import com.froilan.synectix.security.RolePermissionCache
+import com.froilan.synectix.security.SynectixPermissionEvaluator
 import com.froilan.synectix.service.AuthService
 import com.froilan.synectix.util.TokenHasher
 import org.junit.jupiter.api.Test
@@ -33,7 +35,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 
 @WebMvcTest(controllers = [AuthController::class])
-@Import(LoggingAspect::class, TestSecurityConfig::class)
+@Import(LoggingAspect::class, TestSecurityConfig::class, SynectixPermissionEvaluator::class)
 @ActiveProfiles("test")
 class AuthControllerTest {
     @Autowired
@@ -62,6 +64,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private lateinit var tokenHasher: TokenHasher
+
+    @MockitoBean
+    private lateinit var rolePermissionCache: RolePermissionCache
 
     @Test
     fun `POST signup should return 201 when registration is successful`() {
@@ -102,10 +107,7 @@ class AuthControllerTest {
                 post("/auth/signup")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson),
-            ).andDo { result ->
-                println("Response status: ${result.response.status}")
-                println("Response body: ${result.response.contentAsString}")
-            }.andExpect(status().isCreated)
+            ).andExpect(status().isCreated)
             .andExpect(jsonPath("$.message").value("User registered successfully"))
             .andExpect(jsonPath("$.userId").value(savedUser.uuid))
     }
@@ -273,7 +275,7 @@ class AuthControllerTest {
                 accessToken = "generated-token-123",
                 refreshToken = "generated-refresh-token-123",
                 username = "testuser",
-                roles = listOf("USER"),
+                roles = listOf("OWNER"),
                 expiresAt = LocalDateTime.now().plusHours(24).toString(),
                 refreshTokenExpiresAt = LocalDateTime.now().plusDays(30).toString(),
             )
@@ -288,7 +290,7 @@ class AuthControllerTest {
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$.accessToken").value(authResponse.accessToken))
             .andExpect(jsonPath("$.username").value(authResponse.username))
-            .andExpect(jsonPath("$.roles[0]").value("USER"))
+            .andExpect(jsonPath("$.roles[0]").value("OWNER"))
             .andExpect(jsonPath("$.expiresAt").exists())
     }
 
@@ -386,7 +388,7 @@ class AuthControllerTest {
                 accessToken = "new-access-token-456",
                 refreshToken = "new-refresh-token-789",
                 username = "testuser",
-                roles = listOf("USER"),
+                roles = listOf("OWNER"),
                 expiresAt = LocalDateTime.now().plusHours(24).toString(),
                 refreshTokenExpiresAt = LocalDateTime.now().plusDays(30).toString(),
             )

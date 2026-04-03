@@ -2,7 +2,9 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.annotation.LogLevel
 import com.froilan.synectix.annotation.Loggable
-import org.springframework.beans.factory.annotation.Autowired
+import com.mongodb.MongoException
+import org.slf4j.LoggerFactory
+import org.springframework.dao.DataAccessException
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -14,8 +16,10 @@ import java.time.LocalDateTime
 @RequestMapping("/health")
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.DEBUG)
 class HealthController(
-    @Autowired private val mongoTemplate: MongoTemplate,
+    private val mongoTemplate: MongoTemplate,
 ) {
+    private val log = LoggerFactory.getLogger(HealthController::class.java)
+
     @GetMapping
     fun health(): ResponseEntity<Map<String, Any>> {
         val healthData =
@@ -94,10 +98,22 @@ class HealthController(
                 "status_detail" to "Connected",
                 "databaseName" to db.name,
             )
-        } catch (e: Exception) {
+        } catch (e: MongoException) {
             mapOf(
                 "status" to "DOWN",
                 "error" to (e.message ?: "Unknown database error"),
+            )
+        } catch (e: DataAccessException) {
+            mapOf(
+                "status" to "DOWN",
+                "error" to (e.message ?: "Unknown database error"),
+            )
+        } catch (e: Exception) {
+            // Broad catch intentional: health endpoint must always return structured UP/DOWN
+            log.error("Unexpected error during health check", e)
+            mapOf(
+                "status" to "DOWN",
+                "error" to (e.message ?: "Unknown error"),
             )
         }
 }
