@@ -2,6 +2,7 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.aspect.LoggingAspect
 import com.froilan.synectix.config.TestSecurityConfig
+import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.SessionToken
 import com.froilan.synectix.model.User
 import com.froilan.synectix.repository.OrganizationRepository
@@ -71,13 +72,14 @@ class SessionControllerTest {
             lastName = "User",
             passwordHash = "encoded",
             organizationId = "org-123",
+            roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
         )
 
     private val currentToken = "current-bearer-token"
 
     @BeforeEach
     fun setup() {
-        val authorities = testUser.roles.map { SimpleGrantedAuthority("ROLE_$it") }
+        val authorities = testUser.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, authorities)
         SecurityContextHolder.getContext().authentication = authentication
     }

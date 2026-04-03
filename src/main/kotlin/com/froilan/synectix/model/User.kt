@@ -21,9 +21,15 @@ data class User(
     val passwordHash: String,
     val isActive: Boolean = true,
     val organizationId: String,
-    val roles: List<String> = listOf("USER"),
+    val roleAssignments: List<RoleAssignment> = emptyList(),
     @CreatedDate
     var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     var updatedAt: LocalDateTime? = null,
 )
+
+fun User.effectiveRoleNames(): List<String> = roleAssignments.map { it.role }
+
+fun User.orgRoleNames(orgId: String): List<String> = roleAssignments.filter { it.organizationId == orgId }.map { it.role }
+
+fun User.systemRoleNames(): List<String> = roleAssignments.filter { it.organizationId == null }.map { it.role }

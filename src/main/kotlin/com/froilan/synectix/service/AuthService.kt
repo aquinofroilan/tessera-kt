@@ -6,8 +6,10 @@ import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.model.Organizations
 import com.froilan.synectix.model.PasswordResetToken
 import com.froilan.synectix.model.RefreshToken
+import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.SessionToken
 import com.froilan.synectix.model.User
+import com.froilan.synectix.model.effectiveRoleNames
 import com.froilan.synectix.repository.OrganizationRepository
 import com.froilan.synectix.repository.PasswordResetTokenRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
@@ -71,6 +73,10 @@ class AuthService(
                     lastName = request.lastName,
                     email = request.email.lowercase(Locale.ROOT),
                     organizationId = savedOrganization.uuid,
+                    roleAssignments =
+                        listOf(
+                            RoleAssignment(role = "OWNER", organizationId = savedOrganization.uuid),
+                        ),
                 )
             return userRepository.save(user)
         } catch (e: DuplicateKeyException) {
@@ -138,7 +144,7 @@ class AuthService(
             accessToken = accessTokenStr,
             refreshToken = refreshTokenStr,
             username = user.username,
-            roles = user.roles,
+            roles = user.effectiveRoleNames(),
             expiresAt = expiryAt.toString(),
             refreshTokenExpiresAt = refreshExpiryAt.toString(),
         )
@@ -206,7 +212,7 @@ class AuthService(
             accessToken = accessTokenStr,
             refreshToken = refreshTokenStr,
             username = user.username,
-            roles = user.roles,
+            roles = user.effectiveRoleNames(),
             expiresAt = expiryAt.toString(),
             refreshTokenExpiresAt = refreshExpiryAt.toString(),
         )
