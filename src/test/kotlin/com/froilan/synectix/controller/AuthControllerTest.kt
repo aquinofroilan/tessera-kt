@@ -273,7 +273,7 @@ class AuthControllerTest {
                 accessToken = "generated-token-123",
                 refreshToken = "generated-refresh-token-123",
                 username = "testuser",
-                roles = listOf("USER"),
+                roles = listOf("OWNER"),
                 expiresAt = LocalDateTime.now().plusHours(24).toString(),
                 refreshTokenExpiresAt = LocalDateTime.now().plusDays(30).toString(),
             )
@@ -288,7 +288,7 @@ class AuthControllerTest {
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$.accessToken").value(authResponse.accessToken))
             .andExpect(jsonPath("$.username").value(authResponse.username))
-            .andExpect(jsonPath("$.roles[0]").value("USER"))
+            .andExpect(jsonPath("$.roles[0]").value("OWNER"))
             .andExpect(jsonPath("$.expiresAt").exists())
     }
 
@@ -386,7 +386,7 @@ class AuthControllerTest {
                 accessToken = "new-access-token-456",
                 refreshToken = "new-refresh-token-789",
                 username = "testuser",
-                roles = listOf("USER"),
+                roles = listOf("OWNER"),
                 expiresAt = LocalDateTime.now().plusHours(24).toString(),
                 refreshTokenExpiresAt = LocalDateTime.now().plusDays(30).toString(),
             )

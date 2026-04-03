@@ -5,8 +5,10 @@ import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.model.Organizations
 import com.froilan.synectix.model.PasswordResetToken
 import com.froilan.synectix.model.RefreshToken
+import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.SessionToken
 import com.froilan.synectix.model.User
+import com.froilan.synectix.model.effectiveRoleNames
 import com.froilan.synectix.repository.OrganizationRepository
 import com.froilan.synectix.repository.PasswordResetTokenRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
@@ -117,6 +119,7 @@ class AuthServiceTest {
         verify(userRepository, times(1)).save(userCaptor.capture())
         assertEquals(encodedPassword, userCaptor.firstValue.passwordHash)
         assertEquals(savedOrg.uuid, userCaptor.firstValue.organizationId)
+        assertEquals(listOf(RoleAssignment("OWNER", savedOrg.uuid)), userCaptor.firstValue.roleAssignments)
     }
 
     @Test
@@ -206,7 +209,11 @@ class AuthServiceTest {
                 lastName = "User",
                 passwordHash = "encodedPassword",
                 organizationId = "org-123",
-                roles = listOf("USER", "ADMIN"),
+                roleAssignments =
+                    listOf(
+                        RoleAssignment("MEMBER", "org-123"),
+                        RoleAssignment("ADMIN", "org-123"),
+                    ),
             )
         val savedToken = createMockSessionToken()
 
@@ -219,7 +226,7 @@ class AuthServiceTest {
 
         assertNotNull(result)
         assertEquals(user.username, result.username)
-        assertEquals(user.roles, result.roles)
+        assertEquals(user.effectiveRoleNames(), result.roles)
         assertNotNull(result.accessToken)
         assertNotNull(result.expiresAt)
 
@@ -685,6 +692,7 @@ class AuthServiceTest {
             lastName = "User",
             passwordHash = "encodedPassword",
             organizationId = "org-123",
+            roleAssignments = listOf(RoleAssignment("MEMBER", "org-123")),
         )
 
     private fun createMockSessionToken() =
