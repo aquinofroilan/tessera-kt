@@ -11,6 +11,8 @@ import com.froilan.synectix.repository.PasswordResetTokenRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
+import com.froilan.synectix.security.RolePermissionCache
+import com.froilan.synectix.security.SynectixPermissionEvaluator
 import com.froilan.synectix.service.AuthService
 import com.froilan.synectix.util.TokenHasher
 import org.junit.jupiter.api.Test
@@ -33,7 +35,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 
 @WebMvcTest(controllers = [AuthController::class])
-@Import(LoggingAspect::class, TestSecurityConfig::class)
+@Import(LoggingAspect::class, TestSecurityConfig::class, SynectixPermissionEvaluator::class)
 @ActiveProfiles("test")
 class AuthControllerTest {
     @Autowired
@@ -62,6 +64,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private lateinit var tokenHasher: TokenHasher
+
+    @MockitoBean
+    private lateinit var rolePermissionCache: RolePermissionCache
 
     @Test
     fun `POST signup should return 201 when registration is successful`() {
