@@ -91,7 +91,11 @@ class AuthService(
     }
 
     @Transactional
-    fun login(request: LoginRequest): AuthResponse {
+    fun login(
+        request: LoginRequest,
+        ipAddress: String? = null,
+        userAgent: String? = null,
+    ): AuthResponse {
         val user =
             userRepository
                 .findByUsername(request.username)
@@ -113,6 +117,8 @@ class AuthService(
                 token = accessTokenStr,
                 expiryAt = expiryAt,
                 userId = user.uuid,
+                ipAddress = ipAddress,
+                userAgent = userAgent,
             )
         val savedSession = sessionTokenRepository.save(sessionToken)
 
@@ -282,6 +288,41 @@ class AuthService(
         passwordResetTokenRepository.deleteByUserId(user.uuid)
         sessionTokenRepository.deleteByUserId(user.uuid)
         refreshTokenRepository.deleteByUserId(user.uuid)
+    }
+
+    fun listSessions(userId: String): List<SessionToken> = sessionTokenRepository.findByUserIdAndExpiryAtAfter(userId, LocalDateTime.now())
+
+    @Transactional
+    fun revokeSession(
+        userId: String,
+        sessionId: String,
+        currentToken: String,
+    ) {
+        val session =
+            sessionTokenRepository.findById(sessionId).orElseThrow {
+                IllegalArgumentException("Session not found")
+            }
+        if (session.userId != userId) {
+            throw IllegalArgumentException("Session not found")
+        }
+        if (session.token == currentToken) {
+            throw IllegalStateException("Cannot revoke the current session")
+        }
+        refreshTokenRepository.deleteBySessionTokenId(session.id)
+        sessionTokenRepository.deleteById(session.id)
+    }
+
+    @Transactional
+    fun revokeOtherSessions(
+        userId: String,
+        currentToken: String,
+    ) {
+        val otherSessions = sessionTokenRepository.findByUserIdAndTokenNot(userId, currentToken)
+        if (otherSessions.isEmpty()) return
+
+        val sessionIds = otherSessions.map { it.id }
+        refreshTokenRepository.deleteBySessionTokenIdIn(sessionIds)
+        sessionTokenRepository.deleteAllById(sessionIds)
     }
 
     @Transactional

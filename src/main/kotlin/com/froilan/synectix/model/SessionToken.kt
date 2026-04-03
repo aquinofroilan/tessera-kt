@@ -13,6 +13,9 @@ data class SessionToken(
     @Indexed(unique = true)
     val token: String,
     val userId: String,
+    @Indexed(expireAfterSeconds = 0)
     val expiryAt: LocalDateTime,
+    val ipAddress: String? = null,
+    val userAgent: String? = null,
     val createdAt: LocalDateTime = LocalDateTime.now(),
 )

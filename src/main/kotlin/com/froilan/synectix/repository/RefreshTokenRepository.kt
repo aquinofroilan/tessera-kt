@@ -13,5 +13,7 @@ interface RefreshTokenRepository : MongoRepository<RefreshToken, String> {
 
     fun deleteBySessionTokenId(sessionTokenId: String)
 
+    fun deleteBySessionTokenIdIn(sessionTokenIds: List<String>)
+
     fun deleteByUserId(userId: String)
 }

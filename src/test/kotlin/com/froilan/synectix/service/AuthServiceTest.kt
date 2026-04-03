@@ -448,6 +448,75 @@ class AuthServiceTest {
     }
 
     @Test
+    fun `listSessions should return only non-expired sessions`() {
+        val userId = "user-123"
+        val activeSession = SessionToken(id = "s1", token = "t1", userId = userId, expiryAt = LocalDateTime.now().plusHours(12))
+        `when`(sessionTokenRepository.findByUserIdAndExpiryAtAfter(eq(userId), any())).thenReturn(listOf(activeSession))
+
+        val result = authService.listSessions(userId)
+
+        assertEquals(1, result.size)
+        assertEquals("s1", result[0].id)
+    }
+
+    @Test
+    fun `revokeSession should delete session and its refresh token`() {
+        val userId = "user-123"
+        val session = SessionToken(id = "s1", token = "t1", userId = userId, expiryAt = LocalDateTime.now().plusHours(12))
+
+        `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
+
+        authService.revokeSession(userId, "s1", "other-token")
+
+        verify(refreshTokenRepository).deleteBySessionTokenId("s1")
+        verify(sessionTokenRepository).deleteById("s1")
+    }
+
+    @Test
+    fun `revokeSession should throw when session belongs to different user`() {
+        val session = SessionToken(id = "s1", token = "t1", userId = "other-user", expiryAt = LocalDateTime.now().plusHours(12))
+
+        `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
+
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                authService.revokeSession("user-123", "s1", "other-token")
+            }
+        assertEquals("Session not found", exception.message)
+    }
+
+    @Test
+    fun `revokeSession should throw when attempting to revoke the current session`() {
+        val userId = "user-123"
+        val currentToken = "current-token"
+        val session = SessionToken(id = "s1", token = currentToken, userId = userId, expiryAt = LocalDateTime.now().plusHours(12))
+
+        `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
+
+        val exception =
+            assertThrows<IllegalStateException> {
+                authService.revokeSession(userId, "s1", currentToken)
+            }
+        assertEquals("Cannot revoke the current session", exception.message)
+    }
+
+    @Test
+    fun `revokeOtherSessions should keep current session and delete others in bulk`() {
+        val userId = "user-123"
+        val currentToken = "current-token"
+        val otherSessions =
+            listOf(
+                SessionToken(id = "s2", token = "other-token", userId = userId, expiryAt = LocalDateTime.now().plusHours(12)),
+            )
+        `when`(sessionTokenRepository.findByUserIdAndTokenNot(userId, currentToken)).thenReturn(otherSessions)
+
+        authService.revokeOtherSessions(userId, currentToken)
+
+        verify(refreshTokenRepository).deleteBySessionTokenIdIn(listOf("s2"))
+        verify(sessionTokenRepository).deleteAllById(listOf("s2"))
+    }
+
+    @Test
     fun `changePassword should update password with valid current password`() {
         val user = createMockUser()
         `when`(passwordEncoder.matches("currentPass", user.passwordHash)).thenReturn(true)

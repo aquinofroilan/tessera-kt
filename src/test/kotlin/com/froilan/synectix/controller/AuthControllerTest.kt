@@ -18,6 +18,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
@@ -277,7 +278,7 @@ class AuthControllerTest {
                 refreshTokenExpiresAt = LocalDateTime.now().plusDays(30).toString(),
             )
 
-        `when`(authService.login(any<LoginRequest>())).thenReturn(authResponse)
+        `when`(authService.login(any<LoginRequest>(), anyOrNull(), anyOrNull())).thenReturn(authResponse)
 
         mockMvc
             .perform(
@@ -301,7 +302,7 @@ class AuthControllerTest {
             }
             """.trimIndent()
 
-        `when`(authService.login(any<LoginRequest>()))
+        `when`(authService.login(any<LoginRequest>(), anyOrNull(), anyOrNull()))
             .thenThrow(IllegalArgumentException("Invalid username or password"))
 
         mockMvc
@@ -359,7 +360,7 @@ class AuthControllerTest {
             }
             """.trimIndent()
 
-        `when`(authService.login(any<LoginRequest>()))
+        `when`(authService.login(any<LoginRequest>(), anyOrNull(), anyOrNull()))
             .thenThrow(IllegalArgumentException("User account is inactive"))
 
         mockMvc

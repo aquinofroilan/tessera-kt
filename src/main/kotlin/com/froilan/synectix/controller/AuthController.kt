@@ -58,6 +58,8 @@ class AuthController(
         private const val MAX_ATTEMPTS = 5
         private const val BLOCK_DURATION_MINUTES = 15L
         private const val FORGOT_PASSWORD_THROTTLE_MINUTES = 2L
+        private const val MAX_USER_AGENT_LENGTH = 512
+        private const val MAX_IP_LENGTH = 45
     }
 
     @PostMapping("/signup")
@@ -87,7 +89,12 @@ class AuthController(
         }
 
         return try {
-            val response = authService.login(request)
+            val response =
+                authService.login(
+                    request,
+                    ipAddress = clientIp?.take(MAX_IP_LENGTH),
+                    userAgent = httpRequest.getHeader("User-Agent")?.take(MAX_USER_AGENT_LENGTH),
+                )
             resetAttempts(clientIp)
             ResponseEntity.ok(response)
         } catch (e: IllegalArgumentException) {
