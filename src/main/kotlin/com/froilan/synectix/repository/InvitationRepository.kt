@@ -1,0 +1,32 @@
+package com.froilan.synectix.repository
+
+import com.froilan.synectix.model.Invitation
+import com.froilan.synectix.model.InvitationStatus
+import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
+import java.util.Optional
+
+@Repository
+interface InvitationRepository : MongoRepository<Invitation, String> {
+    fun findByTokenHash(tokenHash: String): Optional<Invitation>
+
+    fun findByOrganizationIdAndStatusAndExpiryAtAfter(
+        organizationId: String,
+        status: InvitationStatus,
+        expiryAt: LocalDateTime,
+    ): List<Invitation>
+
+    fun findByEmailAndOrganizationIdAndStatusAndExpiryAtAfter(
+        email: String,
+        organizationId: String,
+        status: InvitationStatus,
+        expiryAt: LocalDateTime,
+    ): Optional<Invitation>
+
+    fun findByEmailAndOrganizationIdAndStatus(
+        email: String,
+        organizationId: String,
+        status: InvitationStatus,
+    ): Optional<Invitation>
+}

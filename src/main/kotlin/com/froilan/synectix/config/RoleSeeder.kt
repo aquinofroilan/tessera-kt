@@ -42,6 +42,8 @@ class RoleSeeder(
                             Permissions.ORGANIZATION_READ,
                             Permissions.ORGANIZATION_WRITE,
                             Permissions.ORGANIZATION_DELETE,
+                            Permissions.INVITATION_READ,
+                            Permissions.INVITATION_WRITE,
                         ),
                 ),
                 Role(
@@ -56,6 +58,8 @@ class RoleSeeder(
                             Permissions.USER_WRITE,
                             Permissions.ORGANIZATION_READ,
                             Permissions.ORGANIZATION_WRITE,
+                            Permissions.INVITATION_READ,
+                            Permissions.INVITATION_WRITE,
                         ),
                 ),
                 Role(
@@ -68,6 +72,7 @@ class RoleSeeder(
                             Permissions.SESSION_DELETE,
                             Permissions.USER_READ,
                             Permissions.ORGANIZATION_READ,
+                            Permissions.INVITATION_READ,
                         ),
                 ),
                 Role(
