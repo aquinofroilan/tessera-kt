@@ -70,7 +70,7 @@ class InvitationService(
             Invitation(
                 email = normalizedEmail,
                 organizationId = inviter.organizationId,
-                role = request.role,
+                role = role.name,
                 tokenHash = tokenHasher.hash(rawToken),
                 invitedBy = inviter.uuid,
                 expiryAt = LocalDateTime.now().plusHours(invitationExpiryHours),
@@ -84,15 +84,6 @@ class InvitationService(
     fun acceptInvitation(request: AcceptInvitationRequest): User {
         val tokenHash = tokenHasher.hash(request.token)
 
-        val invitation =
-            invitationRepository.findByTokenHash(tokenHash).orElseThrow {
-                IllegalArgumentException("Invalid or expired invitation token")
-            }
-
-        if (!invitation.expiryAt.isAfter(LocalDateTime.now())) {
-            throw IllegalArgumentException("Invalid or expired invitation token")
-        }
-
         val accepted =
             mongoTemplate.findAndModify(
                 Query.query(
@@ -100,7 +91,9 @@ class InvitationService(
                         .where("tokenHash")
                         .`is`(tokenHash)
                         .and("status")
-                        .`is`(InvitationStatus.PENDING),
+                        .`is`(InvitationStatus.PENDING)
+                        .and("expiryAt")
+                        .gt(LocalDateTime.now()),
                 ),
                 Update.update("status", InvitationStatus.ACCEPTED),
                 FindAndModifyOptions.options().returnNew(true),

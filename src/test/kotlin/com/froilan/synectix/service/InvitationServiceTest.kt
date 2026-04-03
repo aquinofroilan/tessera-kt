@@ -144,10 +144,10 @@ class InvitationServiceTest {
                 lastName = "User",
             )
         val invitation = createMockInvitation()
+        val accepted = invitation.copy(status = InvitationStatus.ACCEPTED)
 
-        `when`(invitationRepository.findByTokenHash("hashed-raw-token")).thenReturn(Optional.of(invitation))
         `when`(mongoTemplate.findAndModify(any(), any(), any<FindAndModifyOptions>(), eq(Invitation::class.java)))
-            .thenReturn(invitation.copy(status = InvitationStatus.ACCEPTED))
+            .thenReturn(accepted)
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
         `when`(passwordEncoder.encode("SecurePass123!")).thenReturn("encodedPassword")
         `when`(userRepository.save(any<User>())).thenAnswer { it.arguments[0] }
@@ -176,6 +176,7 @@ class InvitationServiceTest {
                 lastName = "ignored",
             )
         val invitation = createMockInvitation(role = "ADMIN")
+        val accepted = invitation.copy(status = InvitationStatus.ACCEPTED)
         val existingUser =
             User(
                 uuid = "existing-user",
@@ -188,9 +189,8 @@ class InvitationServiceTest {
                 roleAssignments = listOf(RoleAssignment("MEMBER", "other-org")),
             )
 
-        `when`(invitationRepository.findByTokenHash("hashed-raw-token")).thenReturn(Optional.of(invitation))
         `when`(mongoTemplate.findAndModify(any(), any(), any<FindAndModifyOptions>(), eq(Invitation::class.java)))
-            .thenReturn(invitation.copy(status = InvitationStatus.ACCEPTED))
+            .thenReturn(accepted)
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.of(existingUser))
         `when`(userRepository.save(any<User>())).thenAnswer { it.arguments[0] }
 
@@ -203,7 +203,7 @@ class InvitationServiceTest {
     }
 
     @Test
-    fun `acceptInvitation should throw for invalid token`() {
+    fun `acceptInvitation should throw for invalid or expired token`() {
         val request =
             AcceptInvitationRequest(
                 token = "invalid",
@@ -213,43 +213,6 @@ class InvitationServiceTest {
                 lastName = "L",
             )
 
-        `when`(invitationRepository.findByTokenHash("hashed-invalid")).thenReturn(Optional.empty())
-
-        val exception = assertThrows<IllegalArgumentException> { invitationService.acceptInvitation(request) }
-        assertEquals("Invalid or expired invitation token", exception.message)
-    }
-
-    @Test
-    fun `acceptInvitation should throw for expired invitation`() {
-        val request =
-            AcceptInvitationRequest(
-                token = "expired-token",
-                username = "user",
-                password = "password123",
-                firstName = "F",
-                lastName = "L",
-            )
-        val expiredInvitation = createMockInvitation(expiryAt = LocalDateTime.now().minusHours(1))
-
-        `when`(invitationRepository.findByTokenHash("hashed-expired-token")).thenReturn(Optional.of(expiredInvitation))
-
-        val exception = assertThrows<IllegalArgumentException> { invitationService.acceptInvitation(request) }
-        assertEquals("Invalid or expired invitation token", exception.message)
-    }
-
-    @Test
-    fun `acceptInvitation should throw when already accepted (race condition)`() {
-        val request =
-            AcceptInvitationRequest(
-                token = "used-token",
-                username = "user",
-                password = "password123",
-                firstName = "F",
-                lastName = "L",
-            )
-        val invitation = createMockInvitation()
-
-        `when`(invitationRepository.findByTokenHash("hashed-used-token")).thenReturn(Optional.of(invitation))
         `when`(mongoTemplate.findAndModify(any(), any(), any<FindAndModifyOptions>(), eq(Invitation::class.java)))
             .thenReturn(null)
 
@@ -269,7 +232,6 @@ class InvitationServiceTest {
             )
         val invitation = createMockInvitation()
 
-        `when`(invitationRepository.findByTokenHash("hashed-raw-token")).thenReturn(Optional.of(invitation))
         `when`(mongoTemplate.findAndModify(any(), any(), any<FindAndModifyOptions>(), eq(Invitation::class.java)))
             .thenReturn(invitation.copy(status = InvitationStatus.ACCEPTED))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
