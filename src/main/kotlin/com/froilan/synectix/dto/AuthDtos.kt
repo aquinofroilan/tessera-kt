@@ -83,6 +83,20 @@ data class AuthResponse(
     val refreshToken: String,
     val username: String,
     val roles: List<String>,
+    val organizationId: String,
     val expiresAt: String,
     val refreshTokenExpiresAt: String,
+)
+
+data class SwitchOrganizationRequest(
+    @field:NotBlank(message = "Organization ID is required")
+    val organizationId: String,
+)
+
+data class UserOrganizationResponse(
+    val organizationId: String,
+    val name: String,
+    val orgSlug: String,
+    val roles: List<String>,
+    val isCurrent: Boolean,
 )
