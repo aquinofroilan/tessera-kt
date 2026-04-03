@@ -93,9 +93,20 @@ class RoleSeeder(
                 changed = true
             } else {
                 val current = existing.get()
-                if (current.permissions != role.permissions) {
-                    roleRepository.save(current.copy(permissions = role.permissions))
-                    log.info("Updated permissions for role: {}", role.name)
+                if (current.description != role.description ||
+                    current.level != role.level ||
+                    current.isDefault != role.isDefault ||
+                    current.permissions != role.permissions
+                ) {
+                    roleRepository.save(
+                        current.copy(
+                            description = role.description,
+                            level = role.level,
+                            isDefault = role.isDefault,
+                            permissions = role.permissions,
+                        ),
+                    )
+                    log.info("Updated role: {}", role.name)
                     changed = true
                 }
             }

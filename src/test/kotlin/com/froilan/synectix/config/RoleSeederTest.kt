@@ -101,6 +101,42 @@ class RoleSeederTest {
     }
 
     @Test
+    fun `should update all canonical fields when role drifted in DB`() {
+        val driftedRole =
+            Role(
+                name = "OWNER",
+                description = "Modified description",
+                level = RoleLevel.SYSTEM,
+                isDefault = false,
+                permissions =
+                    listOf(
+                        Permissions.SESSION_READ,
+                        Permissions.SESSION_DELETE,
+                        Permissions.USER_READ,
+                        Permissions.USER_WRITE,
+                        Permissions.USER_DELETE,
+                        Permissions.ORGANIZATION_READ,
+                        Permissions.ORGANIZATION_WRITE,
+                        Permissions.ORGANIZATION_DELETE,
+                        Permissions.ENVIRONMENT_READ,
+                    ),
+            )
+        `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
+        `when`(roleRepository.findByName("OWNER")).thenReturn(Optional.of(driftedRole))
+        `when`(roleRepository.save(any<Role>())).thenAnswer { it.arguments[0] }
+
+        roleSeeder.run(mock(ApplicationArguments::class.java))
+
+        val captor = argumentCaptor<Role>()
+        verify(roleRepository, times(5)).save(captor.capture())
+
+        val updatedOwner = captor.allValues.first { it.name == "OWNER" }
+        assertEquals("Organization owner with full org-level access", updatedOwner.description)
+        assertEquals(RoleLevel.ORGANIZATION, updatedOwner.level)
+        assertTrue(updatedOwner.isDefault)
+    }
+
+    @Test
     fun `should seed SUPER_ADMIN as system-level role with no permissions`() {
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
         `when`(roleRepository.save(any<Role>())).thenAnswer { it.arguments[0] }
