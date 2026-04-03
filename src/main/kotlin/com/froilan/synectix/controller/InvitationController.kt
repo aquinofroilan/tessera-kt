@@ -39,7 +39,7 @@ class InvitationController(
                 mapOf("message" to "Invitation created", "token" to token),
             )
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to e.message))
+            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Invalid invitation request")))
         }
     }
 
@@ -71,7 +71,7 @@ class InvitationController(
             invitationService.acceptInvitation(request)
             ResponseEntity.ok(mapOf("message" to "Invitation accepted successfully"))
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to e.message))
+            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Invalid invitation token")))
         }
 
     @DeleteMapping("/{id}")
@@ -85,7 +85,7 @@ class InvitationController(
             invitationService.revokeInvitation(id, user)
             ResponseEntity.ok(mapOf("message" to "Invitation revoked"))
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to e.message))
+            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Invalid invitation operation")))
         }
     }
 
