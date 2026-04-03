@@ -2,7 +2,8 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.annotation.LogLevel
 import com.froilan.synectix.annotation.Loggable
-import org.springframework.beans.factory.annotation.Autowired
+import com.mongodb.MongoException
+import org.springframework.dao.DataAccessException
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -14,7 +15,7 @@ import java.time.LocalDateTime
 @RequestMapping("/health")
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.DEBUG)
 class HealthController(
-    @Autowired private val mongoTemplate: MongoTemplate,
+    private val mongoTemplate: MongoTemplate,
 ) {
     @GetMapping
     fun health(): ResponseEntity<Map<String, Any>> {
@@ -94,7 +95,12 @@ class HealthController(
                 "status_detail" to "Connected",
                 "databaseName" to db.name,
             )
-        } catch (e: Exception) {
+        } catch (e: MongoException) {
+            mapOf(
+                "status" to "DOWN",
+                "error" to (e.message ?: "Unknown database error"),
+            )
+        } catch (e: DataAccessException) {
             mapOf(
                 "status" to "DOWN",
                 "error" to (e.message ?: "Unknown database error"),

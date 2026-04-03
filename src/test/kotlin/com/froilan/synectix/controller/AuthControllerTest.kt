@@ -107,10 +107,7 @@ class AuthControllerTest {
                 post("/auth/signup")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson),
-            ).andDo { result ->
-                println("Response status: ${result.response.status}")
-                println("Response body: ${result.response.contentAsString}")
-            }.andExpect(status().isCreated)
+            ).andExpect(status().isCreated)
             .andExpect(jsonPath("$.message").value("User registered successfully"))
             .andExpect(jsonPath("$.userId").value(savedUser.uuid))
     }
