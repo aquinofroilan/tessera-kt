@@ -70,7 +70,7 @@ class InvitationServiceTest {
         val memberRole = Role(name = "MEMBER", description = "Member", level = RoleLevel.ORGANIZATION)
 
         `when`(roleRepository.findByName("MEMBER")).thenReturn(Optional.of(memberRole))
-        `when`(invitationRepository.findByEmailAndOrganizationIdAndStatus(any(), any(), any()))
+        `when`(invitationRepository.findByEmailAndOrganizationIdAndStatusAndExpiryAtAfter(any(), any(), any(), any()))
             .thenReturn(Optional.empty())
         `when`(invitationRepository.save(any<Invitation>())).thenAnswer { it.arguments[0] }
 
@@ -120,10 +120,11 @@ class InvitationServiceTest {
 
         `when`(roleRepository.findByName("MEMBER")).thenReturn(Optional.of(memberRole))
         `when`(
-            invitationRepository.findByEmailAndOrganizationIdAndStatus(
-                "existing@example.com",
-                inviter.organizationId,
-                InvitationStatus.PENDING,
+            invitationRepository.findByEmailAndOrganizationIdAndStatusAndExpiryAtAfter(
+                eq("existing@example.com"),
+                eq(inviter.organizationId),
+                eq(InvitationStatus.PENDING),
+                any(),
             ),
         ).thenReturn(Optional.of(existingInvitation))
 

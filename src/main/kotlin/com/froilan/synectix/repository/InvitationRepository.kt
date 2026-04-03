@@ -4,6 +4,7 @@ import com.froilan.synectix.model.Invitation
 import com.froilan.synectix.model.InvitationStatus
 import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 import java.util.Optional
 
 @Repository
@@ -15,9 +16,10 @@ interface InvitationRepository : MongoRepository<Invitation, String> {
         status: InvitationStatus,
     ): List<Invitation>
 
-    fun findByEmailAndOrganizationIdAndStatus(
+    fun findByEmailAndOrganizationIdAndStatusAndExpiryAtAfter(
         email: String,
         organizationId: String,
         status: InvitationStatus,
+        expiryAt: LocalDateTime,
     ): Optional<Invitation>
 }

@@ -54,10 +54,11 @@ class InvitationService(
         }
 
         val existing =
-            invitationRepository.findByEmailAndOrganizationIdAndStatus(
+            invitationRepository.findByEmailAndOrganizationIdAndStatusAndExpiryAtAfter(
                 normalizedEmail,
                 inviter.organizationId,
                 InvitationStatus.PENDING,
+                LocalDateTime.now(),
             )
         if (existing.isPresent) {
             throw IllegalArgumentException("An invitation has already been sent to this email")
