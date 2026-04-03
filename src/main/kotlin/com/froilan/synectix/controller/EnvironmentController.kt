@@ -14,13 +14,9 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/environment")
 class EnvironmentController(
     private val synectixProperties: SynectixProperties,
+    @Value("\${APP_ENVIRONMENT:development}") private val environment: String,
+    @Value("\${SERVER_PORT:8080}") private val serverPort: String,
 ) {
-    @Value("\${APP_ENVIRONMENT:development}")
-    private lateinit var environment: String
-
-    @Value("\${SERVER_PORT:8080}")
-    private lateinit var serverPort: String
-
     /**
      * Get application environment information.
      */
