@@ -30,6 +30,8 @@ class MongoConfig : AbstractMongoClientConfiguration() {
     @Value("\${spring.data.mongodb.uri}")
     private lateinit var mongoUri: String
 
+    override fun autoIndexCreation(): Boolean = true
+
     override fun getDatabaseName(): String {
         val connectionString = ConnectionString(mongoUri)
         return connectionString.database ?: "synectix"
