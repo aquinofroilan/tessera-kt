@@ -42,7 +42,6 @@ class RoleSeeder(
                             Permissions.ORGANIZATION_READ,
                             Permissions.ORGANIZATION_WRITE,
                             Permissions.ORGANIZATION_DELETE,
-                            Permissions.ENVIRONMENT_READ,
                         ),
                 ),
                 Role(
@@ -57,7 +56,6 @@ class RoleSeeder(
                             Permissions.USER_WRITE,
                             Permissions.ORGANIZATION_READ,
                             Permissions.ORGANIZATION_WRITE,
-                            Permissions.ENVIRONMENT_READ,
                         ),
                 ),
                 Role(

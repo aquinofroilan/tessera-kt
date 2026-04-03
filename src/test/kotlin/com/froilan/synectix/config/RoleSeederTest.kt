@@ -63,7 +63,6 @@ class RoleSeederTest {
                         Permissions.ORGANIZATION_READ,
                         Permissions.ORGANIZATION_WRITE,
                         Permissions.ORGANIZATION_DELETE,
-                        Permissions.ENVIRONMENT_READ,
                     ),
             )
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
@@ -118,7 +117,6 @@ class RoleSeederTest {
                         Permissions.ORGANIZATION_READ,
                         Permissions.ORGANIZATION_WRITE,
                         Permissions.ORGANIZATION_DELETE,
-                        Permissions.ENVIRONMENT_READ,
                     ),
             )
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
@@ -200,7 +198,6 @@ class RoleSeederTest {
                         Permissions.ORGANIZATION_READ,
                         Permissions.ORGANIZATION_WRITE,
                         Permissions.ORGANIZATION_DELETE,
-                        Permissions.ENVIRONMENT_READ,
                     ),
             )
         val admin =
@@ -216,7 +213,6 @@ class RoleSeederTest {
                         Permissions.USER_WRITE,
                         Permissions.ORGANIZATION_READ,
                         Permissions.ORGANIZATION_WRITE,
-                        Permissions.ENVIRONMENT_READ,
                     ),
             )
         val member =
