@@ -28,7 +28,7 @@ data class User(
     var updatedAt: LocalDateTime? = null,
 )
 
-fun User.effectiveRoleNames(): List<String> = roleAssignments.map { it.role }
+fun User.effectiveRoleNames(): List<String> = roleAssignments.map { it.role }.distinct()
 
 fun User.orgRoleNames(orgId: String): List<String> = roleAssignments.filter { it.organizationId == orgId }.map { it.role }
 
