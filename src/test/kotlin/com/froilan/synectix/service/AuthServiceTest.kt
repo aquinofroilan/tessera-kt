@@ -8,7 +8,7 @@ import com.froilan.synectix.model.RefreshToken
 import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.SessionToken
 import com.froilan.synectix.model.User
-import com.froilan.synectix.model.effectiveRoleNames
+import com.froilan.synectix.model.orgRoleNames
 import com.froilan.synectix.repository.OrganizationRepository
 import com.froilan.synectix.repository.PasswordResetTokenRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
@@ -229,7 +229,8 @@ class AuthServiceTest {
 
         assertNotNull(result)
         assertEquals(user.username, result.username)
-        assertEquals(user.effectiveRoleNames(), result.roles)
+        assertEquals(user.orgRoleNames(user.organizationId), result.roles)
+        assertEquals(user.organizationId, result.organizationId)
         assertNotNull(result.accessToken)
         assertNotNull(result.expiresAt)
 

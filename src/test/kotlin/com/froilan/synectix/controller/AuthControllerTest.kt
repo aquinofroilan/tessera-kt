@@ -276,6 +276,7 @@ class AuthControllerTest {
                 refreshToken = "generated-refresh-token-123",
                 username = "testuser",
                 roles = listOf("OWNER"),
+                organizationId = "org-123",
                 expiresAt = LocalDateTime.now().plusHours(24).toString(),
                 refreshTokenExpiresAt = LocalDateTime.now().plusDays(30).toString(),
             )
@@ -389,6 +390,7 @@ class AuthControllerTest {
                 refreshToken = "new-refresh-token-789",
                 username = "testuser",
                 roles = listOf("OWNER"),
+                organizationId = "org-123",
                 expiresAt = LocalDateTime.now().plusHours(24).toString(),
                 refreshTokenExpiresAt = LocalDateTime.now().plusDays(30).toString(),
             )
