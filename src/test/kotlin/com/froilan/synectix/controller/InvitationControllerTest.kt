@@ -13,6 +13,7 @@ import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.security.RolePermissionCache
+import com.froilan.synectix.security.SessionContext
 import com.froilan.synectix.security.SynectixPermissionEvaluator
 import com.froilan.synectix.service.InvitationService
 import com.froilan.synectix.util.TokenHasher
@@ -92,12 +93,13 @@ class InvitationControllerTest {
         val roleAuthorities = testUser.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
         val permissionAuthorities = permissions.map { SimpleGrantedAuthority(it) }
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
+        authentication.details = SessionContext(sessionId = "session-123", organizationId = "org-123")
         SecurityContextHolder.getContext().authentication = authentication
     }
 
     @Test
     fun `POST invitations should return 201 when invitation is created`() {
-        `when`(invitationService.invite(any(), any())).thenReturn("raw-token-123")
+        `when`(invitationService.invite(any(), any(), any())).thenReturn("raw-token-123")
 
         mockMvc
             .perform(
@@ -131,7 +133,7 @@ class InvitationControllerTest {
 
     @Test
     fun `POST invitations should return 400 when duplicate invitation exists`() {
-        `when`(invitationService.invite(any(), any()))
+        `when`(invitationService.invite(any(), any(), any()))
             .thenThrow(IllegalArgumentException("An invitation has already been sent to this email"))
 
         mockMvc

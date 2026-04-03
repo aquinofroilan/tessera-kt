@@ -89,7 +89,7 @@ class AuthService(
                 errorMessage.contains("name", ignoreCase = true) ->
                     throw IllegalArgumentException("Organization name already exists")
                 else ->
-                    throw IllegalArgumentException("Duplicate entry: ${e.message}")
+                    throw IllegalArgumentException("Registration failed due to a conflict")
             }
         }
     }

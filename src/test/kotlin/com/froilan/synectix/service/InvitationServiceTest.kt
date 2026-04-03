@@ -77,7 +77,7 @@ class InvitationServiceTest {
             .thenReturn(Optional.empty())
         `when`(invitationRepository.save(any<Invitation>())).thenAnswer { it.arguments[0] }
 
-        val token = invitationService.invite(request, inviter)
+        val token = invitationService.invite(request, inviter, inviter.organizationId)
 
         assertNotNull(token)
         assertTrue(token.isNotEmpty())
@@ -98,7 +98,7 @@ class InvitationServiceTest {
 
         `when`(roleRepository.findByName("NONEXISTENT")).thenReturn(Optional.empty())
 
-        val exception = assertThrows<IllegalArgumentException> { invitationService.invite(request, inviter) }
+        val exception = assertThrows<IllegalArgumentException> { invitationService.invite(request, inviter, inviter.organizationId) }
         assertEquals("Role 'NONEXISTENT' does not exist", exception.message)
     }
 
@@ -110,7 +110,7 @@ class InvitationServiceTest {
 
         `when`(roleRepository.findByName("SUPER_ADMIN")).thenReturn(Optional.of(systemRole))
 
-        val exception = assertThrows<IllegalArgumentException> { invitationService.invite(request, inviter) }
+        val exception = assertThrows<IllegalArgumentException> { invitationService.invite(request, inviter, inviter.organizationId) }
         assertEquals("Cannot invite with system-level role", exception.message)
     }
 
@@ -130,7 +130,7 @@ class InvitationServiceTest {
             ),
         ).thenReturn(Optional.of(existingInvitation))
 
-        val exception = assertThrows<IllegalArgumentException> { invitationService.invite(request, inviter) }
+        val exception = assertThrows<IllegalArgumentException> { invitationService.invite(request, inviter, inviter.organizationId) }
         assertEquals("An invitation has already been sent to this email", exception.message)
     }
 
@@ -155,7 +155,7 @@ class InvitationServiceTest {
         ).thenReturn(Optional.of(expiredInvitation))
         `when`(invitationRepository.save(any<Invitation>())).thenAnswer { it.arguments[0] }
 
-        val token = invitationService.invite(request, inviter)
+        val token = invitationService.invite(request, inviter, inviter.organizationId)
 
         assertNotNull(token)
         val captor = argumentCaptor<Invitation>()
@@ -322,13 +322,12 @@ class InvitationServiceTest {
 
     @Test
     fun `revokeInvitation should update status to REVOKED`() {
-        val user = createMockUser()
         val invitation = createMockInvitation()
 
         `when`(invitationRepository.findById(invitation.id)).thenReturn(Optional.of(invitation))
         `when`(invitationRepository.save(any<Invitation>())).thenAnswer { it.arguments[0] }
 
-        invitationService.revokeInvitation(invitation.id, user)
+        invitationService.revokeInvitation(invitation.id, "org-123")
 
         val captor = argumentCaptor<Invitation>()
         verify(invitationRepository).save(captor.capture())
@@ -337,28 +336,26 @@ class InvitationServiceTest {
 
     @Test
     fun `revokeInvitation should throw when invitation not in same org`() {
-        val user = createMockUser()
         val invitation = createMockInvitation(organizationId = "other-org")
 
         `when`(invitationRepository.findById(invitation.id)).thenReturn(Optional.of(invitation))
 
         val exception =
             assertThrows<IllegalArgumentException> {
-                invitationService.revokeInvitation(invitation.id, user)
+                invitationService.revokeInvitation(invitation.id, "org-123")
             }
         assertEquals("Invitation not found", exception.message)
     }
 
     @Test
     fun `revokeInvitation should throw when invitation is not pending`() {
-        val user = createMockUser()
         val invitation = createMockInvitation(status = InvitationStatus.ACCEPTED)
 
         `when`(invitationRepository.findById(invitation.id)).thenReturn(Optional.of(invitation))
 
         val exception =
             assertThrows<IllegalArgumentException> {
-                invitationService.revokeInvitation(invitation.id, user)
+                invitationService.revokeInvitation(invitation.id, "org-123")
             }
         assertEquals("Invitation is not pending", exception.message)
     }

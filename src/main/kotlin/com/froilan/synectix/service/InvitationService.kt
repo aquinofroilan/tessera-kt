@@ -40,6 +40,7 @@ class InvitationService(
     fun invite(
         request: CreateInvitationRequest,
         inviter: User,
+        activeOrgId: String,
     ): String {
         val normalizedEmail = request.email.lowercase(Locale.ROOT)
 
@@ -54,7 +55,7 @@ class InvitationService(
         val existing =
             invitationRepository.findByEmailAndOrganizationIdAndStatus(
                 normalizedEmail,
-                inviter.organizationId,
+                activeOrgId,
                 InvitationStatus.PENDING,
             )
         if (existing.isPresent) {
@@ -69,7 +70,7 @@ class InvitationService(
         val invitation =
             Invitation(
                 email = normalizedEmail,
-                organizationId = inviter.organizationId,
+                organizationId = activeOrgId,
                 role = role.name,
                 tokenHash = tokenHasher.hash(rawToken),
                 invitedBy = inviter.uuid,
@@ -178,7 +179,7 @@ class InvitationService(
                 errorMessage.contains("email", ignoreCase = true) ->
                     throw IllegalArgumentException("Email already exists")
                 else ->
-                    throw IllegalArgumentException("Duplicate entry: ${e.message}")
+                    throw IllegalArgumentException("Account could not be created")
             }
         }
     }
@@ -186,13 +187,13 @@ class InvitationService(
     @Transactional
     fun revokeInvitation(
         invitationId: String,
-        user: User,
+        activeOrgId: String,
     ) {
         val invitation =
             invitationRepository.findById(invitationId).orElseThrow {
                 IllegalArgumentException("Invitation not found")
             }
-        if (invitation.organizationId != user.organizationId) {
+        if (invitation.organizationId != activeOrgId) {
             throw IllegalArgumentException("Invitation not found")
         }
         if (invitation.status != InvitationStatus.PENDING) {
