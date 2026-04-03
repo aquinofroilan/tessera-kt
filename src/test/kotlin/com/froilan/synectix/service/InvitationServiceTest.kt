@@ -166,15 +166,8 @@ class InvitationServiceTest {
     }
 
     @Test
-    fun `acceptInvitation should add role to existing user`() {
-        val request =
-            AcceptInvitationRequest(
-                token = "raw-token",
-                username = "ignored",
-                password = "ignored",
-                firstName = "ignored",
-                lastName = "ignored",
-            )
+    fun `acceptInvitation should add role to existing user with only token`() {
+        val request = AcceptInvitationRequest(token = "raw-token")
         val invitation = createMockInvitation(role = "ADMIN")
         val accepted = invitation.copy(status = InvitationStatus.ACCEPTED)
         val existingUser =
@@ -218,6 +211,19 @@ class InvitationServiceTest {
 
         val exception = assertThrows<IllegalArgumentException> { invitationService.acceptInvitation(request) }
         assertEquals("Invalid or expired invitation token", exception.message)
+    }
+
+    @Test
+    fun `acceptInvitation should throw when new user missing required fields`() {
+        val request = AcceptInvitationRequest(token = "raw-token")
+        val invitation = createMockInvitation()
+
+        `when`(mongoTemplate.findAndModify(any(), any(), any<FindAndModifyOptions>(), eq(Invitation::class.java)))
+            .thenReturn(invitation.copy(status = InvitationStatus.ACCEPTED))
+        `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
+
+        val exception = assertThrows<IllegalArgumentException> { invitationService.acceptInvitation(request) }
+        assertEquals("Username, password, first name, and last name are required for new users", exception.message)
     }
 
     @Test

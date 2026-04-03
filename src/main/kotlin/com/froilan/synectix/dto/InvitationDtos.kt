@@ -15,16 +15,12 @@ data class CreateInvitationRequest(
 data class AcceptInvitationRequest(
     @field:NotBlank(message = "Invitation token is required")
     val token: String,
-    @field:NotBlank(message = "Username is required")
     @field:Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
-    val username: String,
-    @field:NotBlank(message = "Password is required")
+    val username: String? = null,
     @field:Size(min = 8, message = "Password must be at least 8 characters")
-    val password: String,
-    @field:NotBlank(message = "First name is required")
-    val firstName: String,
-    @field:NotBlank(message = "Last name is required")
-    val lastName: String,
+    val password: String? = null,
+    val firstName: String? = null,
+    val lastName: String? = null,
 )
 
 data class InvitationResponse(

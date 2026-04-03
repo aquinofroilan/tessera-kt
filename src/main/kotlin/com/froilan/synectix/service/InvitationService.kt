@@ -126,6 +126,14 @@ class InvitationService(
             return userRepository.save(updatedUser)
         }
 
+        if (request.username.isNullOrBlank() ||
+            request.password.isNullOrBlank() ||
+            request.firstName.isNullOrBlank() ||
+            request.lastName.isNullOrBlank()
+        ) {
+            throw IllegalArgumentException("Username, password, first name, and last name are required for new users")
+        }
+
         val newUser =
             User(
                 username = request.username,
