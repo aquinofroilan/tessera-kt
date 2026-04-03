@@ -3,13 +3,15 @@ package com.froilan.synectix.service
 import com.froilan.synectix.dto.AuthResponse
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
+import com.froilan.synectix.dto.UserOrganizationResponse
 import com.froilan.synectix.model.Organizations
 import com.froilan.synectix.model.PasswordResetToken
 import com.froilan.synectix.model.RefreshToken
 import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.SessionToken
 import com.froilan.synectix.model.User
-import com.froilan.synectix.model.effectiveRoleNames
+import com.froilan.synectix.model.orgRoleNames
+import com.froilan.synectix.model.systemRoleNames
 import com.froilan.synectix.repository.OrganizationRepository
 import com.froilan.synectix.repository.PasswordResetTokenRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
@@ -114,11 +116,13 @@ class AuthService(
         val accessTokenStr = generateToken()
         val expiryAt = LocalDateTime.now().plus(tokenValidityMs, ChronoUnit.MILLIS)
 
+        val orgId = user.organizationId
         val sessionToken =
             SessionToken(
                 token = accessTokenStr,
                 expiryAt = expiryAt,
                 userId = user.uuid,
+                organizationId = orgId,
                 ipAddress = ipAddress,
                 userAgent = userAgent,
             )
@@ -136,11 +140,13 @@ class AuthService(
             )
         refreshTokenRepository.save(refreshToken)
 
+        val roles = (user.orgRoleNames(orgId) + user.systemRoleNames()).distinct()
         return AuthResponse(
             accessToken = accessTokenStr,
             refreshToken = refreshTokenStr,
             username = user.username,
-            roles = user.effectiveRoleNames(),
+            roles = roles,
+            organizationId = orgId,
             expiresAt = expiryAt.toString(),
             refreshTokenExpiresAt = refreshExpiryAt.toString(),
         )
@@ -167,6 +173,9 @@ class AuthService(
             throw IllegalArgumentException("User account is inactive")
         }
 
+        val oldSession = sessionTokenRepository.findById(existing.sessionTokenId).orElse(null)
+        val orgId = oldSession?.organizationId ?: user.organizationId
+
         val accessTokenStr = generateToken()
         val expiryAt = LocalDateTime.now().plus(tokenValidityMs, ChronoUnit.MILLIS)
 
@@ -175,6 +184,7 @@ class AuthService(
                 token = accessTokenStr,
                 expiryAt = expiryAt,
                 userId = user.uuid,
+                organizationId = orgId,
             )
         val savedSession = sessionTokenRepository.save(sessionToken)
 
@@ -204,11 +214,13 @@ class AuthService(
 
         sessionTokenRepository.deleteById(existing.sessionTokenId)
 
+        val roles = (user.orgRoleNames(orgId) + user.systemRoleNames()).distinct()
         return AuthResponse(
             accessToken = accessTokenStr,
             refreshToken = refreshTokenStr,
             username = user.username,
-            roles = user.effectiveRoleNames(),
+            roles = roles,
+            organizationId = orgId,
             expiresAt = expiryAt.toString(),
             refreshTokenExpiresAt = refreshExpiryAt.toString(),
         )
@@ -325,6 +337,91 @@ class AuthService(
         val sessionIds = otherSessions.map { it.id }
         refreshTokenRepository.deleteBySessionTokenIdIn(sessionIds)
         sessionTokenRepository.deleteAllById(sessionIds)
+    }
+
+    @Transactional
+    fun switchOrganization(
+        user: User,
+        targetOrgId: String,
+        ipAddress: String? = null,
+        userAgent: String? = null,
+    ): AuthResponse {
+        val orgRoles = user.orgRoleNames(targetOrgId)
+        if (orgRoles.isEmpty()) {
+            throw IllegalArgumentException("You do not have access to this organization")
+        }
+
+        val org =
+            organizationRepository.findById(targetOrgId).orElseThrow {
+                IllegalArgumentException("Organization not found")
+            }
+        if (!org.isActive) {
+            throw IllegalArgumentException("Organization is not active")
+        }
+
+        val accessTokenStr = generateToken()
+        val expiryAt = LocalDateTime.now().plus(tokenValidityMs, ChronoUnit.MILLIS)
+
+        val sessionToken =
+            SessionToken(
+                token = accessTokenStr,
+                expiryAt = expiryAt,
+                userId = user.uuid,
+                organizationId = targetOrgId,
+                ipAddress = ipAddress,
+                userAgent = userAgent,
+            )
+        val savedSession = sessionTokenRepository.save(sessionToken)
+
+        val refreshTokenStr = generateToken()
+        val refreshExpiryAt = LocalDateTime.now().plus(refreshTokenValidityMs, ChronoUnit.MILLIS)
+
+        val refreshToken =
+            RefreshToken(
+                tokenHash = tokenHasher.hash(refreshTokenStr),
+                userId = user.uuid,
+                sessionTokenId = savedSession.id,
+                expiryAt = refreshExpiryAt,
+            )
+        refreshTokenRepository.save(refreshToken)
+
+        val roles = (orgRoles + user.systemRoleNames()).distinct()
+        return AuthResponse(
+            accessToken = accessTokenStr,
+            refreshToken = refreshTokenStr,
+            username = user.username,
+            roles = roles,
+            organizationId = targetOrgId,
+            expiresAt = expiryAt.toString(),
+            refreshTokenExpiresAt = refreshExpiryAt.toString(),
+        )
+    }
+
+    fun listUserOrganizations(
+        user: User,
+        currentOrgId: String,
+    ): List<UserOrganizationResponse> {
+        val orgIds =
+            user.roleAssignments
+                .mapNotNull { it.organizationId }
+                .distinct()
+
+        val orgsById =
+            organizationRepository
+                .findAllById(orgIds)
+                .filter { it.isActive }
+                .associateBy { it.uuid }
+
+        return orgIds.mapNotNull { orgId ->
+            val org = orgsById[orgId] ?: return@mapNotNull null
+            UserOrganizationResponse(
+                organizationId = orgId,
+                name = org.name,
+                orgSlug = org.orgSlug,
+                roles = user.orgRoleNames(orgId),
+                isCurrent = orgId == currentOrgId,
+            )
+        }
     }
 
     @Transactional
