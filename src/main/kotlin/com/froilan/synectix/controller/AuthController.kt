@@ -153,9 +153,8 @@ class AuthController(
         forgotPasswordThrottle.put(email, true)
         try {
             authService.forgotPassword(email)
-        } catch (e: IllegalArgumentException) {
-            log.error("Forgot-password flow failed", e)
-        } catch (e: IllegalStateException) {
+        } catch (e: Exception) {
+            // Broad catch intentional: always return 200 to prevent account enumeration
             log.error("Forgot-password flow failed", e)
         }
         return ResponseEntity.ok(
