@@ -36,14 +36,20 @@ class TokenAuthenticationFilter(
                     val userOpt = userRepository.findById(sessionToken.userId)
                     if (userOpt.isPresent && userOpt.get().isActive) {
                         val user = userOpt.get()
-                        val roleAuthorities = user.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
+                        val activeOrgId = sessionToken.organizationId ?: user.organizationId
+                        val activeRoleAssignments =
+                            user.roleAssignments.filter {
+                                it.organizationId == activeOrgId || it.organizationId == null
+                            }
+                        val roleAuthorities = activeRoleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
                         val permissionAuthorities =
-                            user.roleAssignments
+                            activeRoleAssignments
                                 .flatMap { rolePermissionCache.getPermissions(it.role) }
                                 .distinct()
                                 .map { SimpleGrantedAuthority(it) }
                         val authorities = roleAuthorities + permissionAuthorities
                         val authentication = UsernamePasswordAuthenticationToken(user, null, authorities)
+                        authentication.details = sessionToken
                         SecurityContextHolder.getContext().authentication = authentication
                     }
                 } else {
