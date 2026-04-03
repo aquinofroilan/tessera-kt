@@ -3,6 +3,7 @@ package com.froilan.synectix.controller
 import com.froilan.synectix.annotation.LogLevel
 import com.froilan.synectix.annotation.Loggable
 import com.mongodb.MongoException
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DataAccessException
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.http.ResponseEntity
@@ -17,6 +18,8 @@ import java.time.LocalDateTime
 class HealthController(
     private val mongoTemplate: MongoTemplate,
 ) {
+    private val log = LoggerFactory.getLogger(HealthController::class.java)
+
     @GetMapping
     fun health(): ResponseEntity<Map<String, Any>> {
         val healthData =
@@ -104,6 +107,13 @@ class HealthController(
             mapOf(
                 "status" to "DOWN",
                 "error" to (e.message ?: "Unknown database error"),
+            )
+        } catch (e: Exception) {
+            // Broad catch intentional: health endpoint must always return structured UP/DOWN
+            log.error("Unexpected error during health check", e)
+            mapOf(
+                "status" to "DOWN",
+                "error" to (e.message ?: "Unknown error"),
             )
         }
 }
