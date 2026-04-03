@@ -3,6 +3,8 @@ package com.froilan.synectix.config
 import com.froilan.synectix.model.Role
 import com.froilan.synectix.model.RoleLevel
 import com.froilan.synectix.repository.RoleRepository
+import com.froilan.synectix.security.Permissions
+import com.froilan.synectix.security.RolePermissionCache
 import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Component
 @Order(1)
 class RoleSeeder(
     private val roleRepository: RoleRepository,
+    private val rolePermissionCache: RolePermissionCache,
 ) : ApplicationRunner {
     private val log = LoggerFactory.getLogger(RoleSeeder::class.java)
 
@@ -29,29 +32,77 @@ class RoleSeeder(
                     description = "Organization owner with full org-level access",
                     level = RoleLevel.ORGANIZATION,
                     isDefault = true,
+                    permissions =
+                        listOf(
+                            Permissions.SESSION_READ,
+                            Permissions.SESSION_DELETE,
+                            Permissions.USER_READ,
+                            Permissions.USER_WRITE,
+                            Permissions.USER_DELETE,
+                            Permissions.ORGANIZATION_READ,
+                            Permissions.ORGANIZATION_WRITE,
+                            Permissions.ORGANIZATION_DELETE,
+                            Permissions.ENVIRONMENT_READ,
+                        ),
                 ),
                 Role(
                     name = "ADMIN",
                     description = "Organization administrator",
                     level = RoleLevel.ORGANIZATION,
+                    permissions =
+                        listOf(
+                            Permissions.SESSION_READ,
+                            Permissions.SESSION_DELETE,
+                            Permissions.USER_READ,
+                            Permissions.USER_WRITE,
+                            Permissions.ORGANIZATION_READ,
+                            Permissions.ORGANIZATION_WRITE,
+                            Permissions.ENVIRONMENT_READ,
+                        ),
                 ),
                 Role(
                     name = "MEMBER",
                     description = "Standard organization member",
                     level = RoleLevel.ORGANIZATION,
+                    permissions =
+                        listOf(
+                            Permissions.SESSION_READ,
+                            Permissions.SESSION_DELETE,
+                            Permissions.USER_READ,
+                            Permissions.ORGANIZATION_READ,
+                        ),
                 ),
                 Role(
                     name = "VIEWER",
                     description = "Read-only organization access",
                     level = RoleLevel.ORGANIZATION,
+                    permissions =
+                        listOf(
+                            Permissions.SESSION_READ,
+                            Permissions.ORGANIZATION_READ,
+                        ),
                 ),
             )
 
+        var changed = false
         defaultRoles.forEach { role ->
-            if (!roleRepository.existsByName(role.name)) {
+            val existing = roleRepository.findByName(role.name)
+            if (existing.isEmpty) {
                 roleRepository.save(role)
                 log.info("Seeded role: {} ({})", role.name, role.level)
+                changed = true
+            } else {
+                val current = existing.get()
+                if (current.permissions != role.permissions) {
+                    roleRepository.save(current.copy(permissions = role.permissions))
+                    log.info("Updated permissions for role: {}", role.name)
+                    changed = true
+                }
             }
+        }
+
+        if (changed) {
+            rolePermissionCache.refresh()
         }
     }
 }

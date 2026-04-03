@@ -1,8 +1,12 @@
 package com.froilan.synectix.config
 
+import com.froilan.synectix.security.SynectixPermissionEvaluator
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -16,6 +20,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 class SecurityConfig(
     private val tokenAuthenticationFilter: TokenAuthenticationFilter,
     @Value("\${spring.web.cors.allowed-origins:http://localhost:3000,http://localhost:8080}")
@@ -45,9 +50,22 @@ class SecurityConfig(
                 it.requestMatchers("/actuator/health/**").permitAll()
                 it.requestMatchers("/actuator/info").permitAll()
                 it.anyRequest().authenticated()
+            }.exceptionHandling {
+                it.accessDeniedHandler { _, resp, _ ->
+                    resp.status = 403
+                    resp.contentType = "application/json"
+                    resp.writer.write("""{"error":"Insufficient permissions"}""")
+                }
             }.addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
+    }
+
+    @Bean
+    fun methodSecurityExpressionHandler(permissionEvaluator: SynectixPermissionEvaluator): MethodSecurityExpressionHandler {
+        val handler = DefaultMethodSecurityExpressionHandler()
+        handler.setPermissionEvaluator(permissionEvaluator)
+        return handler
     }
 
     @Bean

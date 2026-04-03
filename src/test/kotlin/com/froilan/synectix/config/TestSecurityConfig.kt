@@ -1,8 +1,12 @@
 package com.froilan.synectix.config
 
+import com.froilan.synectix.security.SynectixPermissionEvaluator
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -10,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain
 
 @TestConfiguration
 @EnableWebSecurity
+@EnableMethodSecurity
 class TestSecurityConfig {
     @Bean
     @Primary
@@ -20,5 +25,12 @@ class TestSecurityConfig {
             .authorizeHttpRequests { it.anyRequest().permitAll() }
 
         return http.build()
+    }
+
+    @Bean
+    fun methodSecurityExpressionHandler(permissionEvaluator: SynectixPermissionEvaluator): MethodSecurityExpressionHandler {
+        val handler = DefaultMethodSecurityExpressionHandler()
+        handler.setPermissionEvaluator(permissionEvaluator)
+        return handler
     }
 }
