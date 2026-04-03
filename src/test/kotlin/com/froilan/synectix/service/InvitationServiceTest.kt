@@ -9,7 +9,6 @@ import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.RoleLevel
 import com.froilan.synectix.model.User
 import com.froilan.synectix.repository.InvitationRepository
-import org.springframework.dao.DuplicateKeyException
 import com.froilan.synectix.repository.RoleRepository
 import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.util.TokenHasher
@@ -23,6 +22,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.mongodb.core.FindAndModifyOptions
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -328,7 +328,7 @@ class InvitationServiceTest {
     fun `listInvitations should return pending invitations for org`() {
         val invitations = listOf(createMockInvitation(), createMockInvitation(email = "other@example.com"))
 
-        `when`(invitationRepository.findByOrganizationIdAndStatus("org-123", InvitationStatus.PENDING))
+        `when`(invitationRepository.findByOrganizationIdAndStatusAndExpiryAtAfter(eq("org-123"), eq(InvitationStatus.PENDING), any()))
             .thenReturn(invitations)
 
         val result = invitationService.listInvitations("org-123")

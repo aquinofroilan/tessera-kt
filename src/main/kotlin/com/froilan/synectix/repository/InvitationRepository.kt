@@ -11,9 +11,10 @@ import java.util.Optional
 interface InvitationRepository : MongoRepository<Invitation, String> {
     fun findByTokenHash(tokenHash: String): Optional<Invitation>
 
-    fun findByOrganizationIdAndStatus(
+    fun findByOrganizationIdAndStatusAndExpiryAtAfter(
         organizationId: String,
         status: InvitationStatus,
+        expiryAt: LocalDateTime,
     ): List<Invitation>
 
     fun findByEmailAndOrganizationIdAndStatusAndExpiryAtAfter(

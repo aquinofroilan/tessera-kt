@@ -179,7 +179,11 @@ class InvitationService(
     }
 
     fun listInvitations(organizationId: String): List<Invitation> =
-        invitationRepository.findByOrganizationIdAndStatus(organizationId, InvitationStatus.PENDING)
+        invitationRepository.findByOrganizationIdAndStatusAndExpiryAtAfter(
+            organizationId,
+            InvitationStatus.PENDING,
+            LocalDateTime.now(),
+        )
 
     private fun generateToken(): String {
         val bytes = ByteArray(32)
