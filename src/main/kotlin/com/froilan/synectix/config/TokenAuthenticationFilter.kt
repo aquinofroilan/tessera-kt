@@ -3,6 +3,7 @@ package com.froilan.synectix.config
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.security.RolePermissionCache
+import com.froilan.synectix.security.SessionContext
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -36,14 +37,28 @@ class TokenAuthenticationFilter(
                     val userOpt = userRepository.findById(sessionToken.userId)
                     if (userOpt.isPresent && userOpt.get().isActive) {
                         val user = userOpt.get()
-                        val roleAuthorities = user.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
+                        val activeOrgId = sessionToken.organizationId ?: user.organizationId
+                        val activeRoleAssignments =
+                            user.roleAssignments.filter {
+                                it.organizationId == activeOrgId || it.organizationId == null
+                            }
+                        val roleAuthorities =
+                            activeRoleAssignments
+                                .map { it.role }
+                                .distinct()
+                                .map { SimpleGrantedAuthority("ROLE_$it") }
                         val permissionAuthorities =
-                            user.roleAssignments
+                            activeRoleAssignments
                                 .flatMap { rolePermissionCache.getPermissions(it.role) }
                                 .distinct()
                                 .map { SimpleGrantedAuthority(it) }
                         val authorities = roleAuthorities + permissionAuthorities
                         val authentication = UsernamePasswordAuthenticationToken(user, null, authorities)
+                        authentication.details =
+                            SessionContext(
+                                sessionId = sessionToken.id,
+                                organizationId = activeOrgId,
+                            )
                         SecurityContextHolder.getContext().authentication = authentication
                     }
                 } else {

@@ -8,7 +8,9 @@ import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RefreshRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.dto.ResetPasswordRequest
+import com.froilan.synectix.dto.SwitchOrganizationRequest
 import com.froilan.synectix.model.User
+import com.froilan.synectix.security.SessionContext
 import com.froilan.synectix.service.AuthService
 import com.github.benmanes.caffeine.cache.Caffeine
 import jakarta.servlet.http.HttpServletRequest
@@ -17,6 +19,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
@@ -171,6 +174,50 @@ class AuthController(
         } catch (e: IllegalArgumentException) {
             ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Password reset failed")))
         }
+
+    @GetMapping("/organizations")
+    fun listOrganizations(): ResponseEntity<Any> {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val user =
+            authentication?.principal as? User
+                ?: return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(mapOf("error" to "Authentication required"))
+        val sessionContext =
+            authentication.details as? SessionContext
+                ?: return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(mapOf("error" to "Authentication required"))
+
+        val orgs = authService.listUserOrganizations(user, sessionContext.organizationId)
+        return ResponseEntity.ok(orgs)
+    }
+
+    @PostMapping("/organizations/switch")
+    fun switchOrganization(
+        @Valid @RequestBody request: SwitchOrganizationRequest,
+        httpRequest: HttpServletRequest,
+    ): ResponseEntity<Any> {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val user =
+            authentication?.principal as? User
+                ?: return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(mapOf("error" to "Authentication required"))
+
+        return try {
+            val response =
+                authService.switchOrganization(
+                    user = user,
+                    targetOrgId = request.organizationId,
+                    ipAddress = httpRequest.remoteAddr?.take(MAX_IP_LENGTH),
+                    userAgent = httpRequest.getHeader("User-Agent")?.take(MAX_USER_AGENT_LENGTH),
+                )
+            ResponseEntity.ok(response)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Organization switch failed")))
+        }
+    }
 
     @PostMapping("/logout")
     fun logout(
