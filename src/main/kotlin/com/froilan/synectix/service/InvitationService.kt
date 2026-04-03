@@ -56,14 +56,17 @@ class InvitationService(
         }
 
         val existing =
-            invitationRepository.findByEmailAndOrganizationIdAndStatusAndExpiryAtAfter(
+            invitationRepository.findByEmailAndOrganizationIdAndStatus(
                 normalizedEmail,
                 inviter.organizationId,
                 InvitationStatus.PENDING,
-                LocalDateTime.now(),
             )
         if (existing.isPresent) {
-            throw IllegalArgumentException("An invitation has already been sent to this email")
+            val pendingInvitation = existing.get()
+            if (pendingInvitation.expiryAt.isAfter(LocalDateTime.now())) {
+                throw IllegalArgumentException("An invitation has already been sent to this email")
+            }
+            invitationRepository.save(pendingInvitation.copy(status = InvitationStatus.EXPIRED))
         }
 
         val rawToken = generateToken()

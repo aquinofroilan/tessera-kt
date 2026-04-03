@@ -23,4 +23,10 @@ interface InvitationRepository : MongoRepository<Invitation, String> {
         status: InvitationStatus,
         expiryAt: LocalDateTime,
     ): Optional<Invitation>
+
+    fun findByEmailAndOrganizationIdAndStatus(
+        email: String,
+        organizationId: String,
+        status: InvitationStatus,
+    ): Optional<Invitation>
 }

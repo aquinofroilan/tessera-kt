@@ -22,6 +22,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.times
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.mongodb.core.FindAndModifyOptions
 import org.springframework.data.mongodb.core.MongoTemplate
@@ -71,7 +72,7 @@ class InvitationServiceTest {
         val memberRole = Role(name = "MEMBER", description = "Member", level = RoleLevel.ORGANIZATION)
 
         `when`(roleRepository.findByName("MEMBER")).thenReturn(Optional.of(memberRole))
-        `when`(invitationRepository.findByEmailAndOrganizationIdAndStatusAndExpiryAtAfter(any(), any(), any(), any()))
+        `when`(invitationRepository.findByEmailAndOrganizationIdAndStatus(any(), any(), any()))
             .thenReturn(Optional.empty())
         `when`(invitationRepository.save(any<Invitation>())).thenAnswer { it.arguments[0] }
 
@@ -113,24 +114,57 @@ class InvitationServiceTest {
     }
 
     @Test
-    fun `invite should throw when pending invitation already exists`() {
+    fun `invite should throw when active pending invitation already exists`() {
         val request = CreateInvitationRequest(email = "existing@example.com", role = "MEMBER")
         val inviter = createMockUser()
         val memberRole = Role(name = "MEMBER", description = "Member", level = RoleLevel.ORGANIZATION)
-        val existingInvitation = createMockInvitation()
+        val existingInvitation = createMockInvitation(email = "existing@example.com")
 
         `when`(roleRepository.findByName("MEMBER")).thenReturn(Optional.of(memberRole))
         `when`(
-            invitationRepository.findByEmailAndOrganizationIdAndStatusAndExpiryAtAfter(
+            invitationRepository.findByEmailAndOrganizationIdAndStatus(
                 eq("existing@example.com"),
                 eq(inviter.organizationId),
                 eq(InvitationStatus.PENDING),
-                any(),
             ),
         ).thenReturn(Optional.of(existingInvitation))
 
         val exception = assertThrows<IllegalArgumentException> { invitationService.invite(request, inviter) }
         assertEquals("An invitation has already been sent to this email", exception.message)
+    }
+
+    @Test
+    fun `invite should expire old invitation and create new one when previous expired`() {
+        val request = CreateInvitationRequest(email = "reinvite@example.com", role = "MEMBER")
+        val inviter = createMockUser()
+        val memberRole = Role(name = "MEMBER", description = "Member", level = RoleLevel.ORGANIZATION)
+        val expiredInvitation =
+            createMockInvitation(
+                email = "reinvite@example.com",
+                expiryAt = LocalDateTime.now().minusHours(1),
+            )
+
+        `when`(roleRepository.findByName("MEMBER")).thenReturn(Optional.of(memberRole))
+        `when`(
+            invitationRepository.findByEmailAndOrganizationIdAndStatus(
+                eq("reinvite@example.com"),
+                eq(inviter.organizationId),
+                eq(InvitationStatus.PENDING),
+            ),
+        ).thenReturn(Optional.of(expiredInvitation))
+        `when`(invitationRepository.save(any<Invitation>())).thenAnswer { it.arguments[0] }
+
+        val token = invitationService.invite(request, inviter)
+
+        assertNotNull(token)
+        val captor = argumentCaptor<Invitation>()
+        verify(invitationRepository, times(2)).save(captor.capture())
+
+        val expired = captor.allValues.first { it.status == InvitationStatus.EXPIRED }
+        assertEquals(expiredInvitation.id, expired.id)
+
+        val newInvite = captor.allValues.first { it.status == InvitationStatus.PENDING }
+        assertEquals("reinvite@example.com", newInvite.email)
     }
 
     @Test
