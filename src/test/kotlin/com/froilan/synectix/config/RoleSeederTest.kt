@@ -5,6 +5,7 @@ import com.froilan.synectix.model.RoleLevel
 import com.froilan.synectix.repository.RoleRepository
 import com.froilan.synectix.security.Permissions
 import com.froilan.synectix.security.RolePermissionCache
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -16,7 +17,6 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.times
 import org.springframework.boot.ApplicationArguments
 import java.util.Optional
-import org.assertj.core.api.Assertions.assertThat
 
 class RoleSeederTest {
     private lateinit var roleRepository: RoleRepository

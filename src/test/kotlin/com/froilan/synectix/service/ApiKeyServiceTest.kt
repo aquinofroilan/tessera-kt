@@ -3,6 +3,7 @@ package com.froilan.synectix.service
 import com.froilan.synectix.model.ApiKey
 import com.froilan.synectix.repository.ApiKeyRepository
 import com.froilan.synectix.util.TokenHasher
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -14,7 +15,6 @@ import org.mockito.kotlin.argumentCaptor
 import org.springframework.data.mongodb.core.MongoTemplate
 import java.time.LocalDateTime
 import java.util.Optional
-import org.assertj.core.api.Assertions.assertThat
 
 class ApiKeyServiceTest {
     private lateinit var apiKeyService: ApiKeyService

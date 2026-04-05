@@ -3,12 +3,12 @@ package com.froilan.synectix.security
 import com.froilan.synectix.model.Role
 import com.froilan.synectix.model.RoleLevel
 import com.froilan.synectix.repository.RoleRepository
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import java.util.Optional
-import org.assertj.core.api.Assertions.assertThat
 
 class RolePermissionCacheTest {
     private lateinit var roleRepository: RoleRepository

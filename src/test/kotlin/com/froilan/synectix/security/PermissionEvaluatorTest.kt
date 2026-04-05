@@ -1,10 +1,10 @@
 package com.froilan.synectix.security
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.assertj.core.api.Assertions.assertThat
 
 class PermissionEvaluatorTest {
     private lateinit var evaluator: SynectixPermissionEvaluator

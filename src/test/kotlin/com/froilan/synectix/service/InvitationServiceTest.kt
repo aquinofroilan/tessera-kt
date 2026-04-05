@@ -12,6 +12,7 @@ import com.froilan.synectix.repository.InvitationRepository
 import com.froilan.synectix.repository.RoleRepository
 import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.util.TokenHasher
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -29,7 +30,6 @@ import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
 import java.util.Optional
-import org.assertj.core.api.Assertions.assertThat
 
 class InvitationServiceTest {
     private lateinit var invitationService: InvitationService
