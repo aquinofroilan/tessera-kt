@@ -12,6 +12,7 @@ import com.froilan.synectix.repository.InvitationRepository
 import com.froilan.synectix.repository.RoleRepository
 import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.util.TokenHasher
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -29,9 +30,6 @@ import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 class InvitationServiceTest {
     private lateinit var invitationService: InvitationService
@@ -79,16 +77,15 @@ class InvitationServiceTest {
 
         val token = invitationService.invite(request, inviter, inviter.organizationId)
 
-        assertNotNull(token)
-        assertTrue(token.isNotEmpty())
+        assertThat(token).isNotNull().isNotEmpty()
 
         val captor = argumentCaptor<Invitation>()
         verify(invitationRepository).save(captor.capture())
-        assertEquals("newuser@example.com", captor.firstValue.email)
-        assertEquals("MEMBER", captor.firstValue.role)
-        assertEquals(inviter.organizationId, captor.firstValue.organizationId)
-        assertEquals(inviter.uuid, captor.firstValue.invitedBy)
-        assertEquals(InvitationStatus.PENDING, captor.firstValue.status)
+        assertThat(captor.firstValue.email).isEqualTo("newuser@example.com")
+        assertThat(captor.firstValue.role).isEqualTo("MEMBER")
+        assertThat(captor.firstValue.organizationId).isEqualTo(inviter.organizationId)
+        assertThat(captor.firstValue.invitedBy).isEqualTo(inviter.uuid)
+        assertThat(captor.firstValue.status).isEqualTo(InvitationStatus.PENDING)
     }
 
     @Test
@@ -99,7 +96,7 @@ class InvitationServiceTest {
         `when`(roleRepository.findByName("NONEXISTENT")).thenReturn(Optional.empty())
 
         val exception = assertThrows<IllegalArgumentException> { invitationService.invite(request, inviter, inviter.organizationId) }
-        assertEquals("Role 'NONEXISTENT' does not exist", exception.message)
+        assertThat(exception.message).isEqualTo("Role 'NONEXISTENT' does not exist")
     }
 
     @Test
@@ -111,7 +108,7 @@ class InvitationServiceTest {
         `when`(roleRepository.findByName("SUPER_ADMIN")).thenReturn(Optional.of(systemRole))
 
         val exception = assertThrows<IllegalArgumentException> { invitationService.invite(request, inviter, inviter.organizationId) }
-        assertEquals("Cannot invite with system-level role", exception.message)
+        assertThat(exception.message).isEqualTo("Cannot invite with system-level role")
     }
 
     @Test
@@ -131,7 +128,7 @@ class InvitationServiceTest {
         ).thenReturn(Optional.of(existingInvitation))
 
         val exception = assertThrows<IllegalArgumentException> { invitationService.invite(request, inviter, inviter.organizationId) }
-        assertEquals("An invitation has already been sent to this email", exception.message)
+        assertThat(exception.message).isEqualTo("An invitation has already been sent to this email")
     }
 
     @Test
@@ -157,15 +154,15 @@ class InvitationServiceTest {
 
         val token = invitationService.invite(request, inviter, inviter.organizationId)
 
-        assertNotNull(token)
+        assertThat(token).isNotNull()
         val captor = argumentCaptor<Invitation>()
         verify(invitationRepository, times(2)).save(captor.capture())
 
         val expired = captor.allValues.first { it.status == InvitationStatus.EXPIRED }
-        assertEquals(expiredInvitation.id, expired.id)
+        assertThat(expired.id).isEqualTo(expiredInvitation.id)
 
         val newInvite = captor.allValues.first { it.status == InvitationStatus.PENDING }
-        assertEquals("reinvite@example.com", newInvite.email)
+        assertThat(newInvite.email).isEqualTo("reinvite@example.com")
     }
 
     @Test
@@ -177,10 +174,10 @@ class InvitationServiceTest {
 
         val result = invitationService.validateInvitation("valid-token")
 
-        assertEquals(invitation.email, result.email)
-        assertEquals(invitation.role, result.role)
-        assertEquals(invitation.organizationId, result.organizationId)
-        assertEquals(false, result.existingUser)
+        assertThat(result.email).isEqualTo(invitation.email)
+        assertThat(result.role).isEqualTo(invitation.role)
+        assertThat(result.organizationId).isEqualTo(invitation.organizationId)
+        assertThat(result.existingUser).isEqualTo(false)
     }
 
     @Test
@@ -193,7 +190,7 @@ class InvitationServiceTest {
 
         val result = invitationService.validateInvitation("valid-token")
 
-        assertEquals(true, result.existingUser)
+        assertThat(result.existingUser).isEqualTo(true)
     }
 
     @Test
@@ -201,7 +198,7 @@ class InvitationServiceTest {
         `when`(invitationRepository.findByTokenHash("hashed-bad-token")).thenReturn(Optional.empty())
 
         val exception = assertThrows<IllegalArgumentException> { invitationService.validateInvitation("bad-token") }
-        assertEquals("Invalid or expired invitation token", exception.message)
+        assertThat(exception.message).isEqualTo("Invalid or expired invitation token")
     }
 
     @Test
@@ -225,15 +222,15 @@ class InvitationServiceTest {
 
         val result = invitationService.acceptInvitation(request)
 
-        assertNotNull(result)
-        assertEquals("newuser", result.username)
-        assertEquals(invitation.email, result.email)
-        assertEquals(invitation.organizationId, result.organizationId)
+        assertThat(result).isNotNull()
+        assertThat(result.username).isEqualTo("newuser")
+        assertThat(result.email).isEqualTo(invitation.email)
+        assertThat(result.organizationId).isEqualTo(invitation.organizationId)
 
         val userCaptor = argumentCaptor<User>()
         verify(userRepository).save(userCaptor.capture())
-        assertEquals("MEMBER", userCaptor.firstValue.roleAssignments[0].role)
-        assertEquals(invitation.organizationId, userCaptor.firstValue.roleAssignments[0].organizationId)
+        assertThat(userCaptor.firstValue.roleAssignments[0].role).isEqualTo("MEMBER")
+        assertThat(userCaptor.firstValue.roleAssignments[0].organizationId).isEqualTo(invitation.organizationId)
     }
 
     @Test
@@ -260,8 +257,8 @@ class InvitationServiceTest {
 
         val result = invitationService.acceptInvitation(request)
 
-        assertEquals(2, result.roleAssignments.size)
-        assertTrue(result.roleAssignments.any { it.role == "ADMIN" && it.organizationId == invitation.organizationId })
+        assertThat(result.roleAssignments.size).isEqualTo(2)
+        assertThat(result.roleAssignments.any { it.role == "ADMIN" && it.organizationId == invitation.organizationId }).isTrue()
 
         verify(passwordEncoder, never()).encode(any())
     }
@@ -281,7 +278,7 @@ class InvitationServiceTest {
             .thenReturn(null)
 
         val exception = assertThrows<IllegalArgumentException> { invitationService.acceptInvitation(request) }
-        assertEquals("Invalid or expired invitation token", exception.message)
+        assertThat(exception.message).isEqualTo("Invalid or expired invitation token")
     }
 
     @Test
@@ -294,7 +291,7 @@ class InvitationServiceTest {
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
 
         val exception = assertThrows<IllegalArgumentException> { invitationService.acceptInvitation(request) }
-        assertEquals("Username, password, first name, and last name are required for new users", exception.message)
+        assertThat(exception.message).isEqualTo("Username, password, first name, and last name are required for new users")
     }
 
     @Test
@@ -317,7 +314,7 @@ class InvitationServiceTest {
             .thenThrow(DuplicateKeyException("E11000 duplicate key error collection: synectix.users index: username"))
 
         val exception = assertThrows<IllegalArgumentException> { invitationService.acceptInvitation(request) }
-        assertEquals("Username already exists", exception.message)
+        assertThat(exception.message).isEqualTo("Username already exists")
     }
 
     @Test
@@ -331,7 +328,7 @@ class InvitationServiceTest {
 
         val captor = argumentCaptor<Invitation>()
         verify(invitationRepository).save(captor.capture())
-        assertEquals(InvitationStatus.REVOKED, captor.firstValue.status)
+        assertThat(captor.firstValue.status).isEqualTo(InvitationStatus.REVOKED)
     }
 
     @Test
@@ -344,7 +341,7 @@ class InvitationServiceTest {
             assertThrows<IllegalArgumentException> {
                 invitationService.revokeInvitation(invitation.id, "org-123")
             }
-        assertEquals("Invitation not found", exception.message)
+        assertThat(exception.message).isEqualTo("Invitation not found")
     }
 
     @Test
@@ -357,7 +354,7 @@ class InvitationServiceTest {
             assertThrows<IllegalArgumentException> {
                 invitationService.revokeInvitation(invitation.id, "org-123")
             }
-        assertEquals("Invitation is not pending", exception.message)
+        assertThat(exception.message).isEqualTo("Invitation is not pending")
     }
 
     @Test
@@ -369,7 +366,7 @@ class InvitationServiceTest {
 
         val result = invitationService.listInvitations("org-123")
 
-        assertEquals(2, result.size)
+        assertThat(result.size).isEqualTo(2)
     }
 
     private fun createMockUser() =

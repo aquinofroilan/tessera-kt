@@ -3,6 +3,7 @@ package com.froilan.synectix.service
 import com.froilan.synectix.model.ApiKey
 import com.froilan.synectix.repository.ApiKeyRepository
 import com.froilan.synectix.util.TokenHasher
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -14,10 +15,6 @@ import org.mockito.kotlin.argumentCaptor
 import org.springframework.data.mongodb.core.MongoTemplate
 import java.time.LocalDateTime
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class ApiKeyServiceTest {
     private lateinit var apiKeyService: ApiKeyService
@@ -55,16 +52,16 @@ class ApiKeyServiceTest {
                 creatorPermissions = setOf("session:read", "session:delete", "organization:read"),
             )
 
-        assertEquals("Test Key", apiKey.name)
-        assertEquals("org-123", apiKey.organizationId)
-        assertEquals("user-123", apiKey.createdBy)
-        assertEquals(listOf("session:read", "organization:read"), apiKey.permissions)
-        assertEquals("generate", apiKey.keyPrefix.take(8))
-        assertNotNull(rawKey)
+        assertThat(apiKey.name).isEqualTo("Test Key")
+        assertThat(apiKey.organizationId).isEqualTo("org-123")
+        assertThat(apiKey.createdBy).isEqualTo("user-123")
+        assertThat(apiKey.permissions).isEqualTo(listOf("session:read", "organization:read"))
+        assertThat(apiKey.keyPrefix.take(8)).isEqualTo("generate")
+        assertThat(rawKey).isNotNull()
 
         val captor = argumentCaptor<ApiKey>()
         verify(apiKeyRepository).save(captor.capture())
-        assertTrue(captor.firstValue.isActive)
+        assertThat(captor.firstValue.isActive).isTrue()
     }
 
     @Test
@@ -79,7 +76,7 @@ class ApiKeyServiceTest {
                     creatorPermissions = setOf("session:read"),
                 )
             }
-        assertTrue(exception.message!!.contains("nonexistent:permission"))
+        assertThat(exception.message).contains("nonexistent:permission")
     }
 
     @Test
@@ -94,7 +91,7 @@ class ApiKeyServiceTest {
                     creatorPermissions = setOf("session:read"),
                 )
             }
-        assertEquals("At least one permission is required", exception.message)
+        assertThat(exception.message).isEqualTo("At least one permission is required")
     }
 
     @Test
@@ -109,7 +106,7 @@ class ApiKeyServiceTest {
                     creatorPermissions = setOf("session:read", "organization:read"),
                 )
             }
-        assertTrue(exception.message!!.contains("user:delete"))
+        assertThat(exception.message).contains("user:delete")
     }
 
     @Test
@@ -119,8 +116,8 @@ class ApiKeyServiceTest {
 
         val result = apiKeyService.authenticateByApiKey("valid-key")
 
-        assertNotNull(result)
-        assertEquals(apiKey.id, result.id)
+        assertThat(result).isNotNull()
+        assertThat(result?.id).isEqualTo(apiKey.id)
     }
 
     @Test
@@ -130,7 +127,7 @@ class ApiKeyServiceTest {
 
         val result = apiKeyService.authenticateByApiKey("inactive-key")
 
-        assertNull(result)
+        assertThat(result).isNull()
     }
 
     @Test
@@ -140,7 +137,7 @@ class ApiKeyServiceTest {
 
         val result = apiKeyService.authenticateByApiKey("expired-key")
 
-        assertNull(result)
+        assertThat(result).isNull()
     }
 
     @Test
@@ -149,7 +146,7 @@ class ApiKeyServiceTest {
 
         val result = apiKeyService.authenticateByApiKey("unknown")
 
-        assertNull(result)
+        assertThat(result).isNull()
     }
 
     @Test
@@ -159,7 +156,7 @@ class ApiKeyServiceTest {
 
         val result = apiKeyService.listApiKeys("org-123")
 
-        assertEquals(2, result.size)
+        assertThat(result.size).isEqualTo(2)
     }
 
     @Test
@@ -172,7 +169,7 @@ class ApiKeyServiceTest {
 
         val captor = argumentCaptor<ApiKey>()
         verify(apiKeyRepository).save(captor.capture())
-        assertEquals(false, captor.firstValue.isActive)
+        assertThat(captor.firstValue.isActive).isEqualTo(false)
     }
 
     @Test
@@ -184,7 +181,7 @@ class ApiKeyServiceTest {
             assertThrows<IllegalArgumentException> {
                 apiKeyService.revokeApiKey(apiKey.id, "org-123")
             }
-        assertEquals("API key not found", exception.message)
+        assertThat(exception.message).isEqualTo("API key not found")
     }
 
     @Test
@@ -196,7 +193,7 @@ class ApiKeyServiceTest {
             assertThrows<IllegalArgumentException> {
                 apiKeyService.revokeApiKey(apiKey.id, "org-123")
             }
-        assertEquals("API key is already revoked", exception.message)
+        assertThat(exception.message).isEqualTo("API key is already revoked")
     }
 
     private fun createMockApiKey(
