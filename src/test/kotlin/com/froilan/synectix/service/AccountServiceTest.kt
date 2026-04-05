@@ -173,7 +173,7 @@ class AccountServiceTest {
         `when`(accountRepository.findById("acc-1")).thenReturn(Optional.of(existing))
         `when`(accountRepository.save(any<Account>())).thenAnswer { it.arguments[0] }
 
-        val request = UpdateAccountRequest(name = "Updated Cash", description = "Updated desc", isActive = null)
+        val request = UpdateAccountRequest(name = "Updated Cash", description = "Updated desc")
 
         val result = accountService.updateAccount("acc-1", request, "org-123")
 
@@ -192,7 +192,7 @@ class AccountServiceTest {
     fun `updateAccount should throw when account not found`() {
         `when`(accountRepository.findById("acc-999")).thenReturn(Optional.empty())
 
-        val request = UpdateAccountRequest(name = "New Name", description = null, isActive = null)
+        val request = UpdateAccountRequest(name = "New Name")
 
         val exception =
             assertThrows<IllegalArgumentException> {
@@ -206,7 +206,7 @@ class AccountServiceTest {
         val existing = createMockAccount(id = "acc-1", organizationId = "other-org")
         `when`(accountRepository.findById("acc-1")).thenReturn(Optional.of(existing))
 
-        val request = UpdateAccountRequest(name = "New Name", description = null, isActive = null)
+        val request = UpdateAccountRequest(name = "New Name")
 
         val exception =
             assertThrows<IllegalArgumentException> {

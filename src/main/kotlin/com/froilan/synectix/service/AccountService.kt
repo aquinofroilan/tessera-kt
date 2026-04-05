@@ -77,7 +77,6 @@ class AccountService(
             account.copy(
                 name = request.name ?: account.name,
                 description = request.description ?: account.description,
-                isActive = request.isActive ?: account.isActive,
             )
         return accountRepository.save(updated)
     }

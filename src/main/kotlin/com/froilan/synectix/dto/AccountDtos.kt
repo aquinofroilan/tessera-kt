@@ -16,7 +16,6 @@ data class CreateAccountRequest(
 data class UpdateAccountRequest(
     val name: String? = null,
     val description: String? = null,
-    val isActive: Boolean? = null,
 )
 
 data class AccountResponse(
