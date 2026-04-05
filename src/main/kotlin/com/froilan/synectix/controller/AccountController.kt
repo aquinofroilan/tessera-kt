@@ -7,7 +7,7 @@ import com.froilan.synectix.dto.CreateAccountRequest
 import com.froilan.synectix.dto.UpdateAccountRequest
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
-import com.froilan.synectix.model.User
+import com.froilan.synectix.security.ApiKeyContext
 import com.froilan.synectix.security.SessionContext
 import com.froilan.synectix.service.AccountService
 import jakarta.validation.Valid
@@ -36,10 +36,10 @@ class AccountController(
     fun createAccount(
         @Valid @RequestBody request: CreateAccountRequest,
     ): ResponseEntity<Any> {
-        val (_, sessionContext) = extractUserAndContext() ?: return unauthorized()
+        val orgId = extractOrganizationId() ?: return unauthorized()
 
         return try {
-            val account = accountService.createAccount(request, sessionContext.organizationId)
+            val account = accountService.createAccount(request, orgId)
             ResponseEntity.status(HttpStatus.CREATED).body(account.toResponse())
         } catch (e: IllegalArgumentException) {
             ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Failed to create account")))
@@ -52,7 +52,7 @@ class AccountController(
         @RequestParam(required = false) type: String?,
         @RequestParam(required = false) parentId: String?,
     ): ResponseEntity<Any> {
-        val (_, sessionContext) = extractUserAndContext() ?: return unauthorized()
+        val orgId = extractOrganizationId() ?: return unauthorized()
 
         val accountType =
             if (type != null) {
@@ -67,7 +67,7 @@ class AccountController(
                 null
             }
 
-        val accounts = accountService.listAccounts(sessionContext.organizationId, accountType, parentId)
+        val accounts = accountService.listAccounts(orgId, accountType, parentId)
         return ResponseEntity.ok(accounts.map { it.toResponse() })
     }
 
@@ -76,10 +76,10 @@ class AccountController(
     fun getAccount(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val (_, sessionContext) = extractUserAndContext() ?: return unauthorized()
+        val orgId = extractOrganizationId() ?: return unauthorized()
 
         return try {
-            val account = accountService.getAccount(id, sessionContext.organizationId)
+            val account = accountService.getAccount(id, orgId)
             ResponseEntity.ok(account.toResponse())
         } catch (e: IllegalArgumentException) {
             ResponseEntity.status(HttpStatus.NOT_FOUND).body(mapOf("error" to (e.message ?: "Account not found")))
@@ -92,10 +92,10 @@ class AccountController(
         @PathVariable id: String,
         @Valid @RequestBody request: UpdateAccountRequest,
     ): ResponseEntity<Any> {
-        val (_, sessionContext) = extractUserAndContext() ?: return unauthorized()
+        val orgId = extractOrganizationId() ?: return unauthorized()
 
         return try {
-            val account = accountService.updateAccount(id, request, sessionContext.organizationId)
+            val account = accountService.updateAccount(id, request, orgId)
             ResponseEntity.ok(account.toResponse())
         } catch (e: IllegalArgumentException) {
             ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Failed to update account")))
@@ -107,10 +107,10 @@ class AccountController(
     fun deleteAccount(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val (_, sessionContext) = extractUserAndContext() ?: return unauthorized()
+        val orgId = extractOrganizationId() ?: return unauthorized()
 
         return try {
-            accountService.deleteAccount(id, sessionContext.organizationId)
+            accountService.deleteAccount(id, orgId)
             ResponseEntity.ok(mapOf("message" to "Account deleted"))
         } catch (e: IllegalArgumentException) {
             ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Failed to delete account")))
@@ -132,11 +132,13 @@ class AccountController(
             updatedAt = updatedAt?.toString(),
         )
 
-    private fun extractUserAndContext(): Pair<User, SessionContext>? {
-        val authentication = SecurityContextHolder.getContext().authentication
-        val user = authentication?.principal as? User ?: return null
-        val sessionContext = authentication.details as? SessionContext ?: return null
-        return user to sessionContext
+    private fun extractOrganizationId(): String? {
+        val authentication = SecurityContextHolder.getContext().authentication ?: return null
+        return when (val details = authentication.details) {
+            is SessionContext -> details.organizationId
+            is ApiKeyContext -> details.organizationId
+            else -> null
+        }
     }
 
     private fun unauthorized(): ResponseEntity<Any> =
