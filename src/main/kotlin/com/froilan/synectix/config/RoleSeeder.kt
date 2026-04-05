@@ -53,6 +53,9 @@ class RoleSeeder(
                             Permissions.JOURNAL_READ,
                             Permissions.JOURNAL_POST,
                             Permissions.JOURNAL_VOID,
+                            Permissions.FISCAL_CREATE,
+                            Permissions.FISCAL_READ,
+                            Permissions.FISCAL_CLOSE,
                         ),
                 ),
                 Role(
@@ -76,6 +79,9 @@ class RoleSeeder(
                             Permissions.JOURNAL_CREATE,
                             Permissions.JOURNAL_READ,
                             Permissions.JOURNAL_POST,
+                            Permissions.FISCAL_CREATE,
+                            Permissions.FISCAL_READ,
+                            Permissions.FISCAL_CLOSE,
                         ),
                 ),
                 Role(
@@ -92,6 +98,7 @@ class RoleSeeder(
                             Permissions.ACCOUNT_READ,
                             Permissions.JOURNAL_CREATE,
                             Permissions.JOURNAL_READ,
+                            Permissions.FISCAL_READ,
                         ),
                 ),
                 Role(
@@ -104,6 +111,7 @@ class RoleSeeder(
                             Permissions.ORGANIZATION_READ,
                             Permissions.ACCOUNT_READ,
                             Permissions.JOURNAL_READ,
+                            Permissions.FISCAL_READ,
                         ),
                 ),
             )
