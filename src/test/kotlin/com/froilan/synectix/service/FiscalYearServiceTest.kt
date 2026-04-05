@@ -326,6 +326,14 @@ class FiscalYearServiceTest {
         `when`(journalEntryRepository.existsByOrganizationIdAndSourceReference(orgId, "YEAR-END-CLOSE-fy-1"))
             .thenReturn(false)
 
+        val cashAccount =
+            Account(
+                id = "acc-cash",
+                code = "1000",
+                name = "Cash",
+                type = AccountType.ASSET,
+                organizationId = orgId,
+            )
         val revenueAccount =
             Account(
                 id = "acc-revenue",
@@ -417,7 +425,7 @@ class FiscalYearServiceTest {
         ).thenReturn(entries)
 
         `when`(accountRepository.findAllById(any<Iterable<String>>()))
-            .thenReturn(listOf(revenueAccount, expenseAccount, retainedEarnings))
+            .thenReturn(listOf(cashAccount, revenueAccount, expenseAccount, retainedEarnings))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "3100"))
             .thenReturn(Optional.of(retainedEarnings))
         `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(2L)
@@ -465,6 +473,14 @@ class FiscalYearServiceTest {
         `when`(journalEntryRepository.existsByOrganizationIdAndSourceReference(orgId, "YEAR-END-CLOSE-fy-1"))
             .thenReturn(false)
 
+        val cashAccount =
+            Account(
+                id = "acc-cash",
+                code = "1000",
+                name = "Cash",
+                type = AccountType.ASSET,
+                organizationId = orgId,
+            )
         val expenseAccount =
             Account(
                 id = "acc-expense",
@@ -522,7 +538,7 @@ class FiscalYearServiceTest {
         ).thenReturn(entries)
 
         `when`(accountRepository.findAllById(any<Iterable<String>>()))
-            .thenReturn(listOf(expenseAccount, retainedEarnings))
+            .thenReturn(listOf(cashAccount, expenseAccount, retainedEarnings))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "3100"))
             .thenReturn(Optional.of(retainedEarnings))
         `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(1L)
@@ -578,12 +594,8 @@ class FiscalYearServiceTest {
     @Test
     fun `findPeriodForDate should return matching open period`() {
         val fiscalYear = createFiscalYear()
-        `when`(
-            fiscalYearRepository.findByOrganizationIdAndStatus(
-                orgId,
-                FiscalYearStatus.ACTIVE,
-            ),
-        ).thenReturn(listOf(fiscalYear))
+        `when`(fiscalYearRepository.findByOrganizationId(orgId))
+            .thenReturn(listOf(fiscalYear))
 
         val result =
             fiscalYearService.findPeriodForDate(
@@ -597,12 +609,8 @@ class FiscalYearServiceTest {
 
     @Test
     fun `findPeriodForDate should return null when no fiscal year exists`() {
-        `when`(
-            fiscalYearRepository.findByOrganizationIdAndStatus(
-                orgId,
-                FiscalYearStatus.ACTIVE,
-            ),
-        ).thenReturn(emptyList())
+        `when`(fiscalYearRepository.findByOrganizationId(orgId))
+            .thenReturn(emptyList())
 
         val result =
             fiscalYearService.findPeriodForDate(
@@ -616,12 +624,8 @@ class FiscalYearServiceTest {
     @Test
     fun `findPeriodForDate should return null when date is outside fiscal year`() {
         val fiscalYear = createFiscalYear()
-        `when`(
-            fiscalYearRepository.findByOrganizationIdAndStatus(
-                orgId,
-                FiscalYearStatus.ACTIVE,
-            ),
-        ).thenReturn(listOf(fiscalYear))
+        `when`(fiscalYearRepository.findByOrganizationId(orgId))
+            .thenReturn(listOf(fiscalYear))
 
         val result =
             fiscalYearService.findPeriodForDate(
@@ -639,12 +643,8 @@ class FiscalYearServiceTest {
                 createPeriod(1, status = FiscalPeriodStatus.REOPENED),
             )
         val fiscalYear = createFiscalYear(periods = periods)
-        `when`(
-            fiscalYearRepository.findByOrganizationIdAndStatus(
-                orgId,
-                FiscalYearStatus.ACTIVE,
-            ),
-        ).thenReturn(listOf(fiscalYear))
+        `when`(fiscalYearRepository.findByOrganizationId(orgId))
+            .thenReturn(listOf(fiscalYear))
 
         val result =
             fiscalYearService.findPeriodForDate(

@@ -327,7 +327,7 @@ class JournalEntryService(
         organizationId: String,
         date: LocalDate,
     ) {
-        if (!fiscalYearService.hasActiveFiscalYear(organizationId)) return
+        if (!fiscalYearService.hasFiscalYears(organizationId)) return
 
         val period =
             fiscalYearService.findPeriodForDate(organizationId, date)

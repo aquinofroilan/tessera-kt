@@ -589,7 +589,7 @@ class JournalEntryServiceTest {
             .thenReturn(listOf(cashAccount, revenueAccount))
         `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(0L)
         `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
-        `when`(fiscalYearService.hasActiveFiscalYear(orgId)).thenReturn(false)
+        `when`(fiscalYearService.hasFiscalYears(orgId)).thenReturn(false)
 
         val request =
             CreateJournalEntryRequest(
@@ -644,7 +644,7 @@ class JournalEntryServiceTest {
                 status = FiscalPeriodStatus.CLOSED,
             )
 
-        `when`(fiscalYearService.hasActiveFiscalYear(orgId)).thenReturn(true)
+        `when`(fiscalYearService.hasFiscalYears(orgId)).thenReturn(true)
         `when`(fiscalYearService.findPeriodForDate(orgId, LocalDate.of(2026, 1, 15)))
             .thenReturn(closedPeriod)
 
@@ -705,7 +705,7 @@ class JournalEntryServiceTest {
             .thenReturn(listOf(cashAccount, revenueAccount))
         `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(0L)
         `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
-        `when`(fiscalYearService.hasActiveFiscalYear(orgId)).thenReturn(true)
+        `when`(fiscalYearService.hasFiscalYears(orgId)).thenReturn(true)
         `when`(fiscalYearService.findPeriodForDate(orgId, LocalDate.of(2026, 1, 15)))
             .thenReturn(openPeriod)
 
@@ -769,7 +769,7 @@ class JournalEntryServiceTest {
             )
 
         `when`(journalEntryRepository.findById("entry-1")).thenReturn(Optional.of(entry))
-        `when`(fiscalYearService.hasActiveFiscalYear(orgId)).thenReturn(true)
+        `when`(fiscalYearService.hasFiscalYears(orgId)).thenReturn(true)
         `when`(
             fiscalYearService.findPeriodForDate(orgId, LocalDate.of(2026, 1, 15)),
         ).thenReturn(closedPeriod)

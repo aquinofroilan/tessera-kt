@@ -202,14 +202,10 @@ class FiscalYearService(
         organizationId: String,
         date: LocalDate,
     ): FiscalPeriod? {
-        val activeFiscalYears =
-            fiscalYearRepository.findByOrganizationIdAndStatus(
-                organizationId,
-                FiscalYearStatus.ACTIVE,
-            )
-        if (activeFiscalYears.isEmpty()) return null
+        val allFiscalYears = fiscalYearRepository.findByOrganizationId(organizationId)
+        if (allFiscalYears.isEmpty()) return null
 
-        for (fy in activeFiscalYears) {
+        for (fy in allFiscalYears) {
             for (period in fy.periods) {
                 if (!date.isBefore(period.startDate) && !date.isAfter(period.endDate)) {
                     return period
@@ -219,12 +215,7 @@ class FiscalYearService(
         return null
     }
 
-    fun hasActiveFiscalYear(organizationId: String): Boolean =
-        fiscalYearRepository
-            .findByOrganizationIdAndStatus(
-                organizationId,
-                FiscalYearStatus.ACTIVE,
-            ).isNotEmpty()
+    fun hasFiscalYears(organizationId: String): Boolean = fiscalYearRepository.findByOrganizationId(organizationId).isNotEmpty()
 
     private fun createClosingEntry(
         fiscalYear: FiscalYear,
@@ -261,10 +252,17 @@ class FiscalYearService(
                 .findAllById(accountTotals.keys)
                 .associateBy { it.id }
 
+        val missingAccountIds = accountTotals.keys - accounts.keys
+        if (missingAccountIds.isNotEmpty()) {
+            throw IllegalStateException(
+                "Cannot create closing entry: missing accounts ${missingAccountIds.sorted().joinToString(", ")}",
+            )
+        }
+
         val closingLines = mutableListOf<JournalEntryLine>()
 
         accountTotals.forEach { (accountId, totals) ->
-            val account = accounts[accountId] ?: return@forEach
+            val account = accounts.getValue(accountId)
             val (totalDebits, totalCredits) = totals
 
             when (account.type) {
@@ -306,22 +304,24 @@ class FiscalYearService(
         val totalClosingCredits = closingLines.fold(BigDecimal.ZERO) { sum, l -> sum.add(l.credit) }
         val difference = totalClosingDebits.subtract(totalClosingCredits)
 
-        val retainedEarnings =
-            accountRepository
-                .findByOrganizationIdAndCode(organizationId, "3100")
-                .orElseThrow {
-                    IllegalStateException("Retained Earnings account (3100) not found")
-                }
+        if (difference.compareTo(BigDecimal.ZERO) != 0) {
+            val retainedEarnings =
+                accountRepository
+                    .findByOrganizationIdAndCode(organizationId, "3100")
+                    .orElseThrow {
+                        IllegalStateException("Retained Earnings account (3100) not found")
+                    }
 
-        closingLines.add(
-            JournalEntryLine(
-                accountId = retainedEarnings.id,
-                accountCode = retainedEarnings.code,
-                accountName = retainedEarnings.name,
-                debit = if (difference < BigDecimal.ZERO) difference.negate() else BigDecimal.ZERO,
-                credit = if (difference > BigDecimal.ZERO) difference else BigDecimal.ZERO,
-            ),
-        )
+            closingLines.add(
+                JournalEntryLine(
+                    accountId = retainedEarnings.id,
+                    accountCode = retainedEarnings.code,
+                    accountName = retainedEarnings.name,
+                    debit = if (difference < BigDecimal.ZERO) difference.negate() else BigDecimal.ZERO,
+                    credit = if (difference > BigDecimal.ZERO) difference else BigDecimal.ZERO,
+                ),
+            )
+        }
 
         return saveWithRetry(organizationId) { entryNumber ->
             JournalEntry(
