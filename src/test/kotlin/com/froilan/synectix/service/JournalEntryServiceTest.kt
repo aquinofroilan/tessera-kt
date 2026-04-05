@@ -490,7 +490,7 @@ class JournalEntryServiceTest {
                 ),
             )
 
-        `when`(journalEntryRepository.findByOrganizationIdAndStatus(orgId, JournalEntryStatus.POSTED)).thenReturn(entries)
+        `when`(journalEntryRepository.findByOrganizationIdAndStatusIn(orgId, listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED))).thenReturn(entries)
 
         val result = journalEntryService.getAccountBalance("acc-1", orgId)
 
@@ -536,7 +536,7 @@ class JournalEntryServiceTest {
                 ),
             )
 
-        `when`(journalEntryRepository.findByOrganizationIdAndStatus(orgId, JournalEntryStatus.POSTED)).thenReturn(entries)
+        `when`(journalEntryRepository.findByOrganizationIdAndStatusIn(orgId, listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED))).thenReturn(entries)
         `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(listOf(cashAccount, revenueAccount))
 
         val result = journalEntryService.getTrialBalance(orgId)

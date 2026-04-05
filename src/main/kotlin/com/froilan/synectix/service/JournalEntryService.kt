@@ -201,17 +201,18 @@ class JournalEntryService(
             throw IllegalArgumentException("Account not found")
         }
 
+        val postedStatuses = listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED)
         val entries =
             if (asOfDate != null) {
-                journalEntryRepository.findByOrganizationIdAndStatusAndDateLessThanEqual(
+                journalEntryRepository.findByOrganizationIdAndStatusInAndDateLessThanEqual(
                     organizationId,
-                    JournalEntryStatus.POSTED,
+                    postedStatuses,
                     asOfDate,
                 )
             } else {
-                journalEntryRepository.findByOrganizationIdAndStatus(
+                journalEntryRepository.findByOrganizationIdAndStatusIn(
                     organizationId,
-                    JournalEntryStatus.POSTED,
+                    postedStatuses,
                 )
             }
 
@@ -245,17 +246,18 @@ class JournalEntryService(
         organizationId: String,
         asOfDate: LocalDate? = null,
     ): TrialBalanceResponse {
+        val postedStatuses = listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED)
         val entries =
             if (asOfDate != null) {
-                journalEntryRepository.findByOrganizationIdAndStatusAndDateLessThanEqual(
+                journalEntryRepository.findByOrganizationIdAndStatusInAndDateLessThanEqual(
                     organizationId,
-                    JournalEntryStatus.POSTED,
+                    postedStatuses,
                     asOfDate,
                 )
             } else {
-                journalEntryRepository.findByOrganizationIdAndStatus(
+                journalEntryRepository.findByOrganizationIdAndStatusIn(
                     organizationId,
-                    JournalEntryStatus.POSTED,
+                    postedStatuses,
                 )
             }
 
