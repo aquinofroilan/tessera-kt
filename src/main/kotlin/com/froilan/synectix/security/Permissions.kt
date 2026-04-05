@@ -19,6 +19,11 @@ object Permissions {
 
     const val API_KEY_MANAGE = "apikey:manage"
 
+    const val ACCOUNT_CREATE = "account:create"
+    const val ACCOUNT_READ = "account:read"
+    const val ACCOUNT_UPDATE = "account:update"
+    const val ACCOUNT_DELETE = "account:delete"
+
     val ALL_PERMISSIONS =
         listOf(
             SESSION_READ,
@@ -33,5 +38,9 @@ object Permissions {
             INVITATION_READ,
             INVITATION_WRITE,
             API_KEY_MANAGE,
+            ACCOUNT_CREATE,
+            ACCOUNT_READ,
+            ACCOUNT_UPDATE,
+            ACCOUNT_DELETE,
         )
 }

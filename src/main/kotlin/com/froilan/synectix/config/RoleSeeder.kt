@@ -45,6 +45,10 @@ class RoleSeeder(
                             Permissions.INVITATION_READ,
                             Permissions.INVITATION_WRITE,
                             Permissions.API_KEY_MANAGE,
+                            Permissions.ACCOUNT_CREATE,
+                            Permissions.ACCOUNT_READ,
+                            Permissions.ACCOUNT_UPDATE,
+                            Permissions.ACCOUNT_DELETE,
                         ),
                 ),
                 Role(
@@ -62,6 +66,9 @@ class RoleSeeder(
                             Permissions.INVITATION_READ,
                             Permissions.INVITATION_WRITE,
                             Permissions.API_KEY_MANAGE,
+                            Permissions.ACCOUNT_CREATE,
+                            Permissions.ACCOUNT_READ,
+                            Permissions.ACCOUNT_UPDATE,
                         ),
                 ),
                 Role(
@@ -75,6 +82,7 @@ class RoleSeeder(
                             Permissions.USER_READ,
                             Permissions.ORGANIZATION_READ,
                             Permissions.INVITATION_READ,
+                            Permissions.ACCOUNT_READ,
                         ),
                 ),
                 Role(
@@ -85,6 +93,7 @@ class RoleSeeder(
                         listOf(
                             Permissions.SESSION_READ,
                             Permissions.ORGANIZATION_READ,
+                            Permissions.ACCOUNT_READ,
                         ),
                 ),
             )
