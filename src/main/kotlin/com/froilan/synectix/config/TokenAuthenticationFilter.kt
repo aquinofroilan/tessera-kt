@@ -2,8 +2,11 @@ package com.froilan.synectix.config
 
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
+import com.froilan.synectix.security.ApiKeyContext
+import com.froilan.synectix.security.ApiKeyPrincipal
 import com.froilan.synectix.security.RolePermissionCache
 import com.froilan.synectix.security.SessionContext
+import com.froilan.synectix.service.ApiKeyService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -19,6 +22,7 @@ class TokenAuthenticationFilter(
     private val sessionTokenRepository: SessionTokenRepository,
     private val userRepository: UserRepository,
     private val rolePermissionCache: RolePermissionCache,
+    private val apiKeyService: ApiKeyService,
 ) : OncePerRequestFilter() {
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -30,6 +34,8 @@ class TokenAuthenticationFilter(
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             val token = authHeader.substring(7)
             val sessionTokenOpt = sessionTokenRepository.findByToken(token)
+
+            val requestPath = request.requestURI
 
             if (sessionTokenOpt.isPresent) {
                 val sessionToken = sessionTokenOpt.get()
@@ -63,6 +69,16 @@ class TokenAuthenticationFilter(
                     }
                 } else {
                     sessionTokenRepository.delete(sessionToken)
+                }
+            } else if (!requestPath.contains("/auth/")) {
+                // API key fallback — blocked from auth endpoints
+                val apiKey = apiKeyService.authenticateByApiKey(token)
+                if (apiKey != null) {
+                    val authorities = apiKey.permissions.map { SimpleGrantedAuthority(it) }
+                    val principal = ApiKeyPrincipal(apiKey.id, apiKey.name, apiKey.organizationId)
+                    val authentication = UsernamePasswordAuthenticationToken(principal, null, authorities)
+                    authentication.details = ApiKeyContext(apiKey.id, apiKey.organizationId)
+                    SecurityContextHolder.getContext().authentication = authentication
                 }
             }
         }
