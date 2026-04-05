@@ -25,6 +25,13 @@ interface AccountRepository : MongoRepository<Account, String> {
         isActive: Boolean,
     ): List<Account>
 
+    fun findByOrganizationIdAndTypeAndParentIdAndIsActive(
+        organizationId: String,
+        type: AccountType,
+        parentId: String,
+        isActive: Boolean,
+    ): List<Account>
+
     fun findByOrganizationIdAndCode(
         organizationId: String,
         code: String,

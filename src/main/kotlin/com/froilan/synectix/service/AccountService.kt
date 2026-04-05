@@ -101,6 +101,8 @@ class AccountService(
         parentId: String? = null,
     ): List<Account> =
         when {
+            type != null && parentId != null ->
+                accountRepository.findByOrganizationIdAndTypeAndParentIdAndIsActive(organizationId, type, parentId, true)
             type != null -> accountRepository.findByOrganizationIdAndTypeAndIsActive(organizationId, type, true)
             parentId != null -> accountRepository.findByOrganizationIdAndParentIdAndIsActive(organizationId, parentId, true)
             else -> accountRepository.findByOrganizationIdAndIsActive(organizationId, true)
