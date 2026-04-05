@@ -65,6 +65,14 @@ class RoleSeederTest {
                         Permissions.INVITATION_READ,
                         Permissions.INVITATION_WRITE,
                         Permissions.API_KEY_MANAGE,
+                        Permissions.ACCOUNT_CREATE,
+                        Permissions.ACCOUNT_READ,
+                        Permissions.ACCOUNT_UPDATE,
+                        Permissions.ACCOUNT_DELETE,
+                        Permissions.JOURNAL_CREATE,
+                        Permissions.JOURNAL_READ,
+                        Permissions.JOURNAL_POST,
+                        Permissions.JOURNAL_VOID,
                     ),
             )
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
@@ -122,6 +130,14 @@ class RoleSeederTest {
                         Permissions.INVITATION_READ,
                         Permissions.INVITATION_WRITE,
                         Permissions.API_KEY_MANAGE,
+                        Permissions.ACCOUNT_CREATE,
+                        Permissions.ACCOUNT_READ,
+                        Permissions.ACCOUNT_UPDATE,
+                        Permissions.ACCOUNT_DELETE,
+                        Permissions.JOURNAL_CREATE,
+                        Permissions.JOURNAL_READ,
+                        Permissions.JOURNAL_POST,
+                        Permissions.JOURNAL_VOID,
                     ),
             )
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
@@ -206,6 +222,14 @@ class RoleSeederTest {
                         Permissions.INVITATION_READ,
                         Permissions.INVITATION_WRITE,
                         Permissions.API_KEY_MANAGE,
+                        Permissions.ACCOUNT_CREATE,
+                        Permissions.ACCOUNT_READ,
+                        Permissions.ACCOUNT_UPDATE,
+                        Permissions.ACCOUNT_DELETE,
+                        Permissions.JOURNAL_CREATE,
+                        Permissions.JOURNAL_READ,
+                        Permissions.JOURNAL_POST,
+                        Permissions.JOURNAL_VOID,
                     ),
             )
         val admin =
@@ -224,6 +248,12 @@ class RoleSeederTest {
                         Permissions.INVITATION_READ,
                         Permissions.INVITATION_WRITE,
                         Permissions.API_KEY_MANAGE,
+                        Permissions.ACCOUNT_CREATE,
+                        Permissions.ACCOUNT_READ,
+                        Permissions.ACCOUNT_UPDATE,
+                        Permissions.JOURNAL_CREATE,
+                        Permissions.JOURNAL_READ,
+                        Permissions.JOURNAL_POST,
                     ),
             )
         val member =
@@ -238,6 +268,9 @@ class RoleSeederTest {
                         Permissions.USER_READ,
                         Permissions.ORGANIZATION_READ,
                         Permissions.INVITATION_READ,
+                        Permissions.ACCOUNT_READ,
+                        Permissions.JOURNAL_CREATE,
+                        Permissions.JOURNAL_READ,
                     ),
             )
         val viewer =
@@ -245,7 +278,13 @@ class RoleSeederTest {
                 name = "VIEWER",
                 description = "Read-only organization access",
                 level = RoleLevel.ORGANIZATION,
-                permissions = listOf(Permissions.SESSION_READ, Permissions.ORGANIZATION_READ),
+                permissions =
+                    listOf(
+                        Permissions.SESSION_READ,
+                        Permissions.ORGANIZATION_READ,
+                        Permissions.ACCOUNT_READ,
+                        Permissions.JOURNAL_READ,
+                    ),
             )
 
         `when`(roleRepository.findByName("SUPER_ADMIN")).thenReturn(Optional.of(superAdmin))

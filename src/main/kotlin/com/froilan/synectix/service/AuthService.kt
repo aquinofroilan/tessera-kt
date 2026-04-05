@@ -37,6 +37,7 @@ class AuthService(
     private val sessionTokenRepository: SessionTokenRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val passwordResetTokenRepository: PasswordResetTokenRepository,
+    private val accountService: AccountService,
     private val mongoTemplate: MongoTemplate,
     private val tokenHasher: TokenHasher,
     private val passwordEncoder: PasswordEncoder,
@@ -62,6 +63,7 @@ class AuthService(
                     legalName = request.orgLegalName,
                 )
             val savedOrganization = organizationRepository.save(organization)
+            accountService.seedDefaultAccounts(savedOrganization.uuid)
 
             val user =
                 User(
