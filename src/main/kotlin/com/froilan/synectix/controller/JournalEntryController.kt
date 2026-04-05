@@ -28,7 +28,7 @@ import java.time.LocalDate
 import java.util.Locale
 
 @RestController
-@RequestMapping("/finance/journal-entries")
+@RequestMapping("/finance/journal")
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
 class JournalEntryController(
     private val journalEntryService: JournalEntryService,

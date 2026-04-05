@@ -143,7 +143,7 @@ class JournalEntryControllerTest {
 
         mockMvc
             .perform(
-                post("/finance/journal-entries")
+                post("/finance/journal")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
                         """
@@ -176,7 +176,7 @@ class JournalEntryControllerTest {
 
         mockMvc
             .perform(
-                post("/finance/journal-entries")
+                post("/finance/journal")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
                         """
@@ -200,7 +200,7 @@ class JournalEntryControllerTest {
         `when`(journalEntryService.listJournalEntries(any(), anyOrNull(), anyOrNull(), anyOrNull())).thenReturn(entries)
 
         mockMvc
-            .perform(get("/finance/journal-entries"))
+            .perform(get("/finance/journal"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].id").value("je-123"))
@@ -215,7 +215,7 @@ class JournalEntryControllerTest {
         `when`(journalEntryService.getJournalEntry(any(), any())).thenReturn(entry)
 
         mockMvc
-            .perform(get("/finance/journal-entries/je-123"))
+            .perform(get("/finance/journal/je-123"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value("je-123"))
             .andExpect(jsonPath("$.entryNumber").value("JE-0001"))
@@ -230,7 +230,7 @@ class JournalEntryControllerTest {
             .thenThrow(IllegalArgumentException("Journal entry not found"))
 
         mockMvc
-            .perform(get("/finance/journal-entries/nonexistent"))
+            .perform(get("/finance/journal/nonexistent"))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.error").value("Journal entry not found"))
     }
@@ -241,7 +241,7 @@ class JournalEntryControllerTest {
         `when`(journalEntryService.postJournalEntry(any(), any())).thenReturn(entry)
 
         mockMvc
-            .perform(post("/finance/journal-entries/je-123/post"))
+            .perform(post("/finance/journal/je-123/post"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value("je-123"))
             .andExpect(jsonPath("$.status").value("POSTED"))
@@ -254,7 +254,7 @@ class JournalEntryControllerTest {
 
         mockMvc
             .perform(
-                post("/finance/journal-entries/je-123/void")
+                post("/finance/journal/je-123/void")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"reason": "Error correction"}"""),
             ).andExpect(status().isOk)
@@ -295,7 +295,7 @@ class JournalEntryControllerTest {
 
         val result =
             mockMvc
-                .perform(get("/finance/journal-entries/trial-balance"))
+                .perform(get("/finance/journal/trial-balance"))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.accounts.length()").value(2))
                 .andExpect(jsonPath("$.accounts[0].accountCode").value("1000"))
@@ -313,7 +313,7 @@ class JournalEntryControllerTest {
 
         mockMvc
             .perform(
-                post("/finance/journal-entries")
+                post("/finance/journal")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
                         """
