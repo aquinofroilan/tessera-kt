@@ -1,5 +1,6 @@
 package com.froilan.synectix.dto
 
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import java.math.BigDecimal
@@ -18,6 +19,7 @@ data class CreateJournalEntryRequest(
     @field:NotBlank(message = "Description is required")
     val description: String,
     @field:NotEmpty(message = "At least one line item is required")
+    @field:Valid
     val lines: List<JournalEntryLineRequest>,
     val sourceReference: String? = null,
 )
