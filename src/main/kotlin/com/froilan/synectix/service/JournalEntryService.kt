@@ -8,6 +8,7 @@ import com.froilan.synectix.model.JournalEntry
 import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.model.JournalEntrySource
 import com.froilan.synectix.model.JournalEntryStatus
+import com.froilan.synectix.model.FiscalPeriodStatus
 import com.froilan.synectix.repository.AccountRepository
 import com.froilan.synectix.repository.JournalEntryRepository
 import org.springframework.dao.DuplicateKeyException
@@ -21,6 +22,7 @@ import java.time.LocalDateTime
 class JournalEntryService(
     private val journalEntryRepository: JournalEntryRepository,
     private val accountRepository: AccountRepository,
+    private val fiscalYearService: FiscalYearService,
 ) {
     @Transactional
     fun createJournalEntry(
@@ -78,6 +80,8 @@ class JournalEntryService(
                 )
             }
 
+        validateFiscalPeriodOpen(organizationId, request.date)
+
         return saveWithRetry(organizationId) { entryNumber ->
             JournalEntry(
                 entryNumber = entryNumber,
@@ -106,6 +110,8 @@ class JournalEntryService(
         if (totalDebits.compareTo(totalCredits) != 0) {
             throw IllegalArgumentException("Journal entry is not balanced")
         }
+
+        validateFiscalPeriodOpen(organizationId, entry.date)
 
         return journalEntryRepository.save(
             entry.copy(
@@ -315,6 +321,21 @@ class JournalEntryService(
             throw IllegalArgumentException("Journal entry not found")
         }
         return entry
+    }
+
+    private fun validateFiscalPeriodOpen(
+        organizationId: String,
+        date: LocalDate,
+    ) {
+        if (!fiscalYearService.hasActiveFiscalYear(organizationId)) return
+
+        val period = fiscalYearService.findOpenPeriodForDate(organizationId, date)
+        if (period == null) {
+            throw IllegalArgumentException("No open fiscal period covers the date $date")
+        }
+        if (period.status == FiscalPeriodStatus.CLOSED) {
+            throw IllegalArgumentException("Fiscal period '${period.name}' is closed")
+        }
     }
 
     private fun saveWithRetry(
