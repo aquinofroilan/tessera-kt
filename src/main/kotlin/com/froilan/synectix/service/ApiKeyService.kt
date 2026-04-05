@@ -41,7 +41,7 @@ class ApiKeyService(
             )
         }
 
-        val rawKey = tokenHasher.generate()
+        val rawKey = tokenHasher.generate(32)
         val apiKey =
             ApiKey(
                 name = name,
