@@ -537,7 +537,7 @@ class JournalEntryServiceTest {
             )
 
         `when`(journalEntryRepository.findByOrganizationIdAndStatus(orgId, JournalEntryStatus.POSTED)).thenReturn(entries)
-        `when`(accountRepository.findAllById(listOf("acc-1", "acc-2"))).thenReturn(listOf(cashAccount, revenueAccount))
+        `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(listOf(cashAccount, revenueAccount))
 
         val result = journalEntryService.getTrialBalance(orgId)
 

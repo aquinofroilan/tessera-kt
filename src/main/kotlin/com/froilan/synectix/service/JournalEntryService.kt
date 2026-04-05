@@ -267,29 +267,27 @@ class JournalEntryService(
             }
         }
 
-        val accountIds = accountTotals.keys.toList()
-        val accounts = accountRepository.findAllById(accountIds).associateBy { it.id }
+        val allAccounts = accountRepository.findByOrganizationIdAndIsActive(organizationId, true)
 
         val accountBalances =
-            accountTotals
-                .mapNotNull { (accountId, totals) ->
-                    val account = accounts[accountId] ?: return@mapNotNull null
-                    val (totalDebits, totalCredits) = totals
-                    val balance =
-                        when (account.type) {
-                            AccountType.ASSET, AccountType.EXPENSE -> totalDebits.subtract(totalCredits)
-                            AccountType.LIABILITY, AccountType.EQUITY, AccountType.REVENUE -> totalCredits.subtract(totalDebits)
-                        }
-                    AccountBalanceResponse(
-                        accountId = account.id,
-                        accountCode = account.code,
-                        accountName = account.name,
-                        accountType = account.type.name,
-                        totalDebits = totalDebits,
-                        totalCredits = totalCredits,
-                        balance = balance,
-                    )
-                }.sortedBy { it.accountCode }
+            allAccounts.map { account ->
+                val (totalDebits, totalCredits) =
+                    accountTotals.getOrDefault(account.id, BigDecimal.ZERO to BigDecimal.ZERO)
+                val balance =
+                    when (account.type) {
+                        AccountType.ASSET, AccountType.EXPENSE -> totalDebits.subtract(totalCredits)
+                        AccountType.LIABILITY, AccountType.EQUITY, AccountType.REVENUE -> totalCredits.subtract(totalDebits)
+                    }
+                AccountBalanceResponse(
+                    accountId = account.id,
+                    accountCode = account.code,
+                    accountName = account.name,
+                    accountType = account.type.name,
+                    totalDebits = totalDebits,
+                    totalCredits = totalCredits,
+                    balance = balance,
+                )
+            }.sortedBy { it.accountCode }
 
         val grandTotalDebits = accountBalances.fold(BigDecimal.ZERO) { sum, ab -> sum.add(ab.totalDebits) }
         val grandTotalCredits = accountBalances.fold(BigDecimal.ZERO) { sum, ab -> sum.add(ab.totalCredits) }
