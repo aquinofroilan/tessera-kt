@@ -18,6 +18,7 @@ import com.froilan.synectix.security.SynectixPermissionEvaluator
 import com.froilan.synectix.service.AccountService
 import com.froilan.synectix.service.ApiKeyService
 import com.froilan.synectix.service.AuthService
+import com.froilan.synectix.service.JournalEntryService
 import com.froilan.synectix.util.TokenHasher
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -80,6 +81,9 @@ class AccountControllerTest {
 
     @MockitoBean
     private lateinit var accountService: AccountService
+
+    @MockitoBean
+    private lateinit var journalEntryService: JournalEntryService
 
     private val testUser =
         User(
