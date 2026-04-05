@@ -52,8 +52,7 @@ class ApiKeyService(
         return saved to rawKey
     }
 
-    fun listApiKeys(organizationId: String): List<ApiKey> =
-        apiKeyRepository.findByOrganizationIdAndIsActive(organizationId, true)
+    fun listApiKeys(organizationId: String): List<ApiKey> = apiKeyRepository.findByOrganizationIdAndIsActive(organizationId, true)
 
     @Transactional
     fun revokeApiKey(
