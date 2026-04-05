@@ -44,6 +44,7 @@ class RoleSeeder(
                             Permissions.ORGANIZATION_DELETE,
                             Permissions.INVITATION_READ,
                             Permissions.INVITATION_WRITE,
+                            Permissions.API_KEY_MANAGE,
                         ),
                 ),
                 Role(
@@ -60,6 +61,7 @@ class RoleSeeder(
                             Permissions.ORGANIZATION_WRITE,
                             Permissions.INVITATION_READ,
                             Permissions.INVITATION_WRITE,
+                            Permissions.API_KEY_MANAGE,
                         ),
                 ),
                 Role(

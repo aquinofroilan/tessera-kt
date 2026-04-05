@@ -50,6 +50,7 @@ class SecurityConfig(
                 it.requestMatchers(HttpMethod.GET, "/auth/invitations").authenticated()
                 it.requestMatchers(HttpMethod.DELETE, "/auth/invitations/*").authenticated()
                 it.requestMatchers("/auth/organizations", "/auth/organizations/**").authenticated()
+                it.requestMatchers("/auth/api-keys", "/auth/api-keys/**").authenticated()
                 it.requestMatchers("/auth/**").permitAll()
                 it.requestMatchers("/health/**").permitAll()
                 it.requestMatchers("/actuator/health/**").permitAll()
