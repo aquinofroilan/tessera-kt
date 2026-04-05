@@ -52,6 +52,7 @@ class ApiKeyServiceTest {
                 permissions = listOf("session:read", "organization:read"),
                 organizationId = "org-123",
                 createdBy = "user-123",
+                creatorPermissions = setOf("session:read", "session:delete", "organization:read"),
             )
 
         assertEquals("Test Key", apiKey.name)
@@ -75,6 +76,7 @@ class ApiKeyServiceTest {
                     permissions = listOf("session:read", "nonexistent:permission"),
                     organizationId = "org-123",
                     createdBy = "user-123",
+                    creatorPermissions = setOf("session:read"),
                 )
             }
         assertTrue(exception.message!!.contains("nonexistent:permission"))
@@ -89,9 +91,25 @@ class ApiKeyServiceTest {
                     permissions = emptyList(),
                     organizationId = "org-123",
                     createdBy = "user-123",
+                    creatorPermissions = setOf("session:read"),
                 )
             }
         assertEquals("At least one permission is required", exception.message)
+    }
+
+    @Test
+    fun `createApiKey should throw when requesting permissions creator does not have`() {
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                apiKeyService.createApiKey(
+                    name = "Escalated Key",
+                    permissions = listOf("session:read", "user:delete"),
+                    organizationId = "org-123",
+                    createdBy = "user-123",
+                    creatorPermissions = setOf("session:read", "organization:read"),
+                )
+            }
+        assertTrue(exception.message!!.contains("user:delete"))
     }
 
     @Test

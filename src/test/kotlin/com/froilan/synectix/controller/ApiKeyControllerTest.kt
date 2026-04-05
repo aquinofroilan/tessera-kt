@@ -108,7 +108,7 @@ class ApiKeyControllerTest {
                 permissions = listOf("session:read"),
                 createdBy = "user-123",
             )
-        `when`(apiKeyService.createApiKey(any(), any(), any(), any(), anyOrNull()))
+        `when`(apiKeyService.createApiKey(any(), any(), any(), any(), any(), anyOrNull()))
             .thenReturn(apiKey to "raw-key-value")
 
         mockMvc
@@ -134,7 +134,7 @@ class ApiKeyControllerTest {
 
     @Test
     fun `POST api-keys should return 400 with invalid permissions`() {
-        `when`(apiKeyService.createApiKey(any(), any(), any(), any(), anyOrNull()))
+        `when`(apiKeyService.createApiKey(any(), any(), any(), any(), any(), anyOrNull()))
             .thenThrow(IllegalArgumentException("Invalid permissions: bad:perm"))
 
         mockMvc

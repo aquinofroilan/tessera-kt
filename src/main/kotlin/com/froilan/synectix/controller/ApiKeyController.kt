@@ -33,6 +33,8 @@ class ApiKeyController(
         @Valid @RequestBody request: CreateApiKeyRequest,
     ): ResponseEntity<Any> {
         val (user, sessionContext) = extractUserAndContext() ?: return unauthorized()
+        val authentication = SecurityContextHolder.getContext().authentication ?: return unauthorized()
+        val creatorPermissions = authentication.authorities.mapNotNull { it.authority }.toSet()
 
         return try {
             val (apiKey, rawKey) =
@@ -41,6 +43,7 @@ class ApiKeyController(
                     permissions = request.permissions,
                     organizationId = sessionContext.organizationId,
                     createdBy = user.uuid,
+                    creatorPermissions = creatorPermissions,
                     expiresAt = request.expiresAt,
                 )
             ResponseEntity.status(HttpStatus.CREATED).body(

@@ -24,6 +24,7 @@ class ApiKeyService(
         permissions: List<String>,
         organizationId: String,
         createdBy: String,
+        creatorPermissions: Set<String>,
         expiresAt: LocalDateTime? = null,
     ): Pair<ApiKey, String> {
         val invalidPermissions = permissions.filter { it !in Permissions.ALL_PERMISSIONS }
@@ -32,6 +33,12 @@ class ApiKeyService(
         }
         if (permissions.isEmpty()) {
             throw IllegalArgumentException("At least one permission is required")
+        }
+        val escalatedPermissions = permissions.filter { it !in creatorPermissions }
+        if (escalatedPermissions.isNotEmpty()) {
+            throw IllegalArgumentException(
+                "Cannot grant permissions you do not have: ${escalatedPermissions.joinToString()}",
+            )
         }
 
         val rawKey = tokenHasher.generate()
