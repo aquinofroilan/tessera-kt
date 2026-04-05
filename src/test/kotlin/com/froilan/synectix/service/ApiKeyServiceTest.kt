@@ -117,7 +117,7 @@ class ApiKeyServiceTest {
         val result = apiKeyService.authenticateByApiKey("valid-key")
 
         assertThat(result).isNotNull()
-        assertThat(result!!.id).isEqualTo(apiKey.id)
+        assertThat(result?.id).isEqualTo(apiKey.id)
     }
 
     @Test

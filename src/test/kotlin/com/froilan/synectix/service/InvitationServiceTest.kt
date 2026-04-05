@@ -77,8 +77,7 @@ class InvitationServiceTest {
 
         val token = invitationService.invite(request, inviter, inviter.organizationId)
 
-        assertThat(token).isNotNull()
-        assertThat(token.isNotEmpty()).isTrue()
+        assertThat(token).isNotNull().isNotEmpty()
 
         val captor = argumentCaptor<Invitation>()
         verify(invitationRepository).save(captor.capture())
