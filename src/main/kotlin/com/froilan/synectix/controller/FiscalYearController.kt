@@ -63,7 +63,8 @@ class FiscalYearController(
             val fiscalYear = fiscalYearService.getFiscalYear(id, orgId)
             ResponseEntity.ok(fiscalYear.toResponse())
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND)
+            ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
                 .body(mapOf("error" to (e.message ?: "Fiscal year not found")))
         }
     }
@@ -82,7 +83,8 @@ class FiscalYearController(
             ResponseEntity.ok(fiscalYear.toResponse())
         } catch (e: IllegalArgumentException) {
             val status = if (e.message == "Fiscal period not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status)
+            ResponseEntity
+                .status(status)
                 .body(mapOf("error" to (e.message ?: "Failed to close period")))
         }
     }
@@ -101,7 +103,8 @@ class FiscalYearController(
             ResponseEntity.ok(fiscalYear.toResponse())
         } catch (e: IllegalArgumentException) {
             val status = if (e.message == "Fiscal period not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status)
+            ResponseEntity
+                .status(status)
                 .body(mapOf("error" to (e.message ?: "Failed to reopen period")))
         }
     }
@@ -120,7 +123,8 @@ class FiscalYearController(
         } catch (e: IllegalArgumentException) {
             val status =
                 if (e.message == "Fiscal year not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status)
+            ResponseEntity
+                .status(status)
                 .body(mapOf("error" to (e.message ?: "Failed to close fiscal year")))
         }
     }
@@ -133,20 +137,21 @@ class FiscalYearController(
             endDate = endDate.toString(),
             status = status.name,
             organizationId = organizationId,
-            periods = periods.map { period ->
-                FiscalPeriodResponse(
-                    id = period.id,
-                    periodNumber = period.periodNumber,
-                    name = period.name,
-                    startDate = period.startDate.toString(),
-                    endDate = period.endDate.toString(),
-                    status = period.status.name,
-                    closedAt = period.closedAt?.toString(),
-                    closedBy = period.closedBy,
-                    reopenedAt = period.reopenedAt?.toString(),
-                    reopenedBy = period.reopenedBy,
-                )
-            },
+            periods =
+                periods.map { period ->
+                    FiscalPeriodResponse(
+                        id = period.id,
+                        periodNumber = period.periodNumber,
+                        name = period.name,
+                        startDate = period.startDate.toString(),
+                        endDate = period.endDate.toString(),
+                        status = period.status.name,
+                        closedAt = period.closedAt?.toString(),
+                        closedBy = period.closedBy,
+                        reopenedAt = period.reopenedAt?.toString(),
+                        reopenedBy = period.reopenedBy,
+                    )
+                },
             closedAt = closedAt?.toString(),
             closedBy = closedBy,
             closingEntryId = closingEntryId,

@@ -4,11 +4,11 @@ import com.froilan.synectix.dto.AccountBalanceResponse
 import com.froilan.synectix.dto.CreateJournalEntryRequest
 import com.froilan.synectix.dto.TrialBalanceResponse
 import com.froilan.synectix.model.AccountType
+import com.froilan.synectix.model.FiscalPeriodStatus
 import com.froilan.synectix.model.JournalEntry
 import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.model.JournalEntrySource
 import com.froilan.synectix.model.JournalEntryStatus
-import com.froilan.synectix.model.FiscalPeriodStatus
 import com.froilan.synectix.repository.AccountRepository
 import com.froilan.synectix.repository.JournalEntryRepository
 import org.springframework.dao.DuplicateKeyException

@@ -49,13 +49,14 @@ class FiscalYearService(
 
         val periods = generateMonthlyPeriods(request.startDate, request.endDate)
 
-        val fiscalYear = FiscalYear(
-            name = request.name,
-            startDate = request.startDate,
-            endDate = request.endDate,
-            organizationId = organizationId,
-            periods = periods,
-        )
+        val fiscalYear =
+            FiscalYear(
+                name = request.name,
+                startDate = request.startDate,
+                endDate = request.endDate,
+                organizationId = organizationId,
+                periods = periods,
+            )
 
         return try {
             fiscalYearRepository.save(fiscalYear)
@@ -71,8 +72,7 @@ class FiscalYearService(
         organizationId: String,
     ): FiscalYear = findFiscalYear(fiscalYearId, organizationId)
 
-    fun listFiscalYears(organizationId: String): List<FiscalYear> =
-        fiscalYearRepository.findByOrganizationId(organizationId)
+    fun listFiscalYears(organizationId: String): List<FiscalYear> = fiscalYearRepository.findByOrganizationId(organizationId)
 
     @Transactional
     fun closePeriod(
@@ -97,19 +97,21 @@ class FiscalYearService(
             throw IllegalArgumentException("Fiscal period is already closed")
         }
 
-        val precedingOpen = fiscalYear.periods
-            .take(periodIndex)
-            .any { it.status != FiscalPeriodStatus.CLOSED }
+        val precedingOpen =
+            fiscalYear.periods
+                .take(periodIndex)
+                .any { it.status != FiscalPeriodStatus.CLOSED }
         if (precedingOpen) {
             throw IllegalArgumentException("All preceding periods must be closed first")
         }
 
         val updatedPeriods = fiscalYear.periods.toMutableList()
-        updatedPeriods[periodIndex] = period.copy(
-            status = FiscalPeriodStatus.CLOSED,
-            closedAt = LocalDateTime.now(),
-            closedBy = closedBy,
-        )
+        updatedPeriods[periodIndex] =
+            period.copy(
+                status = FiscalPeriodStatus.CLOSED,
+                closedAt = LocalDateTime.now(),
+                closedBy = closedBy,
+            )
 
         return fiscalYearRepository.save(
             fiscalYear.copy(periods = updatedPeriods),
@@ -139,19 +141,21 @@ class FiscalYearService(
             throw IllegalArgumentException("Only closed periods can be reopened")
         }
 
-        val subsequentOpen = fiscalYear.periods
-            .drop(periodIndex + 1)
-            .any { it.status != FiscalPeriodStatus.CLOSED }
+        val subsequentOpen =
+            fiscalYear.periods
+                .drop(periodIndex + 1)
+                .any { it.status != FiscalPeriodStatus.CLOSED }
         if (subsequentOpen) {
             throw IllegalArgumentException("All subsequent periods must be closed first")
         }
 
         val updatedPeriods = fiscalYear.periods.toMutableList()
-        updatedPeriods[periodIndex] = period.copy(
-            status = FiscalPeriodStatus.REOPENED,
-            reopenedAt = LocalDateTime.now(),
-            reopenedBy = reopenedBy,
-        )
+        updatedPeriods[periodIndex] =
+            period.copy(
+                status = FiscalPeriodStatus.REOPENED,
+                reopenedAt = LocalDateTime.now(),
+                reopenedBy = reopenedBy,
+            )
 
         return fiscalYearRepository.save(
             fiscalYear.copy(periods = updatedPeriods),
@@ -191,10 +195,11 @@ class FiscalYearService(
         organizationId: String,
         date: LocalDate,
     ): FiscalPeriod? {
-        val activeFiscalYears = fiscalYearRepository.findByOrganizationIdAndStatus(
-            organizationId,
-            FiscalYearStatus.ACTIVE,
-        )
+        val activeFiscalYears =
+            fiscalYearRepository.findByOrganizationIdAndStatus(
+                organizationId,
+                FiscalYearStatus.ACTIVE,
+            )
         if (activeFiscalYears.isEmpty()) return null
 
         for (fy in activeFiscalYears) {
@@ -208,36 +213,41 @@ class FiscalYearService(
     }
 
     fun hasActiveFiscalYear(organizationId: String): Boolean =
-        fiscalYearRepository.findByOrganizationIdAndStatus(
-            organizationId,
-            FiscalYearStatus.ACTIVE,
-        ).isNotEmpty()
+        fiscalYearRepository
+            .findByOrganizationIdAndStatus(
+                organizationId,
+                FiscalYearStatus.ACTIVE,
+            ).isNotEmpty()
 
     private fun createClosingEntry(
         fiscalYear: FiscalYear,
         organizationId: String,
         closedBy: String,
     ): JournalEntry? {
-        val entries = journalEntryRepository.findByOrganizationIdAndStatusAndDateBetween(
-            organizationId,
-            JournalEntryStatus.POSTED,
-            fiscalYear.startDate,
-            fiscalYear.endDate,
-        )
+        val entries =
+            journalEntryRepository.findByOrganizationIdAndStatusAndDateBetween(
+                organizationId,
+                JournalEntryStatus.POSTED,
+                fiscalYear.startDate,
+                fiscalYear.endDate,
+            )
 
         val accountTotals = mutableMapOf<String, Pair<BigDecimal, BigDecimal>>()
         entries.forEach { entry ->
             entry.lines.forEach { line ->
-                val (debits, credits) = accountTotals.getOrDefault(
-                    line.accountId,
-                    BigDecimal.ZERO to BigDecimal.ZERO,
-                )
+                val (debits, credits) =
+                    accountTotals.getOrDefault(
+                        line.accountId,
+                        BigDecimal.ZERO to BigDecimal.ZERO,
+                    )
                 accountTotals[line.accountId] = debits.add(line.debit) to credits.add(line.credit)
             }
         }
 
-        val accounts = accountRepository.findByOrganizationIdAndIsActive(organizationId, true)
-            .associateBy { it.id }
+        val accounts =
+            accountRepository
+                .findByOrganizationIdAndIsActive(organizationId, true)
+                .associateBy { it.id }
 
         val closingLines = mutableListOf<JournalEntryLine>()
 
@@ -282,20 +292,22 @@ class FiscalYearService(
 
         val totalClosingDebits = closingLines.fold(BigDecimal.ZERO) { sum, l -> sum.add(l.debit) }
         val totalClosingCredits = closingLines.fold(BigDecimal.ZERO) { sum, l -> sum.add(l.credit) }
-        val netIncome = totalClosingCredits.subtract(totalClosingDebits)
+        val difference = totalClosingDebits.subtract(totalClosingCredits)
 
-        val retainedEarnings = accountRepository.findByOrganizationIdAndCode(organizationId, "3100")
-            .orElseThrow {
-                IllegalStateException("Retained Earnings account (3100) not found")
-            }
+        val retainedEarnings =
+            accountRepository
+                .findByOrganizationIdAndCode(organizationId, "3100")
+                .orElseThrow {
+                    IllegalStateException("Retained Earnings account (3100) not found")
+                }
 
         closingLines.add(
             JournalEntryLine(
                 accountId = retainedEarnings.id,
                 accountCode = retainedEarnings.code,
                 accountName = retainedEarnings.name,
-                debit = if (netIncome < BigDecimal.ZERO) netIncome.negate() else BigDecimal.ZERO,
-                credit = if (netIncome > BigDecimal.ZERO) netIncome else BigDecimal.ZERO,
+                debit = if (difference < BigDecimal.ZERO) difference.negate() else BigDecimal.ZERO,
+                credit = if (difference > BigDecimal.ZERO) difference else BigDecimal.ZERO,
             ),
         )
 
@@ -367,9 +379,10 @@ class FiscalYearService(
         fiscalYearId: String,
         organizationId: String,
     ): FiscalYear {
-        val fiscalYear = fiscalYearRepository.findById(fiscalYearId).orElseThrow {
-            IllegalArgumentException("Fiscal year not found")
-        }
+        val fiscalYear =
+            fiscalYearRepository.findById(fiscalYearId).orElseThrow {
+                IllegalArgumentException("Fiscal year not found")
+            }
         if (fiscalYear.organizationId != organizationId) {
             throw IllegalArgumentException("Fiscal year not found")
         }

@@ -4,12 +4,12 @@ import com.froilan.synectix.dto.CreateJournalEntryRequest
 import com.froilan.synectix.dto.JournalEntryLineRequest
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
+import com.froilan.synectix.model.FiscalPeriod
+import com.froilan.synectix.model.FiscalPeriodStatus
 import com.froilan.synectix.model.JournalEntry
 import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.model.JournalEntrySource
 import com.froilan.synectix.model.JournalEntryStatus
-import com.froilan.synectix.model.FiscalPeriod
-import com.froilan.synectix.model.FiscalPeriodStatus
 import com.froilan.synectix.repository.AccountRepository
 import com.froilan.synectix.repository.JournalEntryRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -568,20 +568,22 @@ class JournalEntryServiceTest {
 
     @Test
     fun `create should succeed when no fiscal year exists`() {
-        val cashAccount = createMockAccount(
-            id = "acc-1",
-            code = "1000",
-            name = "Cash",
-            type = AccountType.ASSET,
-            orgId = orgId,
-        )
-        val revenueAccount = createMockAccount(
-            id = "acc-2",
-            code = "4000",
-            name = "Revenue",
-            type = AccountType.REVENUE,
-            orgId = orgId,
-        )
+        val cashAccount =
+            createMockAccount(
+                id = "acc-1",
+                code = "1000",
+                name = "Cash",
+                type = AccountType.ASSET,
+                orgId = orgId,
+            )
+        val revenueAccount =
+            createMockAccount(
+                id = "acc-2",
+                code = "4000",
+                name = "Revenue",
+                type = AccountType.REVENUE,
+                orgId = orgId,
+            )
 
         `when`(accountRepository.findAllById(listOf("acc-1", "acc-2")))
             .thenReturn(listOf(cashAccount, revenueAccount))
@@ -589,22 +591,24 @@ class JournalEntryServiceTest {
         `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
         `when`(fiscalYearService.hasActiveFiscalYear(orgId)).thenReturn(false)
 
-        val request = CreateJournalEntryRequest(
-            date = LocalDate.of(2026, 1, 15),
-            description = "Test entry",
-            lines = listOf(
-                JournalEntryLineRequest(
-                    accountId = "acc-1",
-                    debit = BigDecimal("100.00"),
-                    credit = BigDecimal.ZERO,
-                ),
-                JournalEntryLineRequest(
-                    accountId = "acc-2",
-                    debit = BigDecimal.ZERO,
-                    credit = BigDecimal("100.00"),
-                ),
-            ),
-        )
+        val request =
+            CreateJournalEntryRequest(
+                date = LocalDate.of(2026, 1, 15),
+                description = "Test entry",
+                lines =
+                    listOf(
+                        JournalEntryLineRequest(
+                            accountId = "acc-1",
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
+                        JournalEntryLineRequest(
+                            accountId = "acc-2",
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal("100.00"),
+                        ),
+                    ),
+            )
 
         val result = journalEntryService.createJournalEntry(request, orgId, createdBy)
         assertThat(result.status).isEqualTo(JournalEntryStatus.DRAFT)
@@ -612,20 +616,22 @@ class JournalEntryServiceTest {
 
     @Test
     fun `create should reject when fiscal period is closed`() {
-        val cashAccount = createMockAccount(
-            id = "acc-1",
-            code = "1000",
-            name = "Cash",
-            type = AccountType.ASSET,
-            orgId = orgId,
-        )
-        val revenueAccount = createMockAccount(
-            id = "acc-2",
-            code = "4000",
-            name = "Revenue",
-            type = AccountType.REVENUE,
-            orgId = orgId,
-        )
+        val cashAccount =
+            createMockAccount(
+                id = "acc-1",
+                code = "1000",
+                name = "Cash",
+                type = AccountType.ASSET,
+                orgId = orgId,
+            )
+        val revenueAccount =
+            createMockAccount(
+                id = "acc-2",
+                code = "4000",
+                name = "Revenue",
+                type = AccountType.REVENUE,
+                orgId = orgId,
+            )
 
         `when`(accountRepository.findAllById(listOf("acc-1", "acc-2")))
             .thenReturn(listOf(cashAccount, revenueAccount))
@@ -633,52 +639,58 @@ class JournalEntryServiceTest {
         `when`(fiscalYearService.findOpenPeriodForDate(orgId, LocalDate.of(2026, 1, 15)))
             .thenReturn(null)
 
-        val request = CreateJournalEntryRequest(
-            date = LocalDate.of(2026, 1, 15),
-            description = "Test entry",
-            lines = listOf(
-                JournalEntryLineRequest(
-                    accountId = "acc-1",
-                    debit = BigDecimal("100.00"),
-                    credit = BigDecimal.ZERO,
-                ),
-                JournalEntryLineRequest(
-                    accountId = "acc-2",
-                    debit = BigDecimal.ZERO,
-                    credit = BigDecimal("100.00"),
-                ),
-            ),
-        )
+        val request =
+            CreateJournalEntryRequest(
+                date = LocalDate.of(2026, 1, 15),
+                description = "Test entry",
+                lines =
+                    listOf(
+                        JournalEntryLineRequest(
+                            accountId = "acc-1",
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
+                        JournalEntryLineRequest(
+                            accountId = "acc-2",
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal("100.00"),
+                        ),
+                    ),
+            )
 
-        val exception = assertThrows<IllegalArgumentException> {
-            journalEntryService.createJournalEntry(request, orgId, createdBy)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                journalEntryService.createJournalEntry(request, orgId, createdBy)
+            }
         assertThat(exception.message).contains("No open fiscal period")
     }
 
     @Test
     fun `create should succeed when fiscal period is open`() {
-        val cashAccount = createMockAccount(
-            id = "acc-1",
-            code = "1000",
-            name = "Cash",
-            type = AccountType.ASSET,
-            orgId = orgId,
-        )
-        val revenueAccount = createMockAccount(
-            id = "acc-2",
-            code = "4000",
-            name = "Revenue",
-            type = AccountType.REVENUE,
-            orgId = orgId,
-        )
-        val openPeriod = FiscalPeriod(
-            periodNumber = 1,
-            name = "January 2026",
-            startDate = LocalDate.of(2026, 1, 1),
-            endDate = LocalDate.of(2026, 1, 31),
-            status = FiscalPeriodStatus.OPEN,
-        )
+        val cashAccount =
+            createMockAccount(
+                id = "acc-1",
+                code = "1000",
+                name = "Cash",
+                type = AccountType.ASSET,
+                orgId = orgId,
+            )
+        val revenueAccount =
+            createMockAccount(
+                id = "acc-2",
+                code = "4000",
+                name = "Revenue",
+                type = AccountType.REVENUE,
+                orgId = orgId,
+            )
+        val openPeriod =
+            FiscalPeriod(
+                periodNumber = 1,
+                name = "January 2026",
+                startDate = LocalDate.of(2026, 1, 1),
+                endDate = LocalDate.of(2026, 1, 31),
+                status = FiscalPeriodStatus.OPEN,
+            )
 
         `when`(accountRepository.findAllById(listOf("acc-1", "acc-2")))
             .thenReturn(listOf(cashAccount, revenueAccount))
@@ -688,22 +700,24 @@ class JournalEntryServiceTest {
         `when`(fiscalYearService.findOpenPeriodForDate(orgId, LocalDate.of(2026, 1, 15)))
             .thenReturn(openPeriod)
 
-        val request = CreateJournalEntryRequest(
-            date = LocalDate.of(2026, 1, 15),
-            description = "Test entry",
-            lines = listOf(
-                JournalEntryLineRequest(
-                    accountId = "acc-1",
-                    debit = BigDecimal("100.00"),
-                    credit = BigDecimal.ZERO,
-                ),
-                JournalEntryLineRequest(
-                    accountId = "acc-2",
-                    debit = BigDecimal.ZERO,
-                    credit = BigDecimal("100.00"),
-                ),
-            ),
-        )
+        val request =
+            CreateJournalEntryRequest(
+                date = LocalDate.of(2026, 1, 15),
+                description = "Test entry",
+                lines =
+                    listOf(
+                        JournalEntryLineRequest(
+                            accountId = "acc-1",
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
+                        JournalEntryLineRequest(
+                            accountId = "acc-2",
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal("100.00"),
+                        ),
+                    ),
+            )
 
         val result = journalEntryService.createJournalEntry(request, orgId, createdBy)
         assertThat(result.status).isEqualTo(JournalEntryStatus.DRAFT)
@@ -711,28 +725,30 @@ class JournalEntryServiceTest {
 
     @Test
     fun `post should reject when fiscal period is closed`() {
-        val entry = createMockEntry(
-            id = "entry-1",
-            entryNumber = "JE-0001",
-            status = JournalEntryStatus.DRAFT,
-            lines = listOf(
-                JournalEntryLine(
-                    accountId = "acc-1",
-                    accountCode = "1000",
-                    accountName = "Cash",
-                    debit = BigDecimal("100.00"),
-                    credit = BigDecimal.ZERO,
-                ),
-                JournalEntryLine(
-                    accountId = "acc-2",
-                    accountCode = "4000",
-                    accountName = "Revenue",
-                    debit = BigDecimal.ZERO,
-                    credit = BigDecimal("100.00"),
-                ),
-            ),
-            orgId = orgId,
-        )
+        val entry =
+            createMockEntry(
+                id = "entry-1",
+                entryNumber = "JE-0001",
+                status = JournalEntryStatus.DRAFT,
+                lines =
+                    listOf(
+                        JournalEntryLine(
+                            accountId = "acc-1",
+                            accountCode = "1000",
+                            accountName = "Cash",
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
+                        JournalEntryLine(
+                            accountId = "acc-2",
+                            accountCode = "4000",
+                            accountName = "Revenue",
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal("100.00"),
+                        ),
+                    ),
+                orgId = orgId,
+            )
 
         `when`(journalEntryRepository.findById("entry-1")).thenReturn(Optional.of(entry))
         `when`(fiscalYearService.hasActiveFiscalYear(orgId)).thenReturn(true)
@@ -740,9 +756,10 @@ class JournalEntryServiceTest {
             fiscalYearService.findOpenPeriodForDate(orgId, LocalDate.of(2026, 1, 15)),
         ).thenReturn(null)
 
-        val exception = assertThrows<IllegalArgumentException> {
-            journalEntryService.postJournalEntry("entry-1", orgId)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                journalEntryService.postJournalEntry("entry-1", orgId)
+            }
         assertThat(exception.message).contains("No open fiscal period")
     }
 
