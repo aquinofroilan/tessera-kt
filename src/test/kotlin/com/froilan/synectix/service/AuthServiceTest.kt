@@ -123,6 +123,7 @@ class AuthServiceTest {
         assertThat(userCaptor.firstValue.passwordHash).isEqualTo(encodedPassword)
         assertThat(userCaptor.firstValue.organizationId).isEqualTo(savedOrg.uuid)
         assertThat(userCaptor.firstValue.roleAssignments).isEqualTo(listOf(RoleAssignment("OWNER", savedOrg.uuid)))
+        verify(accountService).seedDefaultAccounts(savedOrg.uuid)
     }
 
     @Test
@@ -168,6 +169,7 @@ class AuthServiceTest {
                 authService.register(request)
             }
         assertThat(exception.message).isEqualTo("Organization slug already exists")
+        verify(accountService, never()).seedDefaultAccounts(any())
     }
 
     @Test
