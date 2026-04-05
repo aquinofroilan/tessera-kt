@@ -635,9 +635,18 @@ class JournalEntryServiceTest {
 
         `when`(accountRepository.findAllById(listOf("acc-1", "acc-2")))
             .thenReturn(listOf(cashAccount, revenueAccount))
+        val closedPeriod =
+            FiscalPeriod(
+                periodNumber = 1,
+                name = "January 2026",
+                startDate = LocalDate.of(2026, 1, 1),
+                endDate = LocalDate.of(2026, 1, 31),
+                status = FiscalPeriodStatus.CLOSED,
+            )
+
         `when`(fiscalYearService.hasActiveFiscalYear(orgId)).thenReturn(true)
-        `when`(fiscalYearService.findOpenPeriodForDate(orgId, LocalDate.of(2026, 1, 15)))
-            .thenReturn(null)
+        `when`(fiscalYearService.findPeriodForDate(orgId, LocalDate.of(2026, 1, 15)))
+            .thenReturn(closedPeriod)
 
         val request =
             CreateJournalEntryRequest(
@@ -662,7 +671,7 @@ class JournalEntryServiceTest {
             assertThrows<IllegalArgumentException> {
                 journalEntryService.createJournalEntry(request, orgId, createdBy)
             }
-        assertThat(exception.message).contains("No open fiscal period")
+        assertThat(exception.message).contains("closed")
     }
 
     @Test
@@ -697,7 +706,7 @@ class JournalEntryServiceTest {
         `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(0L)
         `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
         `when`(fiscalYearService.hasActiveFiscalYear(orgId)).thenReturn(true)
-        `when`(fiscalYearService.findOpenPeriodForDate(orgId, LocalDate.of(2026, 1, 15)))
+        `when`(fiscalYearService.findPeriodForDate(orgId, LocalDate.of(2026, 1, 15)))
             .thenReturn(openPeriod)
 
         val request =
@@ -750,17 +759,26 @@ class JournalEntryServiceTest {
                 orgId = orgId,
             )
 
+        val closedPeriod =
+            FiscalPeriod(
+                periodNumber = 1,
+                name = "January 2026",
+                startDate = LocalDate.of(2026, 1, 1),
+                endDate = LocalDate.of(2026, 1, 31),
+                status = FiscalPeriodStatus.CLOSED,
+            )
+
         `when`(journalEntryRepository.findById("entry-1")).thenReturn(Optional.of(entry))
         `when`(fiscalYearService.hasActiveFiscalYear(orgId)).thenReturn(true)
         `when`(
-            fiscalYearService.findOpenPeriodForDate(orgId, LocalDate.of(2026, 1, 15)),
-        ).thenReturn(null)
+            fiscalYearService.findPeriodForDate(orgId, LocalDate.of(2026, 1, 15)),
+        ).thenReturn(closedPeriod)
 
         val exception =
             assertThrows<IllegalArgumentException> {
                 journalEntryService.postJournalEntry("entry-1", orgId)
             }
-        assertThat(exception.message).contains("No open fiscal period")
+        assertThat(exception.message).contains("closed")
     }
 
     private fun createMockAccount(

@@ -329,10 +329,10 @@ class JournalEntryService(
     ) {
         if (!fiscalYearService.hasActiveFiscalYear(organizationId)) return
 
-        val period = fiscalYearService.findOpenPeriodForDate(organizationId, date)
-        if (period == null) {
-            throw IllegalArgumentException("No open fiscal period covers the date $date")
-        }
+        val period =
+            fiscalYearService.findPeriodForDate(organizationId, date)
+                ?: throw IllegalArgumentException("No fiscal period covers the date $date")
+
         if (period.status == FiscalPeriodStatus.CLOSED) {
             throw IllegalArgumentException("Fiscal period '${period.name}' is closed")
         }

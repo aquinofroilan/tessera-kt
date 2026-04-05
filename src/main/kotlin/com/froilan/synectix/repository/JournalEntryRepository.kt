@@ -62,4 +62,9 @@ interface JournalEntryRepository : MongoRepository<JournalEntry, String> {
     ): List<JournalEntry>
 
     fun countByOrganizationId(organizationId: String): Long
+
+    fun existsByOrganizationIdAndSourceReference(
+        organizationId: String,
+        sourceReference: String,
+    ): Boolean
 }

@@ -115,11 +115,36 @@ class FiscalYearServiceTest {
     }
 
     @Test
+    fun `create should reject if active fiscal year already exists`() {
+        val existing =
+            createFiscalYear(
+                startDate = LocalDate.of(2026, 1, 1),
+                endDate = LocalDate.of(2026, 12, 31),
+                status = FiscalYearStatus.ACTIVE,
+            )
+        `when`(fiscalYearRepository.findByOrganizationId(orgId)).thenReturn(listOf(existing))
+
+        val request =
+            CreateFiscalYearRequest(
+                name = "FY 2027",
+                startDate = LocalDate.of(2027, 1, 1),
+                endDate = LocalDate.of(2027, 12, 31),
+            )
+
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                fiscalYearService.createFiscalYear(request, orgId)
+            }
+        assertThat(exception.message).contains("active fiscal year")
+    }
+
+    @Test
     fun `create should reject if dates overlap existing fiscal year`() {
         val existing =
             createFiscalYear(
                 startDate = LocalDate.of(2026, 1, 1),
                 endDate = LocalDate.of(2026, 12, 31),
+                status = FiscalYearStatus.CLOSED,
             )
         `when`(fiscalYearRepository.findByOrganizationId(orgId)).thenReturn(listOf(existing))
 
@@ -298,6 +323,8 @@ class FiscalYearServiceTest {
         val fiscalYear = createFiscalYear(periods = periods)
         `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
         `when`(fiscalYearRepository.save(any<FiscalYear>())).thenAnswer { it.arguments[0] }
+        `when`(journalEntryRepository.existsByOrganizationIdAndSourceReference(orgId, "YEAR-END-CLOSE-fy-1"))
+            .thenReturn(false)
 
         val revenueAccount =
             Account(
@@ -389,7 +416,7 @@ class FiscalYearServiceTest {
             ),
         ).thenReturn(entries)
 
-        `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
+        `when`(accountRepository.findAllById(any<Iterable<String>>()))
             .thenReturn(listOf(revenueAccount, expenseAccount, retainedEarnings))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "3100"))
             .thenReturn(Optional.of(retainedEarnings))
@@ -435,6 +462,8 @@ class FiscalYearServiceTest {
         val fiscalYear = createFiscalYear(periods = periods)
         `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
         `when`(fiscalYearRepository.save(any<FiscalYear>())).thenAnswer { it.arguments[0] }
+        `when`(journalEntryRepository.existsByOrganizationIdAndSourceReference(orgId, "YEAR-END-CLOSE-fy-1"))
+            .thenReturn(false)
 
         val expenseAccount =
             Account(
@@ -492,7 +521,7 @@ class FiscalYearServiceTest {
             ),
         ).thenReturn(entries)
 
-        `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
+        `when`(accountRepository.findAllById(any<Iterable<String>>()))
             .thenReturn(listOf(expenseAccount, retainedEarnings))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "3100"))
             .thenReturn(Optional.of(retainedEarnings))
@@ -524,6 +553,8 @@ class FiscalYearServiceTest {
         val fiscalYear = createFiscalYear(periods = periods)
         `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
         `when`(fiscalYearRepository.save(any<FiscalYear>())).thenAnswer { it.arguments[0] }
+        `when`(journalEntryRepository.existsByOrganizationIdAndSourceReference(orgId, "YEAR-END-CLOSE-fy-1"))
+            .thenReturn(false)
 
         `when`(
             journalEntryRepository.findByOrganizationIdAndStatusAndDateBetween(
@@ -534,7 +565,7 @@ class FiscalYearServiceTest {
             ),
         ).thenReturn(emptyList())
 
-        `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
+        `when`(accountRepository.findAllById(any<Iterable<String>>()))
             .thenReturn(emptyList())
 
         val result = fiscalYearService.closeYear("fy-1", orgId, userId)
@@ -545,7 +576,7 @@ class FiscalYearServiceTest {
     }
 
     @Test
-    fun `findOpenPeriodForDate should return matching open period`() {
+    fun `findPeriodForDate should return matching open period`() {
         val fiscalYear = createFiscalYear()
         `when`(
             fiscalYearRepository.findByOrganizationIdAndStatus(
@@ -555,7 +586,7 @@ class FiscalYearServiceTest {
         ).thenReturn(listOf(fiscalYear))
 
         val result =
-            fiscalYearService.findOpenPeriodForDate(
+            fiscalYearService.findPeriodForDate(
                 orgId,
                 LocalDate.of(2026, 1, 15),
             )
@@ -565,7 +596,7 @@ class FiscalYearServiceTest {
     }
 
     @Test
-    fun `findOpenPeriodForDate should return null when no fiscal year exists`() {
+    fun `findPeriodForDate should return null when no fiscal year exists`() {
         `when`(
             fiscalYearRepository.findByOrganizationIdAndStatus(
                 orgId,
@@ -574,7 +605,7 @@ class FiscalYearServiceTest {
         ).thenReturn(emptyList())
 
         val result =
-            fiscalYearService.findOpenPeriodForDate(
+            fiscalYearService.findPeriodForDate(
                 orgId,
                 LocalDate.of(2026, 1, 15),
             )
@@ -583,7 +614,7 @@ class FiscalYearServiceTest {
     }
 
     @Test
-    fun `findOpenPeriodForDate should return null when date is outside fiscal year`() {
+    fun `findPeriodForDate should return null when date is outside fiscal year`() {
         val fiscalYear = createFiscalYear()
         `when`(
             fiscalYearRepository.findByOrganizationIdAndStatus(
@@ -593,7 +624,7 @@ class FiscalYearServiceTest {
         ).thenReturn(listOf(fiscalYear))
 
         val result =
-            fiscalYearService.findOpenPeriodForDate(
+            fiscalYearService.findPeriodForDate(
                 orgId,
                 LocalDate.of(2025, 6, 15),
             )
@@ -602,7 +633,7 @@ class FiscalYearServiceTest {
     }
 
     @Test
-    fun `findOpenPeriodForDate should return reopened period`() {
+    fun `findPeriodForDate should return reopened period`() {
         val periods =
             listOf(
                 createPeriod(1, status = FiscalPeriodStatus.REOPENED),
@@ -616,7 +647,7 @@ class FiscalYearServiceTest {
         ).thenReturn(listOf(fiscalYear))
 
         val result =
-            fiscalYearService.findOpenPeriodForDate(
+            fiscalYearService.findPeriodForDate(
                 orgId,
                 LocalDate.of(2026, 1, 15),
             )

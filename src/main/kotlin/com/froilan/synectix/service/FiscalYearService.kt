@@ -39,8 +39,15 @@ class FiscalYearService(
 
         val existing = fiscalYearRepository.findByOrganizationId(organizationId)
 
+        val activeFiscalYear = existing.firstOrNull { it.status == FiscalYearStatus.ACTIVE }
+        if (activeFiscalYear != null) {
+            throw IllegalArgumentException(
+                "An active fiscal year '${activeFiscalYear.name}' already exists in this organization",
+            )
+        }
+
         existing.forEach { fy ->
-            if (request.startDate.isBefore(fy.endDate) && request.endDate.isAfter(fy.startDate)) {
+            if (!request.startDate.isAfter(fy.endDate) && !request.endDate.isBefore(fy.startDate)) {
                 throw IllegalArgumentException(
                     "Date range overlaps with existing fiscal year '${fy.name}'",
                 )
@@ -191,7 +198,7 @@ class FiscalYearService(
         )
     }
 
-    fun findOpenPeriodForDate(
+    fun findPeriodForDate(
         organizationId: String,
         date: LocalDate,
     ): FiscalPeriod? {
@@ -224,6 +231,11 @@ class FiscalYearService(
         organizationId: String,
         closedBy: String,
     ): JournalEntry? {
+        val sourceRef = "YEAR-END-CLOSE-${fiscalYear.id}"
+        if (journalEntryRepository.existsByOrganizationIdAndSourceReference(organizationId, sourceRef)) {
+            throw IllegalArgumentException("Year-end closing entry already exists for this fiscal year")
+        }
+
         val entries =
             journalEntryRepository.findByOrganizationIdAndStatusAndDateBetween(
                 organizationId,
@@ -246,7 +258,7 @@ class FiscalYearService(
 
         val accounts =
             accountRepository
-                .findByOrganizationIdAndIsActive(organizationId, true)
+                .findAllById(accountTotals.keys)
                 .associateBy { it.id }
 
         val closingLines = mutableListOf<JournalEntryLine>()
@@ -319,7 +331,7 @@ class FiscalYearService(
                 organizationId = organizationId,
                 status = JournalEntryStatus.POSTED,
                 source = JournalEntrySource.SYSTEM,
-                sourceReference = "YEAR-END-CLOSE-${fiscalYear.id}",
+                sourceReference = sourceRef,
                 lines = closingLines,
                 createdBy = closedBy,
                 postedAt = LocalDateTime.now(),
