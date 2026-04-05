@@ -41,6 +41,7 @@ class AuthServiceTest {
     private lateinit var sessionTokenRepository: SessionTokenRepository
     private lateinit var refreshTokenRepository: RefreshTokenRepository
     private lateinit var passwordResetTokenRepository: PasswordResetTokenRepository
+    private lateinit var accountService: AccountService
     private lateinit var mongoTemplate: MongoTemplate
     private lateinit var tokenHasher: TokenHasher
     private lateinit var passwordEncoder: PasswordEncoder
@@ -52,6 +53,7 @@ class AuthServiceTest {
         sessionTokenRepository = mock(SessionTokenRepository::class.java)
         refreshTokenRepository = mock(RefreshTokenRepository::class.java)
         passwordResetTokenRepository = mock(PasswordResetTokenRepository::class.java)
+        accountService = mock(AccountService::class.java)
         mongoTemplate = mock(MongoTemplate::class.java)
         tokenHasher = mock(TokenHasher::class.java)
         passwordEncoder = mock(PasswordEncoder::class.java)
@@ -66,6 +68,7 @@ class AuthServiceTest {
                 sessionTokenRepository = sessionTokenRepository,
                 refreshTokenRepository = refreshTokenRepository,
                 passwordResetTokenRepository = passwordResetTokenRepository,
+                accountService = accountService,
                 mongoTemplate = mongoTemplate,
                 tokenHasher = tokenHasher,
                 passwordEncoder = passwordEncoder,
