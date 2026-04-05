@@ -8,8 +8,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 
 class RolePermissionCacheTest {
     private lateinit var roleRepository: RoleRepository
@@ -47,13 +46,13 @@ class RolePermissionCacheTest {
     @Test
     fun `should return permissions for known role`() {
         val permissions = cache.getPermissions("OWNER")
-        assertEquals(setOf("session:read", "session:delete", "user:read"), permissions)
+        assertThat(permissions).isEqualTo(setOf("session:read", "session:delete", "user:read"))
     }
 
     @Test
     fun `should return empty set for unknown role`() {
         val permissions = cache.getPermissions("UNKNOWN")
-        assertTrue(permissions.isEmpty())
+        assertThat(permissions).isEmpty()
     }
 
     @Test
@@ -69,6 +68,6 @@ class RolePermissionCacheTest {
 
         cache.refresh()
 
-        assertEquals(setOf("session:read", "organization:read"), cache.getPermissions("VIEWER"))
+        assertThat(cache.getPermissions("VIEWER")).isEqualTo(setOf("session:read", "organization:read"))
     }
 }
