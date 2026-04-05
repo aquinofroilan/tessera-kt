@@ -10,6 +10,7 @@ import com.froilan.synectix.model.JournalEntrySource
 import com.froilan.synectix.model.JournalEntryStatus
 import com.froilan.synectix.repository.AccountRepository
 import com.froilan.synectix.repository.JournalEntryRepository
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -77,10 +78,7 @@ class JournalEntryService(
                 )
             }
 
-        val count = journalEntryRepository.countByOrganizationId(organizationId)
-        val entryNumber = "JE-${(count + 1).toString().padStart(4, '0')}"
-
-        val entry =
+        return saveWithRetry(organizationId) { entryNumber ->
             JournalEntry(
                 entryNumber = entryNumber,
                 date = request.date,
@@ -90,7 +88,7 @@ class JournalEntryService(
                 createdBy = createdBy,
                 sourceReference = request.sourceReference,
             )
-        return journalEntryRepository.save(entry)
+        }
     }
 
     @Transactional
@@ -142,10 +140,7 @@ class JournalEntryService(
                 line.copy(debit = line.credit, credit = line.debit)
             }
 
-        val count = journalEntryRepository.countByOrganizationId(organizationId)
-        val reversingNumber = "JE-${(count + 1).toString().padStart(4, '0')}"
-
-        journalEntryRepository.save(
+        saveWithRetry(organizationId) { reversingNumber ->
             JournalEntry(
                 entryNumber = reversingNumber,
                 date = LocalDate.now(),
@@ -157,8 +152,8 @@ class JournalEntryService(
                 lines = reversedLines,
                 createdBy = entry.createdBy,
                 postedAt = LocalDateTime.now(),
-            ),
-        )
+            )
+        }
 
         return voidedEntry
     }
@@ -316,5 +311,22 @@ class JournalEntryService(
             throw IllegalArgumentException("Journal entry not found")
         }
         return entry
+    }
+
+    private fun saveWithRetry(
+        organizationId: String,
+        maxRetries: Int = 3,
+        buildEntry: (String) -> JournalEntry,
+    ): JournalEntry {
+        repeat(maxRetries) {
+            val count = journalEntryRepository.countByOrganizationId(organizationId)
+            val entryNumber = "JE-${(count + 1).toString().padStart(4, '0')}"
+            try {
+                return journalEntryRepository.save(buildEntry(entryNumber))
+            } catch (e: DuplicateKeyException) {
+                if (it == maxRetries - 1) throw e
+            }
+        }
+        throw IllegalStateException("Failed to generate unique entry number")
     }
 }
