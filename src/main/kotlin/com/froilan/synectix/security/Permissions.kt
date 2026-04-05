@@ -16,4 +16,22 @@ object Permissions {
 
     const val INVITATION_READ = "invitation:read"
     const val INVITATION_WRITE = "invitation:write"
+
+    const val API_KEY_MANAGE = "apikey:manage"
+
+    val ALL_PERMISSIONS =
+        listOf(
+            SESSION_READ,
+            SESSION_DELETE,
+            USER_READ,
+            USER_WRITE,
+            USER_DELETE,
+            ORGANIZATION_READ,
+            ORGANIZATION_WRITE,
+            ORGANIZATION_DELETE,
+            ENVIRONMENT_READ,
+            INVITATION_READ,
+            INVITATION_WRITE,
+            API_KEY_MANAGE,
+        )
 }
