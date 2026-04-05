@@ -4,7 +4,6 @@ import com.froilan.synectix.model.ApiKey
 import com.froilan.synectix.repository.ApiKeyRepository
 import com.froilan.synectix.security.Permissions
 import com.froilan.synectix.util.TokenHasher
-import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
@@ -19,8 +18,6 @@ class ApiKeyService(
     private val mongoTemplate: MongoTemplate,
     private val tokenHasher: TokenHasher,
 ) {
-    private val log = LoggerFactory.getLogger(ApiKeyService::class.java)
-
     @Transactional
     fun createApiKey(
         name: String,
