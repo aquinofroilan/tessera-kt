@@ -127,7 +127,7 @@ class AccountService(
         if (account.isSystemAccount) {
             throw IllegalArgumentException("System accounts cannot be deleted")
         }
-        if (accountRepository.existsByOrganizationIdAndParentId(organizationId, accountId)) {
+        if (accountRepository.existsByOrganizationIdAndParentIdAndIsActive(organizationId, accountId, true)) {
             throw IllegalArgumentException("Cannot delete account with child accounts")
         }
         accountRepository.save(account.copy(isActive = false))
@@ -272,11 +272,12 @@ class AccountService(
                     isSystemAccount = true,
                 ),
             )
-        try {
-            accountRepository.saveAll(defaults)
-            log.info("Seeded {} default accounts for org: {}", defaults.size, organizationId)
-        } catch (e: DuplicateKeyException) {
-            log.info("Default accounts already exist for org: {}. Skipping.", organizationId)
+        val existing = accountRepository.findByOrganizationIdAndIsActive(organizationId, true)
+        if (existing.isNotEmpty()) {
+            log.info("Accounts already exist for org: {}. Skipping seed.", organizationId)
+            return
         }
+        accountRepository.saveAll(defaults)
+        log.info("Seeded {} default accounts for org: {}", defaults.size, organizationId)
     }
 }

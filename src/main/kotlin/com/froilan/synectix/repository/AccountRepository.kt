@@ -46,4 +46,10 @@ interface AccountRepository : MongoRepository<Account, String> {
         organizationId: String,
         parentId: String,
     ): Boolean
+
+    fun existsByOrganizationIdAndParentIdAndIsActive(
+        organizationId: String,
+        parentId: String,
+        isActive: Boolean,
+    ): Boolean
 }

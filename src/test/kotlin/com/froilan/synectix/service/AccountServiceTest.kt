@@ -298,7 +298,7 @@ class AccountServiceTest {
     fun `deleteAccount should soft delete account`() {
         val account = createMockAccount(id = "acc-1", isSystemAccount = false)
         `when`(accountRepository.findById("acc-1")).thenReturn(Optional.of(account))
-        `when`(accountRepository.existsByOrganizationIdAndParentId("org-123", "acc-1")).thenReturn(false)
+        `when`(accountRepository.existsByOrganizationIdAndParentIdAndIsActive("org-123", "acc-1", true)).thenReturn(false)
         `when`(accountRepository.save(any<Account>())).thenAnswer { it.arguments[0] }
 
         accountService.deleteAccount("acc-1", "org-123")
@@ -325,7 +325,7 @@ class AccountServiceTest {
     fun `deleteAccount should throw when has children`() {
         val account = createMockAccount(id = "acc-1", isSystemAccount = false)
         `when`(accountRepository.findById("acc-1")).thenReturn(Optional.of(account))
-        `when`(accountRepository.existsByOrganizationIdAndParentId("org-123", "acc-1")).thenReturn(true)
+        `when`(accountRepository.existsByOrganizationIdAndParentIdAndIsActive("org-123", "acc-1", true)).thenReturn(true)
 
         val exception =
             assertThrows<IllegalArgumentException> {
