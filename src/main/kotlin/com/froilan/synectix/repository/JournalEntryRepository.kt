@@ -34,5 +34,21 @@ interface JournalEntryRepository : MongoRepository<JournalEntry, String> {
         date: LocalDate,
     ): List<JournalEntry>
 
+    fun findByOrganizationIdAndDateGreaterThanEqual(
+        organizationId: String,
+        date: LocalDate,
+    ): List<JournalEntry>
+
+    fun findByOrganizationIdAndDateLessThanEqual(
+        organizationId: String,
+        date: LocalDate,
+    ): List<JournalEntry>
+
+    fun findByOrganizationIdAndStatusAndDateGreaterThanEqual(
+        organizationId: String,
+        status: JournalEntryStatus,
+        date: LocalDate,
+    ): List<JournalEntry>
+
     fun countByOrganizationId(organizationId: String): Long
 }

@@ -171,16 +171,19 @@ class JournalEntryService(
     ): List<JournalEntry> =
         when {
             status != null && startDate != null && endDate != null ->
-                journalEntryRepository.findByOrganizationIdAndStatusAndDateBetween(
-                    organizationId,
-                    status,
-                    startDate,
-                    endDate,
-                )
+                journalEntryRepository.findByOrganizationIdAndStatusAndDateBetween(organizationId, status, startDate, endDate)
+            status != null && startDate != null ->
+                journalEntryRepository.findByOrganizationIdAndStatusAndDateGreaterThanEqual(organizationId, status, startDate)
+            status != null && endDate != null ->
+                journalEntryRepository.findByOrganizationIdAndStatusAndDateLessThanEqual(organizationId, status, endDate)
             status != null ->
                 journalEntryRepository.findByOrganizationIdAndStatus(organizationId, status)
             startDate != null && endDate != null ->
                 journalEntryRepository.findByOrganizationIdAndDateBetween(organizationId, startDate, endDate)
+            startDate != null ->
+                journalEntryRepository.findByOrganizationIdAndDateGreaterThanEqual(organizationId, startDate)
+            endDate != null ->
+                journalEntryRepository.findByOrganizationIdAndDateLessThanEqual(organizationId, endDate)
             else ->
                 journalEntryRepository.findByOrganizationId(organizationId)
         }
