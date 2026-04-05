@@ -272,9 +272,8 @@ class AccountService(
                     isSystemAccount = true,
                 ),
             )
-        val existing = accountRepository.findByOrganizationIdAndIsActive(organizationId, true)
-        if (existing.isNotEmpty()) {
-            log.info("Accounts already exist for org: {}. Skipping seed.", organizationId)
+        if (accountRepository.existsByOrganizationIdAndCode(organizationId, "1000")) {
+            log.info("Default accounts already exist for org: {}. Skipping seed.", organizationId)
             return
         }
         accountRepository.saveAll(defaults)
