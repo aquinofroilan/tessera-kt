@@ -16,8 +16,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.times
 import org.springframework.boot.ApplicationArguments
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import org.assertj.core.api.Assertions.assertThat
 
 class RoleSeederTest {
     private lateinit var roleRepository: RoleRepository
@@ -42,7 +41,7 @@ class RoleSeederTest {
         verify(roleRepository, times(5)).save(captor.capture())
 
         val seededNames = captor.allValues.map { it.name }.toSet()
-        assertEquals(setOf("SUPER_ADMIN", "OWNER", "ADMIN", "MEMBER", "VIEWER"), seededNames)
+        assertThat(seededNames).isEqualTo(setOf("SUPER_ADMIN", "OWNER", "ADMIN", "MEMBER", "VIEWER"))
     }
 
     @Test
@@ -76,7 +75,7 @@ class RoleSeederTest {
 
         val captor = argumentCaptor<Role>()
         verify(roleRepository, times(4)).save(captor.capture())
-        assertTrue(captor.allValues.none { it.name == "OWNER" })
+        assertThat(captor.allValues).noneMatch { it.name == "OWNER" }
     }
 
     @Test
@@ -98,8 +97,8 @@ class RoleSeederTest {
         verify(roleRepository, times(5)).save(captor.capture())
 
         val updatedMember = captor.allValues.first { it.name == "MEMBER" }
-        assertTrue(updatedMember.permissions.contains(Permissions.SESSION_READ))
-        assertTrue(updatedMember.permissions.contains(Permissions.ORGANIZATION_READ))
+        assertThat(updatedMember.permissions).contains(Permissions.SESSION_READ)
+        assertThat(updatedMember.permissions).contains(Permissions.ORGANIZATION_READ)
     }
 
     @Test
@@ -135,9 +134,9 @@ class RoleSeederTest {
         verify(roleRepository, times(5)).save(captor.capture())
 
         val updatedOwner = captor.allValues.first { it.name == "OWNER" }
-        assertEquals("Organization owner with full org-level access", updatedOwner.description)
-        assertEquals(RoleLevel.ORGANIZATION, updatedOwner.level)
-        assertTrue(updatedOwner.isDefault)
+        assertThat(updatedOwner.description).isEqualTo("Organization owner with full org-level access")
+        assertThat(updatedOwner.level).isEqualTo(RoleLevel.ORGANIZATION)
+        assertThat(updatedOwner.isDefault).isTrue()
     }
 
     @Test
@@ -151,8 +150,8 @@ class RoleSeederTest {
         verify(roleRepository, times(5)).save(captor.capture())
 
         val superAdmin = captor.allValues.first { it.name == "SUPER_ADMIN" }
-        assertEquals(RoleLevel.SYSTEM, superAdmin.level)
-        assertTrue(superAdmin.permissions.isEmpty())
+        assertThat(superAdmin.level).isEqualTo(RoleLevel.SYSTEM)
+        assertThat(superAdmin.permissions).isEmpty()
     }
 
     @Test
@@ -166,7 +165,7 @@ class RoleSeederTest {
         verify(roleRepository, times(5)).save(captor.capture())
 
         val orgRoles = captor.allValues.filter { it.name in setOf("OWNER", "ADMIN", "MEMBER", "VIEWER") }
-        assertTrue(orgRoles.all { it.level == RoleLevel.ORGANIZATION })
+        assertThat(orgRoles).allMatch { it.level == RoleLevel.ORGANIZATION }
     }
 
     @Test
