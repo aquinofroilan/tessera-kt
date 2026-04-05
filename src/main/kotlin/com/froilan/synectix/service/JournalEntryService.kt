@@ -32,6 +32,9 @@ class JournalEntryService(
         }
 
         request.lines.forEach { line ->
+            if (line.debit.compareTo(BigDecimal.ZERO) < 0 || line.credit.compareTo(BigDecimal.ZERO) < 0) {
+                throw IllegalArgumentException("Debit and credit amounts must not be negative")
+            }
             val hasDebit = line.debit.compareTo(BigDecimal.ZERO) > 0
             val hasCredit = line.credit.compareTo(BigDecimal.ZERO) > 0
             if (hasDebit && hasCredit) {
@@ -39,9 +42,6 @@ class JournalEntryService(
             }
             if (!hasDebit && !hasCredit) {
                 throw IllegalArgumentException("A line item must have either a debit or credit amount")
-            }
-            if (line.debit.compareTo(BigDecimal.ZERO) < 0 || line.credit.compareTo(BigDecimal.ZERO) < 0) {
-                throw IllegalArgumentException("Debit and credit amounts must not be negative")
             }
         }
 
