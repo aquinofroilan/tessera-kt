@@ -24,6 +24,11 @@ object Permissions {
     const val ACCOUNT_UPDATE = "account:update"
     const val ACCOUNT_DELETE = "account:delete"
 
+    const val JOURNAL_CREATE = "journal:create"
+    const val JOURNAL_READ = "journal:read"
+    const val JOURNAL_POST = "journal:post"
+    const val JOURNAL_VOID = "journal:void"
+
     val ALL_PERMISSIONS =
         listOf(
             SESSION_READ,
@@ -42,5 +47,9 @@ object Permissions {
             ACCOUNT_READ,
             ACCOUNT_UPDATE,
             ACCOUNT_DELETE,
+            JOURNAL_CREATE,
+            JOURNAL_READ,
+            JOURNAL_POST,
+            JOURNAL_VOID,
         )
 }

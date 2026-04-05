@@ -49,6 +49,10 @@ class RoleSeeder(
                             Permissions.ACCOUNT_READ,
                             Permissions.ACCOUNT_UPDATE,
                             Permissions.ACCOUNT_DELETE,
+                            Permissions.JOURNAL_CREATE,
+                            Permissions.JOURNAL_READ,
+                            Permissions.JOURNAL_POST,
+                            Permissions.JOURNAL_VOID,
                         ),
                 ),
                 Role(
@@ -69,6 +73,9 @@ class RoleSeeder(
                             Permissions.ACCOUNT_CREATE,
                             Permissions.ACCOUNT_READ,
                             Permissions.ACCOUNT_UPDATE,
+                            Permissions.JOURNAL_CREATE,
+                            Permissions.JOURNAL_READ,
+                            Permissions.JOURNAL_POST,
                         ),
                 ),
                 Role(
@@ -83,6 +90,8 @@ class RoleSeeder(
                             Permissions.ORGANIZATION_READ,
                             Permissions.INVITATION_READ,
                             Permissions.ACCOUNT_READ,
+                            Permissions.JOURNAL_CREATE,
+                            Permissions.JOURNAL_READ,
                         ),
                 ),
                 Role(
@@ -94,6 +103,7 @@ class RoleSeeder(
                             Permissions.SESSION_READ,
                             Permissions.ORGANIZATION_READ,
                             Permissions.ACCOUNT_READ,
+                            Permissions.JOURNAL_READ,
                         ),
                 ),
             )
