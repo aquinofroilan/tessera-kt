@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/finance/fiscal-years")
+@RequestMapping("/finance/fiscal")
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
 class FiscalYearController(
     private val fiscalYearService: FiscalYearService,
