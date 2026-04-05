@@ -10,7 +10,9 @@ import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.security.ApiKeyContext
 import com.froilan.synectix.security.SessionContext
 import com.froilan.synectix.service.AccountService
+import com.froilan.synectix.service.JournalEntryService
 import jakarta.validation.Valid
+import java.time.LocalDate
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -31,6 +33,7 @@ import java.util.Locale
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
 class AccountController(
     private val accountService: AccountService,
+    private val journalEntryService: JournalEntryService,
 ) {
     @PostMapping
     @PreAuthorize("hasAuthority('account:create')")
@@ -117,6 +120,22 @@ class AccountController(
         } catch (e: IllegalArgumentException) {
             val status = if (e.message == "Account not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
             ResponseEntity.status(status).body(mapOf("error" to (e.message ?: "Failed to delete account")))
+        }
+    }
+
+    @GetMapping("/{id}/balance")
+    @PreAuthorize("hasAuthority('account:read')")
+    fun getAccountBalance(
+        @PathVariable id: String,
+        @RequestParam(required = false) asOfDate: LocalDate?,
+    ): ResponseEntity<Any> {
+        val orgId = extractOrganizationId() ?: return unauthorized()
+
+        return try {
+            val balance = journalEntryService.getAccountBalance(id, orgId, asOfDate)
+            ResponseEntity.ok(balance)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.status(HttpStatus.NOT_FOUND).body(mapOf("error" to (e.message ?: "Account not found")))
         }
     }
 
