@@ -1,12 +1,17 @@
 package com.froilan.synectix.dto
 
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
 import java.time.LocalDateTime
 
 data class CreateApiKeyRequest(
     @field:NotBlank(message = "API key name is required")
     val name: String,
-    val permissions: List<String>,
+    @field:NotEmpty(message = "At least one permission is required")
+    val permissions: List<
+        @NotBlank(message = "Permission must not be blank")
+        String,
+    >,
     val expiresAt: LocalDateTime? = null,
 )
 
