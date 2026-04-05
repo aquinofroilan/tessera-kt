@@ -66,7 +66,7 @@ class InvitationService(
             invitationRepository.save(pendingInvitation.copy(status = InvitationStatus.EXPIRED))
         }
 
-        val rawToken = tokenHasher.generate()
+        val rawToken = tokenHasher.generate(32)
         val invitation =
             Invitation(
                 email = normalizedEmail,

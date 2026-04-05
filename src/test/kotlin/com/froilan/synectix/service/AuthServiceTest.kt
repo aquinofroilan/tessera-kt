@@ -15,6 +15,7 @@ import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.util.TokenHasher
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -32,11 +33,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
 import java.util.Optional
 import java.util.UUID
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 class AuthServiceTest {
     private lateinit var authService: AuthService
@@ -112,18 +108,18 @@ class AuthServiceTest {
 
         val result = authService.register(request)
 
-        assertNotNull(result)
-        assertEquals(request.username, result.username)
-        assertEquals(request.email, result.email)
-        assertEquals(savedOrg.uuid, result.organizationId)
+        assertThat(result).isNotNull()
+        assertThat(result.username).isEqualTo(request.username)
+        assertThat(result.email).isEqualTo(request.email)
+        assertThat(result.organizationId).isEqualTo(savedOrg.uuid)
 
         verify(organizationRepository, times(1)).save(any<Organizations>())
 
         val userCaptor = argumentCaptor<User>()
         verify(userRepository, times(1)).save(userCaptor.capture())
-        assertEquals(encodedPassword, userCaptor.firstValue.passwordHash)
-        assertEquals(savedOrg.uuid, userCaptor.firstValue.organizationId)
-        assertEquals(listOf(RoleAssignment("OWNER", savedOrg.uuid)), userCaptor.firstValue.roleAssignments)
+        assertThat(userCaptor.firstValue.passwordHash).isEqualTo(encodedPassword)
+        assertThat(userCaptor.firstValue.organizationId).isEqualTo(savedOrg.uuid)
+        assertThat(userCaptor.firstValue.roleAssignments).isEqualTo(listOf(RoleAssignment("OWNER", savedOrg.uuid)))
     }
 
     @Test
@@ -139,7 +135,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.register(request)
             }
-        assertEquals("Username already exists", exception.message)
+        assertThat(exception.message).isEqualTo("Username already exists")
     }
 
     @Test
@@ -155,7 +151,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.register(request)
             }
-        assertEquals("Email already exists", exception.message)
+        assertThat(exception.message).isEqualTo("Email already exists")
     }
 
     @Test
@@ -168,7 +164,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.register(request)
             }
-        assertEquals("Organization slug already exists", exception.message)
+        assertThat(exception.message).isEqualTo("Organization slug already exists")
     }
 
     @Test
@@ -181,7 +177,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.register(request)
             }
-        assertEquals("Organization name already exists", exception.message)
+        assertThat(exception.message).isEqualTo("Organization name already exists")
     }
 
     @Test
@@ -198,7 +194,7 @@ class AuthServiceTest {
         verify(passwordEncoder, times(1)).encode(request.password)
         val userCaptor = argumentCaptor<User>()
         verify(userRepository).save(userCaptor.capture())
-        assertEquals(encodedPassword, userCaptor.firstValue.passwordHash)
+        assertThat(userCaptor.firstValue.passwordHash).isEqualTo(encodedPassword)
     }
 
     @Test
@@ -228,12 +224,12 @@ class AuthServiceTest {
 
         val result = authService.login(request)
 
-        assertNotNull(result)
-        assertEquals(user.username, result.username)
-        assertEquals(user.orgRoleNames(user.organizationId), result.roles)
-        assertEquals(user.organizationId, result.organizationId)
-        assertNotNull(result.accessToken)
-        assertNotNull(result.expiresAt)
+        assertThat(result).isNotNull()
+        assertThat(result.username).isEqualTo(user.username)
+        assertThat(result.roles).isEqualTo(user.orgRoleNames(user.organizationId))
+        assertThat(result.organizationId).isEqualTo(user.organizationId)
+        assertThat(result.accessToken).isNotNull()
+        assertThat(result.expiresAt).isNotNull()
 
         verify(sessionTokenRepository, times(1)).save(any<SessionToken>())
     }
@@ -251,15 +247,13 @@ class AuthServiceTest {
 
         val result = authService.login(request)
 
-        assertNotNull(result.accessToken)
-        assertTrue(result.accessToken.isNotEmpty())
-        assertNotNull(result.refreshToken)
-        assertTrue(result.refreshToken.isNotEmpty())
+        assertThat(result.accessToken).isNotNull().isNotEmpty()
+        assertThat(result.refreshToken).isNotNull().isNotEmpty()
 
         val expectedRefreshExpiry = LocalDateTime.now().plusDays(30)
         val actualRefreshExpiry = LocalDateTime.parse(result.refreshTokenExpiresAt)
-        assertTrue(actualRefreshExpiry.isAfter(expectedRefreshExpiry.minusMinutes(1)))
-        assertTrue(actualRefreshExpiry.isBefore(expectedRefreshExpiry.plusMinutes(1)))
+        assertThat(actualRefreshExpiry).isAfter(expectedRefreshExpiry.minusMinutes(1))
+        assertThat(actualRefreshExpiry).isBefore(expectedRefreshExpiry.plusMinutes(1))
     }
 
     @Test
@@ -271,7 +265,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.login(request)
             }
-        assertEquals("Invalid username or password", exception.message)
+        assertThat(exception.message).isEqualTo("Invalid username or password")
     }
 
     @Test
@@ -286,7 +280,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.login(request)
             }
-        assertEquals("Invalid username or password", exception.message)
+        assertThat(exception.message).isEqualTo("Invalid username or password")
     }
 
     @Test
@@ -305,12 +299,12 @@ class AuthServiceTest {
         verify(sessionTokenRepository).save(tokenCaptor.capture())
 
         val capturedToken = tokenCaptor.firstValue
-        assertEquals(user.uuid, capturedToken.userId)
+        assertThat(capturedToken.userId).isEqualTo(user.uuid)
 
         val expectedExpiry = LocalDateTime.now().plusHours(24)
         val actualExpiry = capturedToken.expiryAt
-        assertTrue(actualExpiry.isAfter(expectedExpiry.minusMinutes(1)))
-        assertTrue(actualExpiry.isBefore(expectedExpiry.plusMinutes(1)))
+        assertThat(actualExpiry).isAfter(expectedExpiry.minusMinutes(1))
+        assertThat(actualExpiry).isBefore(expectedExpiry.plusMinutes(1))
     }
 
     @Test
@@ -326,8 +320,8 @@ class AuthServiceTest {
         val result1 = authService.login(request)
         val result2 = authService.login(request)
 
-        assertNotEquals(result1.accessToken, result2.accessToken)
-        assertTrue(result1.accessToken.matches(Regex("^[A-Za-z0-9_-]+$")))
+        assertThat(result2.accessToken).isNotEqualTo(result1.accessToken)
+        assertThat(result1.accessToken).matches("^[A-Za-z0-9_-]+$")
     }
 
     @Test
@@ -341,7 +335,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.login(request)
             }
-        assertEquals("User account is inactive", exception.message)
+        assertThat(exception.message).isEqualTo("User account is inactive")
     }
 
     @Test
@@ -367,10 +361,10 @@ class AuthServiceTest {
 
         val result = authService.refresh(oldRefreshTokenStr)
 
-        assertNotNull(result.accessToken)
-        assertNotNull(result.refreshToken)
-        assertNotEquals(oldSessionToken.token, result.accessToken)
-        assertNotEquals(oldRefreshTokenStr, result.refreshToken)
+        assertThat(result.accessToken).isNotNull()
+        assertThat(result.refreshToken).isNotNull()
+        assertThat(result.accessToken).isNotEqualTo(oldSessionToken.token)
+        assertThat(result.refreshToken).isNotEqualTo(oldRefreshTokenStr)
 
         verify(sessionTokenRepository).deleteById(oldSessionToken.id)
     }
@@ -393,7 +387,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.refresh(expiredTokenStr)
             }
-        assertEquals("Invalid or expired refresh token", exception.message)
+        assertThat(exception.message).isEqualTo("Invalid or expired refresh token")
     }
 
     @Test
@@ -407,7 +401,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.refresh(invalidTokenStr)
             }
-        assertEquals("Invalid or expired refresh token", exception.message)
+        assertThat(exception.message).isEqualTo("Invalid or expired refresh token")
     }
 
     @Test
@@ -430,7 +424,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.refresh(refreshTokenStr)
             }
-        assertEquals("User account is inactive", exception.message)
+        assertThat(exception.message).isEqualTo("User account is inactive")
     }
 
     @Test
@@ -467,8 +461,8 @@ class AuthServiceTest {
 
         val result = authService.listSessions(userId)
 
-        assertEquals(1, result.size)
-        assertEquals("s1", result[0].id)
+        assertThat(result.size).isEqualTo(1)
+        assertThat(result[0].id).isEqualTo("s1")
     }
 
     @Test
@@ -494,7 +488,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.revokeSession("user-123", "s1", "other-token")
             }
-        assertEquals("Session not found", exception.message)
+        assertThat(exception.message).isEqualTo("Session not found")
     }
 
     @Test
@@ -509,7 +503,7 @@ class AuthServiceTest {
             assertThrows<IllegalStateException> {
                 authService.revokeSession(userId, "s1", currentToken)
             }
-        assertEquals("Cannot revoke the current session", exception.message)
+        assertThat(exception.message).isEqualTo("Cannot revoke the current session")
     }
 
     @Test
@@ -539,7 +533,7 @@ class AuthServiceTest {
 
         val userCaptor = argumentCaptor<User>()
         verify(userRepository).save(userCaptor.capture())
-        assertEquals("newEncodedPassword", userCaptor.firstValue.passwordHash)
+        assertThat(userCaptor.firstValue.passwordHash).isEqualTo("newEncodedPassword")
         verify(sessionTokenRepository).deleteByUserId(user.uuid)
         verify(refreshTokenRepository).deleteByUserId(user.uuid)
     }
@@ -553,7 +547,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.changePassword(user, "wrongPass", "NewSecurePass123!")
             }
-        assertEquals("Current password is incorrect", exception.message)
+        assertThat(exception.message).isEqualTo("Current password is incorrect")
     }
 
     @Test
@@ -565,7 +559,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.changePassword(user, "samePass", "samePass")
             }
-        assertEquals("New password must be different from current password", exception.message)
+        assertThat(exception.message).isEqualTo("New password must be different from current password")
     }
 
     @Test
@@ -576,8 +570,7 @@ class AuthServiceTest {
 
         val result = authService.forgotPassword(user.email)
 
-        val token = assertNotNull(result)
-        assertTrue(token.isNotEmpty())
+        assertThat(result).isNotNull().isNotEmpty()
         verify(passwordResetTokenRepository).deleteByUserId(user.uuid)
         verify(passwordResetTokenRepository).save(any<PasswordResetToken>())
     }
@@ -588,7 +581,7 @@ class AuthServiceTest {
 
         val result = authService.forgotPassword("unknown@example.com")
 
-        assertEquals(null, result)
+        assertThat(result).isNull()
         verify(passwordResetTokenRepository, never()).save(any())
     }
 
@@ -599,7 +592,7 @@ class AuthServiceTest {
 
         val result = authService.forgotPassword(inactiveUser.email)
 
-        assertEquals(null, result)
+        assertThat(result).isNull()
         verify(passwordResetTokenRepository, never()).save(any())
     }
 
@@ -634,7 +627,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.resetPassword("invalid-token", "NewPassword123!")
             }
-        assertEquals("Invalid or expired reset token", exception.message)
+        assertThat(exception.message).isEqualTo("Invalid or expired reset token")
     }
 
     @Test
@@ -653,7 +646,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.resetPassword("expired-token", "NewPassword123!")
             }
-        assertEquals("Invalid or expired reset token", exception.message)
+        assertThat(exception.message).isEqualTo("Invalid or expired reset token")
         verify(passwordResetTokenRepository).deleteById(expiredToken.id)
         verify(mongoTemplate, never()).findAndRemove(any(), eq(PasswordResetToken::class.java))
     }
@@ -693,14 +686,14 @@ class AuthServiceTest {
 
         val result = authService.switchOrganization(user, "org-456")
 
-        assertEquals("org-456", result.organizationId)
-        assertEquals(listOf("MEMBER"), result.roles)
-        assertNotNull(result.accessToken)
-        assertNotNull(result.refreshToken)
+        assertThat(result.organizationId).isEqualTo("org-456")
+        assertThat(result.roles).isEqualTo(listOf("MEMBER"))
+        assertThat(result.accessToken).isNotNull()
+        assertThat(result.refreshToken).isNotNull()
 
         val sessionCaptor = argumentCaptor<SessionToken>()
         verify(sessionTokenRepository).save(sessionCaptor.capture())
-        assertEquals("org-456", sessionCaptor.firstValue.organizationId)
+        assertThat(sessionCaptor.firstValue.organizationId).isEqualTo("org-456")
     }
 
     @Test
@@ -711,7 +704,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.switchOrganization(user, "org-999")
             }
-        assertEquals("You do not have access to this organization", exception.message)
+        assertThat(exception.message).isEqualTo("You do not have access to this organization")
     }
 
     @Test
@@ -731,7 +724,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.switchOrganization(user, "org-missing")
             }
-        assertEquals("Organization not found", exception.message)
+        assertThat(exception.message).isEqualTo("Organization not found")
     }
 
     @Test
@@ -752,7 +745,7 @@ class AuthServiceTest {
             assertThrows<IllegalArgumentException> {
                 authService.switchOrganization(user, "org-inactive")
             }
-        assertEquals("Organization is not active", exception.message)
+        assertThat(exception.message).isEqualTo("Organization is not active")
     }
 
     @Test
@@ -772,14 +765,14 @@ class AuthServiceTest {
 
         val result = authService.listUserOrganizations(user, "org-123")
 
-        assertEquals(2, result.size)
+        assertThat(result.size).isEqualTo(2)
         val current = result.first { it.isCurrent }
-        assertEquals("org-123", current.organizationId)
-        assertEquals(listOf("OWNER"), current.roles)
+        assertThat(current.organizationId).isEqualTo("org-123")
+        assertThat(current.roles).isEqualTo(listOf("OWNER"))
 
         val other = result.first { !it.isCurrent }
-        assertEquals("org-456", other.organizationId)
-        assertEquals(listOf("MEMBER"), other.roles)
+        assertThat(other.organizationId).isEqualTo("org-456")
+        assertThat(other.roles).isEqualTo(listOf("MEMBER"))
     }
 
     @Test
@@ -799,11 +792,11 @@ class AuthServiceTest {
 
         val result = authService.listUserOrganizations(user, "org-123")
 
-        assertEquals(2, result.size)
+        assertThat(result.size).isEqualTo(2)
         val active = result.first { it.organizationId == "org-123" }
-        assertTrue(active.isActive)
+        assertThat(active.isActive).isTrue()
         val inactive = result.first { it.organizationId == "org-inactive" }
-        assertFalse(inactive.isActive)
+        assertThat(inactive.isActive).isFalse()
     }
 
     private fun createMockOrganization() =

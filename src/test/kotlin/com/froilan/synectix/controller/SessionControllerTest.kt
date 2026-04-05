@@ -12,6 +12,7 @@ import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.security.RolePermissionCache
 import com.froilan.synectix.security.SynectixPermissionEvaluator
+import com.froilan.synectix.service.ApiKeyService
 import com.froilan.synectix.service.AuthService
 import com.froilan.synectix.util.TokenHasher
 import org.junit.jupiter.api.BeforeEach
@@ -67,6 +68,9 @@ class SessionControllerTest {
 
     @MockitoBean
     private lateinit var rolePermissionCache: RolePermissionCache
+
+    @MockitoBean
+    private lateinit var apiKeyService: ApiKeyService
 
     private val testUser =
         User(

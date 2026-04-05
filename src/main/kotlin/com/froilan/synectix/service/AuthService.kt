@@ -433,5 +433,5 @@ class AuthService(
         }
     }
 
-    private fun generateToken(): String = tokenHasher.generate()
+    private fun generateToken(): String = tokenHasher.generate(32)
 }
