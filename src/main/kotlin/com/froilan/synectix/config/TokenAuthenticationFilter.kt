@@ -7,6 +7,7 @@ import com.froilan.synectix.security.ApiKeyPrincipal
 import com.froilan.synectix.security.RolePermissionCache
 import com.froilan.synectix.security.SessionContext
 import com.froilan.synectix.service.ApiKeyService
+import com.github.benmanes.caffeine.cache.Caffeine
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -16,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
 
 @Component
 class TokenAuthenticationFilter(
@@ -24,6 +26,24 @@ class TokenAuthenticationFilter(
     private val rolePermissionCache: RolePermissionCache,
     private val apiKeyService: ApiKeyService,
 ) : OncePerRequestFilter() {
+    private val apiKeyAttemptCounts =
+        Caffeine
+            .newBuilder()
+            .expireAfterWrite(15, TimeUnit.MINUTES)
+            .maximumSize(10_000)
+            .build<String, Int>()
+
+    private val apiKeyBlockedIps =
+        Caffeine
+            .newBuilder()
+            .expireAfterWrite(15, TimeUnit.MINUTES)
+            .maximumSize(10_000)
+            .build<String, Boolean>()
+
+    companion object {
+        private const val MAX_API_KEY_ATTEMPTS = 10
+    }
+
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -71,7 +91,11 @@ class TokenAuthenticationFilter(
                     sessionTokenRepository.delete(sessionToken)
                 }
             } else if (!path.startsWith("/auth")) {
-                // API key fallback — blocked from auth endpoints
+                val clientIp = request.remoteAddr ?: "unknown"
+                if (apiKeyBlockedIps.getIfPresent(clientIp) != null) {
+                    filterChain.doFilter(request, response)
+                    return
+                }
                 val apiKey = apiKeyService.authenticateByApiKey(token)
                 if (apiKey != null) {
                     val authorities = apiKey.permissions.map { SimpleGrantedAuthority(it) }
@@ -79,6 +103,12 @@ class TokenAuthenticationFilter(
                     val authentication = UsernamePasswordAuthenticationToken(principal, null, authorities)
                     authentication.details = ApiKeyContext(apiKey.id, apiKey.organizationId)
                     SecurityContextHolder.getContext().authentication = authentication
+                } else {
+                    val count = apiKeyAttemptCounts.asMap().merge(clientIp, 1, Int::plus) ?: 1
+                    if (count >= MAX_API_KEY_ATTEMPTS) {
+                        apiKeyBlockedIps.put(clientIp, true)
+                        apiKeyAttemptCounts.invalidate(clientIp)
+                    }
                 }
             }
         }
