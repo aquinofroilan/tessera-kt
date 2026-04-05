@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.Locale
 
 @Service
 class AccountService(
@@ -23,7 +24,7 @@ class AccountService(
     ): Account {
         val type =
             try {
-                AccountType.valueOf(request.type.uppercase())
+                AccountType.valueOf(request.type.uppercase(Locale.ROOT))
             } catch (e: IllegalArgumentException) {
                 throw IllegalArgumentException(
                     "Invalid account type '${request.type}'. Must be one of: ${AccountType.entries.joinToString()}",
@@ -71,6 +72,9 @@ class AccountService(
             }
         if (account.organizationId != organizationId) {
             throw IllegalArgumentException("Account not found")
+        }
+        if (request.name != null && request.name.isBlank()) {
+            throw IllegalArgumentException("Account name must not be blank")
         }
 
         val updated =
@@ -268,7 +272,11 @@ class AccountService(
                     isSystemAccount = true,
                 ),
             )
-        accountRepository.saveAll(defaults)
-        log.info("Seeded {} default accounts for org: {}", defaults.size, organizationId)
+        try {
+            accountRepository.saveAll(defaults)
+            log.info("Seeded {} default accounts for org: {}", defaults.size, organizationId)
+        } catch (e: DuplicateKeyException) {
+            log.info("Default accounts already exist for org: {}. Skipping.", organizationId)
+        }
     }
 }

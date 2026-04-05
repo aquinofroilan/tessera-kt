@@ -282,6 +282,19 @@ class AccountServiceTest {
     }
 
     @Test
+    fun `listAccounts should filter by type and parentId combined`() {
+        val accounts = listOf(createMockAccount(id = "acc-1"))
+        `when`(
+            accountRepository.findByOrganizationIdAndTypeAndParentIdAndIsActive("org-123", AccountType.ASSET, "parent-1", true),
+        ).thenReturn(accounts)
+
+        val result = accountService.listAccounts("org-123", type = AccountType.ASSET, parentId = "parent-1")
+
+        assertThat(result).hasSize(1)
+        verify(accountRepository).findByOrganizationIdAndTypeAndParentIdAndIsActive("org-123", AccountType.ASSET, "parent-1", true)
+    }
+
+    @Test
     fun `deleteAccount should soft delete account`() {
         val account = createMockAccount(id = "acc-1", isSystemAccount = false)
         `when`(accountRepository.findById("acc-1")).thenReturn(Optional.of(account))

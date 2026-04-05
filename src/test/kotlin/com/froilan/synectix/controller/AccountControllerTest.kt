@@ -215,11 +215,11 @@ class AccountControllerTest {
     }
 
     @Test
-    fun `DELETE accounts should return 200 when deleted`() {
+    fun `DELETE accounts should return 200 when deactivated`() {
         mockMvc
             .perform(delete("/finance/accounts/acc-123"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.message").value("Account deleted"))
+            .andExpect(jsonPath("$.message").value("Account deactivated"))
     }
 
     @Test
@@ -252,5 +252,13 @@ class AccountControllerTest {
         mockMvc
             .perform(delete("/finance/accounts/acc-123"))
             .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `GET accounts should return 400 for invalid type query param`() {
+        mockMvc
+            .perform(get("/finance/accounts").param("type", "INVALID"))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.error").value("Invalid account type 'INVALID'"))
     }
 }

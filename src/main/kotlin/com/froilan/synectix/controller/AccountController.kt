@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.Locale
 
 @RestController
 @RequestMapping("/finance/accounts")
@@ -57,7 +58,7 @@ class AccountController(
         val accountType =
             if (type != null) {
                 try {
-                    AccountType.valueOf(type.uppercase())
+                    AccountType.valueOf(type.uppercase(Locale.ROOT))
                 } catch (e: IllegalArgumentException) {
                     return ResponseEntity.badRequest().body(
                         mapOf("error" to "Invalid account type '$type'"),
@@ -98,7 +99,8 @@ class AccountController(
             val account = accountService.updateAccount(id, request, orgId)
             ResponseEntity.ok(account.toResponse())
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Failed to update account")))
+            val status = if (e.message == "Account not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
+            ResponseEntity.status(status).body(mapOf("error" to (e.message ?: "Failed to update account")))
         }
     }
 
@@ -111,9 +113,10 @@ class AccountController(
 
         return try {
             accountService.deleteAccount(id, orgId)
-            ResponseEntity.ok(mapOf("message" to "Account deleted"))
+            ResponseEntity.ok(mapOf("message" to "Account deactivated"))
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Failed to delete account")))
+            val status = if (e.message == "Account not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
+            ResponseEntity.status(status).body(mapOf("error" to (e.message ?: "Failed to delete account")))
         }
     }
 
