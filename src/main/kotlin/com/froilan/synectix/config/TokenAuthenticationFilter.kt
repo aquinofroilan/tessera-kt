@@ -35,7 +35,7 @@ class TokenAuthenticationFilter(
             val token = authHeader.substring(7)
             val sessionTokenOpt = sessionTokenRepository.findByToken(token)
 
-            val requestPath = request.requestURI
+            val path = request.requestURI.removePrefix(request.contextPath)
 
             if (sessionTokenOpt.isPresent) {
                 val sessionToken = sessionTokenOpt.get()
@@ -70,7 +70,7 @@ class TokenAuthenticationFilter(
                 } else {
                     sessionTokenRepository.delete(sessionToken)
                 }
-            } else if (!requestPath.contains("/auth/")) {
+            } else if (!path.startsWith("/auth")) {
                 // API key fallback — blocked from auth endpoints
                 val apiKey = apiKeyService.authenticateByApiKey(token)
                 if (apiKey != null) {
