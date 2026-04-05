@@ -190,7 +190,7 @@ class ApiKeyServiceTest {
         id = "key-123",
         name = name,
         keyHash = "hashed-key",
-        keyPrefix = "generat",
+        keyPrefix = "generate",
         organizationId = organizationId,
         permissions = listOf("session:read", "organization:read"),
         createdBy = "user-123",
