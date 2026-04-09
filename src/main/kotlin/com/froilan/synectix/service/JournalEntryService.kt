@@ -11,7 +11,6 @@ import com.froilan.synectix.model.JournalEntrySource
 import com.froilan.synectix.model.JournalEntryStatus
 import com.froilan.synectix.repository.AccountRepository
 import com.froilan.synectix.repository.JournalEntryRepository
-import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -23,6 +22,7 @@ class JournalEntryService(
     private val journalEntryRepository: JournalEntryRepository,
     private val accountRepository: AccountRepository,
     private val fiscalYearService: FiscalYearService,
+    private val entryNumberGenerator: JournalEntryNumberGenerator,
 ) {
     @Transactional
     fun createJournalEntry(
@@ -82,7 +82,7 @@ class JournalEntryService(
 
         validateFiscalPeriodOpen(organizationId, request.date)
 
-        return saveWithRetry(organizationId) { entryNumber ->
+        return entryNumberGenerator.saveWithRetry(organizationId) { entryNumber ->
             JournalEntry(
                 entryNumber = entryNumber,
                 date = request.date,
@@ -146,7 +146,7 @@ class JournalEntryService(
                 line.copy(debit = line.credit, credit = line.debit)
             }
 
-        saveWithRetry(organizationId) { reversingNumber ->
+        entryNumberGenerator.saveWithRetry(organizationId) { reversingNumber ->
             JournalEntry(
                 entryNumber = reversingNumber,
                 date = LocalDate.now(),
@@ -327,31 +327,15 @@ class JournalEntryService(
         organizationId: String,
         date: LocalDate,
     ) {
-        if (!fiscalYearService.hasFiscalYears(organizationId)) return
-
-        val period =
-            fiscalYearService.findPeriodForDate(organizationId, date)
-                ?: throw IllegalArgumentException("No fiscal period covers the date $date")
-
-        if (period.status == FiscalPeriodStatus.CLOSED) {
-            throw IllegalArgumentException("Fiscal period '${period.name}' is closed")
-        }
-    }
-
-    private fun saveWithRetry(
-        organizationId: String,
-        maxRetries: Int = 3,
-        buildEntry: (String) -> JournalEntry,
-    ): JournalEntry {
-        repeat(maxRetries) {
-            val count = journalEntryRepository.countByOrganizationId(organizationId)
-            val entryNumber = "JE-${(count + 1).toString().padStart(4, '0')}"
-            try {
-                return journalEntryRepository.save(buildEntry(entryNumber))
-            } catch (e: DuplicateKeyException) {
-                if (it == maxRetries - 1) throw e
+        when (val result = fiscalYearService.findPeriodForDate(organizationId, date)) {
+            is FiscalYearService.PeriodLookupResult.NoFiscalYears -> return
+            is FiscalYearService.PeriodLookupResult.NotFound ->
+                throw IllegalArgumentException("No fiscal period covers the date $date")
+            is FiscalYearService.PeriodLookupResult.Found -> {
+                if (result.period.status == FiscalPeriodStatus.CLOSED) {
+                    throw IllegalArgumentException("Fiscal period '${result.period.name}' is closed")
+                }
             }
         }
-        throw IllegalStateException("Failed to generate unique entry number")
     }
 }

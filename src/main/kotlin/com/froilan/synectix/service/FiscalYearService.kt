@@ -27,6 +27,7 @@ class FiscalYearService(
     private val fiscalYearRepository: FiscalYearRepository,
     private val journalEntryRepository: JournalEntryRepository,
     private val accountRepository: AccountRepository,
+    private val entryNumberGenerator: JournalEntryNumberGenerator,
 ) {
     @Transactional
     fun createFiscalYear(
@@ -201,21 +202,29 @@ class FiscalYearService(
     fun findPeriodForDate(
         organizationId: String,
         date: LocalDate,
-    ): FiscalPeriod? {
+    ): PeriodLookupResult {
         val allFiscalYears = fiscalYearRepository.findByOrganizationId(organizationId)
-        if (allFiscalYears.isEmpty()) return null
+        if (allFiscalYears.isEmpty()) return PeriodLookupResult.NoFiscalYears
 
         for (fy in allFiscalYears) {
             for (period in fy.periods) {
                 if (!date.isBefore(period.startDate) && !date.isAfter(period.endDate)) {
-                    return period
+                    return PeriodLookupResult.Found(period)
                 }
             }
         }
-        return null
+        return PeriodLookupResult.NotFound
     }
 
-    fun hasFiscalYears(organizationId: String): Boolean = fiscalYearRepository.findByOrganizationId(organizationId).isNotEmpty()
+    sealed class PeriodLookupResult {
+        data object NoFiscalYears : PeriodLookupResult()
+
+        data object NotFound : PeriodLookupResult()
+
+        data class Found(
+            val period: FiscalPeriod,
+        ) : PeriodLookupResult()
+    }
 
     private fun createClosingEntry(
         fiscalYear: FiscalYear,
@@ -323,7 +332,7 @@ class FiscalYearService(
             )
         }
 
-        return saveWithRetry(organizationId) { entryNumber ->
+        return entryNumberGenerator.saveWithRetry(organizationId) { entryNumber ->
             JournalEntry(
                 entryNumber = entryNumber,
                 date = fiscalYear.endDate,
@@ -337,23 +346,6 @@ class FiscalYearService(
                 postedAt = LocalDateTime.now(),
             )
         }
-    }
-
-    private fun saveWithRetry(
-        organizationId: String,
-        maxRetries: Int = 3,
-        buildEntry: (String) -> JournalEntry,
-    ): JournalEntry {
-        repeat(maxRetries) {
-            val count = journalEntryRepository.countByOrganizationId(organizationId)
-            val entryNumber = "JE-${(count + 1).toString().padStart(4, '0')}"
-            try {
-                return journalEntryRepository.save(buildEntry(entryNumber))
-            } catch (e: DuplicateKeyException) {
-                if (it == maxRetries - 1) throw e
-            }
-        }
-        throw IllegalStateException("Failed to generate unique entry number")
     }
 
     private fun generateMonthlyPeriods(

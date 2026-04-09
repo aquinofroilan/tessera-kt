@@ -31,6 +31,7 @@ class JournalEntryServiceTest {
     private lateinit var journalEntryRepository: JournalEntryRepository
     private lateinit var accountRepository: AccountRepository
     private lateinit var fiscalYearService: FiscalYearService
+    private lateinit var entryNumberGenerator: JournalEntryNumberGenerator
 
     private val orgId = "org-123"
     private val createdBy = "user-1"
@@ -40,11 +41,15 @@ class JournalEntryServiceTest {
         journalEntryRepository = mock(JournalEntryRepository::class.java)
         accountRepository = mock(AccountRepository::class.java)
         fiscalYearService = mock(FiscalYearService::class.java)
+        entryNumberGenerator = JournalEntryNumberGenerator(journalEntryRepository)
+        `when`(fiscalYearService.findPeriodForDate(any(), any()))
+            .thenReturn(FiscalYearService.PeriodLookupResult.NoFiscalYears)
         journalEntryService =
             JournalEntryService(
                 journalEntryRepository = journalEntryRepository,
                 accountRepository = accountRepository,
                 fiscalYearService = fiscalYearService,
+                entryNumberGenerator = entryNumberGenerator,
             )
     }
 
@@ -589,7 +594,8 @@ class JournalEntryServiceTest {
             .thenReturn(listOf(cashAccount, revenueAccount))
         `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(0L)
         `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
-        `when`(fiscalYearService.hasFiscalYears(orgId)).thenReturn(false)
+        `when`(fiscalYearService.findPeriodForDate(orgId, LocalDate.of(2026, 1, 15)))
+            .thenReturn(FiscalYearService.PeriodLookupResult.NoFiscalYears)
 
         val request =
             CreateJournalEntryRequest(
@@ -644,9 +650,8 @@ class JournalEntryServiceTest {
                 status = FiscalPeriodStatus.CLOSED,
             )
 
-        `when`(fiscalYearService.hasFiscalYears(orgId)).thenReturn(true)
         `when`(fiscalYearService.findPeriodForDate(orgId, LocalDate.of(2026, 1, 15)))
-            .thenReturn(closedPeriod)
+            .thenReturn(FiscalYearService.PeriodLookupResult.Found(closedPeriod))
 
         val request =
             CreateJournalEntryRequest(
@@ -705,9 +710,8 @@ class JournalEntryServiceTest {
             .thenReturn(listOf(cashAccount, revenueAccount))
         `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(0L)
         `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
-        `when`(fiscalYearService.hasFiscalYears(orgId)).thenReturn(true)
         `when`(fiscalYearService.findPeriodForDate(orgId, LocalDate.of(2026, 1, 15)))
-            .thenReturn(openPeriod)
+            .thenReturn(FiscalYearService.PeriodLookupResult.Found(openPeriod))
 
         val request =
             CreateJournalEntryRequest(
@@ -769,10 +773,9 @@ class JournalEntryServiceTest {
             )
 
         `when`(journalEntryRepository.findById("entry-1")).thenReturn(Optional.of(entry))
-        `when`(fiscalYearService.hasFiscalYears(orgId)).thenReturn(true)
         `when`(
             fiscalYearService.findPeriodForDate(orgId, LocalDate.of(2026, 1, 15)),
-        ).thenReturn(closedPeriod)
+        ).thenReturn(FiscalYearService.PeriodLookupResult.Found(closedPeriod))
 
         val exception =
             assertThrows<IllegalArgumentException> {

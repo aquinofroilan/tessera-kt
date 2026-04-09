@@ -32,6 +32,7 @@ class FiscalYearServiceTest {
     private lateinit var fiscalYearRepository: FiscalYearRepository
     private lateinit var journalEntryRepository: JournalEntryRepository
     private lateinit var accountRepository: AccountRepository
+    private lateinit var entryNumberGenerator: JournalEntryNumberGenerator
 
     private val orgId = "org-123"
     private val userId = "user-1"
@@ -41,11 +42,13 @@ class FiscalYearServiceTest {
         fiscalYearRepository = mock(FiscalYearRepository::class.java)
         journalEntryRepository = mock(JournalEntryRepository::class.java)
         accountRepository = mock(AccountRepository::class.java)
+        entryNumberGenerator = JournalEntryNumberGenerator(journalEntryRepository)
         fiscalYearService =
             FiscalYearService(
                 fiscalYearRepository = fiscalYearRepository,
                 journalEntryRepository = journalEntryRepository,
                 accountRepository = accountRepository,
+                entryNumberGenerator = entryNumberGenerator,
             )
     }
 
@@ -603,12 +606,13 @@ class FiscalYearServiceTest {
                 LocalDate.of(2026, 1, 15),
             )
 
-        assertThat(result).isNotNull
-        assertThat(result!!.status).isEqualTo(FiscalPeriodStatus.OPEN)
+        assertThat(result).isInstanceOf(FiscalYearService.PeriodLookupResult.Found::class.java)
+        val found = result as FiscalYearService.PeriodLookupResult.Found
+        assertThat(found.period.status).isEqualTo(FiscalPeriodStatus.OPEN)
     }
 
     @Test
-    fun `findPeriodForDate should return null when no fiscal year exists`() {
+    fun `findPeriodForDate should return NoFiscalYears when no fiscal year exists`() {
         `when`(fiscalYearRepository.findByOrganizationId(orgId))
             .thenReturn(emptyList())
 
@@ -618,11 +622,11 @@ class FiscalYearServiceTest {
                 LocalDate.of(2026, 1, 15),
             )
 
-        assertThat(result).isNull()
+        assertThat(result).isEqualTo(FiscalYearService.PeriodLookupResult.NoFiscalYears)
     }
 
     @Test
-    fun `findPeriodForDate should return null when date is outside fiscal year`() {
+    fun `findPeriodForDate should return NotFound when date is outside fiscal year`() {
         val fiscalYear = createFiscalYear()
         `when`(fiscalYearRepository.findByOrganizationId(orgId))
             .thenReturn(listOf(fiscalYear))
@@ -633,7 +637,7 @@ class FiscalYearServiceTest {
                 LocalDate.of(2025, 6, 15),
             )
 
-        assertThat(result).isNull()
+        assertThat(result).isEqualTo(FiscalYearService.PeriodLookupResult.NotFound)
     }
 
     @Test
@@ -652,8 +656,9 @@ class FiscalYearServiceTest {
                 LocalDate.of(2026, 1, 15),
             )
 
-        assertThat(result).isNotNull
-        assertThat(result!!.status).isEqualTo(FiscalPeriodStatus.REOPENED)
+        assertThat(result).isInstanceOf(FiscalYearService.PeriodLookupResult.Found::class.java)
+        val found = result as FiscalYearService.PeriodLookupResult.Found
+        assertThat(found.period.status).isEqualTo(FiscalPeriodStatus.REOPENED)
     }
 
     private fun createFiscalYear(

@@ -126,6 +126,10 @@ class FiscalYearController(
             ResponseEntity
                 .status(status)
                 .body(mapOf("error" to (e.message ?: "Failed to close fiscal year")))
+        } catch (e: IllegalStateException) {
+            ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(mapOf("error" to (e.message ?: "Failed to generate closing entry")))
         }
     }
 
