@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -60,7 +61,7 @@ class BillService(
 
         accounts.values.forEach { account ->
             if (account.organizationId != organizationId) {
-                throw IllegalArgumentException("Account '${account.code}' does not belong to this organization")
+                throw IllegalArgumentException("Account '${account.id}' not found")
             }
             if (!account.isActive) {
                 throw IllegalArgumentException("Account '${account.code}' is inactive")
@@ -175,6 +176,8 @@ class BillService(
             ),
         )
 
+        val now = LocalDateTime.now(ZoneOffset.UTC)
+
         val journalEntry =
             entryNumberGenerator.saveWithRetry(organizationId) { entryNumber ->
                 JournalEntry(
@@ -187,7 +190,7 @@ class BillService(
                     sourceReference = "BILL-APPROVE-${bill.id}",
                     lines = journalLines,
                     createdBy = approvedBy,
-                    postedAt = LocalDateTime.now(),
+                    postedAt = now,
                 )
             }
 
@@ -195,7 +198,7 @@ class BillService(
             bill.copy(
                 status = BillStatus.APPROVED,
                 journalEntryId = journalEntry.id,
-                approvedAt = LocalDateTime.now(),
+                approvedAt = now,
                 approvedBy = approvedBy,
             ),
         )
@@ -213,11 +216,13 @@ class BillService(
         if (bill.status == BillStatus.VOID) {
             throw IllegalArgumentException("Bill is already voided")
         }
+        val now = LocalDateTime.now(ZoneOffset.UTC)
+
         if (bill.status == BillStatus.DRAFT) {
             return billRepository.save(
                 bill.copy(
                     status = BillStatus.VOID,
-                    voidedAt = LocalDateTime.now(),
+                    voidedAt = now,
                     voidReason = reason,
                 ),
             )
@@ -274,14 +279,14 @@ class BillService(
                 sourceReference = "BILL-VOID-${bill.id}",
                 lines = reversingLines,
                 createdBy = voidedBy,
-                postedAt = LocalDateTime.now(),
+                postedAt = now,
             )
         }
 
         return billRepository.save(
             bill.copy(
                 status = BillStatus.VOID,
-                voidedAt = LocalDateTime.now(),
+                voidedAt = now,
                 voidReason = reason,
             ),
         )
@@ -356,7 +361,7 @@ class BillService(
                             ),
                         ),
                     createdBy = createdBy,
-                    postedAt = LocalDateTime.now(),
+                    postedAt = LocalDateTime.now(ZoneOffset.UTC),
                 )
             }
 
@@ -383,7 +388,7 @@ class BillService(
             bill.copy(
                 amountPaid = newAmountPaid,
                 status = newStatus,
-                paidAt = if (fullyPaid) LocalDateTime.now() else null,
+                paidAt = if (fullyPaid) LocalDateTime.now(ZoneOffset.UTC) else null,
             ),
         )
 
@@ -488,7 +493,7 @@ class BillService(
                 return billRepository.save(buildBill(billNumber))
             } catch (e: DuplicateKeyException) {
                 if (it == maxRetries - 1) {
-                    throw IllegalStateException("Failed to generate unique bill number")
+                    throw IllegalStateException("Failed to generate unique bill number: $billNumber", e)
                 }
             }
         }

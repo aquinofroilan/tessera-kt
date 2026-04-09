@@ -34,6 +34,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @WebMvcTest(controllers = [SessionController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, SynectixPermissionEvaluator::class)
@@ -106,7 +107,7 @@ class SessionControllerTest {
                     id = "s1",
                     token = currentToken,
                     userId = testUser.uuid,
-                    expiryAt = LocalDateTime.now().plusHours(12),
+                    expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12),
                     ipAddress = "127.0.0.1",
                     userAgent = "Mozilla/5.0",
                 ),
@@ -114,7 +115,7 @@ class SessionControllerTest {
                     id = "s2",
                     token = "other-token",
                     userId = testUser.uuid,
-                    expiryAt = LocalDateTime.now().plusHours(6),
+                    expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(6),
                     ipAddress = "192.168.1.1",
                     userAgent = "Chrome",
                 ),

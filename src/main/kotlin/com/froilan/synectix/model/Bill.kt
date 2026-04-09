@@ -41,6 +41,8 @@ data class BillLine(
     def = "{'organizationId': 1, 'billNumber': 1}",
     unique = true,
 )
+@CompoundIndex(name = "org_status", def = "{'organizationId': 1, 'status': 1}")
+@CompoundIndex(name = "org_vendor", def = "{'organizationId': 1, 'vendorId': 1}")
 data class Bill(
     @Id
     val id: String = UUID.randomUUID().toString(),

@@ -21,7 +21,7 @@ class JournalEntryNumberGenerator(
                 return journalEntryRepository.save(buildEntry(entryNumber))
             } catch (e: DuplicateKeyException) {
                 if (it == maxRetries - 1) {
-                    throw IllegalStateException("Failed to generate unique entry number")
+                    throw IllegalStateException("Failed to generate unique entry number: $entryNumber", e)
                 }
             }
         }

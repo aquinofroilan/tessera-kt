@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @Service
 class JournalEntryService(
@@ -116,7 +117,7 @@ class JournalEntryService(
         return journalEntryRepository.save(
             entry.copy(
                 status = JournalEntryStatus.POSTED,
-                postedAt = LocalDateTime.now(),
+                postedAt = LocalDateTime.now(ZoneOffset.UTC),
             ),
         )
     }
@@ -136,7 +137,7 @@ class JournalEntryService(
             journalEntryRepository.save(
                 entry.copy(
                     status = JournalEntryStatus.VOIDED,
-                    voidedAt = LocalDateTime.now(),
+                    voidedAt = LocalDateTime.now(ZoneOffset.UTC),
                     voidReason = reason,
                 ),
             )
@@ -157,7 +158,7 @@ class JournalEntryService(
                 sourceReference = "VOID-${entry.id}",
                 lines = reversedLines,
                 createdBy = entry.createdBy,
-                postedAt = LocalDateTime.now(),
+                postedAt = LocalDateTime.now(ZoneOffset.UTC),
             )
         }
 

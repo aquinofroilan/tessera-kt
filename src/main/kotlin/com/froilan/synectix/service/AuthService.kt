@@ -27,6 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 
@@ -116,7 +117,7 @@ class AuthService(
         }
 
         val accessTokenStr = generateToken()
-        val expiryAt = LocalDateTime.now().plus(tokenValidityMs, ChronoUnit.MILLIS)
+        val expiryAt = LocalDateTime.now(ZoneOffset.UTC).plus(tokenValidityMs, ChronoUnit.MILLIS)
 
         val orgId = user.organizationId
         val sessionToken =
@@ -131,7 +132,7 @@ class AuthService(
         val savedSession = sessionTokenRepository.save(sessionToken)
 
         val refreshTokenStr = generateToken()
-        val refreshExpiryAt = LocalDateTime.now().plus(refreshTokenValidityMs, ChronoUnit.MILLIS)
+        val refreshExpiryAt = LocalDateTime.now(ZoneOffset.UTC).plus(refreshTokenValidityMs, ChronoUnit.MILLIS)
 
         val refreshToken =
             RefreshToken(
@@ -162,7 +163,7 @@ class AuthService(
                 .findByTokenHash(refreshTokenHash)
                 .orElseThrow { IllegalArgumentException("Invalid or expired refresh token") }
 
-        if (!existing.expiryAt.isAfter(LocalDateTime.now())) {
+        if (!existing.expiryAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
             throw IllegalArgumentException("Invalid or expired refresh token")
         }
 
@@ -179,7 +180,7 @@ class AuthService(
         val orgId = oldSession?.organizationId ?: user.organizationId
 
         val accessTokenStr = generateToken()
-        val expiryAt = LocalDateTime.now().plus(tokenValidityMs, ChronoUnit.MILLIS)
+        val expiryAt = LocalDateTime.now(ZoneOffset.UTC).plus(tokenValidityMs, ChronoUnit.MILLIS)
 
         val sessionToken =
             SessionToken(
@@ -192,7 +193,7 @@ class AuthService(
 
         val refreshTokenStr = generateToken()
         val newRefreshTokenHash = tokenHasher.hash(refreshTokenStr)
-        val refreshExpiryAt = LocalDateTime.now().plus(refreshTokenValidityMs, ChronoUnit.MILLIS)
+        val refreshExpiryAt = LocalDateTime.now(ZoneOffset.UTC).plus(refreshTokenValidityMs, ChronoUnit.MILLIS)
 
         val newRefreshToken =
             RefreshToken(
@@ -263,7 +264,7 @@ class AuthService(
             PasswordResetToken(
                 tokenHash = tokenHasher.hash(rawToken),
                 userId = user.uuid,
-                expiryAt = LocalDateTime.now().plusMinutes(resetTokenExpiryMinutes),
+                expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusMinutes(resetTokenExpiryMinutes),
             )
         passwordResetTokenRepository.save(resetToken)
 
@@ -282,7 +283,7 @@ class AuthService(
                 .findByTokenHash(tokenHash)
                 .orElseThrow { IllegalArgumentException("Invalid or expired reset token") }
 
-        if (!existing.expiryAt.isAfter(LocalDateTime.now())) {
+        if (!existing.expiryAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
             passwordResetTokenRepository.deleteById(existing.id)
             throw IllegalArgumentException("Invalid or expired reset token")
         }
@@ -306,7 +307,8 @@ class AuthService(
         refreshTokenRepository.deleteByUserId(user.uuid)
     }
 
-    fun listSessions(userId: String): List<SessionToken> = sessionTokenRepository.findByUserIdAndExpiryAtAfter(userId, LocalDateTime.now())
+    fun listSessions(userId: String): List<SessionToken> =
+        sessionTokenRepository.findByUserIdAndExpiryAtAfter(userId, LocalDateTime.now(ZoneOffset.UTC))
 
     @Transactional
     fun revokeSession(
@@ -362,7 +364,7 @@ class AuthService(
         }
 
         val accessTokenStr = generateToken()
-        val expiryAt = LocalDateTime.now().plus(tokenValidityMs, ChronoUnit.MILLIS)
+        val expiryAt = LocalDateTime.now(ZoneOffset.UTC).plus(tokenValidityMs, ChronoUnit.MILLIS)
 
         val sessionToken =
             SessionToken(
@@ -376,7 +378,7 @@ class AuthService(
         val savedSession = sessionTokenRepository.save(sessionToken)
 
         val refreshTokenStr = generateToken()
-        val refreshExpiryAt = LocalDateTime.now().plus(refreshTokenValidityMs, ChronoUnit.MILLIS)
+        val refreshExpiryAt = LocalDateTime.now(ZoneOffset.UTC).plus(refreshTokenValidityMs, ChronoUnit.MILLIS)
 
         val refreshToken =
             RefreshToken(

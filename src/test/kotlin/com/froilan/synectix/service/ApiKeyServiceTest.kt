@@ -14,6 +14,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.springframework.data.mongodb.core.MongoTemplate
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.Optional
 
 class ApiKeyServiceTest {
@@ -132,7 +133,7 @@ class ApiKeyServiceTest {
 
     @Test
     fun `authenticateByApiKey should return null for expired key`() {
-        val apiKey = createMockApiKey(expiresAt = LocalDateTime.now().minusHours(1))
+        val apiKey = createMockApiKey(expiresAt = LocalDateTime.now(ZoneOffset.UTC).minusHours(1))
         `when`(apiKeyRepository.findByKeyHash("hashed-expired-key")).thenReturn(Optional.of(apiKey))
 
         val result = apiKeyService.authenticateByApiKey("expired-key")

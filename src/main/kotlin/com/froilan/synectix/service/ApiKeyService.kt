@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @Service
 class ApiKeyService(
@@ -81,11 +82,11 @@ class ApiKeyService(
         val apiKey = apiKeyRepository.findByKeyHash(keyHash).orElse(null) ?: return null
 
         if (!apiKey.isActive) return null
-        if (apiKey.expiresAt != null && !apiKey.expiresAt.isAfter(LocalDateTime.now())) return null
+        if (apiKey.expiresAt != null && !apiKey.expiresAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) return null
 
         mongoTemplate.updateFirst(
             Query.query(Criteria.where("_id").`is`(apiKey.id)),
-            Update.update("lastUsedAt", LocalDateTime.now()),
+            Update.update("lastUsedAt", LocalDateTime.now(ZoneOffset.UTC)),
             ApiKey::class.java,
         )
 

@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -117,7 +118,7 @@ class FiscalYearService(
         updatedPeriods[periodIndex] =
             period.copy(
                 status = FiscalPeriodStatus.CLOSED,
-                closedAt = LocalDateTime.now(),
+                closedAt = LocalDateTime.now(ZoneOffset.UTC),
                 closedBy = closedBy,
             )
 
@@ -161,7 +162,7 @@ class FiscalYearService(
         updatedPeriods[periodIndex] =
             period.copy(
                 status = FiscalPeriodStatus.REOPENED,
-                reopenedAt = LocalDateTime.now(),
+                reopenedAt = LocalDateTime.now(ZoneOffset.UTC),
                 reopenedBy = reopenedBy,
             )
 
@@ -192,7 +193,7 @@ class FiscalYearService(
         return fiscalYearRepository.save(
             fiscalYear.copy(
                 status = FiscalYearStatus.CLOSED,
-                closedAt = LocalDateTime.now(),
+                closedAt = LocalDateTime.now(ZoneOffset.UTC),
                 closedBy = closedBy,
                 closingEntryId = closingEntry?.id,
             ),
@@ -344,7 +345,7 @@ class FiscalYearService(
                 sourceReference = sourceRef,
                 lines = closingLines,
                 createdBy = closedBy,
-                postedAt = LocalDateTime.now(),
+                postedAt = LocalDateTime.now(ZoneOffset.UTC),
             )
         }
     }

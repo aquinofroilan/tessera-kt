@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @RestController
 @RequestMapping("/health")
@@ -25,7 +26,7 @@ class HealthController(
         val healthData =
             mutableMapOf<String, Any>(
                 "status" to "UP",
-                "timestamp" to LocalDateTime.now(),
+                "timestamp" to LocalDateTime.now(ZoneOffset.UTC),
                 "application" to "Synectix ERP System",
                 "version" to "0.0.1-SNAPSHOT",
             )
@@ -56,7 +57,7 @@ class HealthController(
         val detailedHealth =
             mutableMapOf<String, Any>(
                 "status" to "UP",
-                "timestamp" to LocalDateTime.now(),
+                "timestamp" to LocalDateTime.now(ZoneOffset.UTC),
                 "application" to
                     mapOf(
                         "name" to "Synectix ERP System",

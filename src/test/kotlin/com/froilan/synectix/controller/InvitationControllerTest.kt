@@ -38,6 +38,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @WebMvcTest(controllers = [InvitationController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, SynectixPermissionEvaluator::class)
@@ -160,7 +161,7 @@ class InvitationControllerTest {
                     role = "MEMBER",
                     tokenHash = "hash1",
                     invitedBy = "user-123",
-                    expiryAt = LocalDateTime.now().plusHours(72),
+                    expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(72),
                 ),
             )
         `when`(invitationService.listInvitations("org-123")).thenReturn(invitations)
