@@ -20,6 +20,12 @@ interface BillRepository : MongoRepository<Bill, String> {
         vendorId: String,
     ): List<Bill>
 
+    fun findByOrganizationIdAndStatusAndVendorId(
+        organizationId: String,
+        status: BillStatus,
+        vendorId: String,
+    ): List<Bill>
+
     fun findByOrganizationIdAndStatusIn(
         organizationId: String,
         statuses: List<BillStatus>,

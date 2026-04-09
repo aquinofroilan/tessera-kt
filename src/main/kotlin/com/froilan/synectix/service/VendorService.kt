@@ -65,6 +65,10 @@ class VendorService(
             throw IllegalArgumentException("Cannot update inactive vendor")
         }
 
+        if (request.name != null && request.name.isBlank()) {
+            throw IllegalArgumentException("Vendor name cannot be blank")
+        }
+
         val updated =
             vendor.copy(
                 name = request.name ?: vendor.name,

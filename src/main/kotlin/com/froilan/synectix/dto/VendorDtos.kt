@@ -1,5 +1,6 @@
 package com.froilan.synectix.dto
 
+import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 
 data class CreateVendorRequest(
@@ -8,6 +9,7 @@ data class CreateVendorRequest(
     val contactName: String? = null,
     val contactEmail: String? = null,
     val contactPhone: String? = null,
+    @field:Min(value = 0, message = "Payment term days must be zero or positive")
     val paymentTermDays: Int = 30,
     val defaultExpenseAccountId: String? = null,
 )
@@ -17,6 +19,7 @@ data class UpdateVendorRequest(
     val contactName: String? = null,
     val contactEmail: String? = null,
     val contactPhone: String? = null,
+    @field:Min(value = 0, message = "Payment term days must be zero or positive")
     val paymentTermDays: Int? = null,
     val defaultExpenseAccountId: String? = null,
 )

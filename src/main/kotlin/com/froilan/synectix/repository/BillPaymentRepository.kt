@@ -6,7 +6,10 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface BillPaymentRepository : MongoRepository<BillPayment, String> {
-    fun findByBillId(billId: String): List<BillPayment>
+    fun findByBillIdAndOrganizationId(
+        billId: String,
+        organizationId: String,
+    ): List<BillPayment>
 
     fun findByOrganizationId(organizationId: String): List<BillPayment>
 }

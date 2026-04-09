@@ -38,6 +38,7 @@ class BillServiceTest {
     private lateinit var journalEntryRepository: JournalEntryRepository
     private lateinit var vendorService: VendorService
     private lateinit var entryNumberGenerator: JournalEntryNumberGenerator
+    private lateinit var fiscalYearService: FiscalYearService
 
     private val orgId = "org-123"
     private val userId = "user-1"
@@ -49,7 +50,10 @@ class BillServiceTest {
         accountRepository = mock(AccountRepository::class.java)
         journalEntryRepository = mock(JournalEntryRepository::class.java)
         vendorService = mock(VendorService::class.java)
+        fiscalYearService = mock(FiscalYearService::class.java)
         entryNumberGenerator = JournalEntryNumberGenerator(journalEntryRepository)
+        `when`(fiscalYearService.findPeriodForDate(any(), any()))
+            .thenReturn(FiscalYearService.PeriodLookupResult.NoFiscalYears)
         billService =
             BillService(
                 billRepository = billRepository,
@@ -57,6 +61,7 @@ class BillServiceTest {
                 accountRepository = accountRepository,
                 vendorService = vendorService,
                 entryNumberGenerator = entryNumberGenerator,
+                fiscalYearService = fiscalYearService,
             )
     }
 

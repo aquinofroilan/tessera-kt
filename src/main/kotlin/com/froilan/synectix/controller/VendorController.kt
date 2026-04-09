@@ -90,7 +90,7 @@ class VendorController(
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ap:void')")
+    @PreAuthorize("hasAuthority('ap:create')")
     fun deleteVendor(
         @PathVariable id: String,
     ): ResponseEntity<Any> {

@@ -9,6 +9,7 @@ import com.froilan.synectix.model.Bill
 import com.froilan.synectix.model.BillLine
 import com.froilan.synectix.model.BillPayment
 import com.froilan.synectix.model.BillStatus
+import com.froilan.synectix.model.FiscalPeriodStatus
 import com.froilan.synectix.model.JournalEntry
 import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.model.JournalEntrySource
@@ -31,6 +32,7 @@ class BillService(
     private val accountRepository: AccountRepository,
     private val vendorService: VendorService,
     private val entryNumberGenerator: JournalEntryNumberGenerator,
+    private val fiscalYearService: FiscalYearService,
 ) {
     @Transactional
     fun createBill(
@@ -112,15 +114,17 @@ class BillService(
         organizationId: String,
         status: BillStatus? = null,
         vendorId: String? = null,
-    ): List<Bill> {
-        val bills =
-            when {
-                status != null -> billRepository.findByOrganizationIdAndStatus(organizationId, status)
-                vendorId != null -> billRepository.findByOrganizationIdAndVendorId(organizationId, vendorId)
-                else -> billRepository.findByOrganizationId(organizationId)
-            }
-        return bills
-    }
+    ): List<Bill> =
+        when {
+            status != null && vendorId != null ->
+                billRepository.findByOrganizationIdAndStatusAndVendorId(organizationId, status, vendorId)
+            status != null ->
+                billRepository.findByOrganizationIdAndStatus(organizationId, status)
+            vendorId != null ->
+                billRepository.findByOrganizationIdAndVendorId(organizationId, vendorId)
+            else ->
+                billRepository.findByOrganizationId(organizationId)
+        }
 
     @Transactional
     fun approveBill(
@@ -134,10 +138,15 @@ class BillService(
             throw IllegalArgumentException("Only draft bills can be approved")
         }
 
+        validateFiscalPeriodOpen(organizationId, bill.date)
+
         val apAccount =
             accountRepository.findByOrganizationIdAndCode(organizationId, "2000").orElseThrow {
                 IllegalStateException("Accounts Payable account (2000) not found")
             }
+        if (!apAccount.isActive) {
+            throw IllegalArgumentException("Accounts Payable account (2000) is inactive")
+        }
 
         val journalLines = mutableListOf<JournalEntryLine>()
 
@@ -216,6 +225,9 @@ class BillService(
             throw IllegalArgumentException("Cannot void a bill with recorded payments")
         }
 
+        val voidDate = LocalDate.now()
+        validateFiscalPeriodOpen(organizationId, voidDate)
+
         val apAccount =
             accountRepository.findByOrganizationIdAndCode(organizationId, "2000").orElseThrow {
                 IllegalStateException("Accounts Payable account (2000) not found")
@@ -250,7 +262,7 @@ class BillService(
         entryNumberGenerator.saveWithRetry(organizationId) { entryNumber ->
             JournalEntry(
                 entryNumber = entryNumber,
-                date = bill.date,
+                date = voidDate,
                 description = "Void bill ${bill.billNumber} - ${bill.vendorName}",
                 organizationId = organizationId,
                 status = JournalEntryStatus.POSTED,
@@ -291,14 +303,22 @@ class BillService(
             )
         }
 
+        validateFiscalPeriodOpen(organizationId, request.paymentDate)
+
         val apAccount =
             accountRepository.findByOrganizationIdAndCode(organizationId, "2000").orElseThrow {
                 IllegalStateException("Accounts Payable account (2000) not found")
             }
+        if (!apAccount.isActive) {
+            throw IllegalArgumentException("Accounts Payable account (2000) is inactive")
+        }
         val cashAccount =
             accountRepository.findByOrganizationIdAndCode(organizationId, "1000").orElseThrow {
                 IllegalStateException("Cash account (1000) not found")
             }
+        if (!cashAccount.isActive) {
+            throw IllegalArgumentException("Cash account (1000) is inactive")
+        }
 
         val journalEntry =
             entryNumberGenerator.saveWithRetry(organizationId) { entryNumber ->
@@ -368,7 +388,7 @@ class BillService(
         organizationId: String,
     ): List<BillPayment> {
         getBill(billId, organizationId)
-        return billPaymentRepository.findByBillId(billId)
+        return billPaymentRepository.findByBillIdAndOrganizationId(billId, organizationId)
     }
 
     fun getAgingReport(
@@ -464,5 +484,21 @@ class BillService(
             }
         }
         throw IllegalStateException("Failed to generate unique bill number")
+    }
+
+    private fun validateFiscalPeriodOpen(
+        organizationId: String,
+        date: LocalDate,
+    ) {
+        when (val result = fiscalYearService.findPeriodForDate(organizationId, date)) {
+            is FiscalYearService.PeriodLookupResult.NoFiscalYears -> return
+            is FiscalYearService.PeriodLookupResult.NotFound ->
+                throw IllegalArgumentException("No fiscal period covers the date $date")
+            is FiscalYearService.PeriodLookupResult.Found -> {
+                if (result.period.status == FiscalPeriodStatus.CLOSED) {
+                    throw IllegalArgumentException("Fiscal period '${result.period.name}' is closed")
+                }
+            }
+        }
     }
 }
