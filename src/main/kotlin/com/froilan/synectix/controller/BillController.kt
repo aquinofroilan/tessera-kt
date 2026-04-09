@@ -49,7 +49,8 @@ class BillController(
             val bill = billService.createBill(request, orgId, createdBy)
             ResponseEntity.status(HttpStatus.CREATED).body(bill.toResponse())
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest()
+            ResponseEntity
+                .badRequest()
                 .body(mapOf("error" to (e.message ?: "Failed to create bill")))
         }
     }
@@ -67,7 +68,8 @@ class BillController(
                 try {
                     BillStatus.valueOf(status.uppercase(Locale.ROOT))
                 } catch (e: IllegalArgumentException) {
-                    return ResponseEntity.badRequest()
+                    return ResponseEntity
+                        .badRequest()
                         .body(mapOf("error" to "Invalid status '$status'"))
                 }
             } else {
@@ -89,7 +91,8 @@ class BillController(
             val bill = billService.getBill(id, orgId)
             ResponseEntity.ok(bill.toResponse())
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND)
+            ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
                 .body(mapOf("error" to (e.message ?: "Bill not found")))
         }
     }
@@ -108,10 +111,12 @@ class BillController(
         } catch (e: IllegalArgumentException) {
             val status =
                 if (e.message == "Bill not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status)
+            ResponseEntity
+                .status(status)
                 .body(mapOf("error" to (e.message ?: "Failed to approve bill")))
         } catch (e: IllegalStateException) {
-            ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+            ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(mapOf("error" to (e.message ?: "Failed to approve bill")))
         }
     }
@@ -131,10 +136,12 @@ class BillController(
         } catch (e: IllegalArgumentException) {
             val status =
                 if (e.message == "Bill not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status)
+            ResponseEntity
+                .status(status)
                 .body(mapOf("error" to (e.message ?: "Failed to void bill")))
         } catch (e: IllegalStateException) {
-            ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+            ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(mapOf("error" to (e.message ?: "Failed to void bill")))
         }
     }
@@ -154,10 +161,12 @@ class BillController(
         } catch (e: IllegalArgumentException) {
             val status =
                 if (e.message == "Bill not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status)
+            ResponseEntity
+                .status(status)
                 .body(mapOf("error" to (e.message ?: "Failed to record payment")))
         } catch (e: IllegalStateException) {
-            ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+            ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(mapOf("error" to (e.message ?: "Failed to record payment")))
         }
     }
@@ -173,7 +182,8 @@ class BillController(
             val payments = billService.getPayments(id, orgId)
             ResponseEntity.ok(payments.map { it.toResponse() })
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND)
+            ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
                 .body(mapOf("error" to (e.message ?: "Bill not found")))
         }
     }

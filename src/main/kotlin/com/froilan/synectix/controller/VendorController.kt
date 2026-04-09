@@ -5,7 +5,6 @@ import com.froilan.synectix.annotation.Loggable
 import com.froilan.synectix.dto.CreateVendorRequest
 import com.froilan.synectix.dto.UpdateVendorRequest
 import com.froilan.synectix.dto.VendorResponse
-import com.froilan.synectix.model.User
 import com.froilan.synectix.model.Vendor
 import com.froilan.synectix.security.ApiKeyContext
 import com.froilan.synectix.security.SessionContext
@@ -64,7 +63,8 @@ class VendorController(
             val vendor = vendorService.getVendor(id, orgId)
             ResponseEntity.ok(vendor.toResponse())
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND)
+            ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
                 .body(mapOf("error" to (e.message ?: "Vendor not found")))
         }
     }
@@ -83,7 +83,8 @@ class VendorController(
         } catch (e: IllegalArgumentException) {
             val status =
                 if (e.message == "Vendor not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status)
+            ResponseEntity
+                .status(status)
                 .body(mapOf("error" to (e.message ?: "Failed to update vendor")))
         }
     }
@@ -101,7 +102,8 @@ class VendorController(
         } catch (e: IllegalArgumentException) {
             val status =
                 if (e.message == "Vendor not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status)
+            ResponseEntity
+                .status(status)
                 .body(mapOf("error" to (e.message ?: "Failed to delete vendor")))
         }
     }

@@ -433,7 +433,12 @@ class BillService(
             }
         }
 
-        val total = current.add(days1to30).add(days31to60).add(days61to90).add(days90plus)
+        val total =
+            current
+                .add(days1to30)
+                .add(days31to60)
+                .add(days61to90)
+                .add(days90plus)
         return AgingBucket(
             current = current,
             days1to30 = days1to30,

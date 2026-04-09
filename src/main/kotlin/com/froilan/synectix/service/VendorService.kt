@@ -51,8 +51,7 @@ class VendorService(
         return vendor
     }
 
-    fun listVendors(organizationId: String): List<Vendor> =
-        vendorRepository.findByOrganizationIdAndIsActive(organizationId, true)
+    fun listVendors(organizationId: String): List<Vendor> = vendorRepository.findByOrganizationIdAndIsActive(organizationId, true)
 
     @Transactional
     fun updateVendor(

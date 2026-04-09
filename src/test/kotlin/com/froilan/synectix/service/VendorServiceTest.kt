@@ -31,12 +31,13 @@ class VendorServiceTest {
     fun `create should save vendor with correct fields`() {
         `when`(vendorRepository.save(any<Vendor>())).thenAnswer { it.arguments[0] }
 
-        val request = CreateVendorRequest(
-            name = "Acme Corp",
-            contactName = "John Doe",
-            contactEmail = "john@acme.com",
-            paymentTermDays = 45,
-        )
+        val request =
+            CreateVendorRequest(
+                name = "Acme Corp",
+                contactName = "John Doe",
+                contactEmail = "john@acme.com",
+                paymentTermDays = 45,
+            )
 
         val result = vendorService.createVendor(request, orgId)
 
@@ -62,9 +63,10 @@ class VendorServiceTest {
         val vendor = createVendor(orgId = "other-org")
         `when`(vendorRepository.findById("v-1")).thenReturn(Optional.of(vendor))
 
-        val exception = assertThrows<IllegalArgumentException> {
-            vendorService.getVendor("v-1", orgId)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                vendorService.getVendor("v-1", orgId)
+            }
         assertThat(exception.message).contains("Vendor not found")
     }
 
@@ -95,9 +97,10 @@ class VendorServiceTest {
         val vendor = createVendor(isActive = false)
         `when`(vendorRepository.findById("v-1")).thenReturn(Optional.of(vendor))
 
-        val exception = assertThrows<IllegalArgumentException> {
-            vendorService.updateVendor("v-1", UpdateVendorRequest(name = "New"), orgId)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                vendorService.updateVendor("v-1", UpdateVendorRequest(name = "New"), orgId)
+            }
         assertThat(exception.message).contains("inactive")
     }
 
@@ -120,9 +123,10 @@ class VendorServiceTest {
         val vendor = createVendor(isActive = false)
         `when`(vendorRepository.findById("v-1")).thenReturn(Optional.of(vendor))
 
-        val exception = assertThrows<IllegalArgumentException> {
-            vendorService.deleteVendor("v-1", orgId)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                vendorService.deleteVendor("v-1", orgId)
+            }
         assertThat(exception.message).contains("already inactive")
     }
 

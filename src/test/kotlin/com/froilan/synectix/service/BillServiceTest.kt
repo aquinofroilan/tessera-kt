@@ -50,13 +50,14 @@ class BillServiceTest {
         journalEntryRepository = mock(JournalEntryRepository::class.java)
         vendorService = mock(VendorService::class.java)
         entryNumberGenerator = JournalEntryNumberGenerator(journalEntryRepository)
-        billService = BillService(
-            billRepository = billRepository,
-            billPaymentRepository = billPaymentRepository,
-            accountRepository = accountRepository,
-            vendorService = vendorService,
-            entryNumberGenerator = entryNumberGenerator,
-        )
+        billService =
+            BillService(
+                billRepository = billRepository,
+                billPaymentRepository = billPaymentRepository,
+                accountRepository = accountRepository,
+                vendorService = vendorService,
+                entryNumberGenerator = entryNumberGenerator,
+            )
     }
 
     @Test
@@ -70,14 +71,16 @@ class BillServiceTest {
         `when`(billRepository.countByOrganizationId(orgId)).thenReturn(0L)
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
 
-        val request = CreateBillRequest(
-            vendorId = "v-1",
-            date = LocalDate.of(2026, 3, 1),
-            dueDate = LocalDate.of(2026, 3, 31),
-            lines = listOf(
-                BillLineRequest(accountId = "acc-1", amount = BigDecimal("250.00")),
-            ),
-        )
+        val request =
+            CreateBillRequest(
+                vendorId = "v-1",
+                date = LocalDate.of(2026, 3, 1),
+                dueDate = LocalDate.of(2026, 3, 31),
+                lines =
+                    listOf(
+                        BillLineRequest(accountId = "acc-1", amount = BigDecimal("250.00")),
+                    ),
+            )
 
         val result = billService.createBill(request, orgId, userId)
 
@@ -95,18 +98,21 @@ class BillServiceTest {
         val vendor = createVendor(isActive = false)
         `when`(vendorService.getVendor("v-1", orgId)).thenReturn(vendor)
 
-        val request = CreateBillRequest(
-            vendorId = "v-1",
-            date = LocalDate.of(2026, 3, 1),
-            dueDate = LocalDate.of(2026, 3, 31),
-            lines = listOf(
-                BillLineRequest(accountId = "acc-1", amount = BigDecimal("100.00")),
-            ),
-        )
+        val request =
+            CreateBillRequest(
+                vendorId = "v-1",
+                date = LocalDate.of(2026, 3, 1),
+                dueDate = LocalDate.of(2026, 3, 31),
+                lines =
+                    listOf(
+                        BillLineRequest(accountId = "acc-1", amount = BigDecimal("100.00")),
+                    ),
+            )
 
-        val exception = assertThrows<IllegalArgumentException> {
-            billService.createBill(request, orgId, userId)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                billService.createBill(request, orgId, userId)
+            }
         assertThat(exception.message).contains("inactive vendor")
     }
 
@@ -149,9 +155,10 @@ class BillServiceTest {
         val bill = createBill(status = BillStatus.APPROVED)
         `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
 
-        val exception = assertThrows<IllegalArgumentException> {
-            billService.approveBill("bill-1", orgId, userId)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                billService.approveBill("bill-1", orgId, userId)
+            }
         assertThat(exception.message).contains("Only draft")
     }
 
@@ -196,15 +203,17 @@ class BillServiceTest {
 
     @Test
     fun `void should reject bill with payments`() {
-        val bill = createBill(
-            status = BillStatus.PARTIALLY_PAID,
-            amountPaid = BigDecimal("100.00"),
-        )
+        val bill =
+            createBill(
+                status = BillStatus.PARTIALLY_PAID,
+                amountPaid = BigDecimal("100.00"),
+            )
         `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
 
-        val exception = assertThrows<IllegalArgumentException> {
-            billService.voidBill("bill-1", orgId, "Cancel", userId)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                billService.voidBill("bill-1", orgId, "Cancel", userId)
+            }
         assertThat(exception.message).contains("recorded payments")
     }
 
@@ -224,11 +233,12 @@ class BillServiceTest {
         `when`(billPaymentRepository.save(any<BillPayment>())).thenAnswer { it.arguments[0] }
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
 
-        val request = RecordPaymentRequest(
-            paymentDate = LocalDate.of(2026, 3, 15),
-            amount = BigDecimal("200.00"),
-            paymentMethod = PaymentMethod.BANK_TRANSFER,
-        )
+        val request =
+            RecordPaymentRequest(
+                paymentDate = LocalDate.of(2026, 3, 15),
+                amount = BigDecimal("200.00"),
+                paymentMethod = PaymentMethod.BANK_TRANSFER,
+            )
 
         val payment = billService.recordPayment("bill-1", request, orgId, userId)
 
@@ -257,11 +267,12 @@ class BillServiceTest {
         `when`(billPaymentRepository.save(any<BillPayment>())).thenAnswer { it.arguments[0] }
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
 
-        val request = RecordPaymentRequest(
-            paymentDate = LocalDate.of(2026, 3, 15),
-            amount = BigDecimal("500.00"),
-            paymentMethod = PaymentMethod.CHECK,
-        )
+        val request =
+            RecordPaymentRequest(
+                paymentDate = LocalDate.of(2026, 3, 15),
+                amount = BigDecimal("500.00"),
+                paymentMethod = PaymentMethod.CHECK,
+            )
 
         billService.recordPayment("bill-1", request, orgId, userId)
 
@@ -276,15 +287,17 @@ class BillServiceTest {
         val bill = createBill(status = BillStatus.APPROVED)
         `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
 
-        val request = RecordPaymentRequest(
-            paymentDate = LocalDate.of(2026, 3, 15),
-            amount = BigDecimal("999.00"),
-            paymentMethod = PaymentMethod.CASH,
-        )
+        val request =
+            RecordPaymentRequest(
+                paymentDate = LocalDate.of(2026, 3, 15),
+                amount = BigDecimal("999.00"),
+                paymentMethod = PaymentMethod.CASH,
+            )
 
-        val exception = assertThrows<IllegalArgumentException> {
-            billService.recordPayment("bill-1", request, orgId, userId)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                billService.recordPayment("bill-1", request, orgId, userId)
+            }
         assertThat(exception.message).contains("exceeds remaining balance")
     }
 
@@ -293,45 +306,48 @@ class BillServiceTest {
         val bill = createBill(status = BillStatus.DRAFT)
         `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
 
-        val request = RecordPaymentRequest(
-            paymentDate = LocalDate.of(2026, 3, 15),
-            amount = BigDecimal("100.00"),
-            paymentMethod = PaymentMethod.CASH,
-        )
+        val request =
+            RecordPaymentRequest(
+                paymentDate = LocalDate.of(2026, 3, 15),
+                amount = BigDecimal("100.00"),
+                paymentMethod = PaymentMethod.CASH,
+            )
 
-        val exception = assertThrows<IllegalArgumentException> {
-            billService.recordPayment("bill-1", request, orgId, userId)
-        }
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                billService.recordPayment("bill-1", request, orgId, userId)
+            }
         assertThat(exception.message).contains("approved or partially paid")
     }
 
     @Test
     fun `aging report should bucket bills by overdue days`() {
         val asOfDate = LocalDate.of(2026, 5, 1)
-        val bills = listOf(
-            createBill(
-                id = "bill-1",
-                vendorId = "v-1",
-                dueDate = LocalDate.of(2026, 5, 15),
-                totalAmount = BigDecimal("100.00"),
-                status = BillStatus.APPROVED,
-            ),
-            createBill(
-                id = "bill-2",
-                vendorId = "v-1",
-                dueDate = LocalDate.of(2026, 4, 15),
-                totalAmount = BigDecimal("200.00"),
-                status = BillStatus.APPROVED,
-            ),
-            createBill(
-                id = "bill-3",
-                vendorId = "v-1",
-                dueDate = LocalDate.of(2026, 2, 1),
-                totalAmount = BigDecimal("300.00"),
-                status = BillStatus.PARTIALLY_PAID,
-                amountPaid = BigDecimal("50.00"),
-            ),
-        )
+        val bills =
+            listOf(
+                createBill(
+                    id = "bill-1",
+                    vendorId = "v-1",
+                    dueDate = LocalDate.of(2026, 5, 15),
+                    totalAmount = BigDecimal("100.00"),
+                    status = BillStatus.APPROVED,
+                ),
+                createBill(
+                    id = "bill-2",
+                    vendorId = "v-1",
+                    dueDate = LocalDate.of(2026, 4, 15),
+                    totalAmount = BigDecimal("200.00"),
+                    status = BillStatus.APPROVED,
+                ),
+                createBill(
+                    id = "bill-3",
+                    vendorId = "v-1",
+                    dueDate = LocalDate.of(2026, 2, 1),
+                    totalAmount = BigDecimal("300.00"),
+                    status = BillStatus.PARTIALLY_PAID,
+                    amountPaid = BigDecimal("50.00"),
+                ),
+            )
 
         val outstandingStatuses = listOf(BillStatus.APPROVED, BillStatus.PARTIALLY_PAID)
         `when`(billRepository.findByOrganizationIdAndStatusIn(orgId, outstandingStatuses))
@@ -394,14 +410,15 @@ class BillServiceTest {
         dueDate = dueDate,
         organizationId = orgId,
         status = status,
-        lines = listOf(
-            BillLine(
-                accountId = "acc-1",
-                accountCode = "5000",
-                accountName = "Office Supplies",
-                amount = totalAmount,
+        lines =
+            listOf(
+                BillLine(
+                    accountId = "acc-1",
+                    accountCode = "5000",
+                    accountName = "Office Supplies",
+                    amount = totalAmount,
+                ),
             ),
-        ),
         totalAmount = totalAmount,
         amountPaid = amountPaid,
         createdBy = userId,
