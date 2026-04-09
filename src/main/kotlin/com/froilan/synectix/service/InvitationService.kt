@@ -80,7 +80,7 @@ class InvitationService(
         try {
             invitationRepository.save(invitation)
         } catch (e: DuplicateKeyException) {
-            throw IllegalArgumentException("An invitation has already been sent to this email")
+            throw IllegalArgumentException("An invitation has already been sent to this email", e)
         }
 
         return rawToken
@@ -176,11 +176,11 @@ class InvitationService(
             val errorMessage = e.message ?: ""
             when {
                 errorMessage.contains("username", ignoreCase = true) ->
-                    throw IllegalArgumentException("Username already exists")
+                    throw IllegalArgumentException("Username already exists", e)
                 errorMessage.contains("email", ignoreCase = true) ->
-                    throw IllegalArgumentException("Email already exists")
+                    throw IllegalArgumentException("Email already exists", e)
                 else ->
-                    throw IllegalArgumentException("Account could not be created")
+                    throw IllegalArgumentException("Account could not be created", e)
             }
         }
     }

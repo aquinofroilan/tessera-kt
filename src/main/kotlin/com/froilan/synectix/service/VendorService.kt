@@ -33,6 +33,7 @@ class VendorService(
         } catch (e: DuplicateKeyException) {
             throw IllegalArgumentException(
                 "Vendor '${request.name}' already exists in this organization",
+                e,
             )
         }
     }

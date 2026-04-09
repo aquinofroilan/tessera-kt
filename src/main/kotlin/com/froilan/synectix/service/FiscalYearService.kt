@@ -72,6 +72,7 @@ class FiscalYearService(
         } catch (e: DuplicateKeyException) {
             throw IllegalArgumentException(
                 "Fiscal year '${request.name}' already exists in this organization",
+                e,
             )
         }
     }

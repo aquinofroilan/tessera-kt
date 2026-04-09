@@ -84,15 +84,15 @@ class AuthService(
             val errorMessage = e.message ?: ""
             when {
                 errorMessage.contains("username", ignoreCase = true) ->
-                    throw IllegalArgumentException("Username already exists")
+                    throw IllegalArgumentException("Username already exists", e)
                 errorMessage.contains("email", ignoreCase = true) ->
-                    throw IllegalArgumentException("Email already exists")
+                    throw IllegalArgumentException("Email already exists", e)
                 errorMessage.contains("orgSlug", ignoreCase = true) ->
-                    throw IllegalArgumentException("Organization slug already exists")
+                    throw IllegalArgumentException("Organization slug already exists", e)
                 errorMessage.contains("name", ignoreCase = true) ->
-                    throw IllegalArgumentException("Organization name already exists")
+                    throw IllegalArgumentException("Organization name already exists", e)
                 else ->
-                    throw IllegalArgumentException("Registration failed due to a conflict")
+                    throw IllegalArgumentException("Registration failed due to a conflict", e)
             }
         }
     }
