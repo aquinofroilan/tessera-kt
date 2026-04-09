@@ -236,10 +236,11 @@ class FiscalYearService(
             throw IllegalArgumentException("Year-end closing entry already exists for this fiscal year")
         }
 
+        val postedStatuses = listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED)
         val entries =
-            journalEntryRepository.findByOrganizationIdAndStatusAndDateBetween(
+            journalEntryRepository.findByOrganizationIdAndStatusInAndDateBetween(
                 organizationId,
-                JournalEntryStatus.POSTED,
+                postedStatuses,
                 fiscalYear.startDate,
                 fiscalYear.endDate,
             )

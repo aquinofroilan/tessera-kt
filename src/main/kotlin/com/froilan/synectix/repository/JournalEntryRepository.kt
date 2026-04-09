@@ -55,6 +55,13 @@ interface JournalEntryRepository : MongoRepository<JournalEntry, String> {
         statuses: List<JournalEntryStatus>,
     ): List<JournalEntry>
 
+    fun findByOrganizationIdAndStatusInAndDateBetween(
+        organizationId: String,
+        statuses: List<JournalEntryStatus>,
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): List<JournalEntry>
+
     fun findByOrganizationIdAndStatusInAndDateLessThanEqual(
         organizationId: String,
         statuses: List<JournalEntryStatus>,

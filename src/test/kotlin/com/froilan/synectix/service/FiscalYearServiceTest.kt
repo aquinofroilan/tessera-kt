@@ -419,9 +419,9 @@ class FiscalYearServiceTest {
             )
 
         `when`(
-            journalEntryRepository.findByOrganizationIdAndStatusAndDateBetween(
+            journalEntryRepository.findByOrganizationIdAndStatusInAndDateBetween(
                 orgId,
-                JournalEntryStatus.POSTED,
+                listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED),
                 fiscalYear.startDate,
                 fiscalYear.endDate,
             ),
@@ -532,9 +532,9 @@ class FiscalYearServiceTest {
             )
 
         `when`(
-            journalEntryRepository.findByOrganizationIdAndStatusAndDateBetween(
+            journalEntryRepository.findByOrganizationIdAndStatusInAndDateBetween(
                 orgId,
-                JournalEntryStatus.POSTED,
+                listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED),
                 fiscalYear.startDate,
                 fiscalYear.endDate,
             ),
@@ -576,9 +576,9 @@ class FiscalYearServiceTest {
             .thenReturn(false)
 
         `when`(
-            journalEntryRepository.findByOrganizationIdAndStatusAndDateBetween(
+            journalEntryRepository.findByOrganizationIdAndStatusInAndDateBetween(
                 orgId,
-                JournalEntryStatus.POSTED,
+                listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED),
                 fiscalYear.startDate,
                 fiscalYear.endDate,
             ),
