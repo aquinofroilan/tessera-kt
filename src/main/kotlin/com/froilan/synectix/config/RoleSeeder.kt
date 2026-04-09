@@ -56,6 +56,11 @@ class RoleSeeder(
                             Permissions.FISCAL_CREATE,
                             Permissions.FISCAL_READ,
                             Permissions.FISCAL_CLOSE,
+                            Permissions.AP_CREATE,
+                            Permissions.AP_READ,
+                            Permissions.AP_APPROVE,
+                            Permissions.AP_PAY,
+                            Permissions.AP_VOID,
                         ),
                 ),
                 Role(
@@ -82,6 +87,10 @@ class RoleSeeder(
                             Permissions.FISCAL_CREATE,
                             Permissions.FISCAL_READ,
                             Permissions.FISCAL_CLOSE,
+                            Permissions.AP_CREATE,
+                            Permissions.AP_READ,
+                            Permissions.AP_APPROVE,
+                            Permissions.AP_PAY,
                         ),
                 ),
                 Role(
@@ -99,6 +108,8 @@ class RoleSeeder(
                             Permissions.JOURNAL_CREATE,
                             Permissions.JOURNAL_READ,
                             Permissions.FISCAL_READ,
+                            Permissions.AP_CREATE,
+                            Permissions.AP_READ,
                         ),
                 ),
                 Role(
@@ -112,6 +123,7 @@ class RoleSeeder(
                             Permissions.ACCOUNT_READ,
                             Permissions.JOURNAL_READ,
                             Permissions.FISCAL_READ,
+                            Permissions.AP_READ,
                         ),
                 ),
             )
