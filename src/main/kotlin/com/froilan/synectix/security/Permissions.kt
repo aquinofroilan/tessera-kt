@@ -29,6 +29,10 @@ object Permissions {
     const val JOURNAL_POST = "journal:post"
     const val JOURNAL_VOID = "journal:void"
 
+    const val FISCAL_CREATE = "fiscal:create"
+    const val FISCAL_READ = "fiscal:read"
+    const val FISCAL_CLOSE = "fiscal:close"
+
     val ALL_PERMISSIONS =
         listOf(
             SESSION_READ,
@@ -51,5 +55,8 @@ object Permissions {
             JOURNAL_READ,
             JOURNAL_POST,
             JOURNAL_VOID,
+            FISCAL_CREATE,
+            FISCAL_READ,
+            FISCAL_CLOSE,
         )
 }

@@ -4,13 +4,13 @@ import com.froilan.synectix.dto.AccountBalanceResponse
 import com.froilan.synectix.dto.CreateJournalEntryRequest
 import com.froilan.synectix.dto.TrialBalanceResponse
 import com.froilan.synectix.model.AccountType
+import com.froilan.synectix.model.FiscalPeriodStatus
 import com.froilan.synectix.model.JournalEntry
 import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.model.JournalEntrySource
 import com.froilan.synectix.model.JournalEntryStatus
 import com.froilan.synectix.repository.AccountRepository
 import com.froilan.synectix.repository.JournalEntryRepository
-import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -21,6 +21,8 @@ import java.time.LocalDateTime
 class JournalEntryService(
     private val journalEntryRepository: JournalEntryRepository,
     private val accountRepository: AccountRepository,
+    private val fiscalYearService: FiscalYearService,
+    private val entryNumberGenerator: JournalEntryNumberGenerator,
 ) {
     @Transactional
     fun createJournalEntry(
@@ -78,7 +80,9 @@ class JournalEntryService(
                 )
             }
 
-        return saveWithRetry(organizationId) { entryNumber ->
+        validateFiscalPeriodOpen(organizationId, request.date)
+
+        return entryNumberGenerator.saveWithRetry(organizationId) { entryNumber ->
             JournalEntry(
                 entryNumber = entryNumber,
                 date = request.date,
@@ -106,6 +110,8 @@ class JournalEntryService(
         if (totalDebits.compareTo(totalCredits) != 0) {
             throw IllegalArgumentException("Journal entry is not balanced")
         }
+
+        validateFiscalPeriodOpen(organizationId, entry.date)
 
         return journalEntryRepository.save(
             entry.copy(
@@ -140,7 +146,7 @@ class JournalEntryService(
                 line.copy(debit = line.credit, credit = line.debit)
             }
 
-        saveWithRetry(organizationId) { reversingNumber ->
+        entryNumberGenerator.saveWithRetry(organizationId) { reversingNumber ->
             JournalEntry(
                 entryNumber = reversingNumber,
                 date = LocalDate.now(),
@@ -317,20 +323,19 @@ class JournalEntryService(
         return entry
     }
 
-    private fun saveWithRetry(
+    private fun validateFiscalPeriodOpen(
         organizationId: String,
-        maxRetries: Int = 3,
-        buildEntry: (String) -> JournalEntry,
-    ): JournalEntry {
-        repeat(maxRetries) {
-            val count = journalEntryRepository.countByOrganizationId(organizationId)
-            val entryNumber = "JE-${(count + 1).toString().padStart(4, '0')}"
-            try {
-                return journalEntryRepository.save(buildEntry(entryNumber))
-            } catch (e: DuplicateKeyException) {
-                if (it == maxRetries - 1) throw e
+        date: LocalDate,
+    ) {
+        when (val result = fiscalYearService.findPeriodForDate(organizationId, date)) {
+            is FiscalYearService.PeriodLookupResult.NoFiscalYears -> return
+            is FiscalYearService.PeriodLookupResult.NotFound ->
+                throw IllegalArgumentException("No fiscal period covers the date $date")
+            is FiscalYearService.PeriodLookupResult.Found -> {
+                if (result.period.status == FiscalPeriodStatus.CLOSED) {
+                    throw IllegalArgumentException("Fiscal period '${result.period.name}' is closed")
+                }
             }
         }
-        throw IllegalStateException("Failed to generate unique entry number")
     }
 }
