@@ -24,6 +24,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 @Service
 class BillService(
@@ -320,6 +321,8 @@ class BillService(
             throw IllegalArgumentException("Cash account (1000) is inactive")
         }
 
+        val paymentId = UUID.randomUUID().toString()
+
         val journalEntry =
             entryNumberGenerator.saveWithRetry(organizationId) { entryNumber ->
                 JournalEntry(
@@ -329,7 +332,7 @@ class BillService(
                     organizationId = organizationId,
                     status = JournalEntryStatus.POSTED,
                     source = JournalEntrySource.SYSTEM,
-                    sourceReference = "BILL-PAYMENT-${bill.id}",
+                    sourceReference = "BILL-PAYMENT-$paymentId",
                     lines =
                         listOf(
                             JournalEntryLine(
@@ -357,6 +360,7 @@ class BillService(
         val payment =
             billPaymentRepository.save(
                 BillPayment(
+                    id = paymentId,
                     billId = bill.id,
                     paymentDate = request.paymentDate,
                     amount = request.amount,
@@ -480,7 +484,9 @@ class BillService(
             try {
                 return billRepository.save(buildBill(billNumber))
             } catch (e: DuplicateKeyException) {
-                if (it == maxRetries - 1) throw e
+                if (it == maxRetries - 1) {
+                    throw IllegalStateException("Failed to generate unique bill number")
+                }
             }
         }
         throw IllegalStateException("Failed to generate unique bill number")
