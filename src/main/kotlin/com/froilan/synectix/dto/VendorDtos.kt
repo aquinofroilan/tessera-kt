@@ -1,5 +1,6 @@
 package com.froilan.synectix.dto
 
+import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 
@@ -7,6 +8,7 @@ data class CreateVendorRequest(
     @field:NotBlank(message = "Vendor name is required")
     val name: String,
     val contactName: String? = null,
+    @field:Email(message = "Invalid email format")
     val contactEmail: String? = null,
     val contactPhone: String? = null,
     @field:Min(value = 0, message = "Payment term days must be zero or positive")
@@ -17,6 +19,7 @@ data class CreateVendorRequest(
 data class UpdateVendorRequest(
     val name: String? = null,
     val contactName: String? = null,
+    @field:Email(message = "Invalid email format")
     val contactEmail: String? = null,
     val contactPhone: String? = null,
     @field:Min(value = 0, message = "Payment term days must be zero or positive")

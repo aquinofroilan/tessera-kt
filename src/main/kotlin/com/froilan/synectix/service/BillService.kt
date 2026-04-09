@@ -233,6 +233,9 @@ class BillService(
             accountRepository.findByOrganizationIdAndCode(organizationId, "2000").orElseThrow {
                 IllegalStateException("Accounts Payable account (2000) not found")
             }
+        if (!apAccount.isActive) {
+            throw IllegalArgumentException("Accounts Payable account (2000) is inactive")
+        }
 
         val reversingLines = mutableListOf<JournalEntryLine>()
 
