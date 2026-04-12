@@ -10,6 +10,7 @@ import com.froilan.synectix.repository.PasswordResetTokenRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
+import com.froilan.synectix.security.AuthenticationContext
 import com.froilan.synectix.security.RolePermissionCache
 import com.froilan.synectix.security.SynectixPermissionEvaluator
 import com.froilan.synectix.service.ApiKeyService
@@ -72,6 +73,9 @@ class SessionControllerTest {
 
     @MockitoBean
     private lateinit var apiKeyService: ApiKeyService
+
+    @MockitoBean
+    private lateinit var authenticationContext: AuthenticationContext
 
     private val testUser =
         User(

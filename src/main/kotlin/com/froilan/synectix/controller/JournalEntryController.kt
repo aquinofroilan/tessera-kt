@@ -36,7 +36,7 @@ class JournalEntryController(
     fun createJournalEntry(
         @Valid @RequestBody request: CreateJournalEntryRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val createdBy = authContext.userId() ?: "api-key"
 
         return try {
@@ -54,7 +54,7 @@ class JournalEntryController(
         @RequestParam(required = false) startDate: LocalDate?,
         @RequestParam(required = false) endDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         val entryStatus =
             if (status != null) {
@@ -78,7 +78,7 @@ class JournalEntryController(
     fun getJournalEntry(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val entry = journalEntryService.getJournalEntry(id, orgId)
@@ -93,7 +93,7 @@ class JournalEntryController(
     fun postJournalEntry(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val entry = journalEntryService.postJournalEntry(id, orgId)
@@ -110,7 +110,7 @@ class JournalEntryController(
         @PathVariable id: String,
         @Valid @RequestBody request: VoidJournalEntryRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val entry = journalEntryService.voidJournalEntry(id, orgId, request.reason)
@@ -126,7 +126,7 @@ class JournalEntryController(
     fun getTrialBalance(
         @RequestParam(required = false) asOfDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val trialBalance = journalEntryService.getTrialBalance(orgId, asOfDate)
         return ResponseEntity.ok(trialBalance)
     }
@@ -159,9 +159,4 @@ class JournalEntryController(
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),
         )
-
-    private fun unauthorized(): ResponseEntity<Any> =
-        ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body(mapOf("error" to "Authentication required"))
 }

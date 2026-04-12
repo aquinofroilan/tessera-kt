@@ -41,7 +41,7 @@ class InvoiceController(
     fun createInvoice(
         @Valid @RequestBody request: CreateInvoiceRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val createdBy = authContext.userId() ?: "api-key"
 
         return try {
@@ -60,7 +60,7 @@ class InvoiceController(
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) customerId: String?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         val invoiceStatus =
             if (status != null) {
@@ -84,7 +84,7 @@ class InvoiceController(
     fun getInvoice(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val invoice = invoiceService.getInvoice(id, orgId)
@@ -101,7 +101,7 @@ class InvoiceController(
     fun approveInvoice(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
 
         return try {
@@ -126,7 +126,7 @@ class InvoiceController(
         @PathVariable id: String,
         @Valid @RequestBody request: VoidInvoiceRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
 
         return try {
@@ -151,7 +151,7 @@ class InvoiceController(
         @PathVariable id: String,
         @Valid @RequestBody request: RecordReceiptRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val createdBy = authContext.userId() ?: "api-key"
 
         return try {
@@ -175,7 +175,7 @@ class InvoiceController(
     fun listReceipts(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val receipts = invoiceService.getReceipts(id, orgId)
@@ -192,7 +192,7 @@ class InvoiceController(
     fun getAgingReport(
         @RequestParam(required = false) asOfDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val report = invoiceService.getAgingReport(orgId, asOfDate ?: LocalDate.now(ZoneOffset.UTC))
         return ResponseEntity.ok(report)
     }
@@ -256,9 +256,4 @@ class InvoiceController(
             createdBy = createdBy,
             createdAt = createdAt?.toString(),
         )
-
-    private fun unauthorized(): ResponseEntity<Any> =
-        ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body(mapOf("error" to "Authentication required"))
 }
