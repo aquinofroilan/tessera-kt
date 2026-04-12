@@ -636,7 +636,7 @@ class AuthServiceTest {
         `when`(passwordResetTokenRepository.findByTokenHash(any())).thenReturn(Optional.empty())
 
         val exception =
-            assertThrows<AuthenticationException> {
+            assertThrows<BusinessRuleException> {
                 authService.resetPassword("invalid-token", "NewPassword123!")
             }
         assertThat(exception.message).isEqualTo("Invalid or expired reset token")
@@ -655,7 +655,7 @@ class AuthServiceTest {
             .thenReturn(Optional.of(expiredToken))
 
         val exception =
-            assertThrows<AuthenticationException> {
+            assertThrows<BusinessRuleException> {
                 authService.resetPassword("expired-token", "NewPassword123!")
             }
         assertThat(exception.message).isEqualTo("Invalid or expired reset token")

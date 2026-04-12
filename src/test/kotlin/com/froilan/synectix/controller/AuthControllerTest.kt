@@ -599,7 +599,7 @@ class AuthControllerTest {
     }
 
     @Test
-    fun `POST reset-password should return 401 with invalid token`() {
+    fun `POST reset-password should return 400 with invalid token`() {
         val requestJson =
             """
             {
@@ -609,14 +609,14 @@ class AuthControllerTest {
             """.trimIndent()
 
         `when`(authService.resetPassword(any<String>(), any<String>()))
-            .thenThrow(AuthenticationException("Invalid or expired reset token"))
+            .thenThrow(BusinessRuleException("Invalid or expired reset token"))
 
         mockMvc
             .perform(
                 post("/auth/reset-password")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson),
-            ).andExpect(status().isUnauthorized)
+            ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Invalid or expired reset token"))
     }
 

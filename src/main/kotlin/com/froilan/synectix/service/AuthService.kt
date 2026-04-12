@@ -284,23 +284,23 @@ class AuthService(
         val existing =
             passwordResetTokenRepository
                 .findByTokenHash(tokenHash)
-                .orElseThrow { AuthenticationException("Invalid or expired reset token") }
+                .orElseThrow { BusinessRuleException("Invalid or expired reset token") }
 
         if (!existing.expiryAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
             passwordResetTokenRepository.deleteById(existing.id)
-            throw AuthenticationException("Invalid or expired reset token")
+            throw BusinessRuleException("Invalid or expired reset token")
         }
 
         val resetToken =
             mongoTemplate.findAndRemove(
                 Query.query(Criteria.where("tokenHash").`is`(tokenHash)),
                 PasswordResetToken::class.java,
-            ) ?: throw AuthenticationException("Invalid or expired reset token")
+            ) ?: throw BusinessRuleException("Invalid or expired reset token")
 
         val user =
             userRepository
                 .findById(resetToken.userId)
-                .orElseThrow { AuthenticationException("Invalid or expired reset token") }
+                .orElseThrow { BusinessRuleException("Invalid or expired reset token") }
 
         val updatedUser = user.copy(passwordHash = passwordEncoder.encode(newPassword) as String)
         userRepository.save(updatedUser)
