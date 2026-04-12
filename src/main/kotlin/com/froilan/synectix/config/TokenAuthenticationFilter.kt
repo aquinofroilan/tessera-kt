@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.concurrent.TimeUnit
 
 @Component
@@ -59,7 +60,7 @@ class TokenAuthenticationFilter(
 
             if (sessionTokenOpt.isPresent) {
                 val sessionToken = sessionTokenOpt.get()
-                if (sessionToken.expiryAt.isAfter(LocalDateTime.now())) {
+                if (sessionToken.expiryAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
                     val userOpt = userRepository.findById(sessionToken.userId)
                     if (userOpt.isPresent && userOpt.get().isActive) {
                         val user = userOpt.get()

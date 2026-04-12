@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 
 @Document(collection = "session_tokens")
@@ -18,5 +19,5 @@ data class SessionToken(
     val expiryAt: LocalDateTime,
     val ipAddress: String? = null,
     val userAgent: String? = null,
-    val createdAt: LocalDateTime = LocalDateTime.now(),
+    val createdAt: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC),
 )

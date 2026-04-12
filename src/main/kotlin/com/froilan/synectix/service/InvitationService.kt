@@ -23,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.Locale
 
 @Service
@@ -60,7 +61,7 @@ class InvitationService(
             )
         if (existing.isPresent) {
             val pendingInvitation = existing.get()
-            if (pendingInvitation.expiryAt.isAfter(LocalDateTime.now())) {
+            if (pendingInvitation.expiryAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
                 throw IllegalArgumentException("An invitation has already been sent to this email")
             }
             invitationRepository.save(pendingInvitation.copy(status = InvitationStatus.EXPIRED))
@@ -74,12 +75,12 @@ class InvitationService(
                 role = role.name,
                 tokenHash = tokenHasher.hash(rawToken),
                 invitedBy = inviter.uuid,
-                expiryAt = LocalDateTime.now().plusHours(invitationExpiryHours),
+                expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(invitationExpiryHours),
             )
         try {
             invitationRepository.save(invitation)
         } catch (e: DuplicateKeyException) {
-            throw IllegalArgumentException("An invitation has already been sent to this email")
+            throw IllegalArgumentException("An invitation has already been sent to this email", e)
         }
 
         return rawToken
@@ -91,7 +92,7 @@ class InvitationService(
             invitationRepository.findByTokenHash(tokenHash).orElseThrow {
                 IllegalArgumentException("Invalid or expired invitation token")
             }
-        if (invitation.status != InvitationStatus.PENDING || !invitation.expiryAt.isAfter(LocalDateTime.now())) {
+        if (invitation.status != InvitationStatus.PENDING || !invitation.expiryAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
             throw IllegalArgumentException("Invalid or expired invitation token")
         }
         val existingUser = userRepository.findByEmail(invitation.email).isPresent
@@ -116,7 +117,7 @@ class InvitationService(
                         .and("status")
                         .`is`(InvitationStatus.PENDING)
                         .and("expiryAt")
-                        .gt(LocalDateTime.now()),
+                        .gt(LocalDateTime.now(ZoneOffset.UTC)),
                 ),
                 Update.update("status", InvitationStatus.ACCEPTED),
                 FindAndModifyOptions.options().returnNew(true),
@@ -175,11 +176,11 @@ class InvitationService(
             val errorMessage = e.message ?: ""
             when {
                 errorMessage.contains("username", ignoreCase = true) ->
-                    throw IllegalArgumentException("Username already exists")
+                    throw IllegalArgumentException("Username already exists", e)
                 errorMessage.contains("email", ignoreCase = true) ->
-                    throw IllegalArgumentException("Email already exists")
+                    throw IllegalArgumentException("Email already exists", e)
                 else ->
-                    throw IllegalArgumentException("Account could not be created")
+                    throw IllegalArgumentException("Account could not be created", e)
             }
         }
     }
@@ -206,6 +207,6 @@ class InvitationService(
         invitationRepository.findByOrganizationIdAndStatusAndExpiryAtAfter(
             organizationId,
             InvitationStatus.PENDING,
-            LocalDateTime.now(),
+            LocalDateTime.now(ZoneOffset.UTC),
         )
 }

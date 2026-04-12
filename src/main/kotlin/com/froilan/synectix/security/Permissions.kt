@@ -33,6 +33,12 @@ object Permissions {
     const val FISCAL_READ = "fiscal:read"
     const val FISCAL_CLOSE = "fiscal:close"
 
+    const val AP_CREATE = "ap:create"
+    const val AP_READ = "ap:read"
+    const val AP_APPROVE = "ap:approve"
+    const val AP_PAY = "ap:pay"
+    const val AP_VOID = "ap:void"
+
     val ALL_PERMISSIONS =
         listOf(
             SESSION_READ,
@@ -58,5 +64,10 @@ object Permissions {
             FISCAL_CREATE,
             FISCAL_READ,
             FISCAL_CLOSE,
+            AP_CREATE,
+            AP_READ,
+            AP_APPROVE,
+            AP_PAY,
+            AP_VOID,
         )
 }

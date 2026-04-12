@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -71,6 +72,7 @@ class FiscalYearService(
         } catch (e: DuplicateKeyException) {
             throw IllegalArgumentException(
                 "Fiscal year '${request.name}' already exists in this organization",
+                e,
             )
         }
     }
@@ -117,7 +119,7 @@ class FiscalYearService(
         updatedPeriods[periodIndex] =
             period.copy(
                 status = FiscalPeriodStatus.CLOSED,
-                closedAt = LocalDateTime.now(),
+                closedAt = LocalDateTime.now(ZoneOffset.UTC),
                 closedBy = closedBy,
             )
 
@@ -161,7 +163,7 @@ class FiscalYearService(
         updatedPeriods[periodIndex] =
             period.copy(
                 status = FiscalPeriodStatus.REOPENED,
-                reopenedAt = LocalDateTime.now(),
+                reopenedAt = LocalDateTime.now(ZoneOffset.UTC),
                 reopenedBy = reopenedBy,
             )
 
@@ -192,7 +194,7 @@ class FiscalYearService(
         return fiscalYearRepository.save(
             fiscalYear.copy(
                 status = FiscalYearStatus.CLOSED,
-                closedAt = LocalDateTime.now(),
+                closedAt = LocalDateTime.now(ZoneOffset.UTC),
                 closedBy = closedBy,
                 closingEntryId = closingEntry?.id,
             ),
@@ -214,6 +216,22 @@ class FiscalYearService(
             }
         }
         return PeriodLookupResult.NotFound
+    }
+
+    fun validatePeriodOpen(
+        organizationId: String,
+        date: LocalDate,
+    ) {
+        when (val result = findPeriodForDate(organizationId, date)) {
+            is PeriodLookupResult.NoFiscalYears -> return
+            is PeriodLookupResult.NotFound ->
+                throw IllegalArgumentException("No fiscal period covers the date $date")
+            is PeriodLookupResult.Found -> {
+                if (result.period.status == FiscalPeriodStatus.CLOSED) {
+                    throw IllegalArgumentException("Fiscal period '${result.period.name}' is closed")
+                }
+            }
+        }
     }
 
     sealed class PeriodLookupResult {
@@ -344,7 +362,7 @@ class FiscalYearService(
                 sourceReference = sourceRef,
                 lines = closingLines,
                 createdBy = closedBy,
-                postedAt = LocalDateTime.now(),
+                postedAt = LocalDateTime.now(ZoneOffset.UTC),
             )
         }
     }
