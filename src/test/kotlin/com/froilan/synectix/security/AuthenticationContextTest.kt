@@ -91,9 +91,12 @@ class AuthenticationContextTest {
     }
 
     @Test
+    @Suppress("UNCHECKED_CAST")
     fun `unauthorized should return 401 with error message`() {
         val response = authContext.unauthorized()
 
         assertThat(response.statusCode.value()).isEqualTo(401)
+        val body = response.body as Map<String, String>
+        assertThat(body["error"]).isEqualTo("Authentication required")
     }
 }
