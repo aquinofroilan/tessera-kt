@@ -6,14 +6,12 @@ import com.froilan.synectix.dto.CreateVendorRequest
 import com.froilan.synectix.dto.UpdateVendorRequest
 import com.froilan.synectix.dto.VendorResponse
 import com.froilan.synectix.model.Vendor
-import com.froilan.synectix.security.ApiKeyContext
-import com.froilan.synectix.security.SessionContext
+import com.froilan.synectix.security.AuthenticationContext
 import com.froilan.synectix.service.VendorService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -28,13 +26,14 @@ import org.springframework.web.bind.annotation.RestController
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
 class VendorController(
     private val vendorService: VendorService,
+    private val authContext: AuthenticationContext,
 ) {
     @PostMapping
     @PreAuthorize("hasAuthority('ap:create')")
     fun createVendor(
         @Valid @RequestBody request: CreateVendorRequest,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             val vendor = vendorService.createVendor(request, orgId)
@@ -47,7 +46,7 @@ class VendorController(
     @GetMapping
     @PreAuthorize("hasAuthority('ap:read')")
     fun listVendors(): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
         val vendors = vendorService.listVendors(orgId)
         return ResponseEntity.ok(vendors.map { it.toResponse() })
     }
@@ -57,7 +56,7 @@ class VendorController(
     fun getVendor(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             val vendor = vendorService.getVendor(id, orgId)
@@ -75,7 +74,7 @@ class VendorController(
         @PathVariable id: String,
         @Valid @RequestBody request: UpdateVendorRequest,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             val vendor = vendorService.updateVendor(id, request, orgId)
@@ -94,7 +93,7 @@ class VendorController(
     fun deleteVendor(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             val vendor = vendorService.deleteVendor(id, orgId)
@@ -122,15 +121,6 @@ class VendorController(
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),
         )
-
-    private fun extractOrganizationId(): String? {
-        val authentication = SecurityContextHolder.getContext().authentication ?: return null
-        return when (val details = authentication.details) {
-            is SessionContext -> details.organizationId
-            is ApiKeyContext -> details.organizationId
-            else -> null
-        }
-    }
 
     private fun unauthorized(): ResponseEntity<Any> =
         ResponseEntity

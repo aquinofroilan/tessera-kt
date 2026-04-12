@@ -8,15 +8,12 @@ import com.froilan.synectix.dto.JournalEntryResponse
 import com.froilan.synectix.dto.VoidJournalEntryRequest
 import com.froilan.synectix.model.JournalEntry
 import com.froilan.synectix.model.JournalEntryStatus
-import com.froilan.synectix.model.User
-import com.froilan.synectix.security.ApiKeyContext
-import com.froilan.synectix.security.SessionContext
+import com.froilan.synectix.security.AuthenticationContext
 import com.froilan.synectix.service.JournalEntryService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -32,14 +29,15 @@ import java.util.Locale
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
 class JournalEntryController(
     private val journalEntryService: JournalEntryService,
+    private val authContext: AuthenticationContext,
 ) {
     @PostMapping
     @PreAuthorize("hasAuthority('journal:create')")
     fun createJournalEntry(
         @Valid @RequestBody request: CreateJournalEntryRequest,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
-        val createdBy = extractUserId() ?: "api-key"
+        val orgId = authContext.organizationId() ?: return unauthorized()
+        val createdBy = authContext.userId() ?: "api-key"
 
         return try {
             val entry = journalEntryService.createJournalEntry(request, orgId, createdBy)
@@ -56,7 +54,7 @@ class JournalEntryController(
         @RequestParam(required = false) startDate: LocalDate?,
         @RequestParam(required = false) endDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         val entryStatus =
             if (status != null) {
@@ -80,7 +78,7 @@ class JournalEntryController(
     fun getJournalEntry(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             val entry = journalEntryService.getJournalEntry(id, orgId)
@@ -95,7 +93,7 @@ class JournalEntryController(
     fun postJournalEntry(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             val entry = journalEntryService.postJournalEntry(id, orgId)
@@ -112,7 +110,7 @@ class JournalEntryController(
         @PathVariable id: String,
         @Valid @RequestBody request: VoidJournalEntryRequest,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             val entry = journalEntryService.voidJournalEntry(id, orgId, request.reason)
@@ -128,7 +126,7 @@ class JournalEntryController(
     fun getTrialBalance(
         @RequestParam(required = false) asOfDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
         val trialBalance = journalEntryService.getTrialBalance(orgId, asOfDate)
         return ResponseEntity.ok(trialBalance)
     }
@@ -161,20 +159,6 @@ class JournalEntryController(
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),
         )
-
-    private fun extractOrganizationId(): String? {
-        val authentication = SecurityContextHolder.getContext().authentication ?: return null
-        return when (val details = authentication.details) {
-            is SessionContext -> details.organizationId
-            is ApiKeyContext -> details.organizationId
-            else -> null
-        }
-    }
-
-    private fun extractUserId(): String? {
-        val authentication = SecurityContextHolder.getContext().authentication ?: return null
-        return (authentication.principal as? User)?.uuid
-    }
 
     private fun unauthorized(): ResponseEntity<Any> =
         ResponseEntity
