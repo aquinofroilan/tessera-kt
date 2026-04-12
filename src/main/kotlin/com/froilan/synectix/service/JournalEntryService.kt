@@ -4,7 +4,6 @@ import com.froilan.synectix.dto.AccountBalanceResponse
 import com.froilan.synectix.dto.CreateJournalEntryRequest
 import com.froilan.synectix.dto.TrialBalanceResponse
 import com.froilan.synectix.model.AccountType
-import com.froilan.synectix.model.FiscalPeriodStatus
 import com.froilan.synectix.model.JournalEntry
 import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.model.JournalEntrySource
@@ -92,6 +91,40 @@ class JournalEntryService(
                 lines = lines,
                 createdBy = createdBy,
                 sourceReference = request.sourceReference,
+            )
+        }
+    }
+
+    @Transactional
+    fun createSystemEntry(
+        date: LocalDate,
+        description: String,
+        organizationId: String,
+        lines: List<JournalEntryLine>,
+        sourceReference: String,
+        createdBy: String,
+    ): JournalEntry {
+        val totalDebits = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.debit) }
+        val totalCredits = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.credit) }
+        if (totalDebits.compareTo(totalCredits) != 0) {
+            throw IllegalArgumentException("System journal entry is not balanced")
+        }
+
+        validateFiscalPeriodOpen(organizationId, date)
+
+        val now = LocalDateTime.now(ZoneOffset.UTC)
+        return entryNumberGenerator.saveWithRetry(organizationId) { entryNumber ->
+            JournalEntry(
+                entryNumber = entryNumber,
+                date = date,
+                description = description,
+                organizationId = organizationId,
+                status = JournalEntryStatus.POSTED,
+                source = JournalEntrySource.SYSTEM,
+                sourceReference = sourceReference,
+                lines = lines,
+                createdBy = createdBy,
+                postedAt = now,
             )
         }
     }
@@ -327,16 +360,5 @@ class JournalEntryService(
     private fun validateFiscalPeriodOpen(
         organizationId: String,
         date: LocalDate,
-    ) {
-        when (val result = fiscalYearService.findPeriodForDate(organizationId, date)) {
-            is FiscalYearService.PeriodLookupResult.NoFiscalYears -> return
-            is FiscalYearService.PeriodLookupResult.NotFound ->
-                throw IllegalArgumentException("No fiscal period covers the date $date")
-            is FiscalYearService.PeriodLookupResult.Found -> {
-                if (result.period.status == FiscalPeriodStatus.CLOSED) {
-                    throw IllegalArgumentException("Fiscal period '${result.period.name}' is closed")
-                }
-            }
-        }
-    }
+    ) = fiscalYearService.validatePeriodOpen(organizationId, date)
 }

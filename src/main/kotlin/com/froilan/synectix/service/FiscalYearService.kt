@@ -218,6 +218,22 @@ class FiscalYearService(
         return PeriodLookupResult.NotFound
     }
 
+    fun validatePeriodOpen(
+        organizationId: String,
+        date: LocalDate,
+    ) {
+        when (val result = findPeriodForDate(organizationId, date)) {
+            is PeriodLookupResult.NoFiscalYears -> return
+            is PeriodLookupResult.NotFound ->
+                throw IllegalArgumentException("No fiscal period covers the date $date")
+            is PeriodLookupResult.Found -> {
+                if (result.period.status == FiscalPeriodStatus.CLOSED) {
+                    throw IllegalArgumentException("Fiscal period '${result.period.name}' is closed")
+                }
+            }
+        }
+    }
+
     sealed class PeriodLookupResult {
         data object NoFiscalYears : PeriodLookupResult()
 

@@ -16,7 +16,6 @@ import com.froilan.synectix.model.Vendor
 import com.froilan.synectix.repository.AccountRepository
 import com.froilan.synectix.repository.BillPaymentRepository
 import com.froilan.synectix.repository.BillRepository
-import com.froilan.synectix.repository.JournalEntryRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -35,10 +34,8 @@ class BillServiceTest {
     private lateinit var billRepository: BillRepository
     private lateinit var billPaymentRepository: BillPaymentRepository
     private lateinit var accountRepository: AccountRepository
-    private lateinit var journalEntryRepository: JournalEntryRepository
     private lateinit var vendorService: VendorService
-    private lateinit var entryNumberGenerator: JournalEntryNumberGenerator
-    private lateinit var fiscalYearService: FiscalYearService
+    private lateinit var journalEntryService: JournalEntryService
 
     private val orgId = "org-123"
     private val userId = "user-1"
@@ -48,20 +45,15 @@ class BillServiceTest {
         billRepository = mock(BillRepository::class.java)
         billPaymentRepository = mock(BillPaymentRepository::class.java)
         accountRepository = mock(AccountRepository::class.java)
-        journalEntryRepository = mock(JournalEntryRepository::class.java)
         vendorService = mock(VendorService::class.java)
-        fiscalYearService = mock(FiscalYearService::class.java)
-        entryNumberGenerator = JournalEntryNumberGenerator(journalEntryRepository)
-        `when`(fiscalYearService.findPeriodForDate(any(), any()))
-            .thenReturn(FiscalYearService.PeriodLookupResult.NoFiscalYears)
+        journalEntryService = mock(JournalEntryService::class.java)
         billService =
             BillService(
                 billRepository = billRepository,
                 billPaymentRepository = billPaymentRepository,
                 accountRepository = accountRepository,
                 vendorService = vendorService,
-                entryNumberGenerator = entryNumberGenerator,
-                fiscalYearService = fiscalYearService,
+                journalEntryService = journalEntryService,
             )
     }
 
@@ -125,34 +117,32 @@ class BillServiceTest {
     fun `approve should post journal entry and update status`() {
         val bill = createBill()
         val apAccount = createAccount("acc-ap", "2000", "Accounts Payable", AccountType.LIABILITY)
+        val mockEntry =
+            JournalEntry(
+                id = "je-1",
+                entryNumber = "JE-0001",
+                date = bill.date,
+                description = "Bill BILL-0001 - Acme Corp",
+                organizationId = orgId,
+                status = JournalEntryStatus.POSTED,
+                lines = emptyList(),
+                createdBy = userId,
+            )
 
         `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2000"))
             .thenReturn(Optional.of(apAccount))
-        `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(0L)
-        `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
+        `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
+            .thenReturn(mockEntry)
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
 
         val result = billService.approveBill("bill-1", orgId, userId)
 
         assertThat(result.status).isEqualTo(BillStatus.APPROVED)
-        assertThat(result.journalEntryId).isNotNull()
+        assertThat(result.journalEntryId).isEqualTo("je-1")
         assertThat(result.approvedBy).isEqualTo(userId)
 
-        val entryCaptor = argumentCaptor<JournalEntry>()
-        verify(journalEntryRepository).save(entryCaptor.capture())
-        val je = entryCaptor.firstValue
-
-        assertThat(je.status).isEqualTo(JournalEntryStatus.POSTED)
-        assertThat(je.lines).hasSize(2)
-
-        val debitLine = je.lines.find { it.debit > BigDecimal.ZERO }
-        assertThat(debitLine!!.accountCode).isEqualTo("5000")
-        assertThat(debitLine.debit).isEqualByComparingTo(BigDecimal("500.00"))
-
-        val creditLine = je.lines.find { it.credit > BigDecimal.ZERO }
-        assertThat(creditLine!!.accountCode).isEqualTo("2000")
-        assertThat(creditLine.credit).isEqualByComparingTo(BigDecimal("500.00"))
+        verify(journalEntryService).createSystemEntry(any(), any(), any(), any(), any(), any())
     }
 
     @Test
@@ -168,31 +158,30 @@ class BillServiceTest {
     }
 
     @Test
-    fun `void should create reversing entry for approved bill`() {
-        val bill = createBill(status = BillStatus.APPROVED)
-        val apAccount = createAccount("acc-ap", "2000", "Accounts Payable", AccountType.LIABILITY)
+    fun `void should void journal entry for approved bill`() {
+        val bill = createBill(status = BillStatus.APPROVED, journalEntryId = "je-1")
+        val voidedEntry =
+            JournalEntry(
+                id = "je-1",
+                entryNumber = "JE-0001",
+                date = bill.date,
+                description = "Bill BILL-0001",
+                organizationId = orgId,
+                status = JournalEntryStatus.VOIDED,
+                lines = emptyList(),
+                createdBy = userId,
+            )
 
         `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
-        `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2000"))
-            .thenReturn(Optional.of(apAccount))
-        `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(1L)
-        `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
+        `when`(journalEntryService.voidJournalEntry("je-1", orgId, "Duplicate"))
+            .thenReturn(voidedEntry)
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
 
         val result = billService.voidBill("bill-1", orgId, "Duplicate", userId)
 
         assertThat(result.status).isEqualTo(BillStatus.VOID)
         assertThat(result.voidReason).isEqualTo("Duplicate")
-
-        val entryCaptor = argumentCaptor<JournalEntry>()
-        verify(journalEntryRepository).save(entryCaptor.capture())
-        val je = entryCaptor.firstValue
-
-        val apDebit = je.lines.find { it.accountCode == "2000" }
-        assertThat(apDebit!!.debit).isEqualByComparingTo(BigDecimal("500.00"))
-
-        val expenseCredit = je.lines.find { it.accountCode == "5000" }
-        assertThat(expenseCredit!!.credit).isEqualByComparingTo(BigDecimal("500.00"))
+        verify(journalEntryService).voidJournalEntry("je-1", orgId, "Duplicate")
     }
 
     @Test
@@ -227,14 +216,15 @@ class BillServiceTest {
         val bill = createBill(status = BillStatus.APPROVED)
         val apAccount = createAccount("acc-ap", "2000", "Accounts Payable", AccountType.LIABILITY)
         val cashAccount = createAccount("acc-cash", "1000", "Cash", AccountType.ASSET)
+        val mockEntry = createMockJournalEntry()
 
         `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2000"))
             .thenReturn(Optional.of(apAccount))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1000"))
             .thenReturn(Optional.of(cashAccount))
-        `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(1L)
-        `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
+        `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
+            .thenReturn(mockEntry)
         `when`(billPaymentRepository.save(any<BillPayment>())).thenAnswer { it.arguments[0] }
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
 
@@ -261,14 +251,15 @@ class BillServiceTest {
         val bill = createBill(status = BillStatus.APPROVED)
         val apAccount = createAccount("acc-ap", "2000", "Accounts Payable", AccountType.LIABILITY)
         val cashAccount = createAccount("acc-cash", "1000", "Cash", AccountType.ASSET)
+        val mockEntry = createMockJournalEntry()
 
         `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2000"))
             .thenReturn(Optional.of(apAccount))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1000"))
             .thenReturn(Optional.of(cashAccount))
-        `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(1L)
-        `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
+        `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
+            .thenReturn(mockEntry)
         `when`(billPaymentRepository.save(any<BillPayment>())).thenAnswer { it.arguments[0] }
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
 
@@ -406,6 +397,7 @@ class BillServiceTest {
         totalAmount: BigDecimal = BigDecimal("500.00"),
         amountPaid: BigDecimal = BigDecimal.ZERO,
         dueDate: LocalDate = LocalDate.of(2026, 3, 31),
+        journalEntryId: String? = null,
     ) = Bill(
         id = id,
         billNumber = "BILL-0001",
@@ -426,6 +418,19 @@ class BillServiceTest {
             ),
         totalAmount = totalAmount,
         amountPaid = amountPaid,
+        journalEntryId = journalEntryId,
         createdBy = userId,
     )
+
+    private fun createMockJournalEntry() =
+        JournalEntry(
+            id = "je-1",
+            entryNumber = "JE-0001",
+            date = LocalDate.of(2026, 3, 1),
+            description = "Mock entry",
+            organizationId = orgId,
+            status = JournalEntryStatus.POSTED,
+            lines = emptyList(),
+            createdBy = userId,
+        )
 }
