@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Positive
 import java.math.BigDecimal
 import java.time.LocalDate
 
-data class BillLineRequest(
+data class InvoiceLineRequest(
     @field:NotBlank(message = "Account ID is required")
     val accountId: String,
     @field:Positive(message = "Amount must be positive")
@@ -16,31 +16,31 @@ data class BillLineRequest(
     val description: String? = null,
 )
 
-data class CreateBillRequest(
-    @field:NotBlank(message = "Vendor ID is required")
-    val vendorId: String,
+data class CreateInvoiceRequest(
+    @field:NotBlank(message = "Customer ID is required")
+    val customerId: String,
     val date: LocalDate,
     val dueDate: LocalDate,
     val referenceNumber: String? = null,
     @field:NotEmpty(message = "At least one line item is required")
     @field:Valid
-    val lines: List<BillLineRequest>,
+    val lines: List<InvoiceLineRequest>,
 )
 
-data class VoidBillRequest(
+data class VoidInvoiceRequest(
     @field:NotBlank(message = "Void reason is required")
     val reason: String,
 )
 
-data class RecordPaymentRequest(
-    val paymentDate: LocalDate,
-    @field:Positive(message = "Payment amount must be positive")
+data class RecordReceiptRequest(
+    val receiptDate: LocalDate,
+    @field:Positive(message = "Receipt amount must be positive")
     val amount: BigDecimal,
     val paymentMethod: PaymentMethod,
     val referenceNumber: String? = null,
 )
 
-data class BillLineResponse(
+data class InvoiceLineResponse(
     val accountId: String,
     val accountCode: String,
     val accountName: String,
@@ -48,19 +48,19 @@ data class BillLineResponse(
     val description: String?,
 )
 
-data class BillResponse(
+data class InvoiceResponse(
     val id: String,
-    val billNumber: String,
-    val vendorId: String,
-    val vendorName: String,
+    val invoiceNumber: String,
+    val customerId: String,
+    val customerName: String,
     val date: String,
     val dueDate: String,
     val referenceNumber: String?,
     val organizationId: String,
     val status: String,
-    val lines: List<BillLineResponse>,
+    val lines: List<InvoiceLineResponse>,
     val totalAmount: BigDecimal,
-    val amountPaid: BigDecimal,
+    val amountReceived: BigDecimal,
     val journalEntryId: String?,
     val createdBy: String,
     val approvedAt: String?,
@@ -73,21 +73,21 @@ data class BillResponse(
     val updatedAt: String?,
 )
 
-data class BillSummaryResponse(
+data class InvoiceSummaryResponse(
     val id: String,
-    val billNumber: String,
-    val vendorName: String,
+    val invoiceNumber: String,
+    val customerName: String,
     val date: String,
     val dueDate: String,
     val status: String,
     val totalAmount: BigDecimal,
-    val amountPaid: BigDecimal,
+    val amountReceived: BigDecimal,
 )
 
-data class BillPaymentResponse(
+data class InvoiceReceiptResponse(
     val id: String,
-    val billId: String,
-    val paymentDate: String,
+    val invoiceId: String,
+    val receiptDate: String,
     val amount: BigDecimal,
     val paymentMethod: String,
     val referenceNumber: String?,
@@ -96,23 +96,14 @@ data class BillPaymentResponse(
     val createdAt: String?,
 )
 
-data class AgingBucket(
-    val current: BigDecimal,
-    val days1to30: BigDecimal,
-    val days31to60: BigDecimal,
-    val days61to90: BigDecimal,
-    val days90plus: BigDecimal,
-    val total: BigDecimal,
-)
-
-data class VendorAgingResponse(
-    val vendorId: String,
-    val vendorName: String,
+data class CustomerAgingResponse(
+    val customerId: String,
+    val customerName: String,
     val aging: AgingBucket,
 )
 
-data class ApAgingReportResponse(
+data class ArAgingReportResponse(
     val asOfDate: String,
-    val vendors: List<VendorAgingResponse>,
+    val customers: List<CustomerAgingResponse>,
     val totals: AgingBucket,
 )

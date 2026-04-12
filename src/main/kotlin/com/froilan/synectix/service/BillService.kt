@@ -209,6 +209,7 @@ class BillService(
                 bill.copy(
                     status = BillStatus.VOID,
                     voidedAt = now,
+                    voidedBy = voidedBy,
                     voidReason = reason,
                 ),
             )
@@ -229,6 +230,7 @@ class BillService(
             bill.copy(
                 status = BillStatus.VOID,
                 voidedAt = now,
+                voidedBy = voidedBy,
                 voidReason = reason,
             ),
         )
