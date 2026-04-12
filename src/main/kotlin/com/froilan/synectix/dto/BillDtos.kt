@@ -67,6 +67,7 @@ data class BillResponse(
     val approvedBy: String?,
     val paidAt: String?,
     val voidedAt: String?,
+    val voidedBy: String?,
     val voidReason: String?,
     val createdAt: String?,
     val updatedAt: String?,

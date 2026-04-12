@@ -210,6 +210,7 @@ class InvoiceService(
                 invoice.copy(
                     status = InvoiceStatus.VOID,
                     voidedAt = now,
+                    voidedBy = voidedBy,
                     voidReason = reason,
                 ),
             )

@@ -226,6 +226,7 @@ class InvoiceController(
             approvedBy = approvedBy,
             paidAt = paidAt?.toString(),
             voidedAt = voidedAt?.toString(),
+            voidedBy = voidedBy,
             voidReason = voidReason,
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),

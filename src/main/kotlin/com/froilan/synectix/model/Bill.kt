@@ -64,6 +64,7 @@ data class Bill(
     val approvedBy: String? = null,
     val paidAt: LocalDateTime? = null,
     val voidedAt: LocalDateTime? = null,
+    val voidedBy: String? = null,
     val voidReason: String? = null,
     @CreatedDate
     var createdAt: LocalDateTime? = null,
