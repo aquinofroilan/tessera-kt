@@ -25,6 +25,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -37,6 +38,7 @@ class BillServiceTest {
     private lateinit var accountRepository: AccountRepository
     private lateinit var vendorService: VendorService
     private lateinit var journalEntryService: JournalEntryService
+    private lateinit var taxGroupService: TaxGroupService
 
     private val orgId = "org-123"
     private val userId = "user-1"
@@ -48,6 +50,9 @@ class BillServiceTest {
         accountRepository = mock(AccountRepository::class.java)
         vendorService = mock(VendorService::class.java)
         journalEntryService = mock(JournalEntryService::class.java)
+        taxGroupService = mock(TaxGroupService::class.java)
+        `when`(taxGroupService.calculateTaxAmount(anyOrNull(), any(), any()))
+            .thenReturn(java.math.BigDecimal.ZERO)
         billService =
             BillService(
                 billRepository = billRepository,
@@ -55,6 +60,7 @@ class BillServiceTest {
                 accountRepository = accountRepository,
                 vendorService = vendorService,
                 journalEntryService = journalEntryService,
+                taxGroupService = taxGroupService,
             )
     }
 
