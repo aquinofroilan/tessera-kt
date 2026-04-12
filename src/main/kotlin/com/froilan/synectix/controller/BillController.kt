@@ -152,6 +152,7 @@ class BillController(
             date = date.toString(),
             dueDate = dueDate.toString(),
             referenceNumber = referenceNumber,
+            taxGroupId = taxGroupId,
             organizationId = organizationId,
             status = status.name,
             lines =
@@ -165,6 +166,7 @@ class BillController(
                     )
                 },
             totalAmount = totalAmount,
+            taxAmount = taxAmount,
             amountPaid = amountPaid,
             journalEntryId = journalEntryId,
             createdBy = createdBy,
@@ -187,6 +189,7 @@ class BillController(
             dueDate = dueDate.toString(),
             status = status.name,
             totalAmount = totalAmount,
+            taxAmount = taxAmount,
             amountPaid = amountPaid,
         )
 

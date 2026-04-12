@@ -92,10 +92,11 @@ class TaxController(
         @Valid @RequestBody request: CreateTaxGroupRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val (taxGroup, rates) = taxGroupService.let {
-            val group = it.createTaxGroup(request, orgId)
-            it.getTaxGroupWithRates(group.id, orgId)
-        }
+        val (taxGroup, rates) =
+            taxGroupService.let {
+                val group = it.createTaxGroup(request, orgId)
+                it.getTaxGroupWithRates(group.id, orgId)
+            }
         return ResponseEntity.status(HttpStatus.CREATED).body(taxGroup.toResponse(rates))
     }
 

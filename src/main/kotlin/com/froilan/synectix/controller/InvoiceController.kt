@@ -152,6 +152,7 @@ class InvoiceController(
             date = date.toString(),
             dueDate = dueDate.toString(),
             referenceNumber = referenceNumber,
+            taxGroupId = taxGroupId,
             organizationId = organizationId,
             status = status.name,
             lines =
@@ -165,6 +166,7 @@ class InvoiceController(
                     )
                 },
             totalAmount = totalAmount,
+            taxAmount = taxAmount,
             amountReceived = amountReceived,
             journalEntryId = journalEntryId,
             createdBy = createdBy,
@@ -187,6 +189,7 @@ class InvoiceController(
             dueDate = dueDate.toString(),
             status = status.name,
             totalAmount = totalAmount,
+            taxAmount = taxAmount,
             amountReceived = amountReceived,
         )
 
