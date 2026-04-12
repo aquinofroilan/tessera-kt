@@ -2,6 +2,8 @@ package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.AcceptInvitationRequest
 import com.froilan.synectix.dto.CreateInvitationRequest
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Invitation
 import com.froilan.synectix.model.InvitationStatus
 import com.froilan.synectix.model.Role
@@ -96,7 +98,7 @@ class InvitationServiceTest {
 
         `when`(roleRepository.findByName("NONEXISTENT")).thenReturn(Optional.empty())
 
-        val exception = assertThrows<IllegalArgumentException> { invitationService.invite(request, inviter, inviter.organizationId) }
+        val exception = assertThrows<BusinessRuleException> { invitationService.invite(request, inviter, inviter.organizationId) }
         assertThat(exception.message).isEqualTo("Role 'NONEXISTENT' does not exist")
     }
 
@@ -108,7 +110,7 @@ class InvitationServiceTest {
 
         `when`(roleRepository.findByName("SUPER_ADMIN")).thenReturn(Optional.of(systemRole))
 
-        val exception = assertThrows<IllegalArgumentException> { invitationService.invite(request, inviter, inviter.organizationId) }
+        val exception = assertThrows<BusinessRuleException> { invitationService.invite(request, inviter, inviter.organizationId) }
         assertThat(exception.message).isEqualTo("Cannot invite with system-level role")
     }
 
@@ -128,7 +130,7 @@ class InvitationServiceTest {
             ),
         ).thenReturn(Optional.of(existingInvitation))
 
-        val exception = assertThrows<IllegalArgumentException> { invitationService.invite(request, inviter, inviter.organizationId) }
+        val exception = assertThrows<BusinessRuleException> { invitationService.invite(request, inviter, inviter.organizationId) }
         assertThat(exception.message).isEqualTo("An invitation has already been sent to this email")
     }
 
@@ -198,7 +200,7 @@ class InvitationServiceTest {
     fun `validateInvitation should throw for invalid token`() {
         `when`(invitationRepository.findByTokenHash("hashed-bad-token")).thenReturn(Optional.empty())
 
-        val exception = assertThrows<IllegalArgumentException> { invitationService.validateInvitation("bad-token") }
+        val exception = assertThrows<BusinessRuleException> { invitationService.validateInvitation("bad-token") }
         assertThat(exception.message).isEqualTo("Invalid or expired invitation token")
     }
 
@@ -278,7 +280,7 @@ class InvitationServiceTest {
         `when`(mongoTemplate.findAndModify(any(), any(), any<FindAndModifyOptions>(), eq(Invitation::class.java)))
             .thenReturn(null)
 
-        val exception = assertThrows<IllegalArgumentException> { invitationService.acceptInvitation(request) }
+        val exception = assertThrows<BusinessRuleException> { invitationService.acceptInvitation(request) }
         assertThat(exception.message).isEqualTo("Invalid or expired invitation token")
     }
 
@@ -291,7 +293,7 @@ class InvitationServiceTest {
             .thenReturn(invitation.copy(status = InvitationStatus.ACCEPTED))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
 
-        val exception = assertThrows<IllegalArgumentException> { invitationService.acceptInvitation(request) }
+        val exception = assertThrows<BusinessRuleException> { invitationService.acceptInvitation(request) }
         assertThat(exception.message).isEqualTo("Username, password, first name, and last name are required for new users")
     }
 
@@ -314,7 +316,7 @@ class InvitationServiceTest {
         `when`(userRepository.save(any<User>()))
             .thenThrow(DuplicateKeyException("E11000 duplicate key error collection: synectix.users index: username"))
 
-        val exception = assertThrows<IllegalArgumentException> { invitationService.acceptInvitation(request) }
+        val exception = assertThrows<BusinessRuleException> { invitationService.acceptInvitation(request) }
         assertThat(exception.message).isEqualTo("Username already exists")
     }
 
@@ -339,7 +341,7 @@ class InvitationServiceTest {
         `when`(invitationRepository.findById(invitation.id)).thenReturn(Optional.of(invitation))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<ResourceNotFoundException> {
                 invitationService.revokeInvitation(invitation.id, "org-123")
             }
         assertThat(exception.message).isEqualTo("Invitation not found")
@@ -352,7 +354,7 @@ class InvitationServiceTest {
         `when`(invitationRepository.findById(invitation.id)).thenReturn(Optional.of(invitation))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 invitationService.revokeInvitation(invitation.id, "org-123")
             }
         assertThat(exception.message).isEqualTo("Invitation is not pending")

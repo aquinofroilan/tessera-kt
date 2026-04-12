@@ -1,11 +1,10 @@
 package com.froilan.synectix.service
 
-import com.froilan.synectix.exception.BusinessRuleException
-import com.froilan.synectix.exception.ResourceNotFoundException
-
 import com.froilan.synectix.dto.AccountBalanceResponse
 import com.froilan.synectix.dto.CreateJournalEntryRequest
 import com.froilan.synectix.dto.TrialBalanceResponse
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.model.JournalEntry
 import com.froilan.synectix.model.JournalEntryLine

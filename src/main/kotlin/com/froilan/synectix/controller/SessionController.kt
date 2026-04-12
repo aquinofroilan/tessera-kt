@@ -4,7 +4,6 @@ import com.froilan.synectix.dto.SessionResponse
 import com.froilan.synectix.model.User
 import com.froilan.synectix.security.AuthenticationContext
 import com.froilan.synectix.service.AuthService
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
@@ -55,18 +54,8 @@ class SessionController(
             extractUserAndToken(authHeader)
                 ?: return authContext.unauthorized()
 
-        return try {
-            authService.revokeSession(user.uuid, sessionId, currentToken)
-            ResponseEntity.ok(mapOf("message" to "Session revoked"))
-        } catch (e: IllegalStateException) {
-            ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(mapOf("error" to (e.message ?: "Cannot revoke the current session")))
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(mapOf("error" to (e.message ?: "Session not found")))
-        }
+        authService.revokeSession(user.uuid, sessionId, currentToken)
+        return ResponseEntity.ok(mapOf("message" to "Session revoked"))
     }
 
     @DeleteMapping

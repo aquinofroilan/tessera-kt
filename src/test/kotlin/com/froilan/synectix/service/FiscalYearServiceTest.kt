@@ -1,6 +1,7 @@
 package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.CreateFiscalYearRequest
+import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.model.FiscalPeriod
@@ -111,7 +112,7 @@ class FiscalYearServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 fiscalYearService.createFiscalYear(request, orgId)
             }
         assertThat(exception.message).contains("Start date must be before end date")
@@ -135,7 +136,7 @@ class FiscalYearServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 fiscalYearService.createFiscalYear(request, orgId)
             }
         assertThat(exception.message).contains("active fiscal year")
@@ -159,7 +160,7 @@ class FiscalYearServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 fiscalYearService.createFiscalYear(request, orgId)
             }
         assertThat(exception.message).contains("overlaps")
@@ -196,7 +197,7 @@ class FiscalYearServiceTest {
         `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 fiscalYearService.closePeriod(
                     "fy-1",
                     fiscalYear.periods[0].id,
@@ -218,7 +219,7 @@ class FiscalYearServiceTest {
         `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 fiscalYearService.closePeriod(
                     "fy-1",
                     fiscalYear.periods[1].id,
@@ -264,7 +265,7 @@ class FiscalYearServiceTest {
         `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 fiscalYearService.reopenPeriod(
                     "fy-1",
                     fiscalYear.periods[0].id,
@@ -289,7 +290,7 @@ class FiscalYearServiceTest {
         `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 fiscalYearService.reopenPeriod(
                     "fy-1",
                     fiscalYear.periods[0].id,
@@ -311,7 +312,7 @@ class FiscalYearServiceTest {
         `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 fiscalYearService.closeYear("fy-1", orgId, userId)
             }
         assertThat(exception.message).contains("All periods must be closed")

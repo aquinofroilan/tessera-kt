@@ -34,13 +34,8 @@ class VendorController(
         @Valid @RequestBody request: CreateVendorRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
-        return try {
-            val vendor = vendorService.createVendor(request, orgId)
-            ResponseEntity.status(HttpStatus.CREATED).body(vendor.toResponse())
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Failed to create vendor")))
-        }
+        val vendor = vendorService.createVendor(request, orgId)
+        return ResponseEntity.status(HttpStatus.CREATED).body(vendor.toResponse())
     }
 
     @GetMapping
@@ -57,15 +52,8 @@ class VendorController(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
-        return try {
-            val vendor = vendorService.getVendor(id, orgId)
-            ResponseEntity.ok(vendor.toResponse())
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(mapOf("error" to (e.message ?: "Vendor not found")))
-        }
+        val vendor = vendorService.getVendor(id, orgId)
+        return ResponseEntity.ok(vendor.toResponse())
     }
 
     @PutMapping("/{id}")
@@ -75,17 +63,8 @@ class VendorController(
         @Valid @RequestBody request: UpdateVendorRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
-        return try {
-            val vendor = vendorService.updateVendor(id, request, orgId)
-            ResponseEntity.ok(vendor.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status =
-                if (e.message == "Vendor not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity
-                .status(status)
-                .body(mapOf("error" to (e.message ?: "Failed to update vendor")))
-        }
+        val vendor = vendorService.updateVendor(id, request, orgId)
+        return ResponseEntity.ok(vendor.toResponse())
     }
 
     @DeleteMapping("/{id}")
@@ -94,17 +73,8 @@ class VendorController(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
-        return try {
-            val vendor = vendorService.deleteVendor(id, orgId)
-            ResponseEntity.ok(vendor.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status =
-                if (e.message == "Vendor not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity
-                .status(status)
-                .body(mapOf("error" to (e.message ?: "Failed to delete vendor")))
-        }
+        val vendor = vendorService.deleteVendor(id, orgId)
+        return ResponseEntity.ok(vendor.toResponse())
     }
 
     private fun Vendor.toResponse() =

@@ -2,6 +2,8 @@ package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.CreateAccountRequest
 import com.froilan.synectix.dto.UpdateAccountRequest
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.repository.AccountRepository
@@ -70,7 +72,7 @@ class AccountServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 accountService.createAccount(request, "org-123")
             }
         assertThat(exception.message).contains("Account code '1000' already exists")
@@ -88,7 +90,7 @@ class AccountServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 accountService.createAccount(request, "org-123")
             }
         assertThat(exception.message).contains("Invalid account type")
@@ -109,7 +111,7 @@ class AccountServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<ResourceNotFoundException> {
                 accountService.createAccount(request, "org-123")
             }
         assertThat(exception.message).isEqualTo("Parent account not found")
@@ -135,7 +137,7 @@ class AccountServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 accountService.createAccount(request, "org-123")
             }
         assertThat(exception.message).isEqualTo("Parent account must be the same type")
@@ -161,7 +163,7 @@ class AccountServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<ResourceNotFoundException> {
                 accountService.createAccount(request, "org-123")
             }
         assertThat(exception.message).isEqualTo("Parent account not found")
@@ -195,7 +197,7 @@ class AccountServiceTest {
         val request = UpdateAccountRequest(name = "New Name")
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<ResourceNotFoundException> {
                 accountService.updateAccount("acc-999", request, "org-123")
             }
         assertThat(exception.message).isEqualTo("Account not found")
@@ -209,7 +211,7 @@ class AccountServiceTest {
         val request = UpdateAccountRequest(name = "New Name")
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<ResourceNotFoundException> {
                 accountService.updateAccount("acc-1", request, "org-123")
             }
         assertThat(exception.message).isEqualTo("Account not found")
@@ -232,7 +234,7 @@ class AccountServiceTest {
         `when`(accountRepository.findById("acc-1")).thenReturn(Optional.of(account))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<ResourceNotFoundException> {
                 accountService.getAccount("acc-1", "org-123")
             }
         assertThat(exception.message).isEqualTo("Account not found")
@@ -315,7 +317,7 @@ class AccountServiceTest {
         `when`(accountRepository.findById("acc-1")).thenReturn(Optional.of(account))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 accountService.deleteAccount("acc-1", "org-123")
             }
         assertThat(exception.message).isEqualTo("System accounts cannot be deleted")
@@ -328,7 +330,7 @@ class AccountServiceTest {
         `when`(accountRepository.existsByOrganizationIdAndParentIdAndIsActive("org-123", "acc-1", true)).thenReturn(true)
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 accountService.deleteAccount("acc-1", "org-123")
             }
         assertThat(exception.message).isEqualTo("Cannot delete account with child accounts")

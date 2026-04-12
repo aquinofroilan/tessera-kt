@@ -35,12 +35,8 @@ class CustomerController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val customer = customerService.createCustomer(request, orgId)
-            ResponseEntity.status(HttpStatus.CREATED).body(customer.toResponse())
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Failed to create customer")))
-        }
+        val customer = customerService.createCustomer(request, orgId)
+        return ResponseEntity.status(HttpStatus.CREATED).body(customer.toResponse())
     }
 
     @GetMapping
@@ -58,14 +54,8 @@ class CustomerController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val customer = customerService.getCustomer(id, orgId)
-            ResponseEntity.ok(customer.toResponse())
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(mapOf("error" to (e.message ?: "Customer not found")))
-        }
+        val customer = customerService.getCustomer(id, orgId)
+        return ResponseEntity.ok(customer.toResponse())
     }
 
     @PutMapping("/{id}")
@@ -76,16 +66,8 @@ class CustomerController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val customer = customerService.updateCustomer(id, request, orgId)
-            ResponseEntity.ok(customer.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status =
-                if (e.message == "Customer not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity
-                .status(status)
-                .body(mapOf("error" to (e.message ?: "Failed to update customer")))
-        }
+        val customer = customerService.updateCustomer(id, request, orgId)
+        return ResponseEntity.ok(customer.toResponse())
     }
 
     @DeleteMapping("/{id}")
@@ -95,16 +77,8 @@ class CustomerController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val customer = customerService.deleteCustomer(id, orgId)
-            ResponseEntity.ok(customer.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status =
-                if (e.message == "Customer not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity
-                .status(status)
-                .body(mapOf("error" to (e.message ?: "Failed to delete customer")))
-        }
+        val customer = customerService.deleteCustomer(id, orgId)
+        return ResponseEntity.ok(customer.toResponse())
     }
 
     private fun Customer.toResponse() =

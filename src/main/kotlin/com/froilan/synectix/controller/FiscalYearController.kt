@@ -34,12 +34,8 @@ class FiscalYearController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val fiscalYear = fiscalYearService.createFiscalYear(request, orgId)
-            ResponseEntity.status(HttpStatus.CREATED).body(fiscalYear.toResponse())
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Failed to create fiscal year")))
-        }
+        val fiscalYear = fiscalYearService.createFiscalYear(request, orgId)
+        return ResponseEntity.status(HttpStatus.CREATED).body(fiscalYear.toResponse())
     }
 
     @GetMapping
@@ -57,14 +53,8 @@ class FiscalYearController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val fiscalYear = fiscalYearService.getFiscalYear(id, orgId)
-            ResponseEntity.ok(fiscalYear.toResponse())
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(mapOf("error" to (e.message ?: "Fiscal year not found")))
-        }
+        val fiscalYear = fiscalYearService.getFiscalYear(id, orgId)
+        return ResponseEntity.ok(fiscalYear.toResponse())
     }
 
     @PostMapping("/{id}/periods/{periodId}/close")
@@ -76,15 +66,8 @@ class FiscalYearController(
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
 
-        return try {
-            val fiscalYear = fiscalYearService.closePeriod(id, periodId, orgId, userId)
-            ResponseEntity.ok(fiscalYear.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status = if (e.message == "Fiscal period not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity
-                .status(status)
-                .body(mapOf("error" to (e.message ?: "Failed to close period")))
-        }
+        val fiscalYear = fiscalYearService.closePeriod(id, periodId, orgId, userId)
+        return ResponseEntity.ok(fiscalYear.toResponse())
     }
 
     @PostMapping("/{id}/periods/{periodId}/reopen")
@@ -96,15 +79,8 @@ class FiscalYearController(
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
 
-        return try {
-            val fiscalYear = fiscalYearService.reopenPeriod(id, periodId, orgId, userId)
-            ResponseEntity.ok(fiscalYear.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status = if (e.message == "Fiscal period not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity
-                .status(status)
-                .body(mapOf("error" to (e.message ?: "Failed to reopen period")))
-        }
+        val fiscalYear = fiscalYearService.reopenPeriod(id, periodId, orgId, userId)
+        return ResponseEntity.ok(fiscalYear.toResponse())
     }
 
     @PostMapping("/{id}/close")
@@ -115,20 +91,8 @@ class FiscalYearController(
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
 
-        return try {
-            val fiscalYear = fiscalYearService.closeYear(id, orgId, userId)
-            ResponseEntity.ok(fiscalYear.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status =
-                if (e.message == "Fiscal year not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity
-                .status(status)
-                .body(mapOf("error" to (e.message ?: "Failed to close fiscal year")))
-        } catch (e: IllegalStateException) {
-            ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(mapOf("error" to (e.message ?: "Failed to generate closing entry")))
-        }
+        val fiscalYear = fiscalYearService.closeYear(id, orgId, userId)
+        return ResponseEntity.ok(fiscalYear.toResponse())
     }
 
     private fun FiscalYear.toResponse() =

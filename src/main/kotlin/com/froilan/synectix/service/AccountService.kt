@@ -1,10 +1,9 @@
 package com.froilan.synectix.service
 
-import com.froilan.synectix.exception.BusinessRuleException
-import com.froilan.synectix.exception.ResourceNotFoundException
-
 import com.froilan.synectix.dto.CreateAccountRequest
 import com.froilan.synectix.dto.UpdateAccountRequest
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.repository.AccountRepository

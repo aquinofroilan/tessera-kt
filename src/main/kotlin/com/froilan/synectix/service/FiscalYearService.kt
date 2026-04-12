@@ -1,9 +1,8 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.dto.CreateFiscalYearRequest
 import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.exception.ResourceNotFoundException
-
-import com.froilan.synectix.dto.CreateFiscalYearRequest
 import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.model.FiscalPeriod
 import com.froilan.synectix.model.FiscalPeriodStatus

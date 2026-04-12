@@ -1,10 +1,9 @@
 package com.froilan.synectix.service
 
-import com.froilan.synectix.exception.BusinessRuleException
-import com.froilan.synectix.exception.ResourceNotFoundException
-
 import com.froilan.synectix.dto.CreateCustomerRequest
 import com.froilan.synectix.dto.UpdateCustomerRequest
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Customer
 import com.froilan.synectix.repository.CustomerRepository
 import org.springframework.dao.DuplicateKeyException

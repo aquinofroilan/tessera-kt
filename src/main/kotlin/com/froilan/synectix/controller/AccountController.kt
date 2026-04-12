@@ -41,12 +41,8 @@ class AccountController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val account = accountService.createAccount(request, orgId)
-            ResponseEntity.status(HttpStatus.CREATED).body(account.toResponse())
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Failed to create account")))
-        }
+        val account = accountService.createAccount(request, orgId)
+        return ResponseEntity.status(HttpStatus.CREATED).body(account.toResponse())
     }
 
     @GetMapping
@@ -81,12 +77,8 @@ class AccountController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val account = accountService.getAccount(id, orgId)
-            ResponseEntity.ok(account.toResponse())
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND).body(mapOf("error" to (e.message ?: "Account not found")))
-        }
+        val account = accountService.getAccount(id, orgId)
+        return ResponseEntity.ok(account.toResponse())
     }
 
     @PutMapping("/{id}")
@@ -97,13 +89,8 @@ class AccountController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val account = accountService.updateAccount(id, request, orgId)
-            ResponseEntity.ok(account.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status = if (e.message == "Account not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status).body(mapOf("error" to (e.message ?: "Failed to update account")))
-        }
+        val account = accountService.updateAccount(id, request, orgId)
+        return ResponseEntity.ok(account.toResponse())
     }
 
     @DeleteMapping("/{id}")
@@ -113,13 +100,8 @@ class AccountController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            accountService.deleteAccount(id, orgId)
-            ResponseEntity.ok(mapOf("message" to "Account deactivated"))
-        } catch (e: IllegalArgumentException) {
-            val status = if (e.message == "Account not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status).body(mapOf("error" to (e.message ?: "Failed to delete account")))
-        }
+        accountService.deleteAccount(id, orgId)
+        return ResponseEntity.ok(mapOf("message" to "Account deactivated"))
     }
 
     @GetMapping("/{id}/balance")
@@ -130,12 +112,8 @@ class AccountController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val balance = journalEntryService.getAccountBalance(id, orgId, asOfDate)
-            ResponseEntity.ok(balance)
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND).body(mapOf("error" to (e.message ?: "Account not found")))
-        }
+        val balance = journalEntryService.getAccountBalance(id, orgId, asOfDate)
+        return ResponseEntity.ok(balance)
     }
 
     private fun Account.toResponse() =

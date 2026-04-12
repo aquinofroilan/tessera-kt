@@ -1,13 +1,12 @@
 package com.froilan.synectix.service
 
-import com.froilan.synectix.exception.BusinessRuleException
-import com.froilan.synectix.exception.ResourceNotFoundException
-
 import com.froilan.synectix.dto.AgingBucket
 import com.froilan.synectix.dto.ApAgingReportResponse
 import com.froilan.synectix.dto.CreateBillRequest
 import com.froilan.synectix.dto.RecordPaymentRequest
 import com.froilan.synectix.dto.VendorAgingResponse
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.Bill
 import com.froilan.synectix.model.BillLine

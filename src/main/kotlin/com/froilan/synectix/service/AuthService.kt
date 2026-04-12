@@ -1,12 +1,11 @@
 package com.froilan.synectix.service
 
-import com.froilan.synectix.exception.BusinessRuleException
-import com.froilan.synectix.exception.ResourceNotFoundException
-
 import com.froilan.synectix.dto.AuthResponse
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.dto.UserOrganizationResponse
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Organizations
 import com.froilan.synectix.model.PasswordResetToken
 import com.froilan.synectix.model.RefreshToken
@@ -109,7 +108,7 @@ class AuthService(
         val user =
             userRepository
                 .findByUsername(request.username)
-                .orElseThrow { IllegalArgumentException("Invalid username or password") }
+                .orElseThrow { BusinessRuleException("Invalid username or password") }
 
         if (!user.isActive) {
             throw BusinessRuleException("User account is inactive")
@@ -164,7 +163,7 @@ class AuthService(
         val existing =
             refreshTokenRepository
                 .findByTokenHash(refreshTokenHash)
-                .orElseThrow { IllegalArgumentException("Invalid or expired refresh token") }
+                .orElseThrow { BusinessRuleException("Invalid or expired refresh token") }
 
         if (!existing.expiryAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
             throw BusinessRuleException("Invalid or expired refresh token")
@@ -173,7 +172,7 @@ class AuthService(
         val user =
             userRepository
                 .findById(existing.userId)
-                .orElseThrow { IllegalArgumentException("Invalid or expired refresh token") }
+                .orElseThrow { BusinessRuleException("Invalid or expired refresh token") }
 
         if (!user.isActive) {
             throw BusinessRuleException("User account is inactive")
@@ -284,7 +283,7 @@ class AuthService(
         val existing =
             passwordResetTokenRepository
                 .findByTokenHash(tokenHash)
-                .orElseThrow { IllegalArgumentException("Invalid or expired reset token") }
+                .orElseThrow { BusinessRuleException("Invalid or expired reset token") }
 
         if (!existing.expiryAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
             passwordResetTokenRepository.deleteById(existing.id)
@@ -300,7 +299,7 @@ class AuthService(
         val user =
             userRepository
                 .findById(resetToken.userId)
-                .orElseThrow { IllegalArgumentException("Invalid or expired reset token") }
+                .orElseThrow { BusinessRuleException("Invalid or expired reset token") }
 
         val updatedUser = user.copy(passwordHash = passwordEncoder.encode(newPassword) as String)
         userRepository.save(updatedUser)

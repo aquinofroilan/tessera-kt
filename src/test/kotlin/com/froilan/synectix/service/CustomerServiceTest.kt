@@ -2,6 +2,8 @@ package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.CreateCustomerRequest
 import com.froilan.synectix.dto.UpdateCustomerRequest
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Customer
 import com.froilan.synectix.repository.CustomerRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -64,7 +66,7 @@ class CustomerServiceTest {
         `when`(customerRepository.findById("c-1")).thenReturn(Optional.of(customer))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<ResourceNotFoundException> {
                 customerService.getCustomer("c-1", orgId)
             }
         assertThat(exception.message).contains("Customer not found")
@@ -98,7 +100,7 @@ class CustomerServiceTest {
         `when`(customerRepository.findById("c-1")).thenReturn(Optional.of(customer))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 customerService.updateCustomer("c-1", UpdateCustomerRequest(name = "New"), orgId)
             }
         assertThat(exception.message).contains("inactive")
@@ -110,7 +112,7 @@ class CustomerServiceTest {
         `when`(customerRepository.findById("c-1")).thenReturn(Optional.of(customer))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 customerService.updateCustomer("c-1", UpdateCustomerRequest(name = "  "), orgId)
             }
         assertThat(exception.message).contains("blank")
@@ -136,7 +138,7 @@ class CustomerServiceTest {
         `when`(customerRepository.findById("c-1")).thenReturn(Optional.of(customer))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 customerService.deleteCustomer("c-1", orgId)
             }
         assertThat(exception.message).contains("already inactive")

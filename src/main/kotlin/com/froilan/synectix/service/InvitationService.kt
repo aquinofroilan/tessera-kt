@@ -1,11 +1,10 @@
 package com.froilan.synectix.service
 
-import com.froilan.synectix.exception.BusinessRuleException
-import com.froilan.synectix.exception.ResourceNotFoundException
-
 import com.froilan.synectix.dto.AcceptInvitationRequest
 import com.froilan.synectix.dto.CreateInvitationRequest
 import com.froilan.synectix.dto.ValidateInvitationResponse
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Invitation
 import com.froilan.synectix.model.InvitationStatus
 import com.froilan.synectix.model.RoleAssignment
@@ -50,7 +49,7 @@ class InvitationService(
 
         val role =
             roleRepository.findByName(request.role).orElseThrow {
-                IllegalArgumentException("Role '${request.role}' does not exist")
+                BusinessRuleException("Role '${request.role}' does not exist")
             }
         if (role.level != RoleLevel.ORGANIZATION) {
             throw BusinessRuleException("Cannot invite with system-level role")
@@ -93,7 +92,7 @@ class InvitationService(
         val tokenHash = tokenHasher.hash(token)
         val invitation =
             invitationRepository.findByTokenHash(tokenHash).orElseThrow {
-                IllegalArgumentException("Invalid or expired invitation token")
+                BusinessRuleException("Invalid or expired invitation token")
             }
         if (invitation.status != InvitationStatus.PENDING || !invitation.expiryAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
             throw BusinessRuleException("Invalid or expired invitation token")

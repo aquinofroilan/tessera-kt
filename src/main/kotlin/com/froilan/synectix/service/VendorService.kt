@@ -1,10 +1,9 @@
 package com.froilan.synectix.service
 
-import com.froilan.synectix.exception.BusinessRuleException
-import com.froilan.synectix.exception.ResourceNotFoundException
-
 import com.froilan.synectix.dto.CreateVendorRequest
 import com.froilan.synectix.dto.UpdateVendorRequest
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Vendor
 import com.froilan.synectix.repository.VendorRepository
 import org.springframework.dao.DuplicateKeyException

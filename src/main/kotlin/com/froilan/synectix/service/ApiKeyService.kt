@@ -2,7 +2,6 @@ package com.froilan.synectix.service
 
 import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.exception.ResourceNotFoundException
-
 import com.froilan.synectix.model.ApiKey
 import com.froilan.synectix.repository.ApiKeyRepository
 import com.froilan.synectix.security.Permissions

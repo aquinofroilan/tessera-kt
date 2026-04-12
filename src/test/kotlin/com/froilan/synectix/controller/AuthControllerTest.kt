@@ -6,6 +6,7 @@ import com.froilan.synectix.dto.AuthResponse
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.dto.UserOrganizationResponse
+import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.User
 import com.froilan.synectix.repository.OrganizationRepository
@@ -429,14 +430,14 @@ class AuthControllerTest {
             """.trimIndent()
 
         `when`(authService.refresh(any<String>()))
-            .thenThrow(IllegalArgumentException("Invalid or expired refresh token"))
+            .thenThrow(BusinessRuleException("Invalid or expired refresh token"))
 
         mockMvc
             .perform(
                 post("/auth/refresh")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson),
-            ).andExpect(status().isUnauthorized)
+            ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Invalid or expired refresh token"))
     }
 

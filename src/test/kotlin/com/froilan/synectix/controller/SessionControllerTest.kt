@@ -2,6 +2,7 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.aspect.LoggingAspect
 import com.froilan.synectix.config.TestSecurityConfig
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.SessionToken
 import com.froilan.synectix.model.User
@@ -164,7 +165,7 @@ class SessionControllerTest {
     @Test
     fun `DELETE session by id should return 404 for non-owned session`() {
         `when`(authService.revokeSession(any(), any(), any()))
-            .thenThrow(IllegalArgumentException("Session not found"))
+            .thenThrow(ResourceNotFoundException("Session not found"))
 
         mockMvc
             .perform(
@@ -183,7 +184,7 @@ class SessionControllerTest {
             .perform(
                 delete("/auth/sessions/s1")
                     .header("Authorization", "Bearer $currentToken"),
-            ).andExpect(status().isBadRequest)
+            ).andExpect(status().isUnprocessableEntity)
             .andExpect(jsonPath("$.error").value("Cannot revoke the current session"))
     }
 
