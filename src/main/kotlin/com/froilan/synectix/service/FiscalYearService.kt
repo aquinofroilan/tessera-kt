@@ -1,5 +1,6 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.exception.ResourceNotFoundException
 
 import com.froilan.synectix.dto.CreateFiscalYearRequest
@@ -38,21 +39,21 @@ class FiscalYearService(
         organizationId: String,
     ): FiscalYear {
         if (!request.startDate.isBefore(request.endDate)) {
-            throw IllegalArgumentException("Start date must be before end date")
+            throw BusinessRuleException("Start date must be before end date")
         }
 
         val existing = fiscalYearRepository.findByOrganizationId(organizationId)
 
         val activeFiscalYear = existing.firstOrNull { it.status == FiscalYearStatus.ACTIVE }
         if (activeFiscalYear != null) {
-            throw IllegalArgumentException(
+            throw BusinessRuleException(
                 "An active fiscal year '${activeFiscalYear.name}' already exists in this organization",
             )
         }
 
         existing.forEach { fy ->
             if (!request.startDate.isAfter(fy.endDate) && !request.endDate.isBefore(fy.startDate)) {
-                throw IllegalArgumentException(
+                throw BusinessRuleException(
                     "Date range overlaps with existing fiscal year '${fy.name}'",
                 )
             }
@@ -72,7 +73,7 @@ class FiscalYearService(
         return try {
             fiscalYearRepository.save(fiscalYear)
         } catch (e: DuplicateKeyException) {
-            throw IllegalArgumentException(
+            throw BusinessRuleException(
                 "Fiscal year '${request.name}' already exists in this organization",
                 e,
             )
@@ -96,7 +97,7 @@ class FiscalYearService(
         val fiscalYear = findFiscalYear(fiscalYearId, organizationId)
 
         if (fiscalYear.status == FiscalYearStatus.CLOSED) {
-            throw IllegalArgumentException("Fiscal year is already closed")
+            throw BusinessRuleException("Fiscal year is already closed")
         }
 
         val periodIndex = fiscalYear.periods.indexOfFirst { it.id == periodId }
@@ -106,7 +107,7 @@ class FiscalYearService(
 
         val period = fiscalYear.periods[periodIndex]
         if (period.status == FiscalPeriodStatus.CLOSED) {
-            throw IllegalArgumentException("Fiscal period is already closed")
+            throw BusinessRuleException("Fiscal period is already closed")
         }
 
         val precedingOpen =
@@ -114,7 +115,7 @@ class FiscalYearService(
                 .take(periodIndex)
                 .any { it.status != FiscalPeriodStatus.CLOSED }
         if (precedingOpen) {
-            throw IllegalArgumentException("All preceding periods must be closed first")
+            throw BusinessRuleException("All preceding periods must be closed first")
         }
 
         val updatedPeriods = fiscalYear.periods.toMutableList()
@@ -140,7 +141,7 @@ class FiscalYearService(
         val fiscalYear = findFiscalYear(fiscalYearId, organizationId)
 
         if (fiscalYear.status == FiscalYearStatus.CLOSED) {
-            throw IllegalArgumentException("Cannot reopen period in a closed fiscal year")
+            throw BusinessRuleException("Cannot reopen period in a closed fiscal year")
         }
 
         val periodIndex = fiscalYear.periods.indexOfFirst { it.id == periodId }
@@ -150,7 +151,7 @@ class FiscalYearService(
 
         val period = fiscalYear.periods[periodIndex]
         if (period.status != FiscalPeriodStatus.CLOSED) {
-            throw IllegalArgumentException("Only closed periods can be reopened")
+            throw BusinessRuleException("Only closed periods can be reopened")
         }
 
         val subsequentOpen =
@@ -158,7 +159,7 @@ class FiscalYearService(
                 .drop(periodIndex + 1)
                 .any { it.status != FiscalPeriodStatus.CLOSED }
         if (subsequentOpen) {
-            throw IllegalArgumentException("All subsequent periods must be closed first")
+            throw BusinessRuleException("All subsequent periods must be closed first")
         }
 
         val updatedPeriods = fiscalYear.periods.toMutableList()
@@ -183,12 +184,12 @@ class FiscalYearService(
         val fiscalYear = findFiscalYear(fiscalYearId, organizationId)
 
         if (fiscalYear.status == FiscalYearStatus.CLOSED) {
-            throw IllegalArgumentException("Fiscal year is already closed")
+            throw BusinessRuleException("Fiscal year is already closed")
         }
 
         val allPeriodsClosed = fiscalYear.periods.all { it.status == FiscalPeriodStatus.CLOSED }
         if (!allPeriodsClosed) {
-            throw IllegalArgumentException("All periods must be closed before closing the fiscal year")
+            throw BusinessRuleException("All periods must be closed before closing the fiscal year")
         }
 
         val closingEntry = createClosingEntry(fiscalYear, organizationId, closedBy)
@@ -227,10 +228,10 @@ class FiscalYearService(
         when (val result = findPeriodForDate(organizationId, date)) {
             is PeriodLookupResult.NoFiscalYears -> return
             is PeriodLookupResult.NotFound ->
-                throw IllegalArgumentException("No fiscal period covers the date $date")
+                throw BusinessRuleException("No fiscal period covers the date $date")
             is PeriodLookupResult.Found -> {
                 if (result.period.status == FiscalPeriodStatus.CLOSED) {
-                    throw IllegalArgumentException("Fiscal period '${result.period.name}' is closed")
+                    throw BusinessRuleException("Fiscal period '${result.period.name}' is closed")
                 }
             }
         }
@@ -253,7 +254,7 @@ class FiscalYearService(
     ): JournalEntry? {
         val sourceRef = "YEAR-END-CLOSE-${fiscalYear.id}"
         if (journalEntryRepository.existsByOrganizationIdAndSourceReference(organizationId, sourceRef)) {
-            throw IllegalArgumentException("Year-end closing entry already exists for this fiscal year")
+            throw BusinessRuleException("Year-end closing entry already exists for this fiscal year")
         }
 
         val postedStatuses = listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED)

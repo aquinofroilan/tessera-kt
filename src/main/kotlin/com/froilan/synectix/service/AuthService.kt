@@ -1,5 +1,6 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.exception.ResourceNotFoundException
 
 import com.froilan.synectix.dto.AuthResponse
@@ -86,15 +87,15 @@ class AuthService(
             val errorMessage = e.message ?: ""
             when {
                 errorMessage.contains("username", ignoreCase = true) ->
-                    throw IllegalArgumentException("Username already exists", e)
+                    throw BusinessRuleException("Username already exists", e)
                 errorMessage.contains("email", ignoreCase = true) ->
-                    throw IllegalArgumentException("Email already exists", e)
+                    throw BusinessRuleException("Email already exists", e)
                 errorMessage.contains("orgSlug", ignoreCase = true) ->
-                    throw IllegalArgumentException("Organization slug already exists", e)
+                    throw BusinessRuleException("Organization slug already exists", e)
                 errorMessage.contains("name", ignoreCase = true) ->
-                    throw IllegalArgumentException("Organization name already exists", e)
+                    throw BusinessRuleException("Organization name already exists", e)
                 else ->
-                    throw IllegalArgumentException("Registration failed due to a conflict", e)
+                    throw BusinessRuleException("Registration failed due to a conflict", e)
             }
         }
     }
@@ -111,11 +112,11 @@ class AuthService(
                 .orElseThrow { IllegalArgumentException("Invalid username or password") }
 
         if (!user.isActive) {
-            throw IllegalArgumentException("User account is inactive")
+            throw BusinessRuleException("User account is inactive")
         }
 
         if (!passwordEncoder.matches(request.password, user.passwordHash)) {
-            throw IllegalArgumentException("Invalid username or password")
+            throw BusinessRuleException("Invalid username or password")
         }
 
         val accessTokenStr = generateToken()
@@ -166,7 +167,7 @@ class AuthService(
                 .orElseThrow { IllegalArgumentException("Invalid or expired refresh token") }
 
         if (!existing.expiryAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
-            throw IllegalArgumentException("Invalid or expired refresh token")
+            throw BusinessRuleException("Invalid or expired refresh token")
         }
 
         val user =
@@ -175,7 +176,7 @@ class AuthService(
                 .orElseThrow { IllegalArgumentException("Invalid or expired refresh token") }
 
         if (!user.isActive) {
-            throw IllegalArgumentException("User account is inactive")
+            throw BusinessRuleException("User account is inactive")
         }
 
         val oldSession = sessionTokenRepository.findById(existing.sessionTokenId).orElse(null)
@@ -214,7 +215,7 @@ class AuthService(
         if (consumed == null) {
             refreshTokenRepository.deleteByTokenHash(newRefreshTokenHash)
             sessionTokenRepository.deleteById(savedSession.id)
-            throw IllegalArgumentException("Invalid or expired refresh token")
+            throw BusinessRuleException("Invalid or expired refresh token")
         }
 
         sessionTokenRepository.deleteById(existing.sessionTokenId)
@@ -238,10 +239,10 @@ class AuthService(
         newPassword: String,
     ) {
         if (!passwordEncoder.matches(currentPassword, user.passwordHash)) {
-            throw IllegalArgumentException("Current password is incorrect")
+            throw BusinessRuleException("Current password is incorrect")
         }
         if (currentPassword == newPassword) {
-            throw IllegalArgumentException("New password must be different from current password")
+            throw BusinessRuleException("New password must be different from current password")
         }
         val updatedUser = user.copy(passwordHash = passwordEncoder.encode(newPassword) as String)
         userRepository.save(updatedUser)
@@ -287,14 +288,14 @@ class AuthService(
 
         if (!existing.expiryAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
             passwordResetTokenRepository.deleteById(existing.id)
-            throw IllegalArgumentException("Invalid or expired reset token")
+            throw BusinessRuleException("Invalid or expired reset token")
         }
 
         val resetToken =
             mongoTemplate.findAndRemove(
                 Query.query(Criteria.where("tokenHash").`is`(tokenHash)),
                 PasswordResetToken::class.java,
-            ) ?: throw IllegalArgumentException("Invalid or expired reset token")
+            ) ?: throw BusinessRuleException("Invalid or expired reset token")
 
         val user =
             userRepository
@@ -354,7 +355,7 @@ class AuthService(
     ): AuthResponse {
         val orgRoles = user.orgRoleNames(targetOrgId)
         if (orgRoles.isEmpty()) {
-            throw IllegalArgumentException("You do not have access to this organization")
+            throw BusinessRuleException("You do not have access to this organization")
         }
 
         val org =
@@ -362,7 +363,7 @@ class AuthService(
                 ResourceNotFoundException("Organization not found")
             }
         if (!org.isActive) {
-            throw IllegalArgumentException("Organization is not active")
+            throw BusinessRuleException("Organization is not active")
         }
 
         val accessTokenStr = generateToken()

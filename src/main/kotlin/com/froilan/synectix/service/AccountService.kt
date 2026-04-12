@@ -1,5 +1,6 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.exception.ResourceNotFoundException
 
 import com.froilan.synectix.dto.CreateAccountRequest
@@ -28,7 +29,7 @@ class AccountService(
             try {
                 AccountType.valueOf(request.type.uppercase(Locale.ROOT))
             } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException(
+                throw BusinessRuleException(
                     "Invalid account type '${request.type}'. Must be one of: ${AccountType.entries.joinToString()}",
                 )
             }
@@ -42,7 +43,7 @@ class AccountService(
                 throw ResourceNotFoundException("Parent account not found")
             }
             if (parent.type != type) {
-                throw IllegalArgumentException("Parent account must be the same type")
+                throw BusinessRuleException("Parent account must be the same type")
             }
         }
 
@@ -58,7 +59,7 @@ class AccountService(
         return try {
             accountRepository.save(account)
         } catch (e: DuplicateKeyException) {
-            throw IllegalArgumentException("Account code '${request.code}' already exists in this organization", e)
+            throw BusinessRuleException("Account code '${request.code}' already exists in this organization", e)
         }
     }
 
@@ -76,7 +77,7 @@ class AccountService(
             throw ResourceNotFoundException("Account not found")
         }
         if (request.name != null && request.name.isBlank()) {
-            throw IllegalArgumentException("Account name must not be blank")
+            throw BusinessRuleException("Account name must not be blank")
         }
 
         val updated =
@@ -127,10 +128,10 @@ class AccountService(
             throw ResourceNotFoundException("Account not found")
         }
         if (account.isSystemAccount) {
-            throw IllegalArgumentException("System accounts cannot be deleted")
+            throw BusinessRuleException("System accounts cannot be deleted")
         }
         if (accountRepository.existsByOrganizationIdAndParentIdAndIsActive(organizationId, accountId, true)) {
-            throw IllegalArgumentException("Cannot delete account with child accounts")
+            throw BusinessRuleException("Cannot delete account with child accounts")
         }
         accountRepository.save(account.copy(isActive = false))
     }
