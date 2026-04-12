@@ -3,6 +3,7 @@ package com.froilan.synectix.service
 import com.froilan.synectix.dto.CreateInvoiceRequest
 import com.froilan.synectix.dto.InvoiceLineRequest
 import com.froilan.synectix.dto.RecordReceiptRequest
+import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.model.Customer
@@ -107,7 +108,7 @@ class InvoiceServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 invoiceService.createInvoice(request, orgId, userId)
             }
         assertThat(exception.message).contains("inactive customer")
@@ -141,7 +142,7 @@ class InvoiceServiceTest {
         `when`(invoiceRepository.findById("inv-1")).thenReturn(Optional.of(invoice))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 invoiceService.approveInvoice("inv-1", orgId, userId)
             }
         assertThat(exception.message).contains("Only draft")
@@ -185,7 +186,7 @@ class InvoiceServiceTest {
         `when`(invoiceRepository.findById("inv-1")).thenReturn(Optional.of(invoice))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 invoiceService.voidInvoice("inv-1", orgId, "Cancel", userId)
             }
         assertThat(exception.message).contains("recorded receipts")
@@ -271,7 +272,7 @@ class InvoiceServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 invoiceService.recordReceipt("inv-1", request, orgId, userId)
             }
         assertThat(exception.message).contains("exceeds remaining balance")
@@ -290,7 +291,7 @@ class InvoiceServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 invoiceService.recordReceipt("inv-1", request, orgId, userId)
             }
         assertThat(exception.message).contains("approved or partially paid")

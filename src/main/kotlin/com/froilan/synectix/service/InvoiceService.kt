@@ -5,6 +5,8 @@ import com.froilan.synectix.dto.ArAgingReportResponse
 import com.froilan.synectix.dto.CreateInvoiceRequest
 import com.froilan.synectix.dto.CustomerAgingResponse
 import com.froilan.synectix.dto.RecordReceiptRequest
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.Invoice
 import com.froilan.synectix.model.InvoiceLine
@@ -40,20 +42,20 @@ class InvoiceService(
     ): Invoice {
         val customer = customerService.getCustomer(request.customerId, organizationId)
         if (!customer.isActive) {
-            throw IllegalArgumentException("Cannot create invoice for inactive customer")
+            throw BusinessRuleException("Cannot create invoice for inactive customer")
         }
 
         if (request.date.isAfter(request.dueDate)) {
-            throw IllegalArgumentException("Due date must be on or after invoice date")
+            throw BusinessRuleException("Due date must be on or after invoice date")
         }
 
         if (request.lines.isEmpty()) {
-            throw IllegalArgumentException("At least one line item is required")
+            throw BusinessRuleException("At least one line item is required")
         }
 
         request.lines.forEach { line ->
             if (line.amount <= BigDecimal.ZERO) {
-                throw IllegalArgumentException("Line item amounts must be positive")
+                throw BusinessRuleException("Line item amounts must be positive")
             }
         }
 
@@ -62,15 +64,15 @@ class InvoiceService(
 
         val missingAccounts = accountIds.filter { it !in accounts }
         if (missingAccounts.isNotEmpty()) {
-            throw IllegalArgumentException("Accounts not found: ${missingAccounts.joinToString(", ")}")
+            throw BusinessRuleException("Accounts not found: ${missingAccounts.joinToString(", ")}")
         }
 
         accounts.values.forEach { account ->
             if (account.organizationId != organizationId) {
-                throw IllegalArgumentException("Account '${account.id}' not found")
+                throw BusinessRuleException("Account '${account.id}' not found")
             }
             if (!account.isActive) {
-                throw IllegalArgumentException("Account '${account.code}' is inactive")
+                throw BusinessRuleException("Account '${account.code}' is inactive")
             }
         }
 
@@ -110,10 +112,10 @@ class InvoiceService(
     ): Invoice {
         val invoice =
             invoiceRepository.findById(invoiceId).orElseThrow {
-                IllegalArgumentException("Invoice not found")
+                ResourceNotFoundException("Invoice not found")
             }
         if (invoice.organizationId != organizationId) {
-            throw IllegalArgumentException("Invoice not found")
+            throw ResourceNotFoundException("Invoice not found")
         }
         return invoice
     }
@@ -143,7 +145,7 @@ class InvoiceService(
         val invoice = getInvoice(invoiceId, organizationId)
 
         if (invoice.status != InvoiceStatus.DRAFT) {
-            throw IllegalArgumentException("Only draft invoices can be approved")
+            throw BusinessRuleException("Only draft invoices can be approved")
         }
 
         val arAccount = getArAccount(organizationId)
@@ -199,7 +201,7 @@ class InvoiceService(
         val invoice = getInvoice(invoiceId, organizationId)
 
         if (invoice.status == InvoiceStatus.VOID) {
-            throw IllegalArgumentException("Invoice is already voided")
+            throw BusinessRuleException("Invoice is already voided")
         }
 
         val now = LocalDateTime.now(ZoneOffset.UTC)
@@ -217,7 +219,7 @@ class InvoiceService(
         }
 
         if (invoice.amountReceived.compareTo(BigDecimal.ZERO) != 0) {
-            throw IllegalArgumentException("Cannot void an invoice with recorded receipts")
+            throw BusinessRuleException("Cannot void an invoice with recorded receipts")
         }
 
         if (invoice.journalEntryId != null) {
@@ -247,16 +249,16 @@ class InvoiceService(
         val invoice = getInvoice(invoiceId, organizationId)
 
         if (invoice.status != InvoiceStatus.APPROVED && invoice.status != InvoiceStatus.PARTIALLY_PAID) {
-            throw IllegalArgumentException("Invoice must be approved or partially paid to record receipt")
+            throw BusinessRuleException("Invoice must be approved or partially paid to record receipt")
         }
 
         if (request.amount <= BigDecimal.ZERO) {
-            throw IllegalArgumentException("Receipt amount must be positive")
+            throw BusinessRuleException("Receipt amount must be positive")
         }
 
         val remaining = invoice.totalAmount.subtract(invoice.amountReceived)
         if (request.amount.compareTo(remaining) > 0) {
-            throw IllegalArgumentException(
+            throw BusinessRuleException(
                 "Receipt amount exceeds remaining balance of $remaining",
             )
         }
@@ -416,7 +418,7 @@ class InvoiceService(
                 IllegalStateException("Accounts Receivable account (1100) not found")
             }
         if (!account.isActive) {
-            throw IllegalArgumentException("Accounts Receivable account (1100) is inactive")
+            throw BusinessRuleException("Accounts Receivable account (1100) is inactive")
         }
         return account
     }
@@ -427,7 +429,7 @@ class InvoiceService(
                 IllegalStateException("Cash account (1000) not found")
             }
         if (!account.isActive) {
-            throw IllegalArgumentException("Cash account (1000) is inactive")
+            throw BusinessRuleException("Cash account (1000) is inactive")
         }
         return account
     }

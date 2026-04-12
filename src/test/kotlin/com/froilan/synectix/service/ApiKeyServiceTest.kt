@@ -1,5 +1,7 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.ApiKey
 import com.froilan.synectix.repository.ApiKeyRepository
 import com.froilan.synectix.util.TokenHasher
@@ -68,7 +70,7 @@ class ApiKeyServiceTest {
     @Test
     fun `createApiKey should throw when permissions are invalid`() {
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 apiKeyService.createApiKey(
                     name = "Bad Key",
                     permissions = listOf("session:read", "nonexistent:permission"),
@@ -83,7 +85,7 @@ class ApiKeyServiceTest {
     @Test
     fun `createApiKey should throw when permissions are empty`() {
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 apiKeyService.createApiKey(
                     name = "Empty Key",
                     permissions = emptyList(),
@@ -98,7 +100,7 @@ class ApiKeyServiceTest {
     @Test
     fun `createApiKey should throw when requesting permissions creator does not have`() {
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 apiKeyService.createApiKey(
                     name = "Escalated Key",
                     permissions = listOf("session:read", "user:delete"),
@@ -179,7 +181,7 @@ class ApiKeyServiceTest {
         `when`(apiKeyRepository.findById(apiKey.id)).thenReturn(Optional.of(apiKey))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<ResourceNotFoundException> {
                 apiKeyService.revokeApiKey(apiKey.id, "org-123")
             }
         assertThat(exception.message).isEqualTo("API key not found")
@@ -191,7 +193,7 @@ class ApiKeyServiceTest {
         `when`(apiKeyRepository.findById(apiKey.id)).thenReturn(Optional.of(apiKey))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 apiKeyService.revokeApiKey(apiKey.id, "org-123")
             }
         assertThat(exception.message).isEqualTo("API key is already revoked")

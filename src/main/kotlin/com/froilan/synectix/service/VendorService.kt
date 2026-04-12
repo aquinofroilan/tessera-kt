@@ -2,6 +2,8 @@ package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.CreateVendorRequest
 import com.froilan.synectix.dto.UpdateVendorRequest
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Vendor
 import com.froilan.synectix.repository.VendorRepository
 import org.springframework.dao.DuplicateKeyException
@@ -31,7 +33,7 @@ class VendorService(
         return try {
             vendorRepository.save(vendor)
         } catch (e: DuplicateKeyException) {
-            throw IllegalArgumentException(
+            throw BusinessRuleException(
                 "Vendor '${request.name}' already exists in this organization",
                 e,
             )
@@ -44,10 +46,10 @@ class VendorService(
     ): Vendor {
         val vendor =
             vendorRepository.findById(vendorId).orElseThrow {
-                IllegalArgumentException("Vendor not found")
+                ResourceNotFoundException("Vendor not found")
             }
         if (vendor.organizationId != organizationId) {
-            throw IllegalArgumentException("Vendor not found")
+            throw ResourceNotFoundException("Vendor not found")
         }
         return vendor
     }
@@ -63,11 +65,11 @@ class VendorService(
         val vendor = getVendor(vendorId, organizationId)
 
         if (!vendor.isActive) {
-            throw IllegalArgumentException("Cannot update inactive vendor")
+            throw BusinessRuleException("Cannot update inactive vendor")
         }
 
         if (request.name != null && request.name.isBlank()) {
-            throw IllegalArgumentException("Vendor name cannot be blank")
+            throw BusinessRuleException("Vendor name cannot be blank")
         }
 
         val updated =
@@ -83,7 +85,7 @@ class VendorService(
         return try {
             vendorRepository.save(updated)
         } catch (e: DuplicateKeyException) {
-            throw IllegalArgumentException(
+            throw BusinessRuleException(
                 "Vendor '${updated.name}' already exists in this organization",
                 e,
             )
@@ -98,7 +100,7 @@ class VendorService(
         val vendor = getVendor(vendorId, organizationId)
 
         if (!vendor.isActive) {
-            throw IllegalArgumentException("Vendor is already inactive")
+            throw BusinessRuleException("Vendor is already inactive")
         }
 
         return vendorRepository.save(vendor.copy(isActive = false))

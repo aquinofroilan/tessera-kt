@@ -3,6 +3,8 @@ package com.froilan.synectix.service
 import com.froilan.synectix.dto.AcceptInvitationRequest
 import com.froilan.synectix.dto.CreateInvitationRequest
 import com.froilan.synectix.dto.ValidateInvitationResponse
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Invitation
 import com.froilan.synectix.model.InvitationStatus
 import com.froilan.synectix.model.RoleAssignment
@@ -47,10 +49,10 @@ class InvitationService(
 
         val role =
             roleRepository.findByName(request.role).orElseThrow {
-                IllegalArgumentException("Role '${request.role}' does not exist")
+                BusinessRuleException("Role '${request.role}' does not exist")
             }
         if (role.level != RoleLevel.ORGANIZATION) {
-            throw IllegalArgumentException("Cannot invite with system-level role")
+            throw BusinessRuleException("Cannot invite with system-level role")
         }
 
         val existing =
@@ -62,7 +64,7 @@ class InvitationService(
         if (existing.isPresent) {
             val pendingInvitation = existing.get()
             if (pendingInvitation.expiryAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
-                throw IllegalArgumentException("An invitation has already been sent to this email")
+                throw BusinessRuleException("An invitation has already been sent to this email")
             }
             invitationRepository.save(pendingInvitation.copy(status = InvitationStatus.EXPIRED))
         }
@@ -80,7 +82,7 @@ class InvitationService(
         try {
             invitationRepository.save(invitation)
         } catch (e: DuplicateKeyException) {
-            throw IllegalArgumentException("An invitation has already been sent to this email", e)
+            throw BusinessRuleException("An invitation has already been sent to this email", e)
         }
 
         return rawToken
@@ -90,10 +92,10 @@ class InvitationService(
         val tokenHash = tokenHasher.hash(token)
         val invitation =
             invitationRepository.findByTokenHash(tokenHash).orElseThrow {
-                IllegalArgumentException("Invalid or expired invitation token")
+                BusinessRuleException("Invalid or expired invitation token")
             }
         if (invitation.status != InvitationStatus.PENDING || !invitation.expiryAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
-            throw IllegalArgumentException("Invalid or expired invitation token")
+            throw BusinessRuleException("Invalid or expired invitation token")
         }
         val existingUser = userRepository.findByEmail(invitation.email).isPresent
         return ValidateInvitationResponse(
@@ -122,7 +124,7 @@ class InvitationService(
                 Update.update("status", InvitationStatus.ACCEPTED),
                 FindAndModifyOptions.options().returnNew(true),
                 Invitation::class.java,
-            ) ?: throw IllegalArgumentException("Invalid or expired invitation token")
+            ) ?: throw BusinessRuleException("Invalid or expired invitation token")
 
         val existingUser = userRepository.findByEmail(accepted.email)
         if (existingUser.isPresent) {
@@ -151,7 +153,7 @@ class InvitationService(
             request.firstName.isNullOrBlank() ||
             request.lastName.isNullOrBlank()
         ) {
-            throw IllegalArgumentException("Username, password, first name, and last name are required for new users")
+            throw BusinessRuleException("Username, password, first name, and last name are required for new users")
         }
 
         val newUser =
@@ -176,11 +178,11 @@ class InvitationService(
             val errorMessage = e.message ?: ""
             when {
                 errorMessage.contains("username", ignoreCase = true) ->
-                    throw IllegalArgumentException("Username already exists", e)
+                    throw BusinessRuleException("Username already exists", e)
                 errorMessage.contains("email", ignoreCase = true) ->
-                    throw IllegalArgumentException("Email already exists", e)
+                    throw BusinessRuleException("Email already exists", e)
                 else ->
-                    throw IllegalArgumentException("Account could not be created", e)
+                    throw BusinessRuleException("Account could not be created", e)
             }
         }
     }
@@ -192,13 +194,13 @@ class InvitationService(
     ) {
         val invitation =
             invitationRepository.findById(invitationId).orElseThrow {
-                IllegalArgumentException("Invitation not found")
+                ResourceNotFoundException("Invitation not found")
             }
         if (invitation.organizationId != activeOrgId) {
-            throw IllegalArgumentException("Invitation not found")
+            throw ResourceNotFoundException("Invitation not found")
         }
         if (invitation.status != InvitationStatus.PENDING) {
-            throw IllegalArgumentException("Invitation is not pending")
+            throw BusinessRuleException("Invitation is not pending")
         }
         invitationRepository.save(invitation.copy(status = InvitationStatus.REVOKED))
     }

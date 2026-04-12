@@ -38,31 +38,27 @@ class ApiKeyController(
         val authentication = SecurityContextHolder.getContext().authentication ?: return authContext.unauthorized()
         val creatorPermissions = authentication.authorities.mapNotNull { it.authority }.toSet()
 
-        return try {
-            val (apiKey, rawKey) =
-                apiKeyService.createApiKey(
-                    name = request.name,
-                    permissions = request.permissions,
-                    organizationId = sessionContext.organizationId,
-                    createdBy = user.uuid,
-                    creatorPermissions = creatorPermissions,
-                    expiresAt = request.expiresAt,
-                )
-            ResponseEntity.status(HttpStatus.CREATED).body(
-                ApiKeyCreatedResponse(
-                    id = apiKey.id,
-                    name = apiKey.name,
-                    rawKey = rawKey,
-                    keyPrefix = apiKey.keyPrefix,
-                    permissions = apiKey.permissions,
-                    organizationId = apiKey.organizationId,
-                    expiresAt = apiKey.expiresAt?.toString(),
-                    createdAt = apiKey.createdAt?.toString(),
-                ),
+        val (apiKey, rawKey) =
+            apiKeyService.createApiKey(
+                name = request.name,
+                permissions = request.permissions,
+                organizationId = sessionContext.organizationId,
+                createdBy = user.uuid,
+                creatorPermissions = creatorPermissions,
+                expiresAt = request.expiresAt,
             )
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Failed to create API key")))
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            ApiKeyCreatedResponse(
+                id = apiKey.id,
+                name = apiKey.name,
+                rawKey = rawKey,
+                keyPrefix = apiKey.keyPrefix,
+                permissions = apiKey.permissions,
+                organizationId = apiKey.organizationId,
+                expiresAt = apiKey.expiresAt?.toString(),
+                createdAt = apiKey.createdAt?.toString(),
+            ),
+        )
     }
 
     @GetMapping
@@ -94,12 +90,8 @@ class ApiKeyController(
     ): ResponseEntity<Any> {
         val (_, sessionContext) = extractUserAndContext() ?: return authContext.unauthorized()
 
-        return try {
-            apiKeyService.revokeApiKey(id, sessionContext.organizationId)
-            ResponseEntity.ok(mapOf("message" to "API key revoked"))
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Failed to revoke API key")))
-        }
+        apiKeyService.revokeApiKey(id, sessionContext.organizationId)
+        return ResponseEntity.ok(mapOf("message" to "API key revoked"))
     }
 
     private fun extractUserAndContext(): Pair<User, SessionContext>? {

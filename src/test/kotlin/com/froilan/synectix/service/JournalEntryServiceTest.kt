@@ -2,6 +2,7 @@ package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.CreateJournalEntryRequest
 import com.froilan.synectix.dto.JournalEntryLineRequest
+import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.model.JournalEntry
@@ -99,7 +100,7 @@ class JournalEntryServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 journalEntryService.createJournalEntry(request, orgId, createdBy)
             }
         assertThat(exception.message).contains("at least 2 line items")
@@ -119,7 +120,7 @@ class JournalEntryServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 journalEntryService.createJournalEntry(request, orgId, createdBy)
             }
         assertThat(exception.message).contains("cannot have both debit and credit")
@@ -139,7 +140,7 @@ class JournalEntryServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 journalEntryService.createJournalEntry(request, orgId, createdBy)
             }
         assertThat(exception.message).contains("must have either a debit or credit amount")
@@ -159,7 +160,7 @@ class JournalEntryServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 journalEntryService.createJournalEntry(request, orgId, createdBy)
             }
         assertThat(exception.message).contains("must balance")
@@ -183,7 +184,7 @@ class JournalEntryServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 journalEntryService.createJournalEntry(request, orgId, createdBy)
             }
         assertThat(exception.message).contains("not found")
@@ -215,7 +216,7 @@ class JournalEntryServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 journalEntryService.createJournalEntry(request, orgId, createdBy)
             }
         assertThat(exception.message).contains("inactive")
@@ -241,7 +242,7 @@ class JournalEntryServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 journalEntryService.createJournalEntry(request, orgId, createdBy)
             }
         assertThat(exception.message).contains("not found")
@@ -342,7 +343,7 @@ class JournalEntryServiceTest {
         `when`(journalEntryRepository.findById("entry-1")).thenReturn(Optional.of(postedEntry))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 journalEntryService.postJournalEntry("entry-1", orgId)
             }
         assertThat(exception.message).contains("Only draft entries can be posted")
@@ -436,7 +437,7 @@ class JournalEntryServiceTest {
         `when`(journalEntryRepository.findById("entry-1")).thenReturn(Optional.of(draftEntry))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 journalEntryService.voidJournalEntry("entry-1", orgId, "Some reason")
             }
         assertThat(exception.message).contains("Only posted entries can be voided")
@@ -636,7 +637,7 @@ class JournalEntryServiceTest {
 
         `when`(accountRepository.findAllById(listOf("acc-1", "acc-2")))
             .thenReturn(listOf(cashAccount, revenueAccount))
-        doThrow(IllegalArgumentException("Fiscal period 'January 2026' is closed"))
+        doThrow(BusinessRuleException("Fiscal period 'January 2026' is closed"))
             .`when`(fiscalYearService)
             .validatePeriodOpen(orgId, LocalDate.of(2026, 1, 15))
 
@@ -660,7 +661,7 @@ class JournalEntryServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 journalEntryService.createJournalEntry(request, orgId, createdBy)
             }
         assertThat(exception.message).contains("closed")
@@ -740,12 +741,12 @@ class JournalEntryServiceTest {
             )
 
         `when`(journalEntryRepository.findById("entry-1")).thenReturn(Optional.of(entry))
-        doThrow(IllegalArgumentException("Fiscal period 'January 2026' is closed"))
+        doThrow(BusinessRuleException("Fiscal period 'January 2026' is closed"))
             .`when`(fiscalYearService)
             .validatePeriodOpen(orgId, LocalDate.of(2026, 1, 15))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 journalEntryService.postJournalEntry("entry-1", orgId)
             }
         assertThat(exception.message).contains("closed")

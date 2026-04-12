@@ -44,14 +44,8 @@ class InvoiceController(
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val createdBy = authContext.userId() ?: "api-key"
 
-        return try {
-            val invoice = invoiceService.createInvoice(request, orgId, createdBy)
-            ResponseEntity.status(HttpStatus.CREATED).body(invoice.toResponse())
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity
-                .badRequest()
-                .body(mapOf("error" to (e.message ?: "Failed to create invoice")))
-        }
+        val invoice = invoiceService.createInvoice(request, orgId, createdBy)
+        return ResponseEntity.status(HttpStatus.CREATED).body(invoice.toResponse())
     }
 
     @GetMapping
@@ -86,14 +80,8 @@ class InvoiceController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val invoice = invoiceService.getInvoice(id, orgId)
-            ResponseEntity.ok(invoice.toResponse())
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(mapOf("error" to (e.message ?: "Invoice not found")))
-        }
+        val invoice = invoiceService.getInvoice(id, orgId)
+        return ResponseEntity.ok(invoice.toResponse())
     }
 
     @PostMapping("/{id}/approve")
@@ -104,20 +92,8 @@ class InvoiceController(
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
 
-        return try {
-            val invoice = invoiceService.approveInvoice(id, orgId, userId)
-            ResponseEntity.ok(invoice.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status =
-                if (e.message == "Invoice not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity
-                .status(status)
-                .body(mapOf("error" to (e.message ?: "Failed to approve invoice")))
-        } catch (e: IllegalStateException) {
-            ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(mapOf("error" to (e.message ?: "Failed to approve invoice")))
-        }
+        val invoice = invoiceService.approveInvoice(id, orgId, userId)
+        return ResponseEntity.ok(invoice.toResponse())
     }
 
     @PostMapping("/{id}/void")
@@ -129,20 +105,8 @@ class InvoiceController(
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
 
-        return try {
-            val invoice = invoiceService.voidInvoice(id, orgId, request.reason, userId)
-            ResponseEntity.ok(invoice.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status =
-                if (e.message == "Invoice not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity
-                .status(status)
-                .body(mapOf("error" to (e.message ?: "Failed to void invoice")))
-        } catch (e: IllegalStateException) {
-            ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(mapOf("error" to (e.message ?: "Failed to void invoice")))
-        }
+        val invoice = invoiceService.voidInvoice(id, orgId, request.reason, userId)
+        return ResponseEntity.ok(invoice.toResponse())
     }
 
     @PostMapping("/{id}/receipts")
@@ -154,20 +118,8 @@ class InvoiceController(
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val createdBy = authContext.userId() ?: "api-key"
 
-        return try {
-            val receipt = invoiceService.recordReceipt(id, request, orgId, createdBy)
-            ResponseEntity.status(HttpStatus.CREATED).body(receipt.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status =
-                if (e.message == "Invoice not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity
-                .status(status)
-                .body(mapOf("error" to (e.message ?: "Failed to record receipt")))
-        } catch (e: IllegalStateException) {
-            ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(mapOf("error" to (e.message ?: "Failed to record receipt")))
-        }
+        val receipt = invoiceService.recordReceipt(id, request, orgId, createdBy)
+        return ResponseEntity.status(HttpStatus.CREATED).body(receipt.toResponse())
     }
 
     @GetMapping("/{id}/receipts")
@@ -177,14 +129,8 @@ class InvoiceController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val receipts = invoiceService.getReceipts(id, orgId)
-            ResponseEntity.ok(receipts.map { it.toResponse() })
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(mapOf("error" to (e.message ?: "Invoice not found")))
-        }
+        val receipts = invoiceService.getReceipts(id, orgId)
+        return ResponseEntity.ok(receipts.map { it.toResponse() })
     }
 
     @GetMapping("/aging")

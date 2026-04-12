@@ -2,6 +2,8 @@ package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.CreateCustomerRequest
 import com.froilan.synectix.dto.UpdateCustomerRequest
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Customer
 import com.froilan.synectix.repository.CustomerRepository
 import org.springframework.dao.DuplicateKeyException
@@ -31,7 +33,7 @@ class CustomerService(
         return try {
             customerRepository.save(customer)
         } catch (e: DuplicateKeyException) {
-            throw IllegalArgumentException(
+            throw BusinessRuleException(
                 "Customer '${request.name}' already exists in this organization",
                 e,
             )
@@ -44,10 +46,10 @@ class CustomerService(
     ): Customer {
         val customer =
             customerRepository.findById(customerId).orElseThrow {
-                IllegalArgumentException("Customer not found")
+                ResourceNotFoundException("Customer not found")
             }
         if (customer.organizationId != organizationId) {
-            throw IllegalArgumentException("Customer not found")
+            throw ResourceNotFoundException("Customer not found")
         }
         return customer
     }
@@ -63,11 +65,11 @@ class CustomerService(
         val customer = getCustomer(customerId, organizationId)
 
         if (!customer.isActive) {
-            throw IllegalArgumentException("Cannot update inactive customer")
+            throw BusinessRuleException("Cannot update inactive customer")
         }
 
         if (request.name != null && request.name.isBlank()) {
-            throw IllegalArgumentException("Customer name cannot be blank")
+            throw BusinessRuleException("Customer name cannot be blank")
         }
 
         val updated =
@@ -83,7 +85,7 @@ class CustomerService(
         return try {
             customerRepository.save(updated)
         } catch (e: DuplicateKeyException) {
-            throw IllegalArgumentException(
+            throw BusinessRuleException(
                 "Customer '${updated.name}' already exists in this organization",
                 e,
             )
@@ -98,7 +100,7 @@ class CustomerService(
         val customer = getCustomer(customerId, organizationId)
 
         if (!customer.isActive) {
-            throw IllegalArgumentException("Customer is already inactive")
+            throw BusinessRuleException("Customer is already inactive")
         }
 
         return customerRepository.save(customer.copy(isActive = false))

@@ -2,6 +2,9 @@ package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
+import com.froilan.synectix.exception.AuthenticationException
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Organizations
 import com.froilan.synectix.model.PasswordResetToken
 import com.froilan.synectix.model.RefreshToken
@@ -137,7 +140,7 @@ class AuthServiceTest {
             .thenThrow(DuplicateKeyException("E11000 duplicate key error collection: synectix.users index: username"))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 authService.register(request)
             }
         assertThat(exception.message).isEqualTo("Username already exists")
@@ -153,7 +156,7 @@ class AuthServiceTest {
             .thenThrow(DuplicateKeyException("E11000 duplicate key error collection: synectix.users index: email"))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 authService.register(request)
             }
         assertThat(exception.message).isEqualTo("Email already exists")
@@ -166,7 +169,7 @@ class AuthServiceTest {
             .thenThrow(DuplicateKeyException("E11000 duplicate key error collection: synectix.organizations index: orgSlug"))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 authService.register(request)
             }
         assertThat(exception.message).isEqualTo("Organization slug already exists")
@@ -180,7 +183,7 @@ class AuthServiceTest {
             .thenThrow(DuplicateKeyException("E11000 duplicate key error collection: synectix.organizations index: name"))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 authService.register(request)
             }
         assertThat(exception.message).isEqualTo("Organization name already exists")
@@ -268,7 +271,7 @@ class AuthServiceTest {
         `when`(userRepository.findByUsername(request.username)).thenReturn(Optional.empty())
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<AuthenticationException> {
                 authService.login(request)
             }
         assertThat(exception.message).isEqualTo("Invalid username or password")
@@ -283,7 +286,7 @@ class AuthServiceTest {
         `when`(passwordEncoder.matches(request.password, user.passwordHash)).thenReturn(false)
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<AuthenticationException> {
                 authService.login(request)
             }
         assertThat(exception.message).isEqualTo("Invalid username or password")
@@ -338,7 +341,7 @@ class AuthServiceTest {
         `when`(userRepository.findByUsername(request.username)).thenReturn(Optional.of(inactiveUser))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<AuthenticationException> {
                 authService.login(request)
             }
         assertThat(exception.message).isEqualTo("User account is inactive")
@@ -390,7 +393,7 @@ class AuthServiceTest {
         `when`(refreshTokenRepository.findByTokenHash(expiredTokenHash)).thenReturn(Optional.of(expiredRefreshToken))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<AuthenticationException> {
                 authService.refresh(expiredTokenStr)
             }
         assertThat(exception.message).isEqualTo("Invalid or expired refresh token")
@@ -404,7 +407,7 @@ class AuthServiceTest {
         `when`(refreshTokenRepository.findByTokenHash(invalidTokenHash)).thenReturn(Optional.empty())
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<AuthenticationException> {
                 authService.refresh(invalidTokenStr)
             }
         assertThat(exception.message).isEqualTo("Invalid or expired refresh token")
@@ -427,7 +430,7 @@ class AuthServiceTest {
         `when`(userRepository.findById(inactiveUser.uuid)).thenReturn(Optional.of(inactiveUser))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<AuthenticationException> {
                 authService.refresh(refreshTokenStr)
             }
         assertThat(exception.message).isEqualTo("User account is inactive")
@@ -493,7 +496,7 @@ class AuthServiceTest {
         `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<ResourceNotFoundException> {
                 authService.revokeSession("user-123", "s1", "other-token")
             }
         assertThat(exception.message).isEqualTo("Session not found")
@@ -509,7 +512,7 @@ class AuthServiceTest {
         `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
 
         val exception =
-            assertThrows<IllegalStateException> {
+            assertThrows<BusinessRuleException> {
                 authService.revokeSession(userId, "s1", currentToken)
             }
         assertThat(exception.message).isEqualTo("Cannot revoke the current session")
@@ -553,7 +556,7 @@ class AuthServiceTest {
         `when`(passwordEncoder.matches("wrongPass", user.passwordHash)).thenReturn(false)
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 authService.changePassword(user, "wrongPass", "NewSecurePass123!")
             }
         assertThat(exception.message).isEqualTo("Current password is incorrect")
@@ -565,7 +568,7 @@ class AuthServiceTest {
         `when`(passwordEncoder.matches("samePass", user.passwordHash)).thenReturn(true)
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 authService.changePassword(user, "samePass", "samePass")
             }
         assertThat(exception.message).isEqualTo("New password must be different from current password")
@@ -633,7 +636,7 @@ class AuthServiceTest {
         `when`(passwordResetTokenRepository.findByTokenHash(any())).thenReturn(Optional.empty())
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 authService.resetPassword("invalid-token", "NewPassword123!")
             }
         assertThat(exception.message).isEqualTo("Invalid or expired reset token")
@@ -652,7 +655,7 @@ class AuthServiceTest {
             .thenReturn(Optional.of(expiredToken))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 authService.resetPassword("expired-token", "NewPassword123!")
             }
         assertThat(exception.message).isEqualTo("Invalid or expired reset token")
@@ -710,7 +713,7 @@ class AuthServiceTest {
         val user = createMockUser()
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 authService.switchOrganization(user, "org-999")
             }
         assertThat(exception.message).isEqualTo("You do not have access to this organization")
@@ -730,7 +733,7 @@ class AuthServiceTest {
         `when`(organizationRepository.findById("org-missing")).thenReturn(Optional.empty())
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<ResourceNotFoundException> {
                 authService.switchOrganization(user, "org-missing")
             }
         assertThat(exception.message).isEqualTo("Organization not found")
@@ -751,7 +754,7 @@ class AuthServiceTest {
         `when`(organizationRepository.findById("org-inactive")).thenReturn(Optional.of(inactiveOrg))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 authService.switchOrganization(user, "org-inactive")
             }
         assertThat(exception.message).isEqualTo("Organization is not active")

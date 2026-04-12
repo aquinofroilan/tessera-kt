@@ -44,14 +44,8 @@ class BillController(
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val createdBy = authContext.userId() ?: "api-key"
 
-        return try {
-            val bill = billService.createBill(request, orgId, createdBy)
-            ResponseEntity.status(HttpStatus.CREATED).body(bill.toResponse())
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity
-                .badRequest()
-                .body(mapOf("error" to (e.message ?: "Failed to create bill")))
-        }
+        val bill = billService.createBill(request, orgId, createdBy)
+        return ResponseEntity.status(HttpStatus.CREATED).body(bill.toResponse())
     }
 
     @GetMapping
@@ -86,14 +80,8 @@ class BillController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val bill = billService.getBill(id, orgId)
-            ResponseEntity.ok(bill.toResponse())
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(mapOf("error" to (e.message ?: "Bill not found")))
-        }
+        val bill = billService.getBill(id, orgId)
+        return ResponseEntity.ok(bill.toResponse())
     }
 
     @PostMapping("/{id}/approve")
@@ -104,20 +92,8 @@ class BillController(
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
 
-        return try {
-            val bill = billService.approveBill(id, orgId, userId)
-            ResponseEntity.ok(bill.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status =
-                if (e.message == "Bill not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity
-                .status(status)
-                .body(mapOf("error" to (e.message ?: "Failed to approve bill")))
-        } catch (e: IllegalStateException) {
-            ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(mapOf("error" to (e.message ?: "Failed to approve bill")))
-        }
+        val bill = billService.approveBill(id, orgId, userId)
+        return ResponseEntity.ok(bill.toResponse())
     }
 
     @PostMapping("/{id}/void")
@@ -129,20 +105,8 @@ class BillController(
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
 
-        return try {
-            val bill = billService.voidBill(id, orgId, request.reason, userId)
-            ResponseEntity.ok(bill.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status =
-                if (e.message == "Bill not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity
-                .status(status)
-                .body(mapOf("error" to (e.message ?: "Failed to void bill")))
-        } catch (e: IllegalStateException) {
-            ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(mapOf("error" to (e.message ?: "Failed to void bill")))
-        }
+        val bill = billService.voidBill(id, orgId, request.reason, userId)
+        return ResponseEntity.ok(bill.toResponse())
     }
 
     @PostMapping("/{id}/payments")
@@ -154,20 +118,8 @@ class BillController(
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val createdBy = authContext.userId() ?: "api-key"
 
-        return try {
-            val payment = billService.recordPayment(id, request, orgId, createdBy)
-            ResponseEntity.status(HttpStatus.CREATED).body(payment.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status =
-                if (e.message == "Bill not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity
-                .status(status)
-                .body(mapOf("error" to (e.message ?: "Failed to record payment")))
-        } catch (e: IllegalStateException) {
-            ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(mapOf("error" to (e.message ?: "Failed to record payment")))
-        }
+        val payment = billService.recordPayment(id, request, orgId, createdBy)
+        return ResponseEntity.status(HttpStatus.CREATED).body(payment.toResponse())
     }
 
     @GetMapping("/{id}/payments")
@@ -177,14 +129,8 @@ class BillController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val payments = billService.getPayments(id, orgId)
-            ResponseEntity.ok(payments.map { it.toResponse() })
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(mapOf("error" to (e.message ?: "Bill not found")))
-        }
+        val payments = billService.getPayments(id, orgId)
+        return ResponseEntity.ok(payments.map { it.toResponse() })
     }
 
     @GetMapping("/aging")

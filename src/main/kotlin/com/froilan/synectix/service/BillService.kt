@@ -5,6 +5,8 @@ import com.froilan.synectix.dto.ApAgingReportResponse
 import com.froilan.synectix.dto.CreateBillRequest
 import com.froilan.synectix.dto.RecordPaymentRequest
 import com.froilan.synectix.dto.VendorAgingResponse
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.Bill
 import com.froilan.synectix.model.BillLine
@@ -40,20 +42,20 @@ class BillService(
     ): Bill {
         val vendor = vendorService.getVendor(request.vendorId, organizationId)
         if (!vendor.isActive) {
-            throw IllegalArgumentException("Cannot create bill for inactive vendor")
+            throw BusinessRuleException("Cannot create bill for inactive vendor")
         }
 
         if (request.date.isAfter(request.dueDate)) {
-            throw IllegalArgumentException("Due date must be on or after bill date")
+            throw BusinessRuleException("Due date must be on or after bill date")
         }
 
         if (request.lines.isEmpty()) {
-            throw IllegalArgumentException("At least one line item is required")
+            throw BusinessRuleException("At least one line item is required")
         }
 
         request.lines.forEach { line ->
             if (line.amount <= BigDecimal.ZERO) {
-                throw IllegalArgumentException("Line item amounts must be positive")
+                throw BusinessRuleException("Line item amounts must be positive")
             }
         }
 
@@ -62,15 +64,15 @@ class BillService(
 
         val missingAccounts = accountIds.filter { it !in accounts }
         if (missingAccounts.isNotEmpty()) {
-            throw IllegalArgumentException("Accounts not found: ${missingAccounts.joinToString(", ")}")
+            throw BusinessRuleException("Accounts not found: ${missingAccounts.joinToString(", ")}")
         }
 
         accounts.values.forEach { account ->
             if (account.organizationId != organizationId) {
-                throw IllegalArgumentException("Account '${account.id}' not found")
+                throw BusinessRuleException("Account '${account.id}' not found")
             }
             if (!account.isActive) {
-                throw IllegalArgumentException("Account '${account.code}' is inactive")
+                throw BusinessRuleException("Account '${account.code}' is inactive")
             }
         }
 
@@ -110,10 +112,10 @@ class BillService(
     ): Bill {
         val bill =
             billRepository.findById(billId).orElseThrow {
-                IllegalArgumentException("Bill not found")
+                ResourceNotFoundException("Bill not found")
             }
         if (bill.organizationId != organizationId) {
-            throw IllegalArgumentException("Bill not found")
+            throw ResourceNotFoundException("Bill not found")
         }
         return bill
     }
@@ -143,7 +145,7 @@ class BillService(
         val bill = getBill(billId, organizationId)
 
         if (bill.status != BillStatus.DRAFT) {
-            throw IllegalArgumentException("Only draft bills can be approved")
+            throw BusinessRuleException("Only draft bills can be approved")
         }
 
         val apAccount = getApAccount(organizationId)
@@ -199,7 +201,7 @@ class BillService(
         val bill = getBill(billId, organizationId)
 
         if (bill.status == BillStatus.VOID) {
-            throw IllegalArgumentException("Bill is already voided")
+            throw BusinessRuleException("Bill is already voided")
         }
         val now = LocalDateTime.now(ZoneOffset.UTC)
 
@@ -215,7 +217,7 @@ class BillService(
             )
         }
         if (bill.amountPaid.compareTo(BigDecimal.ZERO) != 0) {
-            throw IllegalArgumentException("Cannot void a bill with recorded payments")
+            throw BusinessRuleException("Cannot void a bill with recorded payments")
         }
 
         if (bill.journalEntryId != null) {
@@ -246,16 +248,16 @@ class BillService(
         val bill = getBill(billId, organizationId)
 
         if (bill.status != BillStatus.APPROVED && bill.status != BillStatus.PARTIALLY_PAID) {
-            throw IllegalArgumentException("Bill must be approved or partially paid to record payment")
+            throw BusinessRuleException("Bill must be approved or partially paid to record payment")
         }
 
         if (request.amount <= BigDecimal.ZERO) {
-            throw IllegalArgumentException("Payment amount must be positive")
+            throw BusinessRuleException("Payment amount must be positive")
         }
 
         val remaining = bill.totalAmount.subtract(bill.amountPaid)
         if (request.amount.compareTo(remaining) > 0) {
-            throw IllegalArgumentException(
+            throw BusinessRuleException(
                 "Payment amount exceeds remaining balance of $remaining",
             )
         }
@@ -434,7 +436,7 @@ class BillService(
                 IllegalStateException("Accounts Payable account (2000) not found")
             }
         if (!account.isActive) {
-            throw IllegalArgumentException("Accounts Payable account (2000) is inactive")
+            throw BusinessRuleException("Accounts Payable account (2000) is inactive")
         }
         return account
     }
@@ -445,7 +447,7 @@ class BillService(
                 IllegalStateException("Cash account (1000) not found")
             }
         if (!account.isActive) {
-            throw IllegalArgumentException("Cash account (1000) is inactive")
+            throw BusinessRuleException("Cash account (1000) is inactive")
         }
         return account
     }
