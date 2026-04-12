@@ -1,5 +1,7 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.exception.ResourceNotFoundException
+
 import com.froilan.synectix.dto.AgingBucket
 import com.froilan.synectix.dto.ArAgingReportResponse
 import com.froilan.synectix.dto.CreateInvoiceRequest
@@ -67,7 +69,7 @@ class InvoiceService(
 
         accounts.values.forEach { account ->
             if (account.organizationId != organizationId) {
-                throw IllegalArgumentException("Account '${account.id}' not found")
+                throw ResourceNotFoundException("Account '${account.id}' not found")
             }
             if (!account.isActive) {
                 throw IllegalArgumentException("Account '${account.code}' is inactive")
@@ -110,10 +112,10 @@ class InvoiceService(
     ): Invoice {
         val invoice =
             invoiceRepository.findById(invoiceId).orElseThrow {
-                IllegalArgumentException("Invoice not found")
+                ResourceNotFoundException("Invoice not found")
             }
         if (invoice.organizationId != organizationId) {
-            throw IllegalArgumentException("Invoice not found")
+            throw ResourceNotFoundException("Invoice not found")
         }
         return invoice
     }

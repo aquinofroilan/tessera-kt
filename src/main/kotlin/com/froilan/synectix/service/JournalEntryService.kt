@@ -1,5 +1,7 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.exception.ResourceNotFoundException
+
 import com.froilan.synectix.dto.AccountBalanceResponse
 import com.froilan.synectix.dto.CreateJournalEntryRequest
 import com.froilan.synectix.dto.TrialBalanceResponse
@@ -63,9 +65,9 @@ class JournalEntryService(
             request.lines.map { line ->
                 val account =
                     accounts[line.accountId]
-                        ?: throw IllegalArgumentException("Account '${line.accountId}' not found")
+                        ?: throw ResourceNotFoundException("Account '${line.accountId}' not found")
                 if (account.organizationId != organizationId) {
-                    throw IllegalArgumentException("Account '${line.accountId}' not found")
+                    throw ResourceNotFoundException("Account '${line.accountId}' not found")
                 }
                 if (!account.isActive) {
                     throw IllegalArgumentException("Account '${account.code}' is inactive")
@@ -257,10 +259,10 @@ class JournalEntryService(
     ): AccountBalanceResponse {
         val account =
             accountRepository.findById(accountId).orElseThrow {
-                IllegalArgumentException("Account not found")
+                ResourceNotFoundException("Account not found")
             }
         if (account.organizationId != organizationId) {
-            throw IllegalArgumentException("Account not found")
+            throw ResourceNotFoundException("Account not found")
         }
 
         val postedStatuses = listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED)
@@ -371,10 +373,10 @@ class JournalEntryService(
     ): JournalEntry {
         val entry =
             journalEntryRepository.findById(entryId).orElseThrow {
-                IllegalArgumentException("Journal entry not found")
+                ResourceNotFoundException("Journal entry not found")
             }
         if (entry.organizationId != organizationId) {
-            throw IllegalArgumentException("Journal entry not found")
+            throw ResourceNotFoundException("Journal entry not found")
         }
         return entry
     }

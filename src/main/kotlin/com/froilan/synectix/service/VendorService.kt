@@ -1,5 +1,7 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.exception.ResourceNotFoundException
+
 import com.froilan.synectix.dto.CreateVendorRequest
 import com.froilan.synectix.dto.UpdateVendorRequest
 import com.froilan.synectix.model.Vendor
@@ -44,10 +46,10 @@ class VendorService(
     ): Vendor {
         val vendor =
             vendorRepository.findById(vendorId).orElseThrow {
-                IllegalArgumentException("Vendor not found")
+                ResourceNotFoundException("Vendor not found")
             }
         if (vendor.organizationId != organizationId) {
-            throw IllegalArgumentException("Vendor not found")
+            throw ResourceNotFoundException("Vendor not found")
         }
         return vendor
     }

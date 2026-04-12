@@ -1,5 +1,7 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.exception.ResourceNotFoundException
+
 import com.froilan.synectix.dto.CreateAccountRequest
 import com.froilan.synectix.dto.UpdateAccountRequest
 import com.froilan.synectix.model.Account
@@ -34,10 +36,10 @@ class AccountService(
         if (request.parentId != null) {
             val parent =
                 accountRepository.findById(request.parentId).orElseThrow {
-                    IllegalArgumentException("Parent account not found")
+                    ResourceNotFoundException("Parent account not found")
                 }
             if (parent.organizationId != organizationId) {
-                throw IllegalArgumentException("Parent account not found")
+                throw ResourceNotFoundException("Parent account not found")
             }
             if (parent.type != type) {
                 throw IllegalArgumentException("Parent account must be the same type")
@@ -68,10 +70,10 @@ class AccountService(
     ): Account {
         val account =
             accountRepository.findById(accountId).orElseThrow {
-                IllegalArgumentException("Account not found")
+                ResourceNotFoundException("Account not found")
             }
         if (account.organizationId != organizationId) {
-            throw IllegalArgumentException("Account not found")
+            throw ResourceNotFoundException("Account not found")
         }
         if (request.name != null && request.name.isBlank()) {
             throw IllegalArgumentException("Account name must not be blank")
@@ -91,10 +93,10 @@ class AccountService(
     ): Account {
         val account =
             accountRepository.findById(accountId).orElseThrow {
-                IllegalArgumentException("Account not found")
+                ResourceNotFoundException("Account not found")
             }
         if (account.organizationId != organizationId) {
-            throw IllegalArgumentException("Account not found")
+            throw ResourceNotFoundException("Account not found")
         }
         return account
     }
@@ -119,10 +121,10 @@ class AccountService(
     ) {
         val account =
             accountRepository.findById(accountId).orElseThrow {
-                IllegalArgumentException("Account not found")
+                ResourceNotFoundException("Account not found")
             }
         if (account.organizationId != organizationId) {
-            throw IllegalArgumentException("Account not found")
+            throw ResourceNotFoundException("Account not found")
         }
         if (account.isSystemAccount) {
             throw IllegalArgumentException("System accounts cannot be deleted")

@@ -1,5 +1,7 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.exception.ResourceNotFoundException
+
 import com.froilan.synectix.dto.CreateCustomerRequest
 import com.froilan.synectix.dto.UpdateCustomerRequest
 import com.froilan.synectix.model.Customer
@@ -44,10 +46,10 @@ class CustomerService(
     ): Customer {
         val customer =
             customerRepository.findById(customerId).orElseThrow {
-                IllegalArgumentException("Customer not found")
+                ResourceNotFoundException("Customer not found")
             }
         if (customer.organizationId != organizationId) {
-            throw IllegalArgumentException("Customer not found")
+            throw ResourceNotFoundException("Customer not found")
         }
         return customer
     }

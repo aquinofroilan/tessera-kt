@@ -13,6 +13,12 @@ class GlobalExceptionHandler {
             .status(HttpStatus.NOT_FOUND)
             .body(mapOf("error" to e.message))
 
+    @ExceptionHandler(BusinessRuleException::class)
+    fun handleBusinessRule(e: BusinessRuleException): ResponseEntity<Map<String, String?>> =
+        ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(mapOf("error" to e.message))
+
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleBadRequest(e: IllegalArgumentException): ResponseEntity<Map<String, String?>> =
         ResponseEntity

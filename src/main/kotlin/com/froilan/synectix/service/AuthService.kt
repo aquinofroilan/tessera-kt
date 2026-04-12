@@ -1,5 +1,7 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.exception.ResourceNotFoundException
+
 import com.froilan.synectix.dto.AuthResponse
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
@@ -318,10 +320,10 @@ class AuthService(
     ) {
         val session =
             sessionTokenRepository.findById(sessionId).orElseThrow {
-                IllegalArgumentException("Session not found")
+                ResourceNotFoundException("Session not found")
             }
         if (session.userId != userId) {
-            throw IllegalArgumentException("Session not found")
+            throw ResourceNotFoundException("Session not found")
         }
         if (session.token == currentToken) {
             throw IllegalStateException("Cannot revoke the current session")
@@ -357,7 +359,7 @@ class AuthService(
 
         val org =
             organizationRepository.findById(targetOrgId).orElseThrow {
-                IllegalArgumentException("Organization not found")
+                ResourceNotFoundException("Organization not found")
             }
         if (!org.isActive) {
             throw IllegalArgumentException("Organization is not active")

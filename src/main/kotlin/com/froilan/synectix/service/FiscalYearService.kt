@@ -1,5 +1,7 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.exception.ResourceNotFoundException
+
 import com.froilan.synectix.dto.CreateFiscalYearRequest
 import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.model.FiscalPeriod
@@ -99,7 +101,7 @@ class FiscalYearService(
 
         val periodIndex = fiscalYear.periods.indexOfFirst { it.id == periodId }
         if (periodIndex == -1) {
-            throw IllegalArgumentException("Fiscal period not found")
+            throw ResourceNotFoundException("Fiscal period not found")
         }
 
         val period = fiscalYear.periods[periodIndex]
@@ -143,7 +145,7 @@ class FiscalYearService(
 
         val periodIndex = fiscalYear.periods.indexOfFirst { it.id == periodId }
         if (periodIndex == -1) {
-            throw IllegalArgumentException("Fiscal period not found")
+            throw ResourceNotFoundException("Fiscal period not found")
         }
 
         val period = fiscalYear.periods[periodIndex]
@@ -404,10 +406,10 @@ class FiscalYearService(
     ): FiscalYear {
         val fiscalYear =
             fiscalYearRepository.findById(fiscalYearId).orElseThrow {
-                IllegalArgumentException("Fiscal year not found")
+                ResourceNotFoundException("Fiscal year not found")
             }
         if (fiscalYear.organizationId != organizationId) {
-            throw IllegalArgumentException("Fiscal year not found")
+            throw ResourceNotFoundException("Fiscal year not found")
         }
         return fiscalYear
     }

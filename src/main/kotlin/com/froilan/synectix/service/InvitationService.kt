@@ -1,5 +1,7 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.exception.ResourceNotFoundException
+
 import com.froilan.synectix.dto.AcceptInvitationRequest
 import com.froilan.synectix.dto.CreateInvitationRequest
 import com.froilan.synectix.dto.ValidateInvitationResponse
@@ -192,10 +194,10 @@ class InvitationService(
     ) {
         val invitation =
             invitationRepository.findById(invitationId).orElseThrow {
-                IllegalArgumentException("Invitation not found")
+                ResourceNotFoundException("Invitation not found")
             }
         if (invitation.organizationId != activeOrgId) {
-            throw IllegalArgumentException("Invitation not found")
+            throw ResourceNotFoundException("Invitation not found")
         }
         if (invitation.status != InvitationStatus.PENDING) {
             throw IllegalArgumentException("Invitation is not pending")

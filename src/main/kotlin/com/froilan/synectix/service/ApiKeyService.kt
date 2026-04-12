@@ -1,5 +1,7 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.exception.ResourceNotFoundException
+
 import com.froilan.synectix.model.ApiKey
 import com.froilan.synectix.repository.ApiKeyRepository
 import com.froilan.synectix.security.Permissions
@@ -66,10 +68,10 @@ class ApiKeyService(
     ) {
         val apiKey =
             apiKeyRepository.findById(keyId).orElseThrow {
-                IllegalArgumentException("API key not found")
+                ResourceNotFoundException("API key not found")
             }
         if (apiKey.organizationId != organizationId) {
-            throw IllegalArgumentException("API key not found")
+            throw ResourceNotFoundException("API key not found")
         }
         if (!apiKey.isActive) {
             throw IllegalArgumentException("API key is already revoked")

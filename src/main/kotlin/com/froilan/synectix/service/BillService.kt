@@ -1,5 +1,7 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.exception.ResourceNotFoundException
+
 import com.froilan.synectix.dto.AgingBucket
 import com.froilan.synectix.dto.ApAgingReportResponse
 import com.froilan.synectix.dto.CreateBillRequest
@@ -67,7 +69,7 @@ class BillService(
 
         accounts.values.forEach { account ->
             if (account.organizationId != organizationId) {
-                throw IllegalArgumentException("Account '${account.id}' not found")
+                throw ResourceNotFoundException("Account '${account.id}' not found")
             }
             if (!account.isActive) {
                 throw IllegalArgumentException("Account '${account.code}' is inactive")
@@ -110,10 +112,10 @@ class BillService(
     ): Bill {
         val bill =
             billRepository.findById(billId).orElseThrow {
-                IllegalArgumentException("Bill not found")
+                ResourceNotFoundException("Bill not found")
             }
         if (bill.organizationId != organizationId) {
-            throw IllegalArgumentException("Bill not found")
+            throw ResourceNotFoundException("Bill not found")
         }
         return bill
     }
