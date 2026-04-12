@@ -51,6 +51,16 @@ class BillService(
             throw IllegalArgumentException("Due date must be on or after bill date")
         }
 
+        if (request.lines.isEmpty()) {
+            throw IllegalArgumentException("At least one line item is required")
+        }
+
+        request.lines.forEach { line ->
+            if (line.amount <= BigDecimal.ZERO) {
+                throw IllegalArgumentException("Line item amounts must be positive")
+            }
+        }
+
         val accountIds = request.lines.map { it.accountId }
         val accounts = accountRepository.findAllById(accountIds).associateBy { it.id }
 
@@ -232,7 +242,7 @@ class BillService(
             throw IllegalArgumentException("Cannot void a bill with recorded payments")
         }
 
-        val voidDate = LocalDate.now()
+        val voidDate = LocalDate.now(ZoneOffset.UTC)
         validateFiscalPeriodOpen(organizationId, voidDate)
 
         val apAccount =
@@ -304,6 +314,10 @@ class BillService(
 
         if (bill.status != BillStatus.APPROVED && bill.status != BillStatus.PARTIALLY_PAID) {
             throw IllegalArgumentException("Bill must be approved or partially paid to record payment")
+        }
+
+        if (request.amount <= BigDecimal.ZERO) {
+            throw IllegalArgumentException("Payment amount must be positive")
         }
 
         val remaining = bill.totalAmount.subtract(bill.amountPaid)
@@ -406,7 +420,7 @@ class BillService(
 
     fun getAgingReport(
         organizationId: String,
-        asOfDate: LocalDate = LocalDate.now(),
+        asOfDate: LocalDate = LocalDate.now(ZoneOffset.UTC),
     ): ApAgingReportResponse {
         val outstandingStatuses =
             listOf(BillStatus.APPROVED, BillStatus.PARTIALLY_PAID)

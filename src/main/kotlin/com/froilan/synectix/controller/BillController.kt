@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.Locale
 
 @RestController
@@ -194,7 +195,7 @@ class BillController(
         @RequestParam(required = false) asOfDate: LocalDate?,
     ): ResponseEntity<Any> {
         val orgId = extractOrganizationId() ?: return unauthorized()
-        val report = billService.getAgingReport(orgId, asOfDate ?: LocalDate.now())
+        val report = billService.getAgingReport(orgId, asOfDate ?: LocalDate.now(ZoneOffset.UTC))
         return ResponseEntity.ok(report)
     }
 

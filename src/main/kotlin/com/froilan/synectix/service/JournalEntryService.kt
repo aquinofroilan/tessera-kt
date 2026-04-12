@@ -150,7 +150,7 @@ class JournalEntryService(
         entryNumberGenerator.saveWithRetry(organizationId) { reversingNumber ->
             JournalEntry(
                 entryNumber = reversingNumber,
-                date = LocalDate.now(),
+                date = LocalDate.now(ZoneOffset.UTC),
                 description = "Reversal of ${entry.entryNumber}: $reason",
                 organizationId = organizationId,
                 status = JournalEntryStatus.POSTED,
