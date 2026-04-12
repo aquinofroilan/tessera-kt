@@ -107,9 +107,11 @@ class TaxController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val groups = taxGroupService.listTaxGroups(orgId, active ?: false)
+        val allRateIds = groups.flatMap { it.taxRateIds }.distinct()
+        val allRates = taxRateService.listTaxRates(orgId).associateBy { it.id }
         return ResponseEntity.ok(
             groups.map { group ->
-                val (_, rates) = taxGroupService.getTaxGroupWithRates(group.id, orgId)
+                val rates = group.taxRateIds.mapNotNull { allRates[it] }
                 group.toResponse(rates)
             },
         )
@@ -154,12 +156,8 @@ class TaxController(
         @RequestParam endDate: java.time.LocalDate,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        // Tax summary will be implemented with AP/AR integration
-        return ResponseEntity.ok(
-            mapOf(
-                "message" to "Tax summary endpoint - requires account balance queries for 2300 and 2310",
-            ),
-        )
+        val summary = taxGroupService.getTaxSummary(orgId, startDate, endDate)
+        return ResponseEntity.ok(summary)
     }
 
     private fun TaxRate.toResponse() =

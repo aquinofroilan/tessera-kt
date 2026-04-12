@@ -297,10 +297,10 @@ class AccountService(
     }
 
     private fun seedMissingTaxAccounts(organizationId: String) {
-        if (accountRepository.existsByOrganizationIdAndCode(organizationId, "2300")) return
+        val missing = mutableListOf<Account>()
 
-        val taxAccounts =
-            listOf(
+        if (!accountRepository.existsByOrganizationIdAndCode(organizationId, "2300")) {
+            missing.add(
                 Account(
                     code = "2300",
                     name = "Sales Tax Payable",
@@ -308,6 +308,11 @@ class AccountService(
                     organizationId = organizationId,
                     isSystemAccount = true,
                 ),
+            )
+        }
+
+        if (!accountRepository.existsByOrganizationIdAndCode(organizationId, "2310")) {
+            missing.add(
                 Account(
                     code = "2310",
                     name = "Tax Input Credits",
@@ -316,7 +321,11 @@ class AccountService(
                     isSystemAccount = true,
                 ),
             )
-        accountRepository.saveAll(taxAccounts)
-        log.info("Seeded tax accounts (2300, 2310) for existing org: {}", organizationId)
+        }
+
+        if (missing.isNotEmpty()) {
+            accountRepository.saveAll(missing)
+            log.info("Seeded missing tax accounts for existing org: {}", organizationId)
+        }
     }
 }

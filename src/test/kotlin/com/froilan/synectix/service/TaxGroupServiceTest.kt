@@ -5,6 +5,7 @@ import com.froilan.synectix.dto.UpdateTaxGroupRequest
 import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.model.TaxGroup
 import com.froilan.synectix.model.TaxRate
+import com.froilan.synectix.repository.AccountRepository
 import com.froilan.synectix.repository.TaxGroupRepository
 import com.froilan.synectix.repository.TaxRateRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -21,6 +22,8 @@ class TaxGroupServiceTest {
     private lateinit var taxGroupService: TaxGroupService
     private lateinit var taxGroupRepository: TaxGroupRepository
     private lateinit var taxRateRepository: TaxRateRepository
+    private lateinit var accountRepository: AccountRepository
+    private lateinit var journalEntryService: JournalEntryService
 
     private val orgId = "org-123"
 
@@ -28,7 +31,9 @@ class TaxGroupServiceTest {
     fun setup() {
         taxGroupRepository = mock(TaxGroupRepository::class.java)
         taxRateRepository = mock(TaxRateRepository::class.java)
-        taxGroupService = TaxGroupService(taxGroupRepository, taxRateRepository)
+        accountRepository = mock(AccountRepository::class.java)
+        journalEntryService = mock(JournalEntryService::class.java)
+        taxGroupService = TaxGroupService(taxGroupRepository, taxRateRepository, accountRepository, journalEntryService)
     }
 
     @Test

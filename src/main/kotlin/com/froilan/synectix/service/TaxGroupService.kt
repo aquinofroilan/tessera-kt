@@ -1,11 +1,13 @@
 package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.CreateTaxGroupRequest
+import com.froilan.synectix.dto.TaxSummaryResponse
 import com.froilan.synectix.dto.UpdateTaxGroupRequest
 import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.TaxGroup
 import com.froilan.synectix.model.TaxRate
+import com.froilan.synectix.repository.AccountRepository
 import com.froilan.synectix.repository.TaxGroupRepository
 import com.froilan.synectix.repository.TaxRateRepository
 import org.springframework.dao.DuplicateKeyException
@@ -13,25 +15,29 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 
 @Service
 class TaxGroupService(
     private val taxGroupRepository: TaxGroupRepository,
     private val taxRateRepository: TaxRateRepository,
+    private val accountRepository: AccountRepository,
+    private val journalEntryService: JournalEntryService,
 ) {
     @Transactional
     fun createTaxGroup(
         request: CreateTaxGroupRequest,
         organizationId: String,
     ): TaxGroup {
-        val rates = validateAndLoadRates(request.taxRateIds, organizationId)
+        val uniqueRateIds = request.taxRateIds.distinct()
+        val rates = validateAndLoadRates(uniqueRateIds, organizationId)
         val combinedRate = rates.fold(BigDecimal.ZERO) { sum, rate -> sum.add(rate.percentage) }
 
         val taxGroup =
             TaxGroup(
                 name = request.name,
                 code = request.code,
-                taxRateIds = request.taxRateIds,
+                taxRateIds = uniqueRateIds,
                 combinedRate = combinedRate,
                 organizationId = organizationId,
             )
@@ -140,6 +146,32 @@ class TaxGroupService(
         return baseAmount
             .multiply(taxGroup.combinedRate)
             .divide(BigDecimal("100"), 2, RoundingMode.HALF_UP)
+    }
+
+    fun getTaxSummary(
+        organizationId: String,
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): TaxSummaryResponse {
+        val taxCollected =
+            accountRepository
+                .findByOrganizationIdAndCode(organizationId, "2300")
+                .map { journalEntryService.getAccountBalance(it.id, organizationId, endDate).balance }
+                .orElse(BigDecimal.ZERO)
+
+        val taxPaid =
+            accountRepository
+                .findByOrganizationIdAndCode(organizationId, "2310")
+                .map { journalEntryService.getAccountBalance(it.id, organizationId, endDate).balance }
+                .orElse(BigDecimal.ZERO)
+
+        return TaxSummaryResponse(
+            taxCollected = taxCollected,
+            taxPaid = taxPaid,
+            netTaxLiability = taxCollected.subtract(taxPaid),
+            startDate = startDate.toString(),
+            endDate = endDate.toString(),
+        )
     }
 
     private fun validateAndLoadRates(

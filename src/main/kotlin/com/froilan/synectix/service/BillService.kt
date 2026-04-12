@@ -89,8 +89,9 @@ class BillService(
                 )
             }
 
-        val totalAmount = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.amount) }
-        val taxAmount = taxGroupService.calculateTaxAmount(request.taxGroupId, organizationId, totalAmount)
+        val subtotalAmount = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.amount) }
+        val taxAmount = taxGroupService.calculateTaxAmount(request.taxGroupId, organizationId, subtotalAmount)
+        val totalAmount = subtotalAmount.add(taxAmount)
 
         return saveBillWithRetry(organizationId) { billNumber ->
             Bill(
@@ -183,7 +184,6 @@ class BillService(
                 emptyList()
             }
 
-        val apCreditAmount = bill.totalAmount.add(bill.taxAmount)
         val journalLines =
             expenseLines +
                 taxLines +
@@ -192,7 +192,7 @@ class BillService(
                     accountCode = apAccount.code,
                     accountName = apAccount.name,
                     debit = BigDecimal.ZERO,
-                    credit = apCreditAmount,
+                    credit = bill.totalAmount,
                     description = "AP - ${bill.vendorName} - ${bill.billNumber}",
                 )
 

@@ -89,8 +89,9 @@ class InvoiceService(
                 )
             }
 
-        val totalAmount = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.amount) }
-        val taxAmount = taxGroupService.calculateTaxAmount(request.taxGroupId, organizationId, totalAmount)
+        val subtotalAmount = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.amount) }
+        val taxAmount = taxGroupService.calculateTaxAmount(request.taxGroupId, organizationId, subtotalAmount)
+        val totalAmount = subtotalAmount.add(taxAmount)
 
         return saveInvoiceWithRetry(organizationId) { invoiceNumber ->
             Invoice(
@@ -183,14 +184,13 @@ class InvoiceService(
                 emptyList()
             }
 
-        val arDebitAmount = invoice.totalAmount.add(invoice.taxAmount)
         val journalLines =
             listOf(
                 JournalEntryLine(
                     accountId = arAccount.id,
                     accountCode = arAccount.code,
                     accountName = arAccount.name,
-                    debit = arDebitAmount,
+                    debit = invoice.totalAmount,
                     credit = BigDecimal.ZERO,
                     description = "AR - ${invoice.customerName} - ${invoice.invoiceNumber}",
                 ),
