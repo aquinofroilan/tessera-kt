@@ -190,6 +190,20 @@ class AccountService(
                     isSystemAccount = true,
                 ),
                 Account(
+                    code = "2300",
+                    name = "Sales Tax Payable",
+                    type = AccountType.LIABILITY,
+                    organizationId = organizationId,
+                    isSystemAccount = true,
+                ),
+                Account(
+                    code = "2310",
+                    name = "Tax Input Credits",
+                    type = AccountType.ASSET,
+                    organizationId = organizationId,
+                    isSystemAccount = true,
+                ),
+                Account(
                     code = "2500",
                     name = "Long-term Debt",
                     type = AccountType.LIABILITY,
@@ -275,10 +289,34 @@ class AccountService(
                 ),
             )
         if (accountRepository.existsByOrganizationIdAndCode(organizationId, "1000")) {
-            log.info("Default accounts already exist for org: {}. Skipping seed.", organizationId)
+            seedMissingTaxAccounts(organizationId)
             return
         }
         accountRepository.saveAll(defaults)
         log.info("Seeded {} default accounts for org: {}", defaults.size, organizationId)
+    }
+
+    private fun seedMissingTaxAccounts(organizationId: String) {
+        if (accountRepository.existsByOrganizationIdAndCode(organizationId, "2300")) return
+
+        val taxAccounts =
+            listOf(
+                Account(
+                    code = "2300",
+                    name = "Sales Tax Payable",
+                    type = AccountType.LIABILITY,
+                    organizationId = organizationId,
+                    isSystemAccount = true,
+                ),
+                Account(
+                    code = "2310",
+                    name = "Tax Input Credits",
+                    type = AccountType.ASSET,
+                    organizationId = organizationId,
+                    isSystemAccount = true,
+                ),
+            )
+        accountRepository.saveAll(taxAccounts)
+        log.info("Seeded tax accounts (2300, 2310) for existing org: {}", organizationId)
     }
 }
