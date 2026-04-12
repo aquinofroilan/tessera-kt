@@ -2,6 +2,7 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.aspect.LoggingAspect
 import com.froilan.synectix.config.TestSecurityConfig
+import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.SessionToken
@@ -178,13 +179,13 @@ class SessionControllerTest {
     @Test
     fun `DELETE session by id should return 400 when revoking the current session`() {
         `when`(authService.revokeSession(any(), any(), any()))
-            .thenThrow(IllegalStateException("Cannot revoke the current session"))
+            .thenThrow(BusinessRuleException("Cannot revoke the current session"))
 
         mockMvc
             .perform(
                 delete("/auth/sessions/s1")
                     .header("Authorization", "Bearer $currentToken"),
-            ).andExpect(status().isUnprocessableEntity)
+            ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Cannot revoke the current session"))
     }
 

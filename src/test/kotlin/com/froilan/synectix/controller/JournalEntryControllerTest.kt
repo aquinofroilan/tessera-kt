@@ -4,6 +4,7 @@ import com.froilan.synectix.aspect.LoggingAspect
 import com.froilan.synectix.config.TestSecurityConfig
 import com.froilan.synectix.dto.AccountBalanceResponse
 import com.froilan.synectix.dto.TrialBalanceResponse
+import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.JournalEntry
 import com.froilan.synectix.model.JournalEntryLine
@@ -179,7 +180,7 @@ class JournalEntryControllerTest {
     @Test
     fun `POST journal-entries should return 400 when unbalanced`() {
         `when`(journalEntryService.createJournalEntry(any(), any(), any()))
-            .thenThrow(IllegalArgumentException("Journal entry must balance: debits (100.00) != credits (50.00)"))
+            .thenThrow(BusinessRuleException("Journal entry must balance: debits (100.00) != credits (50.00)"))
 
         mockMvc
             .perform(

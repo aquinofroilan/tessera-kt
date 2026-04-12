@@ -2,6 +2,7 @@ package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
+import com.froilan.synectix.exception.AuthenticationException
 import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Organizations
@@ -270,7 +271,7 @@ class AuthServiceTest {
         `when`(userRepository.findByUsername(request.username)).thenReturn(Optional.empty())
 
         val exception =
-            assertThrows<BusinessRuleException> {
+            assertThrows<AuthenticationException> {
                 authService.login(request)
             }
         assertThat(exception.message).isEqualTo("Invalid username or password")
@@ -285,7 +286,7 @@ class AuthServiceTest {
         `when`(passwordEncoder.matches(request.password, user.passwordHash)).thenReturn(false)
 
         val exception =
-            assertThrows<BusinessRuleException> {
+            assertThrows<AuthenticationException> {
                 authService.login(request)
             }
         assertThat(exception.message).isEqualTo("Invalid username or password")
@@ -340,7 +341,7 @@ class AuthServiceTest {
         `when`(userRepository.findByUsername(request.username)).thenReturn(Optional.of(inactiveUser))
 
         val exception =
-            assertThrows<BusinessRuleException> {
+            assertThrows<AuthenticationException> {
                 authService.login(request)
             }
         assertThat(exception.message).isEqualTo("User account is inactive")
@@ -392,7 +393,7 @@ class AuthServiceTest {
         `when`(refreshTokenRepository.findByTokenHash(expiredTokenHash)).thenReturn(Optional.of(expiredRefreshToken))
 
         val exception =
-            assertThrows<BusinessRuleException> {
+            assertThrows<AuthenticationException> {
                 authService.refresh(expiredTokenStr)
             }
         assertThat(exception.message).isEqualTo("Invalid or expired refresh token")
@@ -406,7 +407,7 @@ class AuthServiceTest {
         `when`(refreshTokenRepository.findByTokenHash(invalidTokenHash)).thenReturn(Optional.empty())
 
         val exception =
-            assertThrows<BusinessRuleException> {
+            assertThrows<AuthenticationException> {
                 authService.refresh(invalidTokenStr)
             }
         assertThat(exception.message).isEqualTo("Invalid or expired refresh token")
@@ -429,7 +430,7 @@ class AuthServiceTest {
         `when`(userRepository.findById(inactiveUser.uuid)).thenReturn(Optional.of(inactiveUser))
 
         val exception =
-            assertThrows<BusinessRuleException> {
+            assertThrows<AuthenticationException> {
                 authService.refresh(refreshTokenStr)
             }
         assertThat(exception.message).isEqualTo("User account is inactive")
@@ -511,7 +512,7 @@ class AuthServiceTest {
         `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
 
         val exception =
-            assertThrows<IllegalStateException> {
+            assertThrows<BusinessRuleException> {
                 authService.revokeSession(userId, "s1", currentToken)
             }
         assertThat(exception.message).isEqualTo("Cannot revoke the current session")
@@ -635,7 +636,7 @@ class AuthServiceTest {
         `when`(passwordResetTokenRepository.findByTokenHash(any())).thenReturn(Optional.empty())
 
         val exception =
-            assertThrows<BusinessRuleException> {
+            assertThrows<AuthenticationException> {
                 authService.resetPassword("invalid-token", "NewPassword123!")
             }
         assertThat(exception.message).isEqualTo("Invalid or expired reset token")
@@ -654,7 +655,7 @@ class AuthServiceTest {
             .thenReturn(Optional.of(expiredToken))
 
         val exception =
-            assertThrows<BusinessRuleException> {
+            assertThrows<AuthenticationException> {
                 authService.resetPassword("expired-token", "NewPassword123!")
             }
         assertThat(exception.message).isEqualTo("Invalid or expired reset token")

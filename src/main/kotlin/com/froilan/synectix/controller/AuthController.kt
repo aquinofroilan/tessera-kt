@@ -9,6 +9,7 @@ import com.froilan.synectix.dto.RefreshRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.dto.ResetPasswordRequest
 import com.froilan.synectix.dto.SwitchOrganizationRequest
+import com.froilan.synectix.exception.AuthenticationException
 import com.froilan.synectix.model.User
 import com.froilan.synectix.security.SessionContext
 import com.froilan.synectix.service.AuthService
@@ -97,7 +98,7 @@ class AuthController(
                 )
             resetAttempts(clientIp)
             ResponseEntity.ok(response)
-        } catch (e: IllegalArgumentException) {
+        } catch (e: AuthenticationException) {
             if (e.message != "User account is inactive") {
                 recordFailedAttempt(clientIp)
             }

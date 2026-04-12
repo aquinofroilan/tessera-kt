@@ -3,7 +3,6 @@ package com.froilan.synectix.service
 import com.froilan.synectix.dto.CreateJournalEntryRequest
 import com.froilan.synectix.dto.JournalEntryLineRequest
 import com.froilan.synectix.exception.BusinessRuleException
-import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.model.JournalEntry
@@ -185,7 +184,7 @@ class JournalEntryServiceTest {
             )
 
         val exception =
-            assertThrows<ResourceNotFoundException> {
+            assertThrows<BusinessRuleException> {
                 journalEntryService.createJournalEntry(request, orgId, createdBy)
             }
         assertThat(exception.message).contains("not found")
@@ -243,7 +242,7 @@ class JournalEntryServiceTest {
             )
 
         val exception =
-            assertThrows<ResourceNotFoundException> {
+            assertThrows<BusinessRuleException> {
                 journalEntryService.createJournalEntry(request, orgId, createdBy)
             }
         assertThat(exception.message).contains("not found")

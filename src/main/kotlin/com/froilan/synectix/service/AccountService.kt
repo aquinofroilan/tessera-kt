@@ -36,10 +36,10 @@ class AccountService(
         if (request.parentId != null) {
             val parent =
                 accountRepository.findById(request.parentId).orElseThrow {
-                    ResourceNotFoundException("Parent account not found")
+                    BusinessRuleException("Parent account not found")
                 }
             if (parent.organizationId != organizationId) {
-                throw ResourceNotFoundException("Parent account not found")
+                throw BusinessRuleException("Parent account not found")
             }
             if (parent.type != type) {
                 throw BusinessRuleException("Parent account must be the same type")

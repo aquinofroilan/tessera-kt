@@ -111,7 +111,7 @@ class AccountServiceTest {
             )
 
         val exception =
-            assertThrows<ResourceNotFoundException> {
+            assertThrows<BusinessRuleException> {
                 accountService.createAccount(request, "org-123")
             }
         assertThat(exception.message).isEqualTo("Parent account not found")
@@ -163,7 +163,7 @@ class AccountServiceTest {
             )
 
         val exception =
-            assertThrows<ResourceNotFoundException> {
+            assertThrows<BusinessRuleException> {
                 accountService.createAccount(request, "org-123")
             }
         assertThat(exception.message).isEqualTo("Parent account not found")

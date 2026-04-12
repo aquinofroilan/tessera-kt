@@ -2,6 +2,7 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.aspect.LoggingAspect
 import com.froilan.synectix.config.TestSecurityConfig
+import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
@@ -159,7 +160,7 @@ class AccountControllerTest {
     @Test
     fun `POST accounts should return 400 when duplicate code`() {
         `when`(accountService.createAccount(any(), any()))
-            .thenThrow(IllegalArgumentException("Account with code '1000' already exists"))
+            .thenThrow(BusinessRuleException("Account with code '1000' already exists"))
 
         mockMvc
             .perform(
@@ -236,7 +237,7 @@ class AccountControllerTest {
     @Test
     fun `DELETE accounts should return 400 for system account`() {
         `when`(accountService.deleteAccount(any(), any()))
-            .thenThrow(IllegalArgumentException("System accounts cannot be deleted"))
+            .thenThrow(BusinessRuleException("System accounts cannot be deleted"))
 
         mockMvc
             .perform(delete("/finance/accounts/acc-123"))

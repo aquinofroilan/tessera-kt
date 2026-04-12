@@ -65,9 +65,9 @@ class JournalEntryService(
             request.lines.map { line ->
                 val account =
                     accounts[line.accountId]
-                        ?: throw ResourceNotFoundException("Account '${line.accountId}' not found")
+                        ?: throw BusinessRuleException("Account '${line.accountId}' not found")
                 if (account.organizationId != organizationId) {
-                    throw ResourceNotFoundException("Account '${line.accountId}' not found")
+                    throw BusinessRuleException("Account '${line.accountId}' not found")
                 }
                 if (!account.isActive) {
                     throw BusinessRuleException("Account '${account.code}' is inactive")

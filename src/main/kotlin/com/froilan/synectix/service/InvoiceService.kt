@@ -69,7 +69,7 @@ class InvoiceService(
 
         accounts.values.forEach { account ->
             if (account.organizationId != organizationId) {
-                throw ResourceNotFoundException("Account '${account.id}' not found")
+                throw BusinessRuleException("Account '${account.id}' not found")
             }
             if (!account.isActive) {
                 throw BusinessRuleException("Account '${account.code}' is inactive")
