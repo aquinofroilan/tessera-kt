@@ -104,6 +104,24 @@ class JournalEntryService(
         sourceReference: String,
         createdBy: String,
     ): JournalEntry {
+        if (lines.isEmpty()) {
+            throw IllegalArgumentException("System journal entry must have at least one line item")
+        }
+
+        lines.forEach { line ->
+            if (line.debit.compareTo(BigDecimal.ZERO) < 0 || line.credit.compareTo(BigDecimal.ZERO) < 0) {
+                throw IllegalArgumentException("Debit and credit amounts must not be negative")
+            }
+            val hasDebit = line.debit.compareTo(BigDecimal.ZERO) > 0
+            val hasCredit = line.credit.compareTo(BigDecimal.ZERO) > 0
+            if (hasDebit && hasCredit) {
+                throw IllegalArgumentException("A line item cannot have both debit and credit")
+            }
+            if (!hasDebit && !hasCredit) {
+                throw IllegalArgumentException("A line item must have either a debit or credit amount")
+            }
+        }
+
         val totalDebits = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.debit) }
         val totalCredits = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.credit) }
         if (totalDebits.compareTo(totalCredits) != 0) {
@@ -166,17 +184,18 @@ class JournalEntryService(
             throw IllegalArgumentException("Only posted entries can be voided")
         }
 
+        val reversalDate = LocalDate.now(ZoneOffset.UTC)
+        validateFiscalPeriodOpen(organizationId, reversalDate)
+
+        val now = LocalDateTime.now(ZoneOffset.UTC)
         val voidedEntry =
             journalEntryRepository.save(
                 entry.copy(
                     status = JournalEntryStatus.VOIDED,
-                    voidedAt = LocalDateTime.now(ZoneOffset.UTC),
+                    voidedAt = now,
                     voidReason = reason,
                 ),
             )
-
-        val reversalDate = LocalDate.now(ZoneOffset.UTC)
-        validateFiscalPeriodOpen(organizationId, reversalDate)
 
         val reversedLines =
             entry.lines.map { line ->
@@ -194,7 +213,7 @@ class JournalEntryService(
                 sourceReference = "VOID-${entry.id}",
                 lines = reversedLines,
                 createdBy = entry.createdBy,
-                postedAt = LocalDateTime.now(ZoneOffset.UTC),
+                postedAt = now,
             )
         }
 
