@@ -52,8 +52,7 @@ class CustomerService(
         return customer
     }
 
-    fun listCustomers(organizationId: String): List<Customer> =
-        customerRepository.findByOrganizationIdAndIsActive(organizationId, true)
+    fun listCustomers(organizationId: String): List<Customer> = customerRepository.findByOrganizationIdAndIsActive(organizationId, true)
 
     @Transactional
     fun updateCustomer(

@@ -48,7 +48,8 @@ class InvoiceController(
             val invoice = invoiceService.createInvoice(request, orgId, createdBy)
             ResponseEntity.status(HttpStatus.CREATED).body(invoice.toResponse())
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest()
+            ResponseEntity
+                .badRequest()
                 .body(mapOf("error" to (e.message ?: "Failed to create invoice")))
         }
     }
@@ -66,7 +67,8 @@ class InvoiceController(
                 try {
                     InvoiceStatus.valueOf(status.uppercase(Locale.ROOT))
                 } catch (e: IllegalArgumentException) {
-                    return ResponseEntity.badRequest()
+                    return ResponseEntity
+                        .badRequest()
                         .body(mapOf("error" to "Invalid status '$status'"))
                 }
             } else {
@@ -88,7 +90,8 @@ class InvoiceController(
             val invoice = invoiceService.getInvoice(id, orgId)
             ResponseEntity.ok(invoice.toResponse())
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND)
+            ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
                 .body(mapOf("error" to (e.message ?: "Invoice not found")))
         }
     }
@@ -107,10 +110,12 @@ class InvoiceController(
         } catch (e: IllegalArgumentException) {
             val status =
                 if (e.message == "Invoice not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status)
+            ResponseEntity
+                .status(status)
                 .body(mapOf("error" to (e.message ?: "Failed to approve invoice")))
         } catch (e: IllegalStateException) {
-            ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+            ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(mapOf("error" to (e.message ?: "Failed to approve invoice")))
         }
     }
@@ -130,10 +135,12 @@ class InvoiceController(
         } catch (e: IllegalArgumentException) {
             val status =
                 if (e.message == "Invoice not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status)
+            ResponseEntity
+                .status(status)
                 .body(mapOf("error" to (e.message ?: "Failed to void invoice")))
         } catch (e: IllegalStateException) {
-            ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+            ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(mapOf("error" to (e.message ?: "Failed to void invoice")))
         }
     }
@@ -153,10 +160,12 @@ class InvoiceController(
         } catch (e: IllegalArgumentException) {
             val status =
                 if (e.message == "Invoice not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status)
+            ResponseEntity
+                .status(status)
                 .body(mapOf("error" to (e.message ?: "Failed to record receipt")))
         } catch (e: IllegalStateException) {
-            ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+            ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(mapOf("error" to (e.message ?: "Failed to record receipt")))
         }
     }
@@ -172,7 +181,8 @@ class InvoiceController(
             val receipts = invoiceService.getReceipts(id, orgId)
             ResponseEntity.ok(receipts.map { it.toResponse() })
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND)
+            ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
                 .body(mapOf("error" to (e.message ?: "Invoice not found")))
         }
     }

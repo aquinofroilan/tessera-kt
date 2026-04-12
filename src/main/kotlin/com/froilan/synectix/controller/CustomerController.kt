@@ -62,7 +62,8 @@ class CustomerController(
             val customer = customerService.getCustomer(id, orgId)
             ResponseEntity.ok(customer.toResponse())
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND)
+            ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
                 .body(mapOf("error" to (e.message ?: "Customer not found")))
         }
     }
@@ -81,7 +82,8 @@ class CustomerController(
         } catch (e: IllegalArgumentException) {
             val status =
                 if (e.message == "Customer not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status)
+            ResponseEntity
+                .status(status)
                 .body(mapOf("error" to (e.message ?: "Failed to update customer")))
         }
     }
@@ -99,7 +101,8 @@ class CustomerController(
         } catch (e: IllegalArgumentException) {
             val status =
                 if (e.message == "Customer not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status)
+            ResponseEntity
+                .status(status)
                 .body(mapOf("error" to (e.message ?: "Failed to delete customer")))
         }
     }

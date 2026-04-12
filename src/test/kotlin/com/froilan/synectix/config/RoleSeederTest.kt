@@ -81,6 +81,11 @@ class RoleSeederTest {
                         Permissions.AP_APPROVE,
                         Permissions.AP_PAY,
                         Permissions.AP_VOID,
+                        Permissions.AR_CREATE,
+                        Permissions.AR_READ,
+                        Permissions.AR_APPROVE,
+                        Permissions.AR_RECEIVE,
+                        Permissions.AR_VOID,
                     ),
             )
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
@@ -154,6 +159,11 @@ class RoleSeederTest {
                         Permissions.AP_APPROVE,
                         Permissions.AP_PAY,
                         Permissions.AP_VOID,
+                        Permissions.AR_CREATE,
+                        Permissions.AR_READ,
+                        Permissions.AR_APPROVE,
+                        Permissions.AR_RECEIVE,
+                        Permissions.AR_VOID,
                     ),
             )
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
@@ -254,6 +264,11 @@ class RoleSeederTest {
                         Permissions.AP_APPROVE,
                         Permissions.AP_PAY,
                         Permissions.AP_VOID,
+                        Permissions.AR_CREATE,
+                        Permissions.AR_READ,
+                        Permissions.AR_APPROVE,
+                        Permissions.AR_RECEIVE,
+                        Permissions.AR_VOID,
                     ),
             )
         val admin =
@@ -285,6 +300,10 @@ class RoleSeederTest {
                         Permissions.AP_READ,
                         Permissions.AP_APPROVE,
                         Permissions.AP_PAY,
+                        Permissions.AR_CREATE,
+                        Permissions.AR_READ,
+                        Permissions.AR_APPROVE,
+                        Permissions.AR_RECEIVE,
                     ),
             )
         val member =
@@ -305,6 +324,8 @@ class RoleSeederTest {
                         Permissions.FISCAL_READ,
                         Permissions.AP_CREATE,
                         Permissions.AP_READ,
+                        Permissions.AR_CREATE,
+                        Permissions.AR_READ,
                     ),
             )
         val viewer =
@@ -320,6 +341,7 @@ class RoleSeederTest {
                         Permissions.JOURNAL_READ,
                         Permissions.FISCAL_READ,
                         Permissions.AP_READ,
+                        Permissions.AR_READ,
                     ),
             )
 
