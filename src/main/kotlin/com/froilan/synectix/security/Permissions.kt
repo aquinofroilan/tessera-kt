@@ -39,6 +39,12 @@ object Permissions {
     const val AP_PAY = "ap:pay"
     const val AP_VOID = "ap:void"
 
+    const val AR_CREATE = "ar:create"
+    const val AR_READ = "ar:read"
+    const val AR_APPROVE = "ar:approve"
+    const val AR_RECEIVE = "ar:receive"
+    const val AR_VOID = "ar:void"
+
     val ALL_PERMISSIONS =
         listOf(
             SESSION_READ,
@@ -69,5 +75,10 @@ object Permissions {
             AP_APPROVE,
             AP_PAY,
             AP_VOID,
+            AR_CREATE,
+            AR_READ,
+            AR_APPROVE,
+            AR_RECEIVE,
+            AR_VOID,
         )
 }

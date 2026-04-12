@@ -61,6 +61,11 @@ class RoleSeeder(
                             Permissions.AP_APPROVE,
                             Permissions.AP_PAY,
                             Permissions.AP_VOID,
+                            Permissions.AR_CREATE,
+                            Permissions.AR_READ,
+                            Permissions.AR_APPROVE,
+                            Permissions.AR_RECEIVE,
+                            Permissions.AR_VOID,
                         ),
                 ),
                 Role(
@@ -91,6 +96,10 @@ class RoleSeeder(
                             Permissions.AP_READ,
                             Permissions.AP_APPROVE,
                             Permissions.AP_PAY,
+                            Permissions.AR_CREATE,
+                            Permissions.AR_READ,
+                            Permissions.AR_APPROVE,
+                            Permissions.AR_RECEIVE,
                         ),
                 ),
                 Role(
@@ -110,6 +119,8 @@ class RoleSeeder(
                             Permissions.FISCAL_READ,
                             Permissions.AP_CREATE,
                             Permissions.AP_READ,
+                            Permissions.AR_CREATE,
+                            Permissions.AR_READ,
                         ),
                 ),
                 Role(
@@ -124,6 +135,7 @@ class RoleSeeder(
                             Permissions.JOURNAL_READ,
                             Permissions.FISCAL_READ,
                             Permissions.AP_READ,
+                            Permissions.AR_READ,
                         ),
                 ),
             )
