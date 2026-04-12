@@ -12,15 +12,12 @@ import com.froilan.synectix.dto.VoidBillRequest
 import com.froilan.synectix.model.Bill
 import com.froilan.synectix.model.BillPayment
 import com.froilan.synectix.model.BillStatus
-import com.froilan.synectix.model.User
-import com.froilan.synectix.security.ApiKeyContext
-import com.froilan.synectix.security.SessionContext
+import com.froilan.synectix.security.AuthenticationContext
 import com.froilan.synectix.service.BillService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -37,14 +34,15 @@ import java.util.Locale
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
 class BillController(
     private val billService: BillService,
+    private val authContext: AuthenticationContext,
 ) {
     @PostMapping
     @PreAuthorize("hasAuthority('ap:create')")
     fun createBill(
         @Valid @RequestBody request: CreateBillRequest,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
-        val createdBy = extractUserId() ?: "api-key"
+        val orgId = authContext.organizationId() ?: return unauthorized()
+        val createdBy = authContext.userId() ?: "api-key"
 
         return try {
             val bill = billService.createBill(request, orgId, createdBy)
@@ -62,7 +60,7 @@ class BillController(
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) vendorId: String?,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         val billStatus =
             if (status != null) {
@@ -86,7 +84,7 @@ class BillController(
     fun getBill(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             val bill = billService.getBill(id, orgId)
@@ -103,8 +101,8 @@ class BillController(
     fun approveBill(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
-        val userId = extractUserId() ?: "api-key"
+        val orgId = authContext.organizationId() ?: return unauthorized()
+        val userId = authContext.userId() ?: "api-key"
 
         return try {
             val bill = billService.approveBill(id, orgId, userId)
@@ -128,8 +126,8 @@ class BillController(
         @PathVariable id: String,
         @Valid @RequestBody request: VoidBillRequest,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
-        val userId = extractUserId() ?: "api-key"
+        val orgId = authContext.organizationId() ?: return unauthorized()
+        val userId = authContext.userId() ?: "api-key"
 
         return try {
             val bill = billService.voidBill(id, orgId, request.reason, userId)
@@ -153,8 +151,8 @@ class BillController(
         @PathVariable id: String,
         @Valid @RequestBody request: RecordPaymentRequest,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
-        val createdBy = extractUserId() ?: "api-key"
+        val orgId = authContext.organizationId() ?: return unauthorized()
+        val createdBy = authContext.userId() ?: "api-key"
 
         return try {
             val payment = billService.recordPayment(id, request, orgId, createdBy)
@@ -177,7 +175,7 @@ class BillController(
     fun listPayments(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             val payments = billService.getPayments(id, orgId)
@@ -194,7 +192,7 @@ class BillController(
     fun getAgingReport(
         @RequestParam(required = false) asOfDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
         val report = billService.getAgingReport(orgId, asOfDate ?: LocalDate.now(ZoneOffset.UTC))
         return ResponseEntity.ok(report)
     }
@@ -257,20 +255,6 @@ class BillController(
             createdBy = createdBy,
             createdAt = createdAt?.toString(),
         )
-
-    private fun extractOrganizationId(): String? {
-        val authentication = SecurityContextHolder.getContext().authentication ?: return null
-        return when (val details = authentication.details) {
-            is SessionContext -> details.organizationId
-            is ApiKeyContext -> details.organizationId
-            else -> null
-        }
-    }
-
-    private fun extractUserId(): String? {
-        val authentication = SecurityContextHolder.getContext().authentication ?: return null
-        return (authentication.principal as? User)?.uuid
-    }
 
     private fun unauthorized(): ResponseEntity<Any> =
         ResponseEntity

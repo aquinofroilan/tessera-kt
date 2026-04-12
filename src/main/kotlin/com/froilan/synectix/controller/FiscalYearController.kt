@@ -7,15 +7,12 @@ import com.froilan.synectix.dto.FiscalPeriodResponse
 import com.froilan.synectix.dto.FiscalYearResponse
 import com.froilan.synectix.dto.FiscalYearSummaryResponse
 import com.froilan.synectix.model.FiscalYear
-import com.froilan.synectix.model.User
-import com.froilan.synectix.security.ApiKeyContext
-import com.froilan.synectix.security.SessionContext
+import com.froilan.synectix.security.AuthenticationContext
 import com.froilan.synectix.service.FiscalYearService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -28,13 +25,14 @@ import org.springframework.web.bind.annotation.RestController
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
 class FiscalYearController(
     private val fiscalYearService: FiscalYearService,
+    private val authContext: AuthenticationContext,
 ) {
     @PostMapping
     @PreAuthorize("hasAuthority('fiscal:create')")
     fun createFiscalYear(
         @Valid @RequestBody request: CreateFiscalYearRequest,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             val fiscalYear = fiscalYearService.createFiscalYear(request, orgId)
@@ -47,7 +45,7 @@ class FiscalYearController(
     @GetMapping
     @PreAuthorize("hasAuthority('fiscal:read')")
     fun listFiscalYears(): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
         val fiscalYears = fiscalYearService.listFiscalYears(orgId)
         return ResponseEntity.ok(fiscalYears.map { it.toSummaryResponse() })
     }
@@ -57,7 +55,7 @@ class FiscalYearController(
     fun getFiscalYear(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             val fiscalYear = fiscalYearService.getFiscalYear(id, orgId)
@@ -75,8 +73,8 @@ class FiscalYearController(
         @PathVariable id: String,
         @PathVariable periodId: String,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
-        val userId = extractUserId() ?: "api-key"
+        val orgId = authContext.organizationId() ?: return unauthorized()
+        val userId = authContext.userId() ?: "api-key"
 
         return try {
             val fiscalYear = fiscalYearService.closePeriod(id, periodId, orgId, userId)
@@ -95,8 +93,8 @@ class FiscalYearController(
         @PathVariable id: String,
         @PathVariable periodId: String,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
-        val userId = extractUserId() ?: "api-key"
+        val orgId = authContext.organizationId() ?: return unauthorized()
+        val userId = authContext.userId() ?: "api-key"
 
         return try {
             val fiscalYear = fiscalYearService.reopenPeriod(id, periodId, orgId, userId)
@@ -114,8 +112,8 @@ class FiscalYearController(
     fun closeYear(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
-        val userId = extractUserId() ?: "api-key"
+        val orgId = authContext.organizationId() ?: return unauthorized()
+        val userId = authContext.userId() ?: "api-key"
 
         return try {
             val fiscalYear = fiscalYearService.closeYear(id, orgId, userId)
@@ -174,20 +172,6 @@ class FiscalYearController(
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),
         )
-
-    private fun extractOrganizationId(): String? {
-        val authentication = SecurityContextHolder.getContext().authentication ?: return null
-        return when (val details = authentication.details) {
-            is SessionContext -> details.organizationId
-            is ApiKeyContext -> details.organizationId
-            else -> null
-        }
-    }
-
-    private fun extractUserId(): String? {
-        val authentication = SecurityContextHolder.getContext().authentication ?: return null
-        return (authentication.principal as? User)?.uuid
-    }
 
     private fun unauthorized(): ResponseEntity<Any> =
         ResponseEntity
