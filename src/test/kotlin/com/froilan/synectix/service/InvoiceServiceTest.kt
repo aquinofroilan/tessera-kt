@@ -342,11 +342,8 @@ class InvoiceServiceTest {
         val customerAging = report.customers[0]
         assertThat(customerAging.customerName).isEqualTo("BigCorp")
 
-        // inv-1: due May 15, asOf May 1 -> not overdue -> current
         assertThat(customerAging.aging.current).isEqualByComparingTo(BigDecimal("500.00"))
-        // inv-2: due Apr 15, asOf May 1 -> 16 days overdue -> 1-30 bucket
         assertThat(customerAging.aging.days1to30).isEqualByComparingTo(BigDecimal("800.00"))
-        // inv-3: due Feb 1, asOf May 1 -> 89 days overdue -> 61-90 bucket, outstanding = 800
         assertThat(customerAging.aging.days61to90).isEqualByComparingTo(BigDecimal("800.00"))
 
         assertThat(report.totals.total).isEqualByComparingTo(BigDecimal("2100.00"))

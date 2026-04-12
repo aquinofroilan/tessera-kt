@@ -110,7 +110,6 @@ class HealthController(
                 "error" to (e.message ?: "Unknown database error"),
             )
         } catch (e: Exception) {
-            // Broad catch intentional: health endpoint must always return structured UP/DOWN
             log.error("Unexpected error during health check", e)
             mapOf(
                 "status" to "DOWN",

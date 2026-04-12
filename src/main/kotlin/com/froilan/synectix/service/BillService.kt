@@ -231,7 +231,6 @@ class BillService(
         }
         val now = LocalDateTime.now(ZoneOffset.UTC)
 
-        // Draft voids skip fiscal validation — no GL entries are posted
         if (bill.status == BillStatus.DRAFT) {
             return billRepository.save(
                 bill.copy(

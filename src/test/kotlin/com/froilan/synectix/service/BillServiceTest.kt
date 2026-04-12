@@ -362,11 +362,8 @@ class BillServiceTest {
         val vendorAging = report.vendors[0]
         assertThat(vendorAging.vendorName).isEqualTo("Acme Corp")
 
-        // bill-1: due May 15, asOf May 1 -> not overdue -> current
         assertThat(vendorAging.aging.current).isEqualByComparingTo(BigDecimal("100.00"))
-        // bill-2: due Apr 15, asOf May 1 -> 16 days overdue -> 1-30 bucket
         assertThat(vendorAging.aging.days1to30).isEqualByComparingTo(BigDecimal("200.00"))
-        // bill-3: due Feb 1, asOf May 1 -> 89 days overdue -> 61-90 bucket, outstanding = 250
         assertThat(vendorAging.aging.days61to90).isEqualByComparingTo(BigDecimal("250.00"))
 
         assertThat(report.totals.total).isEqualByComparingTo(BigDecimal("550.00"))

@@ -232,7 +232,6 @@ class InvoiceService(
 
         val now = LocalDateTime.now(ZoneOffset.UTC)
 
-        // Draft voids skip fiscal validation — no GL entries are posted
         if (invoice.status == InvoiceStatus.DRAFT) {
             return invoiceRepository.save(
                 invoice.copy(
