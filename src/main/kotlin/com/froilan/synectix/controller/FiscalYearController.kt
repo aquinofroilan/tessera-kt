@@ -32,7 +32,7 @@ class FiscalYearController(
     fun createFiscalYear(
         @Valid @RequestBody request: CreateFiscalYearRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val fiscalYear = fiscalYearService.createFiscalYear(request, orgId)
@@ -45,7 +45,7 @@ class FiscalYearController(
     @GetMapping
     @PreAuthorize("hasAuthority('fiscal:read')")
     fun listFiscalYears(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val fiscalYears = fiscalYearService.listFiscalYears(orgId)
         return ResponseEntity.ok(fiscalYears.map { it.toSummaryResponse() })
     }
@@ -55,7 +55,7 @@ class FiscalYearController(
     fun getFiscalYear(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val fiscalYear = fiscalYearService.getFiscalYear(id, orgId)
@@ -73,7 +73,7 @@ class FiscalYearController(
         @PathVariable id: String,
         @PathVariable periodId: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
 
         return try {
@@ -93,7 +93,7 @@ class FiscalYearController(
         @PathVariable id: String,
         @PathVariable periodId: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
 
         return try {
@@ -112,7 +112,7 @@ class FiscalYearController(
     fun closeYear(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
 
         return try {
@@ -172,9 +172,4 @@ class FiscalYearController(
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),
         )
-
-    private fun unauthorized(): ResponseEntity<Any> =
-        ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body(mapOf("error" to "Authentication required"))
 }

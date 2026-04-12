@@ -6,6 +6,7 @@ import com.froilan.synectix.dto.ApiKeyCreatedResponse
 import com.froilan.synectix.dto.ApiKeyResponse
 import com.froilan.synectix.dto.CreateApiKeyRequest
 import com.froilan.synectix.model.User
+import com.froilan.synectix.security.AuthenticationContext
 import com.froilan.synectix.security.SessionContext
 import com.froilan.synectix.service.ApiKeyService
 import jakarta.validation.Valid
@@ -26,14 +27,15 @@ import org.springframework.web.bind.annotation.RestController
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
 class ApiKeyController(
     private val apiKeyService: ApiKeyService,
+    private val authContext: AuthenticationContext,
 ) {
     @PostMapping
     @PreAuthorize("hasAuthority('apikey:manage')")
     fun createApiKey(
         @Valid @RequestBody request: CreateApiKeyRequest,
     ): ResponseEntity<Any> {
-        val (user, sessionContext) = extractUserAndContext() ?: return unauthorized()
-        val authentication = SecurityContextHolder.getContext().authentication ?: return unauthorized()
+        val (user, sessionContext) = extractUserAndContext() ?: return authContext.unauthorized()
+        val authentication = SecurityContextHolder.getContext().authentication ?: return authContext.unauthorized()
         val creatorPermissions = authentication.authorities.mapNotNull { it.authority }.toSet()
 
         return try {
@@ -66,7 +68,7 @@ class ApiKeyController(
     @GetMapping
     @PreAuthorize("hasAuthority('apikey:manage')")
     fun listApiKeys(): ResponseEntity<Any> {
-        val (_, sessionContext) = extractUserAndContext() ?: return unauthorized()
+        val (_, sessionContext) = extractUserAndContext() ?: return authContext.unauthorized()
 
         val keys =
             apiKeyService.listApiKeys(sessionContext.organizationId).map { key ->
@@ -90,7 +92,7 @@ class ApiKeyController(
     fun revokeApiKey(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val (_, sessionContext) = extractUserAndContext() ?: return unauthorized()
+        val (_, sessionContext) = extractUserAndContext() ?: return authContext.unauthorized()
 
         return try {
             apiKeyService.revokeApiKey(id, sessionContext.organizationId)
@@ -106,9 +108,4 @@ class ApiKeyController(
         val sessionContext = authentication.details as? SessionContext ?: return null
         return user to sessionContext
     }
-
-    private fun unauthorized(): ResponseEntity<Any> =
-        ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body(mapOf("error" to "Authentication required"))
 }

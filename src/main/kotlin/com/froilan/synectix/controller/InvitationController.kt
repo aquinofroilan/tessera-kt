@@ -7,6 +7,7 @@ import com.froilan.synectix.dto.CreateInvitationRequest
 import com.froilan.synectix.dto.InvitationResponse
 import com.froilan.synectix.dto.ValidateInvitationRequest
 import com.froilan.synectix.model.User
+import com.froilan.synectix.security.AuthenticationContext
 import com.froilan.synectix.security.SessionContext
 import com.froilan.synectix.service.InvitationService
 import jakarta.validation.Valid
@@ -27,13 +28,14 @@ import org.springframework.web.bind.annotation.RestController
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
 class InvitationController(
     private val invitationService: InvitationService,
+    private val authContext: AuthenticationContext,
 ) {
     @PostMapping
     @PreAuthorize("hasAuthority('invitation:write')")
     fun createInvitation(
         @Valid @RequestBody request: CreateInvitationRequest,
     ): ResponseEntity<Any> {
-        val (user, sessionContext) = extractUserAndContext() ?: return unauthorized()
+        val (user, sessionContext) = extractUserAndContext() ?: return authContext.unauthorized()
 
         return try {
             val token = invitationService.invite(request, user, sessionContext.organizationId)
@@ -48,7 +50,7 @@ class InvitationController(
     @GetMapping
     @PreAuthorize("hasAuthority('invitation:read')")
     fun listInvitations(): ResponseEntity<Any> {
-        val (_, sessionContext) = extractUserAndContext() ?: return unauthorized()
+        val (_, sessionContext) = extractUserAndContext() ?: return authContext.unauthorized()
 
         val invitations =
             invitationService.listInvitations(sessionContext.organizationId).map { invitation ->
@@ -92,7 +94,7 @@ class InvitationController(
     fun revokeInvitation(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val (_, sessionContext) = extractUserAndContext() ?: return unauthorized()
+        val (_, sessionContext) = extractUserAndContext() ?: return authContext.unauthorized()
 
         return try {
             invitationService.revokeInvitation(id, sessionContext.organizationId)
@@ -108,9 +110,4 @@ class InvitationController(
         val sessionContext = authentication.details as? SessionContext ?: return null
         return user to sessionContext
     }
-
-    private fun unauthorized(): ResponseEntity<Any> =
-        ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body(mapOf("error" to "Authentication required"))
 }

@@ -33,7 +33,7 @@ class CustomerController(
     fun createCustomer(
         @Valid @RequestBody request: CreateCustomerRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val customer = customerService.createCustomer(request, orgId)
@@ -46,7 +46,7 @@ class CustomerController(
     @GetMapping
     @PreAuthorize("hasAuthority('ar:read')")
     fun listCustomers(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val customers = customerService.listCustomers(orgId)
         return ResponseEntity.ok(customers.map { it.toResponse() })
     }
@@ -56,7 +56,7 @@ class CustomerController(
     fun getCustomer(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val customer = customerService.getCustomer(id, orgId)
@@ -74,7 +74,7 @@ class CustomerController(
         @PathVariable id: String,
         @Valid @RequestBody request: UpdateCustomerRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val customer = customerService.updateCustomer(id, request, orgId)
@@ -93,7 +93,7 @@ class CustomerController(
     fun deleteCustomer(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val customer = customerService.deleteCustomer(id, orgId)
@@ -121,9 +121,4 @@ class CustomerController(
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),
         )
-
-    private fun unauthorized(): ResponseEntity<Any> =
-        ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body(mapOf("error" to "Authentication required"))
 }

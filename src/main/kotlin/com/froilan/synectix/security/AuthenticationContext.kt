@@ -1,6 +1,8 @@
 package com.froilan.synectix.security
 
 import com.froilan.synectix.model.User
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 
@@ -19,4 +21,9 @@ class AuthenticationContext {
         val authentication = SecurityContextHolder.getContext().authentication ?: return null
         return (authentication.principal as? User)?.uuid
     }
+
+    fun unauthorized(): ResponseEntity<Any> =
+        ResponseEntity
+            .status(HttpStatus.UNAUTHORIZED)
+            .body(mapOf("error" to "Authentication required"))
 }

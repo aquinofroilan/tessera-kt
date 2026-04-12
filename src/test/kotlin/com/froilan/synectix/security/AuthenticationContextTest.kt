@@ -89,4 +89,11 @@ class AuthenticationContextTest {
 
         assertThat(authContext.userId()).isNull()
     }
+
+    @Test
+    fun `unauthorized should return 401 with error message`() {
+        val response = authContext.unauthorized()
+
+        assertThat(response.statusCode.value()).isEqualTo(401)
+    }
 }

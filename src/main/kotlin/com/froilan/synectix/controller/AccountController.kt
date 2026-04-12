@@ -39,7 +39,7 @@ class AccountController(
     fun createAccount(
         @Valid @RequestBody request: CreateAccountRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val account = accountService.createAccount(request, orgId)
@@ -55,7 +55,7 @@ class AccountController(
         @RequestParam(required = false) type: String?,
         @RequestParam(required = false) parentId: String?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         val accountType =
             if (type != null) {
@@ -79,7 +79,7 @@ class AccountController(
     fun getAccount(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val account = accountService.getAccount(id, orgId)
@@ -95,7 +95,7 @@ class AccountController(
         @PathVariable id: String,
         @Valid @RequestBody request: UpdateAccountRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val account = accountService.updateAccount(id, request, orgId)
@@ -111,7 +111,7 @@ class AccountController(
     fun deleteAccount(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             accountService.deleteAccount(id, orgId)
@@ -128,7 +128,7 @@ class AccountController(
         @PathVariable id: String,
         @RequestParam(required = false) asOfDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val balance = journalEntryService.getAccountBalance(id, orgId, asOfDate)
@@ -152,9 +152,4 @@ class AccountController(
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),
         )
-
-    private fun unauthorized(): ResponseEntity<Any> =
-        ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body(mapOf("error" to "Authentication required"))
 }

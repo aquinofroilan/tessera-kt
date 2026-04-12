@@ -33,7 +33,7 @@ class VendorController(
     fun createVendor(
         @Valid @RequestBody request: CreateVendorRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val vendor = vendorService.createVendor(request, orgId)
@@ -46,7 +46,7 @@ class VendorController(
     @GetMapping
     @PreAuthorize("hasAuthority('ap:read')")
     fun listVendors(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val vendors = vendorService.listVendors(orgId)
         return ResponseEntity.ok(vendors.map { it.toResponse() })
     }
@@ -56,7 +56,7 @@ class VendorController(
     fun getVendor(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val vendor = vendorService.getVendor(id, orgId)
@@ -74,7 +74,7 @@ class VendorController(
         @PathVariable id: String,
         @Valid @RequestBody request: UpdateVendorRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val vendor = vendorService.updateVendor(id, request, orgId)
@@ -93,7 +93,7 @@ class VendorController(
     fun deleteVendor(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         return try {
             val vendor = vendorService.deleteVendor(id, orgId)
@@ -121,9 +121,4 @@ class VendorController(
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),
         )
-
-    private fun unauthorized(): ResponseEntity<Any> =
-        ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body(mapOf("error" to "Authentication required"))
 }
