@@ -175,6 +175,9 @@ class JournalEntryService(
                 ),
             )
 
+        val reversalDate = LocalDate.now(ZoneOffset.UTC)
+        validateFiscalPeriodOpen(organizationId, reversalDate)
+
         val reversedLines =
             entry.lines.map { line ->
                 line.copy(debit = line.credit, credit = line.debit)
@@ -183,7 +186,7 @@ class JournalEntryService(
         entryNumberGenerator.saveWithRetry(organizationId) { reversingNumber ->
             JournalEntry(
                 entryNumber = reversingNumber,
-                date = LocalDate.now(ZoneOffset.UTC),
+                date = reversalDate,
                 description = "Reversal of ${entry.entryNumber}: $reason",
                 organizationId = organizationId,
                 status = JournalEntryStatus.POSTED,
