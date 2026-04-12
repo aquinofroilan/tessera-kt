@@ -2,6 +2,8 @@ package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.CreateAccountRequest
 import com.froilan.synectix.dto.UpdateAccountRequest
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.repository.AccountRepository
@@ -26,7 +28,7 @@ class AccountService(
             try {
                 AccountType.valueOf(request.type.uppercase(Locale.ROOT))
             } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException(
+                throw BusinessRuleException(
                     "Invalid account type '${request.type}'. Must be one of: ${AccountType.entries.joinToString()}",
                 )
             }
@@ -34,13 +36,13 @@ class AccountService(
         if (request.parentId != null) {
             val parent =
                 accountRepository.findById(request.parentId).orElseThrow {
-                    IllegalArgumentException("Parent account not found")
+                    BusinessRuleException("Parent account not found")
                 }
             if (parent.organizationId != organizationId) {
-                throw IllegalArgumentException("Parent account not found")
+                throw BusinessRuleException("Parent account not found")
             }
             if (parent.type != type) {
-                throw IllegalArgumentException("Parent account must be the same type")
+                throw BusinessRuleException("Parent account must be the same type")
             }
         }
 
@@ -56,7 +58,7 @@ class AccountService(
         return try {
             accountRepository.save(account)
         } catch (e: DuplicateKeyException) {
-            throw IllegalArgumentException("Account code '${request.code}' already exists in this organization", e)
+            throw BusinessRuleException("Account code '${request.code}' already exists in this organization", e)
         }
     }
 
@@ -68,13 +70,13 @@ class AccountService(
     ): Account {
         val account =
             accountRepository.findById(accountId).orElseThrow {
-                IllegalArgumentException("Account not found")
+                ResourceNotFoundException("Account not found")
             }
         if (account.organizationId != organizationId) {
-            throw IllegalArgumentException("Account not found")
+            throw ResourceNotFoundException("Account not found")
         }
         if (request.name != null && request.name.isBlank()) {
-            throw IllegalArgumentException("Account name must not be blank")
+            throw BusinessRuleException("Account name must not be blank")
         }
 
         val updated =
@@ -91,10 +93,10 @@ class AccountService(
     ): Account {
         val account =
             accountRepository.findById(accountId).orElseThrow {
-                IllegalArgumentException("Account not found")
+                ResourceNotFoundException("Account not found")
             }
         if (account.organizationId != organizationId) {
-            throw IllegalArgumentException("Account not found")
+            throw ResourceNotFoundException("Account not found")
         }
         return account
     }
@@ -119,16 +121,16 @@ class AccountService(
     ) {
         val account =
             accountRepository.findById(accountId).orElseThrow {
-                IllegalArgumentException("Account not found")
+                ResourceNotFoundException("Account not found")
             }
         if (account.organizationId != organizationId) {
-            throw IllegalArgumentException("Account not found")
+            throw ResourceNotFoundException("Account not found")
         }
         if (account.isSystemAccount) {
-            throw IllegalArgumentException("System accounts cannot be deleted")
+            throw BusinessRuleException("System accounts cannot be deleted")
         }
         if (accountRepository.existsByOrganizationIdAndParentIdAndIsActive(organizationId, accountId, true)) {
-            throw IllegalArgumentException("Cannot delete account with child accounts")
+            throw BusinessRuleException("Cannot delete account with child accounts")
         }
         accountRepository.save(account.copy(isActive = false))
     }

@@ -11,7 +11,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-enum class BillStatus {
+enum class InvoiceStatus {
     DRAFT,
     APPROVED,
     PARTIALLY_PAID,
@@ -19,15 +19,7 @@ enum class BillStatus {
     VOID,
 }
 
-enum class PaymentMethod {
-    CASH,
-    CHECK,
-    BANK_TRANSFER,
-    CREDIT_CARD,
-    OTHER,
-}
-
-data class BillLine(
+data class InvoiceLine(
     val accountId: String,
     val accountCode: String,
     val accountName: String,
@@ -35,29 +27,29 @@ data class BillLine(
     val description: String? = null,
 )
 
-@Document(collection = "bills")
+@Document(collection = "invoices")
 @CompoundIndex(
-    name = "unique_bill_number_per_org",
-    def = "{'organizationId': 1, 'billNumber': 1}",
+    name = "unique_invoice_number_per_org",
+    def = "{'organizationId': 1, 'invoiceNumber': 1}",
     unique = true,
 )
 @CompoundIndex(name = "org_status", def = "{'organizationId': 1, 'status': 1}")
-@CompoundIndex(name = "org_vendor", def = "{'organizationId': 1, 'vendorId': 1}")
-data class Bill(
+@CompoundIndex(name = "org_customer", def = "{'organizationId': 1, 'customerId': 1}")
+data class Invoice(
     @Id
     val id: String = UUID.randomUUID().toString(),
-    val billNumber: String,
-    val vendorId: String,
-    val vendorName: String,
+    val invoiceNumber: String,
+    val customerId: String,
+    val customerName: String,
     val date: LocalDate,
     val dueDate: LocalDate,
     val referenceNumber: String? = null,
     @Indexed
     val organizationId: String,
-    val status: BillStatus = BillStatus.DRAFT,
-    val lines: List<BillLine>,
+    val status: InvoiceStatus = InvoiceStatus.DRAFT,
+    val lines: List<InvoiceLine>,
     val totalAmount: BigDecimal,
-    val amountPaid: BigDecimal = BigDecimal.ZERO,
+    val amountReceived: BigDecimal = BigDecimal.ZERO,
     val journalEntryId: String? = null,
     val createdBy: String,
     val approvedAt: LocalDateTime? = null,

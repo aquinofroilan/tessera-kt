@@ -2,6 +2,8 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.aspect.LoggingAspect
 import com.froilan.synectix.config.TestSecurityConfig
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.SessionToken
 import com.froilan.synectix.model.User
@@ -10,6 +12,7 @@ import com.froilan.synectix.repository.PasswordResetTokenRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
+import com.froilan.synectix.security.AuthenticationContext
 import com.froilan.synectix.security.RolePermissionCache
 import com.froilan.synectix.security.SynectixPermissionEvaluator
 import com.froilan.synectix.service.ApiKeyService
@@ -72,6 +75,9 @@ class SessionControllerTest {
 
     @MockitoBean
     private lateinit var apiKeyService: ApiKeyService
+
+    @MockitoBean
+    private lateinit var authenticationContext: AuthenticationContext
 
     private val testUser =
         User(
@@ -160,7 +166,7 @@ class SessionControllerTest {
     @Test
     fun `DELETE session by id should return 404 for non-owned session`() {
         `when`(authService.revokeSession(any(), any(), any()))
-            .thenThrow(IllegalArgumentException("Session not found"))
+            .thenThrow(ResourceNotFoundException("Session not found"))
 
         mockMvc
             .perform(
@@ -173,7 +179,7 @@ class SessionControllerTest {
     @Test
     fun `DELETE session by id should return 400 when revoking the current session`() {
         `when`(authService.revokeSession(any(), any(), any()))
-            .thenThrow(IllegalStateException("Cannot revoke the current session"))
+            .thenThrow(BusinessRuleException("Cannot revoke the current session"))
 
         mockMvc
             .perform(

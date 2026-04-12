@@ -36,15 +36,11 @@ class JournalEntryController(
     fun createJournalEntry(
         @Valid @RequestBody request: CreateJournalEntryRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val createdBy = authContext.userId() ?: "api-key"
 
-        return try {
-            val entry = journalEntryService.createJournalEntry(request, orgId, createdBy)
-            ResponseEntity.status(HttpStatus.CREATED).body(entry.toResponse())
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Failed to create journal entry")))
-        }
+        val entry = journalEntryService.createJournalEntry(request, orgId, createdBy)
+        return ResponseEntity.status(HttpStatus.CREATED).body(entry.toResponse())
     }
 
     @GetMapping
@@ -54,7 +50,7 @@ class JournalEntryController(
         @RequestParam(required = false) startDate: LocalDate?,
         @RequestParam(required = false) endDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
         val entryStatus =
             if (status != null) {
@@ -78,14 +74,10 @@ class JournalEntryController(
     fun getJournalEntry(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val entry = journalEntryService.getJournalEntry(id, orgId)
-            ResponseEntity.ok(entry.toResponse())
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND).body(mapOf("error" to (e.message ?: "Journal entry not found")))
-        }
+        val entry = journalEntryService.getJournalEntry(id, orgId)
+        return ResponseEntity.ok(entry.toResponse())
     }
 
     @PostMapping("/{id}/post")
@@ -93,15 +85,10 @@ class JournalEntryController(
     fun postJournalEntry(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val entry = journalEntryService.postJournalEntry(id, orgId)
-            ResponseEntity.ok(entry.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status = if (e.message == "Journal entry not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status).body(mapOf("error" to (e.message ?: "Failed to post journal entry")))
-        }
+        val entry = journalEntryService.postJournalEntry(id, orgId)
+        return ResponseEntity.ok(entry.toResponse())
     }
 
     @PostMapping("/{id}/void")
@@ -110,15 +97,10 @@ class JournalEntryController(
         @PathVariable id: String,
         @Valid @RequestBody request: VoidJournalEntryRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        return try {
-            val entry = journalEntryService.voidJournalEntry(id, orgId, request.reason)
-            ResponseEntity.ok(entry.toResponse())
-        } catch (e: IllegalArgumentException) {
-            val status = if (e.message == "Journal entry not found") HttpStatus.NOT_FOUND else HttpStatus.BAD_REQUEST
-            ResponseEntity.status(status).body(mapOf("error" to (e.message ?: "Failed to void journal entry")))
-        }
+        val entry = journalEntryService.voidJournalEntry(id, orgId, request.reason)
+        return ResponseEntity.ok(entry.toResponse())
     }
 
     @GetMapping("/trial-balance")
@@ -126,7 +108,7 @@ class JournalEntryController(
     fun getTrialBalance(
         @RequestParam(required = false) asOfDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val trialBalance = journalEntryService.getTrialBalance(orgId, asOfDate)
         return ResponseEntity.ok(trialBalance)
     }
@@ -159,9 +141,4 @@ class JournalEntryController(
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),
         )
-
-    private fun unauthorized(): ResponseEntity<Any> =
-        ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body(mapOf("error" to "Authentication required"))
 }

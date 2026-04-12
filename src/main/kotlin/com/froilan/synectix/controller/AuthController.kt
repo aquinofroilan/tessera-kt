@@ -9,6 +9,7 @@ import com.froilan.synectix.dto.RefreshRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.dto.ResetPasswordRequest
 import com.froilan.synectix.dto.SwitchOrganizationRequest
+import com.froilan.synectix.exception.AuthenticationException
 import com.froilan.synectix.model.User
 import com.froilan.synectix.security.SessionContext
 import com.froilan.synectix.service.AuthService
@@ -68,13 +69,10 @@ class AuthController(
     @PostMapping("/signup")
     fun register(
         @Valid @RequestBody request: RegisterRequest,
-    ): ResponseEntity<Any> =
-        try {
-            val user = authService.register(request)
-            ResponseEntity.status(HttpStatus.CREATED).body(mapOf("message" to "User registered successfully", "userId" to user.uuid))
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to e.message))
-        }
+    ): ResponseEntity<Any> {
+        val user = authService.register(request)
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("message" to "User registered successfully", "userId" to user.uuid))
+    }
 
     @PostMapping("/signin")
     fun login(
@@ -100,7 +98,7 @@ class AuthController(
                 )
             resetAttempts(clientIp)
             ResponseEntity.ok(response)
-        } catch (e: IllegalArgumentException) {
+        } catch (e: AuthenticationException) {
             if (e.message != "User account is inactive") {
                 recordFailedAttempt(clientIp)
             }
@@ -113,15 +111,10 @@ class AuthController(
     @PostMapping("/refresh")
     fun refresh(
         @Valid @RequestBody request: RefreshRequest,
-    ): ResponseEntity<Any> =
-        try {
-            val response = authService.refresh(request.refreshToken)
-            ResponseEntity.ok(response)
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(mapOf("error" to (e.message ?: "Invalid or expired refresh token")))
-        }
+    ): ResponseEntity<Any> {
+        val response = authService.refresh(request.refreshToken)
+        return ResponseEntity.ok(response)
+    }
 
     @PostMapping("/change-password")
     fun changePassword(
@@ -134,12 +127,8 @@ class AuthController(
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(mapOf("error" to "Authentication required"))
 
-        return try {
-            authService.changePassword(user, request.currentPassword, request.newPassword)
-            ResponseEntity.ok(mapOf("message" to "Password changed successfully"))
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Password change failed")))
-        }
+        authService.changePassword(user, request.currentPassword, request.newPassword)
+        return ResponseEntity.ok(mapOf("message" to "Password changed successfully"))
     }
 
     @PostMapping("/forgot-password")
@@ -167,13 +156,10 @@ class AuthController(
     @PostMapping("/reset-password")
     fun resetPassword(
         @Valid @RequestBody request: ResetPasswordRequest,
-    ): ResponseEntity<Any> =
-        try {
-            authService.resetPassword(request.token, request.newPassword)
-            ResponseEntity.ok(mapOf("message" to "Password has been reset successfully"))
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Password reset failed")))
-        }
+    ): ResponseEntity<Any> {
+        authService.resetPassword(request.token, request.newPassword)
+        return ResponseEntity.ok(mapOf("message" to "Password has been reset successfully"))
+    }
 
     @GetMapping("/organizations")
     fun listOrganizations(): ResponseEntity<Any> {
@@ -205,18 +191,14 @@ class AuthController(
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(mapOf("error" to "Authentication required"))
 
-        return try {
-            val response =
-                authService.switchOrganization(
-                    user = user,
-                    targetOrgId = request.organizationId,
-                    ipAddress = httpRequest.remoteAddr?.take(MAX_IP_LENGTH),
-                    userAgent = httpRequest.getHeader("User-Agent")?.take(MAX_USER_AGENT_LENGTH),
-                )
-            ResponseEntity.ok(response)
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Organization switch failed")))
-        }
+        val response =
+            authService.switchOrganization(
+                user = user,
+                targetOrgId = request.organizationId,
+                ipAddress = httpRequest.remoteAddr?.take(MAX_IP_LENGTH),
+                userAgent = httpRequest.getHeader("User-Agent")?.take(MAX_USER_AGENT_LENGTH),
+            )
+        return ResponseEntity.ok(response)
     }
 
     @PostMapping("/logout")

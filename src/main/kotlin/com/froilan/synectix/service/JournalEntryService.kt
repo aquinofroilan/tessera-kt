@@ -3,6 +3,8 @@ package com.froilan.synectix.service
 import com.froilan.synectix.dto.AccountBalanceResponse
 import com.froilan.synectix.dto.CreateJournalEntryRequest
 import com.froilan.synectix.dto.TrialBalanceResponse
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.model.JournalEntry
 import com.froilan.synectix.model.JournalEntryLine
@@ -31,27 +33,27 @@ class JournalEntryService(
         createdBy: String,
     ): JournalEntry {
         if (request.lines.size < 2) {
-            throw IllegalArgumentException("Journal entry must have at least 2 line items")
+            throw BusinessRuleException("Journal entry must have at least 2 line items")
         }
 
         request.lines.forEach { line ->
             if (line.debit.compareTo(BigDecimal.ZERO) < 0 || line.credit.compareTo(BigDecimal.ZERO) < 0) {
-                throw IllegalArgumentException("Debit and credit amounts must not be negative")
+                throw BusinessRuleException("Debit and credit amounts must not be negative")
             }
             val hasDebit = line.debit.compareTo(BigDecimal.ZERO) > 0
             val hasCredit = line.credit.compareTo(BigDecimal.ZERO) > 0
             if (hasDebit && hasCredit) {
-                throw IllegalArgumentException("A line item cannot have both debit and credit")
+                throw BusinessRuleException("A line item cannot have both debit and credit")
             }
             if (!hasDebit && !hasCredit) {
-                throw IllegalArgumentException("A line item must have either a debit or credit amount")
+                throw BusinessRuleException("A line item must have either a debit or credit amount")
             }
         }
 
         val totalDebits = request.lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.debit) }
         val totalCredits = request.lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.credit) }
         if (totalDebits.compareTo(totalCredits) != 0) {
-            throw IllegalArgumentException(
+            throw BusinessRuleException(
                 "Journal entry must balance: debits ($totalDebits) != credits ($totalCredits)",
             )
         }
@@ -63,12 +65,12 @@ class JournalEntryService(
             request.lines.map { line ->
                 val account =
                     accounts[line.accountId]
-                        ?: throw IllegalArgumentException("Account '${line.accountId}' not found")
+                        ?: throw BusinessRuleException("Account '${line.accountId}' not found")
                 if (account.organizationId != organizationId) {
-                    throw IllegalArgumentException("Account '${line.accountId}' not found")
+                    throw BusinessRuleException("Account '${line.accountId}' not found")
                 }
                 if (!account.isActive) {
-                    throw IllegalArgumentException("Account '${account.code}' is inactive")
+                    throw BusinessRuleException("Account '${account.code}' is inactive")
                 }
                 JournalEntryLine(
                     accountId = account.id,
@@ -105,27 +107,27 @@ class JournalEntryService(
         createdBy: String,
     ): JournalEntry {
         if (lines.isEmpty()) {
-            throw IllegalArgumentException("System journal entry must have at least one line item")
+            throw BusinessRuleException("System journal entry must have at least one line item")
         }
 
         lines.forEach { line ->
             if (line.debit.compareTo(BigDecimal.ZERO) < 0 || line.credit.compareTo(BigDecimal.ZERO) < 0) {
-                throw IllegalArgumentException("Debit and credit amounts must not be negative")
+                throw BusinessRuleException("Debit and credit amounts must not be negative")
             }
             val hasDebit = line.debit.compareTo(BigDecimal.ZERO) > 0
             val hasCredit = line.credit.compareTo(BigDecimal.ZERO) > 0
             if (hasDebit && hasCredit) {
-                throw IllegalArgumentException("A line item cannot have both debit and credit")
+                throw BusinessRuleException("A line item cannot have both debit and credit")
             }
             if (!hasDebit && !hasCredit) {
-                throw IllegalArgumentException("A line item must have either a debit or credit amount")
+                throw BusinessRuleException("A line item must have either a debit or credit amount")
             }
         }
 
         val totalDebits = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.debit) }
         val totalCredits = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.credit) }
         if (totalDebits.compareTo(totalCredits) != 0) {
-            throw IllegalArgumentException("System journal entry is not balanced")
+            throw BusinessRuleException("System journal entry is not balanced")
         }
 
         validateFiscalPeriodOpen(organizationId, date)
@@ -154,13 +156,13 @@ class JournalEntryService(
     ): JournalEntry {
         val entry = findEntry(entryId, organizationId)
         if (entry.status != JournalEntryStatus.DRAFT) {
-            throw IllegalArgumentException("Only draft entries can be posted")
+            throw BusinessRuleException("Only draft entries can be posted")
         }
 
         val totalDebits = entry.lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.debit) }
         val totalCredits = entry.lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.credit) }
         if (totalDebits.compareTo(totalCredits) != 0) {
-            throw IllegalArgumentException("Journal entry is not balanced")
+            throw BusinessRuleException("Journal entry is not balanced")
         }
 
         validateFiscalPeriodOpen(organizationId, entry.date)
@@ -181,7 +183,7 @@ class JournalEntryService(
     ): JournalEntry {
         val entry = findEntry(entryId, organizationId)
         if (entry.status != JournalEntryStatus.POSTED) {
-            throw IllegalArgumentException("Only posted entries can be voided")
+            throw BusinessRuleException("Only posted entries can be voided")
         }
 
         val reversalDate = LocalDate.now(ZoneOffset.UTC)
@@ -257,10 +259,10 @@ class JournalEntryService(
     ): AccountBalanceResponse {
         val account =
             accountRepository.findById(accountId).orElseThrow {
-                IllegalArgumentException("Account not found")
+                ResourceNotFoundException("Account not found")
             }
         if (account.organizationId != organizationId) {
-            throw IllegalArgumentException("Account not found")
+            throw ResourceNotFoundException("Account not found")
         }
 
         val postedStatuses = listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED)
@@ -371,10 +373,10 @@ class JournalEntryService(
     ): JournalEntry {
         val entry =
             journalEntryRepository.findById(entryId).orElseThrow {
-                IllegalArgumentException("Journal entry not found")
+                ResourceNotFoundException("Journal entry not found")
             }
         if (entry.organizationId != organizationId) {
-            throw IllegalArgumentException("Journal entry not found")
+            throw ResourceNotFoundException("Journal entry not found")
         }
         return entry
     }

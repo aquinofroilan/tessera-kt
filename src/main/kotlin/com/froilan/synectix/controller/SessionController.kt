@@ -2,8 +2,8 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.dto.SessionResponse
 import com.froilan.synectix.model.User
+import com.froilan.synectix.security.AuthenticationContext
 import com.froilan.synectix.service.AuthService
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/auth/sessions")
 class SessionController(
     private val authService: AuthService,
+    private val authContext: AuthenticationContext,
 ) {
     @GetMapping
     @PreAuthorize("hasRole('SUPER_ADMIN') or hasAuthority('session:read')")
@@ -26,7 +27,7 @@ class SessionController(
     ): ResponseEntity<Any> {
         val (user, currentToken) =
             extractUserAndToken(authHeader)
-                ?: return unauthorized()
+                ?: return authContext.unauthorized()
 
         val sessions = authService.listSessions(user.uuid)
         val response =
@@ -51,20 +52,10 @@ class SessionController(
     ): ResponseEntity<Any> {
         val (user, currentToken) =
             extractUserAndToken(authHeader)
-                ?: return unauthorized()
+                ?: return authContext.unauthorized()
 
-        return try {
-            authService.revokeSession(user.uuid, sessionId, currentToken)
-            ResponseEntity.ok(mapOf("message" to "Session revoked"))
-        } catch (e: IllegalStateException) {
-            ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(mapOf("error" to (e.message ?: "Cannot revoke the current session")))
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(mapOf("error" to (e.message ?: "Session not found")))
-        }
+        authService.revokeSession(user.uuid, sessionId, currentToken)
+        return ResponseEntity.ok(mapOf("message" to "Session revoked"))
     }
 
     @DeleteMapping
@@ -74,7 +65,7 @@ class SessionController(
     ): ResponseEntity<Any> {
         val (user, currentToken) =
             extractUserAndToken(authHeader)
-                ?: return unauthorized()
+                ?: return authContext.unauthorized()
 
         authService.revokeOtherSessions(user.uuid, currentToken)
         return ResponseEntity.ok(mapOf("message" to "All other sessions revoked"))
@@ -90,9 +81,4 @@ class SessionController(
         if (!authHeader.startsWith("Bearer ")) return null
         return user to authHeader.substring(7)
     }
-
-    private fun unauthorized(): ResponseEntity<Any> =
-        ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body(mapOf("error" to "Authentication required"))
 }

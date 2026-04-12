@@ -6,6 +6,8 @@ import com.froilan.synectix.dto.AuthResponse
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
 import com.froilan.synectix.dto.UserOrganizationResponse
+import com.froilan.synectix.exception.AuthenticationException
+import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.model.RoleAssignment
 import com.froilan.synectix.model.User
 import com.froilan.synectix.repository.OrganizationRepository
@@ -145,7 +147,7 @@ class AuthControllerTest {
             """.trimIndent()
 
         `when`(authService.register(any<RegisterRequest>()))
-            .thenThrow(IllegalArgumentException("Username already exists"))
+            .thenThrow(BusinessRuleException("Username already exists"))
 
         mockMvc
             .perform(
@@ -177,7 +179,7 @@ class AuthControllerTest {
             """.trimIndent()
 
         `when`(authService.register(any<RegisterRequest>()))
-            .thenThrow(IllegalArgumentException("Email already exists"))
+            .thenThrow(BusinessRuleException("Email already exists"))
 
         mockMvc
             .perform(
@@ -318,7 +320,7 @@ class AuthControllerTest {
             """.trimIndent()
 
         `when`(authService.login(any<LoginRequest>(), anyOrNull(), anyOrNull()))
-            .thenThrow(IllegalArgumentException("Invalid username or password"))
+            .thenThrow(AuthenticationException("Invalid username or password"))
 
         mockMvc
             .perform(
@@ -376,7 +378,7 @@ class AuthControllerTest {
             """.trimIndent()
 
         `when`(authService.login(any<LoginRequest>(), anyOrNull(), anyOrNull()))
-            .thenThrow(IllegalArgumentException("User account is inactive"))
+            .thenThrow(AuthenticationException("User account is inactive"))
 
         mockMvc
             .perform(
@@ -429,7 +431,7 @@ class AuthControllerTest {
             """.trimIndent()
 
         `when`(authService.refresh(any<String>()))
-            .thenThrow(IllegalArgumentException("Invalid or expired refresh token"))
+            .thenThrow(AuthenticationException("Invalid or expired refresh token"))
 
         mockMvc
             .perform(
@@ -607,7 +609,7 @@ class AuthControllerTest {
             """.trimIndent()
 
         `when`(authService.resetPassword(any<String>(), any<String>()))
-            .thenThrow(IllegalArgumentException("Invalid or expired reset token"))
+            .thenThrow(BusinessRuleException("Invalid or expired reset token"))
 
         mockMvc
             .perform(
@@ -734,7 +736,7 @@ class AuthControllerTest {
         setupAuth(user, session)
 
         `when`(authService.switchOrganization(any(), any(), anyOrNull(), anyOrNull()))
-            .thenThrow(IllegalArgumentException("You do not have access to this organization"))
+            .thenThrow(BusinessRuleException("You do not have access to this organization"))
 
         mockMvc
             .perform(

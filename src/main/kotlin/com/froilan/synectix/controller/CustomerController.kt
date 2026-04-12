@@ -2,12 +2,12 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.annotation.LogLevel
 import com.froilan.synectix.annotation.Loggable
-import com.froilan.synectix.dto.CreateVendorRequest
-import com.froilan.synectix.dto.UpdateVendorRequest
-import com.froilan.synectix.dto.VendorResponse
-import com.froilan.synectix.model.Vendor
+import com.froilan.synectix.dto.CreateCustomerRequest
+import com.froilan.synectix.dto.CustomerResponse
+import com.froilan.synectix.dto.UpdateCustomerRequest
+import com.froilan.synectix.model.Customer
 import com.froilan.synectix.security.AuthenticationContext
-import com.froilan.synectix.service.VendorService
+import com.froilan.synectix.service.CustomerService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -22,70 +22,74 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/finance/ap/vendors")
+@RequestMapping("/finance/ar/customers")
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
-class VendorController(
-    private val vendorService: VendorService,
+class CustomerController(
+    private val customerService: CustomerService,
     private val authContext: AuthenticationContext,
 ) {
     @PostMapping
-    @PreAuthorize("hasAuthority('ap:create')")
-    fun createVendor(
-        @Valid @RequestBody request: CreateVendorRequest,
+    @PreAuthorize("hasAuthority('ar:create')")
+    fun createCustomer(
+        @Valid @RequestBody request: CreateCustomerRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val vendor = vendorService.createVendor(request, orgId)
-        return ResponseEntity.status(HttpStatus.CREATED).body(vendor.toResponse())
+
+        val customer = customerService.createCustomer(request, orgId)
+        return ResponseEntity.status(HttpStatus.CREATED).body(customer.toResponse())
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ap:read')")
-    fun listVendors(): ResponseEntity<Any> {
+    @PreAuthorize("hasAuthority('ar:read')")
+    fun listCustomers(): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val vendors = vendorService.listVendors(orgId)
-        return ResponseEntity.ok(vendors.map { it.toResponse() })
+        val customers = customerService.listCustomers(orgId)
+        return ResponseEntity.ok(customers.map { it.toResponse() })
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('ap:read')")
-    fun getVendor(
+    @PreAuthorize("hasAuthority('ar:read')")
+    fun getCustomer(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val vendor = vendorService.getVendor(id, orgId)
-        return ResponseEntity.ok(vendor.toResponse())
+
+        val customer = customerService.getCustomer(id, orgId)
+        return ResponseEntity.ok(customer.toResponse())
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ap:create')")
-    fun updateVendor(
+    @PreAuthorize("hasAuthority('ar:create')")
+    fun updateCustomer(
         @PathVariable id: String,
-        @Valid @RequestBody request: UpdateVendorRequest,
+        @Valid @RequestBody request: UpdateCustomerRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val vendor = vendorService.updateVendor(id, request, orgId)
-        return ResponseEntity.ok(vendor.toResponse())
+
+        val customer = customerService.updateCustomer(id, request, orgId)
+        return ResponseEntity.ok(customer.toResponse())
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ap:create')")
-    fun deleteVendor(
+    @PreAuthorize("hasAuthority('ar:create')")
+    fun deleteCustomer(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val vendor = vendorService.deleteVendor(id, orgId)
-        return ResponseEntity.ok(vendor.toResponse())
+
+        val customer = customerService.deleteCustomer(id, orgId)
+        return ResponseEntity.ok(customer.toResponse())
     }
 
-    private fun Vendor.toResponse() =
-        VendorResponse(
+    private fun Customer.toResponse() =
+        CustomerResponse(
             id = id,
             name = name,
             contactName = contactName,
             contactEmail = contactEmail,
             contactPhone = contactPhone,
             paymentTermDays = paymentTermDays,
-            defaultExpenseAccountId = defaultExpenseAccountId,
+            defaultRevenueAccountId = defaultRevenueAccountId,
             organizationId = organizationId,
             isActive = isActive,
             createdAt = createdAt?.toString(),

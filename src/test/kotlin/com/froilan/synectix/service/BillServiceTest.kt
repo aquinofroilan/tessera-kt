@@ -3,6 +3,7 @@ package com.froilan.synectix.service
 import com.froilan.synectix.dto.BillLineRequest
 import com.froilan.synectix.dto.CreateBillRequest
 import com.froilan.synectix.dto.RecordPaymentRequest
+import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.model.Bill
@@ -107,7 +108,7 @@ class BillServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 billService.createBill(request, orgId, userId)
             }
         assertThat(exception.message).contains("inactive vendor")
@@ -151,7 +152,7 @@ class BillServiceTest {
         `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 billService.approveBill("bill-1", orgId, userId)
             }
         assertThat(exception.message).contains("Only draft")
@@ -205,7 +206,7 @@ class BillServiceTest {
         `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 billService.voidBill("bill-1", orgId, "Cancel", userId)
             }
         assertThat(exception.message).contains("recorded payments")
@@ -291,7 +292,7 @@ class BillServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 billService.recordPayment("bill-1", request, orgId, userId)
             }
         assertThat(exception.message).contains("exceeds remaining balance")
@@ -310,7 +311,7 @@ class BillServiceTest {
             )
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 billService.recordPayment("bill-1", request, orgId, userId)
             }
         assertThat(exception.message).contains("approved or partially paid")

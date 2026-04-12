@@ -2,6 +2,8 @@ package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.CreateVendorRequest
 import com.froilan.synectix.dto.UpdateVendorRequest
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.Vendor
 import com.froilan.synectix.repository.VendorRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -64,7 +66,7 @@ class VendorServiceTest {
         `when`(vendorRepository.findById("v-1")).thenReturn(Optional.of(vendor))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<ResourceNotFoundException> {
                 vendorService.getVendor("v-1", orgId)
             }
         assertThat(exception.message).contains("Vendor not found")
@@ -98,7 +100,7 @@ class VendorServiceTest {
         `when`(vendorRepository.findById("v-1")).thenReturn(Optional.of(vendor))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 vendorService.updateVendor("v-1", UpdateVendorRequest(name = "New"), orgId)
             }
         assertThat(exception.message).contains("inactive")
@@ -124,7 +126,7 @@ class VendorServiceTest {
         `when`(vendorRepository.findById("v-1")).thenReturn(Optional.of(vendor))
 
         val exception =
-            assertThrows<IllegalArgumentException> {
+            assertThrows<BusinessRuleException> {
                 vendorService.deleteVendor("v-1", orgId)
             }
         assertThat(exception.message).contains("already inactive")

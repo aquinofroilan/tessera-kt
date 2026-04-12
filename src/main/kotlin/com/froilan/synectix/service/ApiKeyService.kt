@@ -1,5 +1,7 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.ApiKey
 import com.froilan.synectix.repository.ApiKeyRepository
 import com.froilan.synectix.security.Permissions
@@ -30,14 +32,14 @@ class ApiKeyService(
     ): Pair<ApiKey, String> {
         val invalidPermissions = permissions.filter { it !in Permissions.ALL_PERMISSIONS }
         if (invalidPermissions.isNotEmpty()) {
-            throw IllegalArgumentException("Invalid permissions: ${invalidPermissions.joinToString()}")
+            throw BusinessRuleException("Invalid permissions: ${invalidPermissions.joinToString()}")
         }
         if (permissions.isEmpty()) {
-            throw IllegalArgumentException("At least one permission is required")
+            throw BusinessRuleException("At least one permission is required")
         }
         val escalatedPermissions = permissions.filter { it !in creatorPermissions }
         if (escalatedPermissions.isNotEmpty()) {
-            throw IllegalArgumentException(
+            throw BusinessRuleException(
                 "Cannot grant permissions you do not have: ${escalatedPermissions.joinToString()}",
             )
         }
@@ -66,13 +68,13 @@ class ApiKeyService(
     ) {
         val apiKey =
             apiKeyRepository.findById(keyId).orElseThrow {
-                IllegalArgumentException("API key not found")
+                ResourceNotFoundException("API key not found")
             }
         if (apiKey.organizationId != organizationId) {
-            throw IllegalArgumentException("API key not found")
+            throw ResourceNotFoundException("API key not found")
         }
         if (!apiKey.isActive) {
-            throw IllegalArgumentException("API key is already revoked")
+            throw BusinessRuleException("API key is already revoked")
         }
         apiKeyRepository.save(apiKey.copy(isActive = false))
     }

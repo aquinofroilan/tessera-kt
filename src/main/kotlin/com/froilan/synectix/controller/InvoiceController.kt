@@ -2,18 +2,18 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.annotation.LogLevel
 import com.froilan.synectix.annotation.Loggable
-import com.froilan.synectix.dto.BillLineResponse
-import com.froilan.synectix.dto.BillPaymentResponse
-import com.froilan.synectix.dto.BillResponse
-import com.froilan.synectix.dto.BillSummaryResponse
-import com.froilan.synectix.dto.CreateBillRequest
-import com.froilan.synectix.dto.RecordPaymentRequest
-import com.froilan.synectix.dto.VoidBillRequest
-import com.froilan.synectix.model.Bill
-import com.froilan.synectix.model.BillPayment
-import com.froilan.synectix.model.BillStatus
+import com.froilan.synectix.dto.CreateInvoiceRequest
+import com.froilan.synectix.dto.InvoiceLineResponse
+import com.froilan.synectix.dto.InvoiceReceiptResponse
+import com.froilan.synectix.dto.InvoiceResponse
+import com.froilan.synectix.dto.InvoiceSummaryResponse
+import com.froilan.synectix.dto.RecordReceiptRequest
+import com.froilan.synectix.dto.VoidInvoiceRequest
+import com.froilan.synectix.model.Invoice
+import com.froilan.synectix.model.InvoiceReceipt
+import com.froilan.synectix.model.InvoiceStatus
 import com.froilan.synectix.security.AuthenticationContext
-import com.froilan.synectix.service.BillService
+import com.froilan.synectix.service.InvoiceService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -30,36 +30,36 @@ import java.time.ZoneOffset
 import java.util.Locale
 
 @RestController
-@RequestMapping("/finance/ap/bills")
+@RequestMapping("/finance/ar/invoices")
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
-class BillController(
-    private val billService: BillService,
+class InvoiceController(
+    private val invoiceService: InvoiceService,
     private val authContext: AuthenticationContext,
 ) {
     @PostMapping
-    @PreAuthorize("hasAuthority('ap:create')")
-    fun createBill(
-        @Valid @RequestBody request: CreateBillRequest,
+    @PreAuthorize("hasAuthority('ar:create')")
+    fun createInvoice(
+        @Valid @RequestBody request: CreateInvoiceRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val createdBy = authContext.userId() ?: "api-key"
 
-        val bill = billService.createBill(request, orgId, createdBy)
-        return ResponseEntity.status(HttpStatus.CREATED).body(bill.toResponse())
+        val invoice = invoiceService.createInvoice(request, orgId, createdBy)
+        return ResponseEntity.status(HttpStatus.CREATED).body(invoice.toResponse())
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ap:read')")
-    fun listBills(
+    @PreAuthorize("hasAuthority('ar:read')")
+    fun listInvoices(
         @RequestParam(required = false) status: String?,
-        @RequestParam(required = false) vendorId: String?,
+        @RequestParam(required = false) customerId: String?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        val billStatus =
+        val invoiceStatus =
             if (status != null) {
                 try {
-                    BillStatus.valueOf(status.uppercase(Locale.ROOT))
+                    InvoiceStatus.valueOf(status.uppercase(Locale.ROOT))
                 } catch (e: IllegalArgumentException) {
                     return ResponseEntity
                         .badRequest()
@@ -69,86 +69,86 @@ class BillController(
                 null
             }
 
-        val bills = billService.listBills(orgId, billStatus, vendorId)
-        return ResponseEntity.ok(bills.map { it.toSummaryResponse() })
+        val invoices = invoiceService.listInvoices(orgId, invoiceStatus, customerId)
+        return ResponseEntity.ok(invoices.map { it.toSummaryResponse() })
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('ap:read')")
-    fun getBill(
+    @PreAuthorize("hasAuthority('ar:read')")
+    fun getInvoice(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        val bill = billService.getBill(id, orgId)
-        return ResponseEntity.ok(bill.toResponse())
+        val invoice = invoiceService.getInvoice(id, orgId)
+        return ResponseEntity.ok(invoice.toResponse())
     }
 
     @PostMapping("/{id}/approve")
-    @PreAuthorize("hasAuthority('ap:approve')")
-    fun approveBill(
+    @PreAuthorize("hasAuthority('ar:approve')")
+    fun approveInvoice(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
 
-        val bill = billService.approveBill(id, orgId, userId)
-        return ResponseEntity.ok(bill.toResponse())
+        val invoice = invoiceService.approveInvoice(id, orgId, userId)
+        return ResponseEntity.ok(invoice.toResponse())
     }
 
     @PostMapping("/{id}/void")
-    @PreAuthorize("hasAuthority('ap:void')")
-    fun voidBill(
+    @PreAuthorize("hasAuthority('ar:void')")
+    fun voidInvoice(
         @PathVariable id: String,
-        @Valid @RequestBody request: VoidBillRequest,
+        @Valid @RequestBody request: VoidInvoiceRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
 
-        val bill = billService.voidBill(id, orgId, request.reason, userId)
-        return ResponseEntity.ok(bill.toResponse())
+        val invoice = invoiceService.voidInvoice(id, orgId, request.reason, userId)
+        return ResponseEntity.ok(invoice.toResponse())
     }
 
-    @PostMapping("/{id}/payments")
-    @PreAuthorize("hasAuthority('ap:pay')")
-    fun recordPayment(
+    @PostMapping("/{id}/receipts")
+    @PreAuthorize("hasAuthority('ar:receive')")
+    fun recordReceipt(
         @PathVariable id: String,
-        @Valid @RequestBody request: RecordPaymentRequest,
+        @Valid @RequestBody request: RecordReceiptRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val createdBy = authContext.userId() ?: "api-key"
 
-        val payment = billService.recordPayment(id, request, orgId, createdBy)
-        return ResponseEntity.status(HttpStatus.CREATED).body(payment.toResponse())
+        val receipt = invoiceService.recordReceipt(id, request, orgId, createdBy)
+        return ResponseEntity.status(HttpStatus.CREATED).body(receipt.toResponse())
     }
 
-    @GetMapping("/{id}/payments")
-    @PreAuthorize("hasAuthority('ap:read')")
-    fun listPayments(
+    @GetMapping("/{id}/receipts")
+    @PreAuthorize("hasAuthority('ar:read')")
+    fun listReceipts(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
-        val payments = billService.getPayments(id, orgId)
-        return ResponseEntity.ok(payments.map { it.toResponse() })
+        val receipts = invoiceService.getReceipts(id, orgId)
+        return ResponseEntity.ok(receipts.map { it.toResponse() })
     }
 
     @GetMapping("/aging")
-    @PreAuthorize("hasAuthority('ap:read')")
+    @PreAuthorize("hasAuthority('ar:read')")
     fun getAgingReport(
         @RequestParam(required = false) asOfDate: LocalDate?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val report = billService.getAgingReport(orgId, asOfDate ?: LocalDate.now(ZoneOffset.UTC))
+        val report = invoiceService.getAgingReport(orgId, asOfDate ?: LocalDate.now(ZoneOffset.UTC))
         return ResponseEntity.ok(report)
     }
 
-    private fun Bill.toResponse() =
-        BillResponse(
+    private fun Invoice.toResponse() =
+        InvoiceResponse(
             id = id,
-            billNumber = billNumber,
-            vendorId = vendorId,
-            vendorName = vendorName,
+            invoiceNumber = invoiceNumber,
+            customerId = customerId,
+            customerName = customerName,
             date = date.toString(),
             dueDate = dueDate.toString(),
             referenceNumber = referenceNumber,
@@ -156,7 +156,7 @@ class BillController(
             status = status.name,
             lines =
                 lines.map { line ->
-                    BillLineResponse(
+                    InvoiceLineResponse(
                         accountId = line.accountId,
                         accountCode = line.accountCode,
                         accountName = line.accountName,
@@ -165,7 +165,7 @@ class BillController(
                     )
                 },
             totalAmount = totalAmount,
-            amountPaid = amountPaid,
+            amountReceived = amountReceived,
             journalEntryId = journalEntryId,
             createdBy = createdBy,
             approvedAt = approvedAt?.toString(),
@@ -178,23 +178,23 @@ class BillController(
             updatedAt = updatedAt?.toString(),
         )
 
-    private fun Bill.toSummaryResponse() =
-        BillSummaryResponse(
+    private fun Invoice.toSummaryResponse() =
+        InvoiceSummaryResponse(
             id = id,
-            billNumber = billNumber,
-            vendorName = vendorName,
+            invoiceNumber = invoiceNumber,
+            customerName = customerName,
             date = date.toString(),
             dueDate = dueDate.toString(),
             status = status.name,
             totalAmount = totalAmount,
-            amountPaid = amountPaid,
+            amountReceived = amountReceived,
         )
 
-    private fun BillPayment.toResponse() =
-        BillPaymentResponse(
+    private fun InvoiceReceipt.toResponse() =
+        InvoiceReceiptResponse(
             id = id,
-            billId = billId,
-            paymentDate = paymentDate.toString(),
+            invoiceId = invoiceId,
+            receiptDate = receiptDate.toString(),
             amount = amount,
             paymentMethod = paymentMethod.name,
             referenceNumber = referenceNumber,
