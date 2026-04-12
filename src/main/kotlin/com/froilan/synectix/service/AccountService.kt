@@ -56,7 +56,7 @@ class AccountService(
         return try {
             accountRepository.save(account)
         } catch (e: DuplicateKeyException) {
-            throw IllegalArgumentException("Account code '${request.code}' already exists in this organization")
+            throw IllegalArgumentException("Account code '${request.code}' already exists in this organization", e)
         }
     }
 

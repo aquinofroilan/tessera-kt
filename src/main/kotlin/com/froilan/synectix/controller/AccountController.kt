@@ -7,15 +7,13 @@ import com.froilan.synectix.dto.CreateAccountRequest
 import com.froilan.synectix.dto.UpdateAccountRequest
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
-import com.froilan.synectix.security.ApiKeyContext
-import com.froilan.synectix.security.SessionContext
+import com.froilan.synectix.security.AuthenticationContext
 import com.froilan.synectix.service.AccountService
 import com.froilan.synectix.service.JournalEntryService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -34,13 +32,14 @@ import java.util.Locale
 class AccountController(
     private val accountService: AccountService,
     private val journalEntryService: JournalEntryService,
+    private val authContext: AuthenticationContext,
 ) {
     @PostMapping
     @PreAuthorize("hasAuthority('account:create')")
     fun createAccount(
         @Valid @RequestBody request: CreateAccountRequest,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             val account = accountService.createAccount(request, orgId)
@@ -56,7 +55,7 @@ class AccountController(
         @RequestParam(required = false) type: String?,
         @RequestParam(required = false) parentId: String?,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         val accountType =
             if (type != null) {
@@ -80,7 +79,7 @@ class AccountController(
     fun getAccount(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             val account = accountService.getAccount(id, orgId)
@@ -96,7 +95,7 @@ class AccountController(
         @PathVariable id: String,
         @Valid @RequestBody request: UpdateAccountRequest,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             val account = accountService.updateAccount(id, request, orgId)
@@ -112,7 +111,7 @@ class AccountController(
     fun deleteAccount(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             accountService.deleteAccount(id, orgId)
@@ -129,7 +128,7 @@ class AccountController(
         @PathVariable id: String,
         @RequestParam(required = false) asOfDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = extractOrganizationId() ?: return unauthorized()
+        val orgId = authContext.organizationId() ?: return unauthorized()
 
         return try {
             val balance = journalEntryService.getAccountBalance(id, orgId, asOfDate)
@@ -153,15 +152,6 @@ class AccountController(
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),
         )
-
-    private fun extractOrganizationId(): String? {
-        val authentication = SecurityContextHolder.getContext().authentication ?: return null
-        return when (val details = authentication.details) {
-            is SessionContext -> details.organizationId
-            is ApiKeyContext -> details.organizationId
-            else -> null
-        }
-    }
 
     private fun unauthorized(): ResponseEntity<Any> =
         ResponseEntity

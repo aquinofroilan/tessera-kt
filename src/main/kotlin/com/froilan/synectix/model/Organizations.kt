@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 
 @Document(collection = "organizations")
@@ -21,6 +22,6 @@ data class Organizations(
     val fiscalYearStart: LocalDateTime,
     val timezone: String,
     val status: String = "ACTIVE",
-    val createdAt: LocalDateTime = LocalDateTime.now(),
+    val createdAt: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC),
     val isActive: Boolean = true,
 )

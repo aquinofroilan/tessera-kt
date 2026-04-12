@@ -20,6 +20,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doThrow
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Optional
@@ -28,6 +29,8 @@ class JournalEntryServiceTest {
     private lateinit var journalEntryService: JournalEntryService
     private lateinit var journalEntryRepository: JournalEntryRepository
     private lateinit var accountRepository: AccountRepository
+    private lateinit var fiscalYearService: FiscalYearService
+    private lateinit var entryNumberGenerator: JournalEntryNumberGenerator
 
     private val orgId = "org-123"
     private val createdBy = "user-1"
@@ -36,10 +39,14 @@ class JournalEntryServiceTest {
     fun setup() {
         journalEntryRepository = mock(JournalEntryRepository::class.java)
         accountRepository = mock(AccountRepository::class.java)
+        fiscalYearService = mock(FiscalYearService::class.java)
+        entryNumberGenerator = JournalEntryNumberGenerator(journalEntryRepository)
         journalEntryService =
             JournalEntryService(
                 journalEntryRepository = journalEntryRepository,
                 accountRepository = accountRepository,
+                fiscalYearService = fiscalYearService,
+                entryNumberGenerator = entryNumberGenerator,
             )
     }
 
@@ -559,6 +566,189 @@ class JournalEntryServiceTest {
         assertThat(revenueBalance!!.totalCredits).isEqualByComparingTo(BigDecimal("300.00"))
         // REVENUE: balance = credits - debits
         assertThat(revenueBalance.balance).isEqualByComparingTo(BigDecimal("300.00"))
+    }
+
+    @Test
+    fun `create should succeed when no fiscal year exists`() {
+        val cashAccount =
+            createMockAccount(
+                id = "acc-1",
+                code = "1000",
+                name = "Cash",
+                type = AccountType.ASSET,
+                orgId = orgId,
+            )
+        val revenueAccount =
+            createMockAccount(
+                id = "acc-2",
+                code = "4000",
+                name = "Revenue",
+                type = AccountType.REVENUE,
+                orgId = orgId,
+            )
+
+        `when`(accountRepository.findAllById(listOf("acc-1", "acc-2")))
+            .thenReturn(listOf(cashAccount, revenueAccount))
+        `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(0L)
+        `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
+
+        val request =
+            CreateJournalEntryRequest(
+                date = LocalDate.of(2026, 1, 15),
+                description = "Test entry",
+                lines =
+                    listOf(
+                        JournalEntryLineRequest(
+                            accountId = "acc-1",
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
+                        JournalEntryLineRequest(
+                            accountId = "acc-2",
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal("100.00"),
+                        ),
+                    ),
+            )
+
+        val result = journalEntryService.createJournalEntry(request, orgId, createdBy)
+        assertThat(result.status).isEqualTo(JournalEntryStatus.DRAFT)
+    }
+
+    @Test
+    fun `create should reject when fiscal period is closed`() {
+        val cashAccount =
+            createMockAccount(
+                id = "acc-1",
+                code = "1000",
+                name = "Cash",
+                type = AccountType.ASSET,
+                orgId = orgId,
+            )
+        val revenueAccount =
+            createMockAccount(
+                id = "acc-2",
+                code = "4000",
+                name = "Revenue",
+                type = AccountType.REVENUE,
+                orgId = orgId,
+            )
+
+        `when`(accountRepository.findAllById(listOf("acc-1", "acc-2")))
+            .thenReturn(listOf(cashAccount, revenueAccount))
+        doThrow(IllegalArgumentException("Fiscal period 'January 2026' is closed"))
+            .`when`(fiscalYearService)
+            .validatePeriodOpen(orgId, LocalDate.of(2026, 1, 15))
+
+        val request =
+            CreateJournalEntryRequest(
+                date = LocalDate.of(2026, 1, 15),
+                description = "Test entry",
+                lines =
+                    listOf(
+                        JournalEntryLineRequest(
+                            accountId = "acc-1",
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
+                        JournalEntryLineRequest(
+                            accountId = "acc-2",
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal("100.00"),
+                        ),
+                    ),
+            )
+
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                journalEntryService.createJournalEntry(request, orgId, createdBy)
+            }
+        assertThat(exception.message).contains("closed")
+    }
+
+    @Test
+    fun `create should succeed when fiscal period is open`() {
+        val cashAccount =
+            createMockAccount(
+                id = "acc-1",
+                code = "1000",
+                name = "Cash",
+                type = AccountType.ASSET,
+                orgId = orgId,
+            )
+        val revenueAccount =
+            createMockAccount(
+                id = "acc-2",
+                code = "4000",
+                name = "Revenue",
+                type = AccountType.REVENUE,
+                orgId = orgId,
+            )
+        `when`(accountRepository.findAllById(listOf("acc-1", "acc-2")))
+            .thenReturn(listOf(cashAccount, revenueAccount))
+        `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(0L)
+        `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
+
+        val request =
+            CreateJournalEntryRequest(
+                date = LocalDate.of(2026, 1, 15),
+                description = "Test entry",
+                lines =
+                    listOf(
+                        JournalEntryLineRequest(
+                            accountId = "acc-1",
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
+                        JournalEntryLineRequest(
+                            accountId = "acc-2",
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal("100.00"),
+                        ),
+                    ),
+            )
+
+        val result = journalEntryService.createJournalEntry(request, orgId, createdBy)
+        assertThat(result.status).isEqualTo(JournalEntryStatus.DRAFT)
+    }
+
+    @Test
+    fun `post should reject when fiscal period is closed`() {
+        val entry =
+            createMockEntry(
+                id = "entry-1",
+                entryNumber = "JE-0001",
+                status = JournalEntryStatus.DRAFT,
+                lines =
+                    listOf(
+                        JournalEntryLine(
+                            accountId = "acc-1",
+                            accountCode = "1000",
+                            accountName = "Cash",
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
+                        JournalEntryLine(
+                            accountId = "acc-2",
+                            accountCode = "4000",
+                            accountName = "Revenue",
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal("100.00"),
+                        ),
+                    ),
+                orgId = orgId,
+            )
+
+        `when`(journalEntryRepository.findById("entry-1")).thenReturn(Optional.of(entry))
+        doThrow(IllegalArgumentException("Fiscal period 'January 2026' is closed"))
+            .`when`(fiscalYearService)
+            .validatePeriodOpen(orgId, LocalDate.of(2026, 1, 15))
+
+        val exception =
+            assertThrows<IllegalArgumentException> {
+                journalEntryService.postJournalEntry("entry-1", orgId)
+            }
+        assertThat(exception.message).contains("closed")
     }
 
     private fun createMockAccount(

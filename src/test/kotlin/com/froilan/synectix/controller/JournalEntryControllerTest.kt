@@ -17,6 +17,7 @@ import com.froilan.synectix.repository.PasswordResetTokenRepository
 import com.froilan.synectix.repository.RefreshTokenRepository
 import com.froilan.synectix.repository.SessionTokenRepository
 import com.froilan.synectix.repository.UserRepository
+import com.froilan.synectix.security.AuthenticationContext
 import com.froilan.synectix.security.RolePermissionCache
 import com.froilan.synectix.security.SessionContext
 import com.froilan.synectix.security.SynectixPermissionEvaluator
@@ -94,6 +95,9 @@ class JournalEntryControllerTest {
     @MockitoBean
     private lateinit var apiKeyService: ApiKeyService
 
+    @MockitoBean
+    private lateinit var authenticationContext: AuthenticationContext
+
     private val testUser =
         User(
             uuid = "user-123",
@@ -109,6 +113,8 @@ class JournalEntryControllerTest {
     @BeforeEach
     fun setup() {
         setupAuthWithPermissions("journal:create", "journal:read", "journal:post", "journal:void", "account:read")
+        `when`(authenticationContext.organizationId()).thenReturn("org-123")
+        `when`(authenticationContext.userId()).thenReturn("user-123")
     }
 
     private fun setupAuthWithPermissions(vararg permissions: String) {

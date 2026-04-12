@@ -10,17 +10,19 @@ import com.froilan.synectix.model.JournalEntrySource
 import com.froilan.synectix.model.JournalEntryStatus
 import com.froilan.synectix.repository.AccountRepository
 import com.froilan.synectix.repository.JournalEntryRepository
-import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @Service
 class JournalEntryService(
     private val journalEntryRepository: JournalEntryRepository,
     private val accountRepository: AccountRepository,
+    private val fiscalYearService: FiscalYearService,
+    private val entryNumberGenerator: JournalEntryNumberGenerator,
 ) {
     @Transactional
     fun createJournalEntry(
@@ -78,7 +80,9 @@ class JournalEntryService(
                 )
             }
 
-        return saveWithRetry(organizationId) { entryNumber ->
+        validateFiscalPeriodOpen(organizationId, request.date)
+
+        return entryNumberGenerator.saveWithRetry(organizationId) { entryNumber ->
             JournalEntry(
                 entryNumber = entryNumber,
                 date = request.date,
@@ -87,6 +91,58 @@ class JournalEntryService(
                 lines = lines,
                 createdBy = createdBy,
                 sourceReference = request.sourceReference,
+            )
+        }
+    }
+
+    @Transactional
+    fun createSystemEntry(
+        date: LocalDate,
+        description: String,
+        organizationId: String,
+        lines: List<JournalEntryLine>,
+        sourceReference: String,
+        createdBy: String,
+    ): JournalEntry {
+        if (lines.isEmpty()) {
+            throw IllegalArgumentException("System journal entry must have at least one line item")
+        }
+
+        lines.forEach { line ->
+            if (line.debit.compareTo(BigDecimal.ZERO) < 0 || line.credit.compareTo(BigDecimal.ZERO) < 0) {
+                throw IllegalArgumentException("Debit and credit amounts must not be negative")
+            }
+            val hasDebit = line.debit.compareTo(BigDecimal.ZERO) > 0
+            val hasCredit = line.credit.compareTo(BigDecimal.ZERO) > 0
+            if (hasDebit && hasCredit) {
+                throw IllegalArgumentException("A line item cannot have both debit and credit")
+            }
+            if (!hasDebit && !hasCredit) {
+                throw IllegalArgumentException("A line item must have either a debit or credit amount")
+            }
+        }
+
+        val totalDebits = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.debit) }
+        val totalCredits = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.credit) }
+        if (totalDebits.compareTo(totalCredits) != 0) {
+            throw IllegalArgumentException("System journal entry is not balanced")
+        }
+
+        validateFiscalPeriodOpen(organizationId, date)
+
+        val now = LocalDateTime.now(ZoneOffset.UTC)
+        return entryNumberGenerator.saveWithRetry(organizationId) { entryNumber ->
+            JournalEntry(
+                entryNumber = entryNumber,
+                date = date,
+                description = description,
+                organizationId = organizationId,
+                status = JournalEntryStatus.POSTED,
+                source = JournalEntrySource.SYSTEM,
+                sourceReference = sourceReference,
+                lines = lines,
+                createdBy = createdBy,
+                postedAt = now,
             )
         }
     }
@@ -107,10 +163,12 @@ class JournalEntryService(
             throw IllegalArgumentException("Journal entry is not balanced")
         }
 
+        validateFiscalPeriodOpen(organizationId, entry.date)
+
         return journalEntryRepository.save(
             entry.copy(
                 status = JournalEntryStatus.POSTED,
-                postedAt = LocalDateTime.now(),
+                postedAt = LocalDateTime.now(ZoneOffset.UTC),
             ),
         )
     }
@@ -126,11 +184,15 @@ class JournalEntryService(
             throw IllegalArgumentException("Only posted entries can be voided")
         }
 
+        val reversalDate = LocalDate.now(ZoneOffset.UTC)
+        validateFiscalPeriodOpen(organizationId, reversalDate)
+
+        val now = LocalDateTime.now(ZoneOffset.UTC)
         val voidedEntry =
             journalEntryRepository.save(
                 entry.copy(
                     status = JournalEntryStatus.VOIDED,
-                    voidedAt = LocalDateTime.now(),
+                    voidedAt = now,
                     voidReason = reason,
                 ),
             )
@@ -140,10 +202,10 @@ class JournalEntryService(
                 line.copy(debit = line.credit, credit = line.debit)
             }
 
-        saveWithRetry(organizationId) { reversingNumber ->
+        entryNumberGenerator.saveWithRetry(organizationId) { reversingNumber ->
             JournalEntry(
                 entryNumber = reversingNumber,
-                date = LocalDate.now(),
+                date = reversalDate,
                 description = "Reversal of ${entry.entryNumber}: $reason",
                 organizationId = organizationId,
                 status = JournalEntryStatus.POSTED,
@@ -151,7 +213,7 @@ class JournalEntryService(
                 sourceReference = "VOID-${entry.id}",
                 lines = reversedLines,
                 createdBy = entry.createdBy,
-                postedAt = LocalDateTime.now(),
+                postedAt = now,
             )
         }
 
@@ -317,20 +379,8 @@ class JournalEntryService(
         return entry
     }
 
-    private fun saveWithRetry(
+    private fun validateFiscalPeriodOpen(
         organizationId: String,
-        maxRetries: Int = 3,
-        buildEntry: (String) -> JournalEntry,
-    ): JournalEntry {
-        repeat(maxRetries) {
-            val count = journalEntryRepository.countByOrganizationId(organizationId)
-            val entryNumber = "JE-${(count + 1).toString().padStart(4, '0')}"
-            try {
-                return journalEntryRepository.save(buildEntry(entryNumber))
-            } catch (e: DuplicateKeyException) {
-                if (it == maxRetries - 1) throw e
-            }
-        }
-        throw IllegalStateException("Failed to generate unique entry number")
-    }
+        date: LocalDate,
+    ) = fiscalYearService.validatePeriodOpen(organizationId, date)
 }

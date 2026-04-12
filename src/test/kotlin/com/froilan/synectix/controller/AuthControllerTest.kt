@@ -41,6 +41,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @WebMvcTest(controllers = [AuthController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, SynectixPermissionEvaluator::class)
@@ -288,8 +289,8 @@ class AuthControllerTest {
                 username = "testuser",
                 roles = listOf("OWNER"),
                 organizationId = "org-123",
-                expiresAt = LocalDateTime.now().plusHours(24).toString(),
-                refreshTokenExpiresAt = LocalDateTime.now().plusDays(30).toString(),
+                expiresAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(24).toString(),
+                refreshTokenExpiresAt = LocalDateTime.now(ZoneOffset.UTC).plusDays(30).toString(),
             )
 
         `when`(authService.login(any<LoginRequest>(), anyOrNull(), anyOrNull())).thenReturn(authResponse)
@@ -402,8 +403,8 @@ class AuthControllerTest {
                 username = "testuser",
                 roles = listOf("OWNER"),
                 organizationId = "org-123",
-                expiresAt = LocalDateTime.now().plusHours(24).toString(),
-                refreshTokenExpiresAt = LocalDateTime.now().plusDays(30).toString(),
+                expiresAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(24).toString(),
+                refreshTokenExpiresAt = LocalDateTime.now(ZoneOffset.UTC).plusDays(30).toString(),
             )
 
         `when`(authService.refresh(any<String>())).thenReturn(authResponse)
@@ -700,8 +701,8 @@ class AuthControllerTest {
                 username = "testuser",
                 roles = listOf("MEMBER"),
                 organizationId = "org-456",
-                expiresAt = LocalDateTime.now().plusHours(24).toString(),
-                refreshTokenExpiresAt = LocalDateTime.now().plusDays(30).toString(),
+                expiresAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(24).toString(),
+                refreshTokenExpiresAt = LocalDateTime.now(ZoneOffset.UTC).plusDays(30).toString(),
             )
         `when`(authService.switchOrganization(any(), any(), anyOrNull(), anyOrNull())).thenReturn(switchResponse)
 

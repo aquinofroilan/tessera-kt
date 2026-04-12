@@ -29,6 +29,7 @@ import org.springframework.data.mongodb.core.FindAndModifyOptions
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.Optional
 
 class InvitationServiceTest {
@@ -139,7 +140,7 @@ class InvitationServiceTest {
         val expiredInvitation =
             createMockInvitation(
                 email = "reinvite@example.com",
-                expiryAt = LocalDateTime.now().minusHours(1),
+                expiryAt = LocalDateTime.now(ZoneOffset.UTC).minusHours(1),
             )
 
         `when`(roleRepository.findByName("MEMBER")).thenReturn(Optional.of(memberRole))
@@ -386,7 +387,7 @@ class InvitationServiceTest {
         role: String = "MEMBER",
         organizationId: String = "org-123",
         status: InvitationStatus = InvitationStatus.PENDING,
-        expiryAt: LocalDateTime = LocalDateTime.now().plusHours(72),
+        expiryAt: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC).plusHours(72),
     ) = Invitation(
         id = "inv-123",
         email = email,

@@ -31,6 +31,7 @@ import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.Optional
 import java.util.UUID
 
@@ -255,7 +256,7 @@ class AuthServiceTest {
         assertThat(result.accessToken).isNotNull().isNotEmpty()
         assertThat(result.refreshToken).isNotNull().isNotEmpty()
 
-        val expectedRefreshExpiry = LocalDateTime.now().plusDays(30)
+        val expectedRefreshExpiry = LocalDateTime.now(ZoneOffset.UTC).plusDays(30)
         val actualRefreshExpiry = LocalDateTime.parse(result.refreshTokenExpiresAt)
         assertThat(actualRefreshExpiry).isAfter(expectedRefreshExpiry.minusMinutes(1))
         assertThat(actualRefreshExpiry).isBefore(expectedRefreshExpiry.plusMinutes(1))
@@ -306,7 +307,7 @@ class AuthServiceTest {
         val capturedToken = tokenCaptor.firstValue
         assertThat(capturedToken.userId).isEqualTo(user.uuid)
 
-        val expectedExpiry = LocalDateTime.now().plusHours(24)
+        val expectedExpiry = LocalDateTime.now(ZoneOffset.UTC).plusHours(24)
         val actualExpiry = capturedToken.expiryAt
         assertThat(actualExpiry).isAfter(expectedExpiry.minusMinutes(1))
         assertThat(actualExpiry).isBefore(expectedExpiry.plusMinutes(1))
@@ -355,7 +356,7 @@ class AuthServiceTest {
                 tokenHash = oldRefreshTokenHash,
                 userId = user.uuid,
                 sessionTokenId = oldSessionToken.id,
-                expiryAt = LocalDateTime.now().plusDays(30),
+                expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusDays(30),
             )
 
         `when`(refreshTokenRepository.findByTokenHash(oldRefreshTokenHash)).thenReturn(Optional.of(existingRefreshToken))
@@ -383,7 +384,7 @@ class AuthServiceTest {
                 tokenHash = expiredTokenHash,
                 userId = "user-123",
                 sessionTokenId = "session-123",
-                expiryAt = LocalDateTime.now().minusHours(1),
+                expiryAt = LocalDateTime.now(ZoneOffset.UTC).minusHours(1),
             )
 
         `when`(refreshTokenRepository.findByTokenHash(expiredTokenHash)).thenReturn(Optional.of(expiredRefreshToken))
@@ -419,7 +420,7 @@ class AuthServiceTest {
                 tokenHash = refreshTokenHash,
                 userId = inactiveUser.uuid,
                 sessionTokenId = "session-123",
-                expiryAt = LocalDateTime.now().plusDays(30),
+                expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusDays(30),
             )
 
         `when`(refreshTokenRepository.findByTokenHash(refreshTokenHash)).thenReturn(Optional.of(existingRefreshToken))
@@ -461,7 +462,8 @@ class AuthServiceTest {
     @Test
     fun `listSessions should return only non-expired sessions`() {
         val userId = "user-123"
-        val activeSession = SessionToken(id = "s1", token = "t1", userId = userId, expiryAt = LocalDateTime.now().plusHours(12))
+        val activeSession =
+            SessionToken(id = "s1", token = "t1", userId = userId, expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12))
         `when`(sessionTokenRepository.findByUserIdAndExpiryAtAfter(eq(userId), any())).thenReturn(listOf(activeSession))
 
         val result = authService.listSessions(userId)
@@ -473,7 +475,7 @@ class AuthServiceTest {
     @Test
     fun `revokeSession should delete session and its refresh token`() {
         val userId = "user-123"
-        val session = SessionToken(id = "s1", token = "t1", userId = userId, expiryAt = LocalDateTime.now().plusHours(12))
+        val session = SessionToken(id = "s1", token = "t1", userId = userId, expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12))
 
         `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
 
@@ -485,7 +487,8 @@ class AuthServiceTest {
 
     @Test
     fun `revokeSession should throw when session belongs to different user`() {
-        val session = SessionToken(id = "s1", token = "t1", userId = "other-user", expiryAt = LocalDateTime.now().plusHours(12))
+        val session =
+            SessionToken(id = "s1", token = "t1", userId = "other-user", expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12))
 
         `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
 
@@ -500,7 +503,8 @@ class AuthServiceTest {
     fun `revokeSession should throw when attempting to revoke the current session`() {
         val userId = "user-123"
         val currentToken = "current-token"
-        val session = SessionToken(id = "s1", token = currentToken, userId = userId, expiryAt = LocalDateTime.now().plusHours(12))
+        val session =
+            SessionToken(id = "s1", token = currentToken, userId = userId, expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12))
 
         `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
 
@@ -517,7 +521,7 @@ class AuthServiceTest {
         val currentToken = "current-token"
         val otherSessions =
             listOf(
-                SessionToken(id = "s2", token = "other-token", userId = userId, expiryAt = LocalDateTime.now().plusHours(12)),
+                SessionToken(id = "s2", token = "other-token", userId = userId, expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12)),
             )
         `when`(sessionTokenRepository.findByUserIdAndTokenNot(userId, currentToken)).thenReturn(otherSessions)
 
@@ -608,7 +612,7 @@ class AuthServiceTest {
             PasswordResetToken(
                 tokenHash = "hashed-valid-token",
                 userId = user.uuid,
-                expiryAt = LocalDateTime.now().plusMinutes(30),
+                expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusMinutes(30),
             )
 
         `when`(passwordResetTokenRepository.findByTokenHash("hashed-valid-token")).thenReturn(Optional.of(resetToken))
@@ -641,7 +645,7 @@ class AuthServiceTest {
             PasswordResetToken(
                 tokenHash = "hashed-expired-token",
                 userId = "user-123",
-                expiryAt = LocalDateTime.now().minusMinutes(10),
+                expiryAt = LocalDateTime.now(ZoneOffset.UTC).minusMinutes(10),
             )
 
         `when`(passwordResetTokenRepository.findByTokenHash("hashed-expired-token"))
@@ -834,6 +838,6 @@ class AuthServiceTest {
             id = "token-123",
             token = "generated-token",
             userId = "user-123",
-            expiryAt = LocalDateTime.now().plusHours(24),
+            expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(24),
         )
 }
