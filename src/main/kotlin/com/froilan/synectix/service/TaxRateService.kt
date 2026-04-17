@@ -124,9 +124,16 @@ class TaxRateService(
         organizationId: String,
     ) {
         val groups = taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(organizationId, taxRateId)
+        if (groups.isEmpty()) return
+
+        val allRateIds = groups.flatMap { it.taxRateIds }.distinct()
+        val ratesById = taxRateRepository.findAllById(allRateIds).associateBy { it.id }
+
         groups.forEach { group ->
-            val rates = taxRateRepository.findAllById(group.taxRateIds)
-            val newCombinedRate = rates.fold(BigDecimal.ZERO) { sum, rate -> sum.add(rate.percentage) }
+            val newCombinedRate =
+                group.taxRateIds.fold(BigDecimal.ZERO) { sum, id ->
+                    sum.add(ratesById[id]?.percentage ?: BigDecimal.ZERO)
+                }
             taxGroupRepository.save(group.copy(combinedRate = newCombinedRate))
         }
     }

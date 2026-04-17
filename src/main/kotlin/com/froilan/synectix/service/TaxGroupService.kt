@@ -158,6 +158,10 @@ class TaxGroupService(
         startDate: LocalDate,
         endDate: LocalDate,
     ): TaxSummaryResponse {
+        if (startDate.isAfter(endDate)) {
+            throw BusinessRuleException("Start date must be on or before end date")
+        }
+
         val taxCollected =
             accountRepository
                 .findByOrganizationIdAndCode(organizationId, "2300")

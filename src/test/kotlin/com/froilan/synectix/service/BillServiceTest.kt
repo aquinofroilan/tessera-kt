@@ -11,6 +11,7 @@ import com.froilan.synectix.model.BillLine
 import com.froilan.synectix.model.BillPayment
 import com.froilan.synectix.model.BillStatus
 import com.froilan.synectix.model.JournalEntry
+import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.model.JournalEntryStatus
 import com.froilan.synectix.model.PaymentMethod
 import com.froilan.synectix.model.Vendor
@@ -369,6 +370,82 @@ class BillServiceTest {
         assertThat(report.totals.total).isEqualByComparingTo(BigDecimal("550.00"))
     }
 
+    @Test
+    fun `create with taxGroupId should compute and store tax`() {
+        val vendor = createVendor()
+        val expenseAccount = createAccount("acc-1", "5000", "Office Supplies", AccountType.EXPENSE)
+
+        `when`(vendorService.getVendor("v-1", orgId)).thenReturn(vendor)
+        `when`(accountRepository.findAllById(listOf("acc-1")))
+            .thenReturn(listOf(expenseAccount))
+        `when`(billRepository.countByOrganizationId(orgId)).thenReturn(0L)
+        `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
+        `when`(taxGroupService.calculateTaxAmount(any(), any(), any()))
+            .thenReturn(BigDecimal("42.50"))
+
+        val request =
+            CreateBillRequest(
+                vendorId = "v-1",
+                date = LocalDate.of(2026, 3, 1),
+                dueDate = LocalDate.of(2026, 3, 31),
+                taxGroupId = "tg-1",
+                lines = listOf(BillLineRequest(accountId = "acc-1", amount = BigDecimal("500.00"))),
+            )
+
+        val result = billService.createBill(request, orgId, userId)
+
+        assertThat(result.taxGroupId).isEqualTo("tg-1")
+        assertThat(result.taxAmount).isEqualByComparingTo(BigDecimal("42.50"))
+        assertThat(result.totalAmount).isEqualByComparingTo(BigDecimal("542.50"))
+    }
+
+    @Test
+    fun `approve with tax should include tax input debit and correct AP credit`() {
+        val bill =
+            createBill(
+                status = BillStatus.DRAFT,
+                totalAmount = BigDecimal("542.50"),
+                taxAmount = BigDecimal("42.50"),
+            )
+        val apAccount = createAccount("acc-ap", "2000", "Accounts Payable", AccountType.LIABILITY)
+        val taxInputAccount = createAccount("acc-tax", "2310", "Tax Input Credits", AccountType.ASSET)
+        val mockEntry = createMockJournalEntry()
+
+        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2000"))
+            .thenReturn(Optional.of(apAccount))
+        `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2310"))
+            .thenReturn(Optional.of(taxInputAccount))
+        `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
+            .thenReturn(mockEntry)
+        `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
+
+        billService.approveBill("bill-1", orgId, userId)
+
+        val linesCaptor = argumentCaptor<List<JournalEntryLine>>()
+        verify(journalEntryService).createSystemEntry(
+            any(),
+            any(),
+            any(),
+            linesCaptor.capture(),
+            any(),
+            any(),
+        )
+        val lines = linesCaptor.firstValue
+
+        val expenseDebit = lines.find { it.accountCode == "5000" }
+        assertThat(expenseDebit).isNotNull
+        assertThat(expenseDebit!!.debit).isEqualByComparingTo(BigDecimal("500.00"))
+
+        val taxDebit = lines.find { it.accountCode == "2310" }
+        assertThat(taxDebit).isNotNull
+        assertThat(taxDebit!!.debit).isEqualByComparingTo(BigDecimal("42.50"))
+
+        val apCredit = lines.find { it.accountCode == "2000" }
+        assertThat(apCredit).isNotNull
+        assertThat(apCredit!!.credit).isEqualByComparingTo(BigDecimal("542.50"))
+    }
+
     private fun createVendor(
         id: String = "v-1",
         isActive: Boolean = true,
@@ -399,6 +476,7 @@ class BillServiceTest {
         vendorId: String = "v-1",
         status: BillStatus = BillStatus.DRAFT,
         totalAmount: BigDecimal = BigDecimal("500.00"),
+        taxAmount: BigDecimal = BigDecimal.ZERO,
         amountPaid: BigDecimal = BigDecimal.ZERO,
         dueDate: LocalDate = LocalDate.of(2026, 3, 31),
         journalEntryId: String? = null,
@@ -417,10 +495,11 @@ class BillServiceTest {
                     accountId = "acc-1",
                     accountCode = "5000",
                     accountName = "Office Supplies",
-                    amount = totalAmount,
+                    amount = totalAmount.subtract(taxAmount),
                 ),
             ),
         totalAmount = totalAmount,
+        taxAmount = taxAmount,
         amountPaid = amountPaid,
         journalEntryId = journalEntryId,
         createdBy = userId,

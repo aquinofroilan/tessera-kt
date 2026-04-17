@@ -12,6 +12,7 @@ import com.froilan.synectix.model.InvoiceLine
 import com.froilan.synectix.model.InvoiceReceipt
 import com.froilan.synectix.model.InvoiceStatus
 import com.froilan.synectix.model.JournalEntry
+import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.model.JournalEntryStatus
 import com.froilan.synectix.model.PaymentMethod
 import com.froilan.synectix.repository.AccountRepository
@@ -361,6 +362,53 @@ class InvoiceServiceTest {
         isActive = isActive,
     )
 
+    @Test
+    fun `approve with tax should include tax payable credit and correct AR debit`() {
+        val invoice =
+            createInvoice(
+                status = InvoiceStatus.DRAFT,
+                totalAmount = BigDecimal("2170.00"),
+                taxAmount = BigDecimal("170.00"),
+            )
+        val arAccount = createAccount("acc-ar", "1100", "Accounts Receivable", AccountType.ASSET)
+        val taxPayableAccount = createAccount("acc-tax", "2300", "Sales Tax Payable", AccountType.LIABILITY)
+        val mockEntry = createMockJournalEntry()
+
+        `when`(invoiceRepository.findById("inv-1")).thenReturn(Optional.of(invoice))
+        `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1100"))
+            .thenReturn(Optional.of(arAccount))
+        `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2300"))
+            .thenReturn(Optional.of(taxPayableAccount))
+        `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
+            .thenReturn(mockEntry)
+        `when`(invoiceRepository.save(any<Invoice>())).thenAnswer { it.arguments[0] }
+
+        invoiceService.approveInvoice("inv-1", orgId, userId)
+
+        val linesCaptor = argumentCaptor<List<JournalEntryLine>>()
+        verify(journalEntryService).createSystemEntry(
+            any(),
+            any(),
+            any(),
+            linesCaptor.capture(),
+            any(),
+            any(),
+        )
+        val lines = linesCaptor.firstValue
+
+        val arDebit = lines.find { it.accountCode == "1100" }
+        assertThat(arDebit).isNotNull
+        assertThat(arDebit!!.debit).isEqualByComparingTo(BigDecimal("2170.00"))
+
+        val revenueCredit = lines.find { it.accountCode == "4100" }
+        assertThat(revenueCredit).isNotNull
+        assertThat(revenueCredit!!.credit).isEqualByComparingTo(BigDecimal("2000.00"))
+
+        val taxCredit = lines.find { it.accountCode == "2300" }
+        assertThat(taxCredit).isNotNull
+        assertThat(taxCredit!!.credit).isEqualByComparingTo(BigDecimal("170.00"))
+    }
+
     private fun createAccount(
         id: String,
         code: String,
@@ -379,6 +427,7 @@ class InvoiceServiceTest {
         customerId: String = "c-1",
         status: InvoiceStatus = InvoiceStatus.DRAFT,
         totalAmount: BigDecimal = BigDecimal("2000.00"),
+        taxAmount: BigDecimal = BigDecimal.ZERO,
         amountReceived: BigDecimal = BigDecimal.ZERO,
         dueDate: LocalDate = LocalDate.of(2026, 3, 31),
         journalEntryId: String? = null,
@@ -397,10 +446,11 @@ class InvoiceServiceTest {
                     accountId = "acc-1",
                     accountCode = "4100",
                     accountName = "Service Revenue",
-                    amount = totalAmount,
+                    amount = totalAmount.subtract(taxAmount),
                 ),
             ),
         totalAmount = totalAmount,
+        taxAmount = taxAmount,
         amountReceived = amountReceived,
         journalEntryId = journalEntryId,
         createdBy = userId,
