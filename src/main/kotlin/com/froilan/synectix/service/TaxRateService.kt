@@ -77,6 +77,10 @@ class TaxRateService(
             throw BusinessRuleException("Cannot update inactive tax rate")
         }
 
+        if (request.percentage != null && request.percentage <= BigDecimal.ZERO) {
+            throw BusinessRuleException("Percentage must be positive")
+        }
+
         val updated =
             taxRate.copy(
                 name = request.name ?: taxRate.name,

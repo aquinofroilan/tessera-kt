@@ -97,7 +97,10 @@ class TaxGroupService(
             throw BusinessRuleException("Cannot update inactive tax group")
         }
 
-        val newRateIds = request.taxRateIds ?: taxGroup.taxRateIds
+        if (request.taxRateIds != null && request.taxRateIds.isEmpty()) {
+            throw BusinessRuleException("At least one tax rate is required")
+        }
+        val newRateIds = request.taxRateIds?.distinct() ?: taxGroup.taxRateIds
         val rates =
             if (request.taxRateIds != null) {
                 validateAndLoadRates(newRateIds, organizationId)
@@ -148,6 +151,8 @@ class TaxGroupService(
             .divide(BigDecimal("100"), 2, RoundingMode.HALF_UP)
     }
 
+    fun loadRatesByIds(ids: List<String>): List<TaxRate> = taxRateRepository.findAllById(ids)
+
     fun getTaxSummary(
         organizationId: String,
         startDate: LocalDate,
@@ -156,14 +161,22 @@ class TaxGroupService(
         val taxCollected =
             accountRepository
                 .findByOrganizationIdAndCode(organizationId, "2300")
-                .map { journalEntryService.getAccountBalance(it.id, organizationId, endDate).balance }
-                .orElse(BigDecimal.ZERO)
+                .map {
+                    val endBalance = journalEntryService.getAccountBalance(it.id, organizationId, endDate).balance
+                    val startBalance =
+                        journalEntryService.getAccountBalance(it.id, organizationId, startDate.minusDays(1)).balance
+                    endBalance.subtract(startBalance)
+                }.orElse(BigDecimal.ZERO)
 
         val taxPaid =
             accountRepository
                 .findByOrganizationIdAndCode(organizationId, "2310")
-                .map { journalEntryService.getAccountBalance(it.id, organizationId, endDate).balance }
-                .orElse(BigDecimal.ZERO)
+                .map {
+                    val endBalance = journalEntryService.getAccountBalance(it.id, organizationId, endDate).balance
+                    val startBalance =
+                        journalEntryService.getAccountBalance(it.id, organizationId, startDate.minusDays(1)).balance
+                    endBalance.subtract(startBalance)
+                }.orElse(BigDecimal.ZERO)
 
         return TaxSummaryResponse(
             taxCollected = taxCollected,

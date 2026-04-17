@@ -108,7 +108,12 @@ class TaxController(
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val groups = taxGroupService.listTaxGroups(orgId, active ?: false)
         val allRateIds = groups.flatMap { it.taxRateIds }.distinct()
-        val allRates = taxRateService.listTaxRates(orgId).associateBy { it.id }
+        val allRates =
+            if (allRateIds.isNotEmpty()) {
+                taxGroupService.loadRatesByIds(allRateIds).associateBy { it.id }
+            } else {
+                emptyMap()
+            }
         return ResponseEntity.ok(
             groups.map { group ->
                 val rates = group.taxRateIds.mapNotNull { allRates[it] }
