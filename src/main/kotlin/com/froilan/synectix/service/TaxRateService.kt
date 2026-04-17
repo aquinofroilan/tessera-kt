@@ -77,6 +77,12 @@ class TaxRateService(
             throw BusinessRuleException("Cannot update inactive tax rate")
         }
 
+        if (request.name != null && request.name.isBlank()) {
+            throw BusinessRuleException("Tax rate name cannot be blank")
+        }
+        if (request.authority != null && request.authority.isBlank()) {
+            throw BusinessRuleException("Tax authority cannot be blank")
+        }
         if (request.percentage != null && request.percentage <= BigDecimal.ZERO) {
             throw BusinessRuleException("Percentage must be positive")
         }

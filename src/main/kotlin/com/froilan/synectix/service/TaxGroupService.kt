@@ -29,6 +29,9 @@ class TaxGroupService(
         request: CreateTaxGroupRequest,
         organizationId: String,
     ): TaxGroup {
+        if (request.taxRateIds.isEmpty()) {
+            throw BusinessRuleException("At least one tax rate is required")
+        }
         val uniqueRateIds = request.taxRateIds.distinct()
         val rates = validateAndLoadRates(uniqueRateIds, organizationId)
         val combinedRate = rates.fold(BigDecimal.ZERO) { sum, rate -> sum.add(rate.percentage) }
@@ -97,6 +100,9 @@ class TaxGroupService(
             throw BusinessRuleException("Cannot update inactive tax group")
         }
 
+        if (request.name != null && request.name.isBlank()) {
+            throw BusinessRuleException("Tax group name cannot be blank")
+        }
         if (request.taxRateIds != null && request.taxRateIds.isEmpty()) {
             throw BusinessRuleException("At least one tax rate is required")
         }

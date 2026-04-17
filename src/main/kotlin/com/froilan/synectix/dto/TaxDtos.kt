@@ -3,6 +3,7 @@ package com.froilan.synectix.dto
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Positive
+import jakarta.validation.constraints.Size
 import java.math.BigDecimal
 
 data class CreateTaxRateRequest(
@@ -17,8 +18,11 @@ data class CreateTaxRateRequest(
 )
 
 data class UpdateTaxRateRequest(
+    @field:Size(min = 1, message = "Tax rate name cannot be blank")
     val name: String? = null,
+    @field:Positive(message = "Percentage must be positive")
     val percentage: BigDecimal? = null,
+    @field:Size(min = 1, message = "Tax authority cannot be blank")
     val authority: String? = null,
 )
 
@@ -32,7 +36,9 @@ data class CreateTaxGroupRequest(
 )
 
 data class UpdateTaxGroupRequest(
+    @field:Size(min = 1, message = "Tax group name cannot be blank")
     val name: String? = null,
+    @field:Size(min = 1, message = "At least one tax rate is required")
     val taxRateIds: List<String>? = null,
 )
 
