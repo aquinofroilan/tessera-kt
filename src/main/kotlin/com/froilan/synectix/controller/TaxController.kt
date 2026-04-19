@@ -110,7 +110,10 @@ class TaxController(
         val allRateIds = groups.flatMap { it.taxRateIds }.distinct()
         val allRates =
             if (allRateIds.isNotEmpty()) {
-                taxGroupService.loadRatesByIds(allRateIds).associateBy { it.id }
+                taxGroupService
+                    .loadRatesByIds(allRateIds)
+                    .filter { it.organizationId == orgId }
+                    .associateBy { it.id }
             } else {
                 emptyMap()
             }

@@ -91,6 +91,38 @@ class TaxRateServiceTest {
     }
 
     @Test
+    fun `update percentage should fail-fast when cascade encounters missing rate`() {
+        val rate = createTaxRate()
+        val group =
+            TaxGroup(
+                id = "tg-1",
+                name = "Combined",
+                code = "COMB",
+                taxRateIds = listOf("tr-1", "tr-orphan"),
+                combinedRate = BigDecimal("12.00"),
+                organizationId = orgId,
+            )
+        val updatedRate = rate.copy(percentage = BigDecimal("10.00"))
+
+        `when`(taxRateRepository.findById("tr-1")).thenReturn(Optional.of(rate))
+        `when`(taxRateRepository.save(any<TaxRate>())).thenReturn(updatedRate)
+        `when`(taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(orgId, "tr-1"))
+            .thenReturn(listOf(group))
+        `when`(taxRateRepository.findAllById(listOf("tr-1", "tr-orphan")))
+            .thenReturn(listOf(updatedRate))
+
+        val exception =
+            assertThrows<BusinessRuleException> {
+                taxRateService.updateTaxRate(
+                    "tr-1",
+                    UpdateTaxRateRequest(percentage = BigDecimal("10.00")),
+                    orgId,
+                )
+            }
+        assertThat(exception.message).contains("tr-orphan")
+    }
+
+    @Test
     fun `delete should throw when rate is in active group`() {
         val rate = createTaxRate()
         val activeGroup =

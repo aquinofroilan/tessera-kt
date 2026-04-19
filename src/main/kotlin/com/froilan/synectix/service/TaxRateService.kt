@@ -135,10 +135,19 @@ class TaxRateService(
         val allRateIds = groups.flatMap { it.taxRateIds }.distinct()
         val ratesById = taxRateRepository.findAllById(allRateIds).associateBy { it.id }
 
+        val missing = allRateIds.filter { it !in ratesById }
+        if (missing.isNotEmpty()) {
+            throw BusinessRuleException("Tax rates not found: ${missing.joinToString(", ")}")
+        }
+        val crossOrg = ratesById.values.filter { it.organizationId != organizationId }.map { it.id }
+        if (crossOrg.isNotEmpty()) {
+            throw BusinessRuleException("Tax rates not found: ${crossOrg.joinToString(", ")}")
+        }
+
         groups.forEach { group ->
             val newCombinedRate =
                 group.taxRateIds.fold(BigDecimal.ZERO) { sum, id ->
-                    sum.add(ratesById[id]?.percentage ?: BigDecimal.ZERO)
+                    sum.add(ratesById.getValue(id).percentage)
                 }
             taxGroupRepository.save(group.copy(combinedRate = newCombinedRate))
         }
