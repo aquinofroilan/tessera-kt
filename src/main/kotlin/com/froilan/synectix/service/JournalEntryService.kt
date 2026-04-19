@@ -5,7 +5,6 @@ import com.froilan.synectix.dto.CreateJournalEntryRequest
 import com.froilan.synectix.dto.TrialBalanceResponse
 import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.exception.ResourceNotFoundException
-import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.model.JournalEntry
 import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.model.JournalEntrySource
@@ -289,11 +288,7 @@ class JournalEntryService(
             }
         }
 
-        val balance =
-            when (account.type) {
-                AccountType.ASSET, AccountType.EXPENSE -> totalDebits.subtract(totalCredits)
-                AccountType.LIABILITY, AccountType.EQUITY, AccountType.REVENUE -> totalCredits.subtract(totalDebits)
-            }
+        val balance = account.type.signedBalance(totalDebits, totalCredits)
 
         return AccountBalanceResponse(
             accountId = account.id,
@@ -340,11 +335,7 @@ class JournalEntryService(
                 .map { account ->
                     val (totalDebits, totalCredits) =
                         accountTotals.getOrDefault(account.id, BigDecimal.ZERO to BigDecimal.ZERO)
-                    val balance =
-                        when (account.type) {
-                            AccountType.ASSET, AccountType.EXPENSE -> totalDebits.subtract(totalCredits)
-                            AccountType.LIABILITY, AccountType.EQUITY, AccountType.REVENUE -> totalCredits.subtract(totalDebits)
-                        }
+                    val balance = account.type.signedBalance(totalDebits, totalCredits)
                     AccountBalanceResponse(
                         accountId = account.id,
                         accountCode = account.code,
