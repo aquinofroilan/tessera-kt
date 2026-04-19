@@ -16,10 +16,12 @@ import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.repository.AccountRepository
 import com.froilan.synectix.repository.InvoiceReceiptRepository
 import com.froilan.synectix.repository.InvoiceRepository
+import com.froilan.synectix.repository.OrganizationRepository
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -34,6 +36,9 @@ class InvoiceService(
     private val customerService: CustomerService,
     private val journalEntryService: JournalEntryService,
     private val taxGroupService: TaxGroupService,
+    private val organizationRepository: OrganizationRepository,
+    private val currencyService: CurrencyService,
+    private val exchangeRateService: ExchangeRateService,
 ) {
     @Transactional
     fun createInvoice(
@@ -93,6 +98,21 @@ class InvoiceService(
         val taxAmount = taxGroupService.calculateTaxAmount(request.taxGroupId, organizationId, subtotalAmount)
         val totalAmount = subtotalAmount.add(taxAmount)
 
+        val baseCurrency = getBaseCurrency(organizationId)
+        val docCurrency = request.currencyCode ?: baseCurrency
+        if (docCurrency != baseCurrency) {
+            currencyService.getCurrency(docCurrency)
+        }
+        val exchangeRate =
+            if (docCurrency == baseCurrency) {
+                BigDecimal.ONE
+            } else {
+                exchangeRateService.getRate(organizationId, docCurrency, baseCurrency, request.date)
+            }
+        val baseDecimals = currencyService.getCurrency(baseCurrency).decimalPlaces
+        val baseCurrencyAmount = totalAmount.multiply(exchangeRate).setScale(baseDecimals, RoundingMode.HALF_UP)
+        val baseCurrencyTaxAmount = taxAmount.multiply(exchangeRate).setScale(baseDecimals, RoundingMode.HALF_UP)
+
         return saveInvoiceWithRetry(organizationId) { invoiceNumber ->
             Invoice(
                 invoiceNumber = invoiceNumber,
@@ -106,10 +126,21 @@ class InvoiceService(
                 lines = lines,
                 totalAmount = totalAmount,
                 taxAmount = taxAmount,
+                currencyCode = docCurrency,
+                exchangeRate = exchangeRate,
+                baseCurrencyAmount = baseCurrencyAmount,
+                baseCurrencyTaxAmount = baseCurrencyTaxAmount,
                 createdBy = createdBy,
             )
         }
     }
+
+    private fun getBaseCurrency(organizationId: String): String =
+        organizationRepository
+            .findById(organizationId)
+            .orElseThrow {
+                IllegalStateException("Organization $organizationId not found")
+            }.baseCurrency
 
     fun getInvoice(
         invoiceId: String,
@@ -154,6 +185,7 @@ class InvoiceService(
         }
 
         val arAccount = getArAccount(organizationId)
+        val baseDecimals = currencyService.getCurrency(getBaseCurrency(organizationId)).decimalPlaces
 
         val revenueLines =
             invoice.lines.map { line ->
@@ -162,13 +194,13 @@ class InvoiceService(
                     accountCode = line.accountCode,
                     accountName = line.accountName,
                     debit = BigDecimal.ZERO,
-                    credit = line.amount,
+                    credit = line.amount.multiply(invoice.exchangeRate).setScale(baseDecimals, RoundingMode.HALF_UP),
                     description = line.description,
                 )
             }
 
         val taxLines =
-            if (invoice.taxAmount.compareTo(BigDecimal.ZERO) > 0) {
+            if (invoice.baseCurrencyTaxAmount.compareTo(BigDecimal.ZERO) > 0) {
                 val taxPayableAccount = getTaxPayableAccount(organizationId)
                 listOf(
                     JournalEntryLine(
@@ -176,7 +208,7 @@ class InvoiceService(
                         accountCode = taxPayableAccount.code,
                         accountName = taxPayableAccount.name,
                         debit = BigDecimal.ZERO,
-                        credit = invoice.taxAmount,
+                        credit = invoice.baseCurrencyTaxAmount,
                         description = "Tax Payable - ${invoice.customerName} - ${invoice.invoiceNumber}",
                     ),
                 )
@@ -190,16 +222,24 @@ class InvoiceService(
                     accountId = arAccount.id,
                     accountCode = arAccount.code,
                     accountName = arAccount.name,
-                    debit = invoice.totalAmount,
+                    debit = invoice.baseCurrencyAmount,
                     credit = BigDecimal.ZERO,
                     description = "AR - ${invoice.customerName} - ${invoice.invoiceNumber}",
                 ),
             ) + revenueLines + taxLines
 
+        val description =
+            if (invoice.currencyCode == getBaseCurrency(organizationId)) {
+                "Invoice ${invoice.invoiceNumber} - ${invoice.customerName}"
+            } else {
+                "Invoice ${invoice.invoiceNumber} - ${invoice.customerName} " +
+                    "(${invoice.currencyCode} ${invoice.totalAmount} @ ${invoice.exchangeRate})"
+            }
+
         val journalEntry =
             journalEntryService.createSystemEntry(
                 date = invoice.date,
-                description = "Invoice ${invoice.invoiceNumber} - ${invoice.customerName}",
+                description = description,
                 organizationId = organizationId,
                 lines = journalLines,
                 sourceReference = "INVOICE-APPROVE-${invoice.id}",
@@ -293,6 +333,9 @@ class InvoiceService(
         val cashAccount = getCashAccount(organizationId)
 
         val receiptId = UUID.randomUUID().toString()
+        val baseDecimals = currencyService.getCurrency(getBaseCurrency(organizationId)).decimalPlaces
+        val receiptBaseAmount =
+            request.amount.multiply(invoice.exchangeRate).setScale(baseDecimals, RoundingMode.HALF_UP)
 
         val journalEntry =
             journalEntryService.createSystemEntry(
@@ -305,7 +348,7 @@ class InvoiceService(
                             accountId = cashAccount.id,
                             accountCode = cashAccount.code,
                             accountName = cashAccount.name,
-                            debit = request.amount,
+                            debit = receiptBaseAmount,
                             credit = BigDecimal.ZERO,
                             description = "Receipt - ${invoice.customerName}",
                         ),
@@ -314,7 +357,7 @@ class InvoiceService(
                             accountCode = arAccount.code,
                             accountName = arAccount.name,
                             debit = BigDecimal.ZERO,
-                            credit = request.amount,
+                            credit = receiptBaseAmount,
                             description = "Receipt - ${invoice.customerName}",
                         ),
                     ),
@@ -329,6 +372,8 @@ class InvoiceService(
                     invoiceId = invoice.id,
                     receiptDate = request.receiptDate,
                     amount = request.amount,
+                    baseCurrencyAmount = receiptBaseAmount,
+                    exchangeRate = invoice.exchangeRate,
                     paymentMethod = request.paymentMethod,
                     referenceNumber = request.referenceNumber,
                     journalEntryId = journalEntry.id,
@@ -338,12 +383,14 @@ class InvoiceService(
             )
 
         val newAmountReceived = invoice.amountReceived.add(request.amount)
+        val newBaseAmountReceived = invoice.baseCurrencyAmountReceived.add(receiptBaseAmount)
         val fullyPaid = newAmountReceived.compareTo(invoice.totalAmount) >= 0
         val newStatus = if (fullyPaid) InvoiceStatus.PAID else InvoiceStatus.PARTIALLY_PAID
 
         invoiceRepository.save(
             invoice.copy(
                 amountReceived = newAmountReceived,
+                baseCurrencyAmountReceived = newBaseAmountReceived,
                 status = newStatus,
                 paidAt = if (fullyPaid) LocalDateTime.now(ZoneOffset.UTC) else null,
             ),
@@ -410,7 +457,7 @@ class InvoiceService(
         var days90plus = BigDecimal.ZERO
 
         invoices.forEach { invoice ->
-            val outstanding = invoice.totalAmount.subtract(invoice.amountReceived)
+            val outstanding = invoice.baseCurrencyAmount.subtract(invoice.baseCurrencyAmountReceived)
             val daysOverdue = ChronoUnit.DAYS.between(invoice.dueDate, asOfDate)
 
             when {

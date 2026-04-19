@@ -6,6 +6,7 @@ import com.froilan.synectix.dto.RecordReceiptRequest
 import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
+import com.froilan.synectix.model.Currency
 import com.froilan.synectix.model.Customer
 import com.froilan.synectix.model.Invoice
 import com.froilan.synectix.model.InvoiceLine
@@ -14,10 +15,12 @@ import com.froilan.synectix.model.InvoiceStatus
 import com.froilan.synectix.model.JournalEntry
 import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.model.JournalEntryStatus
+import com.froilan.synectix.model.Organizations
 import com.froilan.synectix.model.PaymentMethod
 import com.froilan.synectix.repository.AccountRepository
 import com.froilan.synectix.repository.InvoiceReceiptRepository
 import com.froilan.synectix.repository.InvoiceRepository
+import com.froilan.synectix.repository.OrganizationRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -30,6 +33,7 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.Optional
 
 class InvoiceServiceTest {
@@ -40,6 +44,9 @@ class InvoiceServiceTest {
     private lateinit var customerService: CustomerService
     private lateinit var journalEntryService: JournalEntryService
     private lateinit var taxGroupService: TaxGroupService
+    private lateinit var organizationRepository: OrganizationRepository
+    private lateinit var currencyService: CurrencyService
+    private lateinit var exchangeRateService: ExchangeRateService
 
     private val orgId = "org-123"
     private val userId = "user-1"
@@ -52,8 +59,27 @@ class InvoiceServiceTest {
         customerService = mock(CustomerService::class.java)
         journalEntryService = mock(JournalEntryService::class.java)
         taxGroupService = mock(TaxGroupService::class.java)
+        organizationRepository = mock(OrganizationRepository::class.java)
+        currencyService = mock(CurrencyService::class.java)
+        exchangeRateService = mock(ExchangeRateService::class.java)
         `when`(taxGroupService.calculateTaxAmount(anyOrNull(), any(), any()))
             .thenReturn(java.math.BigDecimal.ZERO)
+        `when`(organizationRepository.findById(orgId)).thenReturn(
+            Optional.of(
+                Organizations(
+                    uuid = orgId,
+                    orgSlug = "test",
+                    name = "Test",
+                    legalName = "Test",
+                    tradeName = "Test",
+                    baseCurrency = "USD",
+                    fiscalYearStart = LocalDateTime.of(2026, 1, 1, 0, 0),
+                    timezone = "UTC",
+                ),
+            ),
+        )
+        `when`(currencyService.getCurrency("USD")).thenReturn(Currency("USD", "US Dollar", "\$", 2))
+        `when`(currencyService.getCurrency("PHP")).thenReturn(Currency("PHP", "Philippine Peso", "₱", 2))
         invoiceService =
             InvoiceService(
                 invoiceRepository = invoiceRepository,
@@ -62,6 +88,9 @@ class InvoiceServiceTest {
                 customerService = customerService,
                 journalEntryService = journalEntryService,
                 taxGroupService = taxGroupService,
+                organizationRepository = organizationRepository,
+                currencyService = currencyService,
+                exchangeRateService = exchangeRateService,
             )
     }
 
@@ -460,6 +489,11 @@ class InvoiceServiceTest {
         amountReceived: BigDecimal = BigDecimal.ZERO,
         dueDate: LocalDate = LocalDate.of(2026, 3, 31),
         journalEntryId: String? = null,
+        currencyCode: String = "USD",
+        exchangeRate: BigDecimal = BigDecimal.ONE,
+        baseCurrencyAmount: BigDecimal = totalAmount,
+        baseCurrencyTaxAmount: BigDecimal = taxAmount,
+        baseCurrencyAmountReceived: BigDecimal = amountReceived,
     ) = Invoice(
         id = id,
         invoiceNumber = "INV-0001",
@@ -481,6 +515,11 @@ class InvoiceServiceTest {
         totalAmount = totalAmount,
         taxAmount = taxAmount,
         amountReceived = amountReceived,
+        currencyCode = currencyCode,
+        exchangeRate = exchangeRate,
+        baseCurrencyAmount = baseCurrencyAmount,
+        baseCurrencyTaxAmount = baseCurrencyTaxAmount,
+        baseCurrencyAmountReceived = baseCurrencyAmountReceived,
         journalEntryId = journalEntryId,
         createdBy = userId,
     )
@@ -496,4 +535,102 @@ class InvoiceServiceTest {
             lines = emptyList(),
             createdBy = userId,
         )
+
+    @Test
+    fun `create in foreign currency should lock rate and compute baseCurrencyAmount`() {
+        val customer = createCustomer()
+        val revenueAccount = createAccount("acc-1", "4100", "Service Revenue", AccountType.REVENUE)
+
+        `when`(customerService.getCustomer("c-1", orgId)).thenReturn(customer)
+        `when`(accountRepository.findAllById(listOf("acc-1"))).thenReturn(listOf(revenueAccount))
+        `when`(invoiceRepository.countByOrganizationId(orgId)).thenReturn(0L)
+        `when`(invoiceRepository.save(any<Invoice>())).thenAnswer { it.arguments[0] }
+        `when`(exchangeRateService.getRate(orgId, "PHP", "USD", LocalDate.of(2026, 3, 1)))
+            .thenReturn(BigDecimal("0.018"))
+
+        val request =
+            CreateInvoiceRequest(
+                customerId = "c-1",
+                date = LocalDate.of(2026, 3, 1),
+                dueDate = LocalDate.of(2026, 3, 31),
+                currencyCode = "PHP",
+                lines = listOf(InvoiceLineRequest(accountId = "acc-1", amount = BigDecimal("10000.00"))),
+            )
+
+        val result = invoiceService.createInvoice(request, orgId, userId)
+
+        assertThat(result.currencyCode).isEqualTo("PHP")
+        assertThat(result.totalAmount).isEqualByComparingTo(BigDecimal("10000.00"))
+        assertThat(result.exchangeRate).isEqualByComparingTo(BigDecimal("0.018"))
+        assertThat(result.baseCurrencyAmount).isEqualByComparingTo(BigDecimal("180.00"))
+    }
+
+    @Test
+    fun `approve in foreign currency should post AR debit in base currency`() {
+        val invoice =
+            createInvoice(
+                status = InvoiceStatus.DRAFT,
+                totalAmount = BigDecimal("10000.00"),
+                currencyCode = "PHP",
+                exchangeRate = BigDecimal("0.018"),
+                baseCurrencyAmount = BigDecimal("180.00"),
+            )
+        val arAccount = createAccount("acc-ar", "1100", "Accounts Receivable", AccountType.ASSET)
+        val mockEntry = createMockJournalEntry()
+
+        `when`(invoiceRepository.findById("inv-1")).thenReturn(Optional.of(invoice))
+        `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1100"))
+            .thenReturn(Optional.of(arAccount))
+        `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
+            .thenReturn(mockEntry)
+        `when`(invoiceRepository.save(any<Invoice>())).thenAnswer { it.arguments[0] }
+
+        invoiceService.approveInvoice("inv-1", orgId, userId)
+
+        val linesCaptor = argumentCaptor<List<JournalEntryLine>>()
+        verify(journalEntryService).createSystemEntry(any(), any(), any(), linesCaptor.capture(), any(), any())
+        val arLine = linesCaptor.firstValue.first { it.accountCode == "1100" }
+        assertThat(arLine.debit).isEqualByComparingTo(BigDecimal("180.00"))
+    }
+
+    @Test
+    fun `receipt in foreign currency should post base amount via locked rate`() {
+        val invoice =
+            createInvoice(
+                status = InvoiceStatus.APPROVED,
+                totalAmount = BigDecimal("10000.00"),
+                currencyCode = "PHP",
+                exchangeRate = BigDecimal("0.018"),
+                baseCurrencyAmount = BigDecimal("180.00"),
+            )
+        val arAccount = createAccount("acc-ar", "1100", "Accounts Receivable", AccountType.ASSET)
+        val cashAccount = createAccount("acc-cash", "1000", "Cash", AccountType.ASSET)
+        val mockEntry = createMockJournalEntry()
+
+        `when`(invoiceRepository.findById("inv-1")).thenReturn(Optional.of(invoice))
+        `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1100")).thenReturn(Optional.of(arAccount))
+        `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1000")).thenReturn(Optional.of(cashAccount))
+        `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
+            .thenReturn(mockEntry)
+        `when`(invoiceReceiptRepository.save(any<InvoiceReceipt>())).thenAnswer { it.arguments[0] }
+        `when`(invoiceRepository.save(any<Invoice>())).thenAnswer { it.arguments[0] }
+
+        val receipt =
+            invoiceService.recordReceipt(
+                "inv-1",
+                RecordReceiptRequest(
+                    receiptDate = LocalDate.of(2026, 3, 15),
+                    amount = BigDecimal("5000.00"),
+                    paymentMethod = PaymentMethod.BANK_TRANSFER,
+                ),
+                orgId,
+                userId,
+            )
+
+        assertThat(receipt.amount).isEqualByComparingTo(BigDecimal("5000.00"))
+        assertThat(receipt.baseCurrencyAmount).isEqualByComparingTo(BigDecimal("90.00"))
+        val invoiceCaptor = argumentCaptor<Invoice>()
+        verify(invoiceRepository).save(invoiceCaptor.capture())
+        assertThat(invoiceCaptor.firstValue.baseCurrencyAmountReceived).isEqualByComparingTo(BigDecimal("90.00"))
+    }
 }
