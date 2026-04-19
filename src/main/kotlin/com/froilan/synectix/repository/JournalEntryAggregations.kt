@@ -23,7 +23,7 @@ interface JournalEntryAggregations {
     ): Map<String, AccountTotals>
 }
 
-class JournalEntryAggregationsImpl(
+open class JournalEntryAggregationsImpl(
     private val mongoTemplate: MongoTemplate,
 ) : JournalEntryAggregations {
     override fun aggregateAccountTotals(
