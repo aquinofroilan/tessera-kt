@@ -286,6 +286,14 @@ class JournalEntryService(
         asOfDate: LocalDate? = null,
     ): TrialBalanceResponse {
         val allAccounts = accountRepository.findByOrganizationIdAndIsActive(organizationId, true)
+        if (allAccounts.isEmpty()) {
+            return TrialBalanceResponse(
+                accounts = emptyList(),
+                totalDebits = BigDecimal.ZERO,
+                totalCredits = BigDecimal.ZERO,
+                asOfDate = asOfDate?.toString(),
+            )
+        }
         val totals =
             journalEntryRepository.aggregateAccountTotals(
                 organizationId = organizationId,

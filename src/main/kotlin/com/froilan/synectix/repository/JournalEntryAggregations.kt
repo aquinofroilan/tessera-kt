@@ -32,6 +32,9 @@ open class JournalEntryAggregationsImpl(
         startDate: LocalDate?,
         endDate: LocalDate?,
     ): Map<String, AccountTotals> {
+        if (accountIds != null && accountIds.isEmpty()) {
+            return emptyMap()
+        }
         val entryCriteria =
             Criteria()
                 .and("organizationId")
@@ -49,7 +52,7 @@ open class JournalEntryAggregationsImpl(
         val stages = mutableListOf<org.springframework.data.mongodb.core.aggregation.AggregationOperation>()
         stages.add(Aggregation.match(entryCriteria))
         stages.add(Aggregation.unwind("lines"))
-        if (!accountIds.isNullOrEmpty()) {
+        if (accountIds != null) {
             stages.add(Aggregation.match(Criteria.where("lines.accountId").`in`(accountIds)))
         }
         stages.add(
