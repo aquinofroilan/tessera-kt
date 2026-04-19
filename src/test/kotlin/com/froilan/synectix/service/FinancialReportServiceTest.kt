@@ -242,6 +242,97 @@ class FinancialReportServiceTest {
         assertThat(result.netIncome).isEqualByComparingTo(BigDecimal.ZERO)
     }
 
+    @Test
+    fun `getBalanceSheet computes totals and current earnings`() {
+        val asOf = LocalDate.of(2026, 3, 31)
+        val cash = account("acc-cash", "1000", AccountType.ASSET)
+        val ap = account("acc-ap", "2000", AccountType.LIABILITY)
+        val equity = account("acc-eq", "3000", AccountType.EQUITY)
+        val rev = account("acc-rev", "4000", AccountType.REVENUE)
+        val exp = account("acc-exp", "5000", AccountType.EXPENSE)
+
+        `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
+            .thenReturn(listOf(cash, ap, equity, rev, exp))
+        `when`(
+            journalEntryRepository.findByOrganizationIdAndStatusInAndDateLessThanEqual(
+                orgId,
+                listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED),
+                asOf,
+            ),
+        ).thenReturn(
+            listOf(
+                entry(
+                    "je-1",
+                    LocalDate.of(2026, 1, 1),
+                    listOf(
+                        line("acc-cash", BigDecimal("10000.00"), BigDecimal.ZERO),
+                        line("acc-eq", BigDecimal.ZERO, BigDecimal("10000.00")),
+                    ),
+                ),
+                entry(
+                    "je-2",
+                    LocalDate.of(2026, 3, 5),
+                    listOf(
+                        line("acc-cash", BigDecimal("3000.00"), BigDecimal.ZERO),
+                        line("acc-rev", BigDecimal.ZERO, BigDecimal("3000.00")),
+                    ),
+                ),
+                entry(
+                    "je-3",
+                    LocalDate.of(2026, 3, 10),
+                    listOf(
+                        line("acc-exp", BigDecimal("500.00"), BigDecimal.ZERO),
+                        line("acc-cash", BigDecimal.ZERO, BigDecimal("500.00")),
+                    ),
+                ),
+            ),
+        )
+
+        val result = service.getBalanceSheet(orgId, asOf)
+
+        assertThat(result.totalAssets).isEqualByComparingTo(BigDecimal("12500.00"))
+        assertThat(result.totalLiabilities).isEqualByComparingTo(BigDecimal.ZERO)
+        assertThat(result.currentEarnings).isEqualByComparingTo(BigDecimal("2500.00"))
+        assertThat(result.totalEquity).isEqualByComparingTo(BigDecimal("12500.00"))
+        assertThat(result.totalLiabilitiesAndEquity).isEqualByComparingTo(BigDecimal("12500.00"))
+        assertThat(result.isBalanced).isTrue()
+        assertThat(result.outOfBalanceAmount).isEqualByComparingTo(BigDecimal.ZERO)
+        assertThat(result.equity.last().accountName).isEqualTo("Current Period Earnings")
+    }
+
+    @Test
+    fun `getBalanceSheet flags imbalance without throwing`() {
+        val asOf = LocalDate.of(2026, 3, 31)
+        val cash = account("acc-cash", "1000", AccountType.ASSET)
+        val equity = account("acc-eq", "3000", AccountType.EQUITY)
+
+        `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
+            .thenReturn(listOf(cash, equity))
+        `when`(
+            journalEntryRepository.findByOrganizationIdAndStatusInAndDateLessThanEqual(
+                orgId,
+                listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED),
+                asOf,
+            ),
+        ).thenReturn(
+            listOf(
+                entry(
+                    "je-1",
+                    LocalDate.of(2026, 1, 1),
+                    listOf(
+                        line("acc-cash", BigDecimal("100.00"), BigDecimal.ZERO),
+                        line("acc-eq", BigDecimal.ZERO, BigDecimal("80.00")),
+                    ),
+                ),
+            ),
+        )
+
+        val result = service.getBalanceSheet(orgId, asOf)
+
+        assertThat(result.isBalanced).isFalse()
+        assertThat(result.outOfBalanceAmount).isEqualByComparingTo(BigDecimal("20.00"))
+    }
+
     private fun account(
         id: String,
         code: String,

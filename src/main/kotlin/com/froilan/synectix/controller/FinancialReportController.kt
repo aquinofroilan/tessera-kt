@@ -39,4 +39,20 @@ class FinancialReportController(
             )
         return ResponseEntity.ok(report)
     }
+
+    @GetMapping("/balance-sheet")
+    @PreAuthorize("hasAuthority('journal:read')")
+    fun getBalanceSheet(
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) asOfDate: LocalDate,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) compareAsOfDate: LocalDate?,
+    ): ResponseEntity<Any> {
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val report =
+            financialReportService.getBalanceSheet(
+                organizationId = orgId,
+                asOfDate = asOfDate,
+                compareAsOfDate = compareAsOfDate,
+            )
+        return ResponseEntity.ok(report)
+    }
 }

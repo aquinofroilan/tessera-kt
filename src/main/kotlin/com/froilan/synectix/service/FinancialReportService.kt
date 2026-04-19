@@ -1,5 +1,6 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.dto.BalanceSheetResponse
 import com.froilan.synectix.dto.ComparativePeriodMeta
 import com.froilan.synectix.dto.IncomeStatementResponse
 import com.froilan.synectix.dto.ReportAccountLine
@@ -84,6 +85,94 @@ class FinancialReportService(
                     null
                 },
         )
+    }
+
+    fun getBalanceSheet(
+        organizationId: String,
+        asOfDate: LocalDate,
+        compareAsOfDate: LocalDate? = null,
+    ): BalanceSheetResponse {
+        val accounts = accountRepository.findByOrganizationIdAndIsActive(organizationId, true)
+        val current = computePeriodTotals(organizationId, null, asOfDate)
+        val comparative = compareAsOfDate?.let { computePeriodTotals(organizationId, null, it) }
+
+        val assets = buildLines(accounts, AccountType.ASSET, current, comparative)
+        val liabilities = buildLines(accounts, AccountType.LIABILITY, current, comparative)
+        val equityAccounts = buildLines(accounts, AccountType.EQUITY, current, comparative)
+
+        val currentEarnings = computeCurrentEarnings(accounts, current)
+        val comparativeCurrentEarnings = comparative?.let { computeCurrentEarnings(accounts, it) }
+
+        val earningsLine =
+            ReportAccountLine(
+                accountId = "",
+                accountCode = "",
+                accountName = "Current Period Earnings",
+                amount = currentEarnings,
+                comparativeAmount = comparativeCurrentEarnings,
+            )
+        val equity = equityAccounts + earningsLine
+
+        val totalAssets = assets.fold(BigDecimal.ZERO) { acc, l -> acc.add(l.amount) }
+        val totalLiabilities = liabilities.fold(BigDecimal.ZERO) { acc, l -> acc.add(l.amount) }
+        val totalEquity = equity.fold(BigDecimal.ZERO) { acc, l -> acc.add(l.amount) }
+        val totalLiabilitiesAndEquity = totalLiabilities.add(totalEquity)
+        val outOfBalance = totalAssets.subtract(totalLiabilitiesAndEquity)
+
+        val comparativeTotalAssets =
+            comparative?.let { assets.fold(BigDecimal.ZERO) { a, l -> a.add(l.comparativeAmount ?: BigDecimal.ZERO) } }
+        val comparativeTotalLiabilities =
+            comparative?.let {
+                liabilities.fold(BigDecimal.ZERO) { a, l -> a.add(l.comparativeAmount ?: BigDecimal.ZERO) }
+            }
+        val comparativeTotalEquity =
+            comparative?.let { equity.fold(BigDecimal.ZERO) { a, l -> a.add(l.comparativeAmount ?: BigDecimal.ZERO) } }
+        val comparativeTotalLiabAndEq =
+            if (comparativeTotalLiabilities != null && comparativeTotalEquity != null) {
+                comparativeTotalLiabilities.add(comparativeTotalEquity)
+            } else {
+                null
+            }
+
+        return BalanceSheetResponse(
+            asOfDate = asOfDate.toString(),
+            comparativeAsOfDate = compareAsOfDate?.toString(),
+            assets = assets,
+            totalAssets = totalAssets,
+            comparativeTotalAssets = comparativeTotalAssets,
+            liabilities = liabilities,
+            totalLiabilities = totalLiabilities,
+            comparativeTotalLiabilities = comparativeTotalLiabilities,
+            equity = equity,
+            totalEquity = totalEquity,
+            comparativeTotalEquity = comparativeTotalEquity,
+            currentEarnings = currentEarnings,
+            comparativeCurrentEarnings = comparativeCurrentEarnings,
+            totalLiabilitiesAndEquity = totalLiabilitiesAndEquity,
+            comparativeTotalLiabilitiesAndEquity = comparativeTotalLiabAndEq,
+            isBalanced = outOfBalance.abs() < BigDecimal("0.01"),
+            outOfBalanceAmount = outOfBalance,
+        )
+    }
+
+    private fun computeCurrentEarnings(
+        accounts: List<Account>,
+        totals: Map<String, Pair<BigDecimal, BigDecimal>>,
+    ): BigDecimal {
+        var earnings = BigDecimal.ZERO
+        accounts
+            .filter { it.type == AccountType.REVENUE || it.type == AccountType.EXPENSE }
+            .forEach { account ->
+                val (debits, credits) = totals.getOrDefault(account.id, BigDecimal.ZERO to BigDecimal.ZERO)
+                val signed = signedBalance(account.type, debits, credits)
+                earnings =
+                    if (account.type == AccountType.REVENUE) {
+                        earnings.add(signed)
+                    } else {
+                        earnings.subtract(signed)
+                    }
+            }
+        return earnings
     }
 
     private fun buildLines(
