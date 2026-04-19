@@ -1,6 +1,5 @@
 package com.froilan.synectix.service
 
-import com.froilan.synectix.dto.AccountBalanceResponse
 import com.froilan.synectix.dto.CreateTaxGroupRequest
 import com.froilan.synectix.dto.UpdateTaxGroupRequest
 import com.froilan.synectix.exception.BusinessRuleException
@@ -9,6 +8,8 @@ import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.model.TaxGroup
 import com.froilan.synectix.model.TaxRate
 import com.froilan.synectix.repository.AccountRepository
+import com.froilan.synectix.repository.AccountTotals
+import com.froilan.synectix.repository.JournalEntryRepository
 import com.froilan.synectix.repository.TaxGroupRepository
 import com.froilan.synectix.repository.TaxRateRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -27,7 +28,7 @@ class TaxGroupServiceTest {
     private lateinit var taxGroupRepository: TaxGroupRepository
     private lateinit var taxRateRepository: TaxRateRepository
     private lateinit var accountRepository: AccountRepository
-    private lateinit var journalEntryService: JournalEntryService
+    private lateinit var journalEntryRepository: JournalEntryRepository
 
     private val orgId = "org-123"
 
@@ -36,8 +37,9 @@ class TaxGroupServiceTest {
         taxGroupRepository = mock(TaxGroupRepository::class.java)
         taxRateRepository = mock(TaxRateRepository::class.java)
         accountRepository = mock(AccountRepository::class.java)
-        journalEntryService = mock(JournalEntryService::class.java)
-        taxGroupService = TaxGroupService(taxGroupRepository, taxRateRepository, accountRepository, journalEntryService)
+        journalEntryRepository = mock(JournalEntryRepository::class.java)
+        taxGroupService =
+            TaxGroupService(taxGroupRepository, taxRateRepository, accountRepository, journalEntryRepository)
     }
 
     @Test
@@ -306,7 +308,7 @@ class TaxGroupServiceTest {
     }
 
     @Test
-    fun `getTaxSummary should compute net liability from balance deltas`() {
+    fun `getTaxSummary should compute net liability from period totals`() {
         val payable = createAccount("acc-2300", "2300", AccountType.LIABILITY)
         val input = createAccount("acc-2310", "2310", AccountType.ASSET)
         val startDate = LocalDate.of(2026, 3, 1)
@@ -317,14 +319,19 @@ class TaxGroupServiceTest {
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2310"))
             .thenReturn(Optional.of(input))
 
-        `when`(journalEntryService.getAccountBalance("acc-2300", orgId, endDate))
-            .thenReturn(balanceOf(payable, BigDecimal("500.00")))
-        `when`(journalEntryService.getAccountBalance("acc-2300", orgId, startDate.minusDays(1)))
-            .thenReturn(balanceOf(payable, BigDecimal("100.00")))
-        `when`(journalEntryService.getAccountBalance("acc-2310", orgId, endDate))
-            .thenReturn(balanceOf(input, BigDecimal("150.00")))
-        `when`(journalEntryService.getAccountBalance("acc-2310", orgId, startDate.minusDays(1)))
-            .thenReturn(balanceOf(input, BigDecimal("50.00")))
+        `when`(
+            journalEntryRepository.aggregateAccountTotals(
+                orgId,
+                listOf("acc-2300", "acc-2310"),
+                startDate,
+                endDate,
+            ),
+        ).thenReturn(
+            mapOf(
+                "acc-2300" to AccountTotals(BigDecimal("0.00"), BigDecimal("400.00")),
+                "acc-2310" to AccountTotals(BigDecimal("100.00"), BigDecimal("0.00")),
+            ),
+        )
 
         val result = taxGroupService.getTaxSummary(orgId, startDate, endDate)
 
@@ -358,18 +365,5 @@ class TaxGroupServiceTest {
         name = "Account $code",
         type = type,
         organizationId = orgId,
-    )
-
-    private fun balanceOf(
-        account: Account,
-        balance: BigDecimal,
-    ) = AccountBalanceResponse(
-        accountId = account.id,
-        accountCode = account.code,
-        accountName = account.name,
-        accountType = account.type.name,
-        totalDebits = BigDecimal.ZERO,
-        totalCredits = BigDecimal.ZERO,
-        balance = balance,
     )
 }

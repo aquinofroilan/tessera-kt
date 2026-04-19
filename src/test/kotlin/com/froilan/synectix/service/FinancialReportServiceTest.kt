@@ -9,6 +9,7 @@ import com.froilan.synectix.model.JournalEntry
 import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.model.JournalEntryStatus
 import com.froilan.synectix.repository.AccountRepository
+import com.froilan.synectix.repository.AccountTotals
 import com.froilan.synectix.repository.JournalEntryRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -45,25 +46,13 @@ class FinancialReportServiceTest {
 
         `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
             .thenReturn(listOf(expense, revenue))
-        `when`(
-            journalEntryRepository.findByOrganizationIdAndStatusInAndDateBetween(
-                orgId,
-                listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED),
-                start,
-                end,
-            ),
-        ).thenReturn(
-            listOf(
-                entry(
-                    "je-1",
-                    LocalDate.of(2026, 3, 10),
-                    listOf(
-                        line("acc-rev", BigDecimal.ZERO, BigDecimal("1000.00")),
-                        line("acc-exp", BigDecimal("300.00"), BigDecimal.ZERO),
-                    ),
+        `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, start, end))
+            .thenReturn(
+                mapOf(
+                    "acc-rev" to AccountTotals(BigDecimal.ZERO, BigDecimal("1000.00")),
+                    "acc-exp" to AccountTotals(BigDecimal("300.00"), BigDecimal.ZERO),
                 ),
-            ),
-        )
+            )
 
         val result = service.getIncomeStatement(orgId, start, end)
 
@@ -87,38 +76,10 @@ class FinancialReportServiceTest {
 
         `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
             .thenReturn(listOf(revenue))
-        `when`(
-            journalEntryRepository.findByOrganizationIdAndStatusInAndDateBetween(
-                orgId,
-                listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED),
-                start,
-                end,
-            ),
-        ).thenReturn(
-            listOf(
-                entry(
-                    "je-1",
-                    LocalDate.of(2026, 3, 10),
-                    listOf(line("acc-rev", BigDecimal.ZERO, BigDecimal("1000.00"))),
-                ),
-            ),
-        )
-        `when`(
-            journalEntryRepository.findByOrganizationIdAndStatusInAndDateBetween(
-                orgId,
-                listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED),
-                compareStart,
-                compareEnd,
-            ),
-        ).thenReturn(
-            listOf(
-                entry(
-                    "je-2",
-                    LocalDate.of(2026, 2, 15),
-                    listOf(line("acc-rev", BigDecimal.ZERO, BigDecimal("800.00"))),
-                ),
-            ),
-        )
+        `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, start, end))
+            .thenReturn(mapOf("acc-rev" to AccountTotals(BigDecimal.ZERO, BigDecimal("1000.00"))))
+        `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, compareStart, compareEnd))
+            .thenReturn(mapOf("acc-rev" to AccountTotals(BigDecimal.ZERO, BigDecimal("800.00"))))
 
         val result = service.getIncomeStatement(orgId, start, end, compareStart, compareEnd)
 
@@ -159,14 +120,8 @@ class FinancialReportServiceTest {
         val end = LocalDate.of(2026, 3, 31)
         `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
             .thenReturn(listOf(account("acc-cash", "1000", AccountType.ASSET)))
-        `when`(
-            journalEntryRepository.findByOrganizationIdAndStatusInAndDateBetween(
-                orgId,
-                listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED),
-                start,
-                end,
-            ),
-        ).thenReturn(emptyList())
+        `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, start, end))
+            .thenReturn(emptyMap())
 
         val result = service.getIncomeStatement(orgId, start, end)
 
@@ -186,40 +141,15 @@ class FinancialReportServiceTest {
 
         `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
             .thenReturn(listOf(cash, ap, equity, rev, exp))
-        `when`(
-            journalEntryRepository.findByOrganizationIdAndStatusInAndDateLessThanEqual(
-                orgId,
-                listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED),
-                asOf,
-            ),
-        ).thenReturn(
-            listOf(
-                entry(
-                    "je-1",
-                    LocalDate.of(2026, 1, 1),
-                    listOf(
-                        line("acc-cash", BigDecimal("10000.00"), BigDecimal.ZERO),
-                        line("acc-eq", BigDecimal.ZERO, BigDecimal("10000.00")),
-                    ),
+        `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, null, asOf))
+            .thenReturn(
+                mapOf(
+                    "acc-cash" to AccountTotals(BigDecimal("13000.00"), BigDecimal("500.00")),
+                    "acc-eq" to AccountTotals(BigDecimal.ZERO, BigDecimal("10000.00")),
+                    "acc-rev" to AccountTotals(BigDecimal.ZERO, BigDecimal("3000.00")),
+                    "acc-exp" to AccountTotals(BigDecimal("500.00"), BigDecimal.ZERO),
                 ),
-                entry(
-                    "je-2",
-                    LocalDate.of(2026, 3, 5),
-                    listOf(
-                        line("acc-cash", BigDecimal("3000.00"), BigDecimal.ZERO),
-                        line("acc-rev", BigDecimal.ZERO, BigDecimal("3000.00")),
-                    ),
-                ),
-                entry(
-                    "je-3",
-                    LocalDate.of(2026, 3, 10),
-                    listOf(
-                        line("acc-exp", BigDecimal("500.00"), BigDecimal.ZERO),
-                        line("acc-cash", BigDecimal.ZERO, BigDecimal("500.00")),
-                    ),
-                ),
-            ),
-        )
+            )
 
         val result = service.getBalanceSheet(orgId, asOf)
 
@@ -245,24 +175,13 @@ class FinancialReportServiceTest {
 
         `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
             .thenReturn(listOf(cash, equity))
-        `when`(
-            journalEntryRepository.findByOrganizationIdAndStatusInAndDateLessThanEqual(
-                orgId,
-                listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED),
-                asOf,
-            ),
-        ).thenReturn(
-            listOf(
-                entry(
-                    "je-1",
-                    LocalDate.of(2026, 1, 1),
-                    listOf(
-                        line("acc-cash", BigDecimal("100.00"), BigDecimal.ZERO),
-                        line("acc-eq", BigDecimal.ZERO, BigDecimal("80.00")),
-                    ),
+        `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, null, asOf))
+            .thenReturn(
+                mapOf(
+                    "acc-cash" to AccountTotals(BigDecimal("100.00"), BigDecimal.ZERO),
+                    "acc-eq" to AccountTotals(BigDecimal.ZERO, BigDecimal("80.00")),
                 ),
-            ),
-        )
+            )
 
         val result = service.getBalanceSheet(orgId, asOf)
 

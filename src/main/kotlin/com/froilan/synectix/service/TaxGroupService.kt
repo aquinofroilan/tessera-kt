@@ -8,6 +8,7 @@ import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.TaxGroup
 import com.froilan.synectix.model.TaxRate
 import com.froilan.synectix.repository.AccountRepository
+import com.froilan.synectix.repository.JournalEntryRepository
 import com.froilan.synectix.repository.TaxGroupRepository
 import com.froilan.synectix.repository.TaxRateRepository
 import org.springframework.dao.DuplicateKeyException
@@ -22,7 +23,7 @@ class TaxGroupService(
     private val taxGroupRepository: TaxGroupRepository,
     private val taxRateRepository: TaxRateRepository,
     private val accountRepository: AccountRepository,
-    private val journalEntryService: JournalEntryService,
+    private val journalEntryRepository: JournalEntryRepository,
 ) {
     @Transactional
     fun createTaxGroup(
@@ -172,25 +173,25 @@ class TaxGroupService(
             throw BusinessRuleException("Start date must be on or before end date")
         }
 
-        val taxCollected =
-            accountRepository
-                .findByOrganizationIdAndCode(organizationId, "2300")
-                .map {
-                    val endBalance = journalEntryService.getAccountBalance(it.id, organizationId, endDate).balance
-                    val startBalance =
-                        journalEntryService.getAccountBalance(it.id, organizationId, startDate.minusDays(1)).balance
-                    endBalance.subtract(startBalance)
-                }.orElse(BigDecimal.ZERO)
+        val payable = accountRepository.findByOrganizationIdAndCode(organizationId, "2300").orElse(null)
+        val input = accountRepository.findByOrganizationIdAndCode(organizationId, "2310").orElse(null)
+        val accountIds = listOfNotNull(payable?.id, input?.id)
 
+        val totals =
+            if (accountIds.isEmpty()) {
+                emptyMap()
+            } else {
+                journalEntryRepository.aggregateAccountTotals(organizationId, accountIds, startDate, endDate)
+            }
+
+        val taxCollected =
+            payable?.let { totals[it.id] }?.let {
+                it.totalCredits.subtract(it.totalDebits)
+            } ?: BigDecimal.ZERO
         val taxPaid =
-            accountRepository
-                .findByOrganizationIdAndCode(organizationId, "2310")
-                .map {
-                    val endBalance = journalEntryService.getAccountBalance(it.id, organizationId, endDate).balance
-                    val startBalance =
-                        journalEntryService.getAccountBalance(it.id, organizationId, startDate.minusDays(1)).balance
-                    endBalance.subtract(startBalance)
-                }.orElse(BigDecimal.ZERO)
+            input?.let { totals[it.id] }?.let {
+                it.totalDebits.subtract(it.totalCredits)
+            } ?: BigDecimal.ZERO
 
         return TaxSummaryResponse(
             taxCollected = taxCollected,
