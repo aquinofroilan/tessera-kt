@@ -177,7 +177,7 @@ class FinancialReportService(
             .filter { it.type == AccountType.REVENUE || it.type == AccountType.EXPENSE }
             .forEach { account ->
                 val (debits, credits) = totals.getOrDefault(account.id, BigDecimal.ZERO to BigDecimal.ZERO)
-                val signed = signedBalance(account.type, debits, credits)
+                val signed = account.type.signedBalance(debits, credits)
                 earnings =
                     if (account.type == AccountType.REVENUE) {
                         earnings.add(signed)
@@ -198,11 +198,11 @@ class FinancialReportService(
             .filter { it.type == type }
             .map { account ->
                 val (debits, credits) = current.getOrDefault(account.id, BigDecimal.ZERO to BigDecimal.ZERO)
-                val amount = signedBalance(account.type, debits, credits)
+                val amount = account.type.signedBalance(debits, credits)
                 val compAmount =
                     comparative?.let {
                         val (cd, cc) = it.getOrDefault(account.id, BigDecimal.ZERO to BigDecimal.ZERO)
-                        signedBalance(account.type, cd, cc)
+                        account.type.signedBalance(cd, cc)
                     }
                 ReportAccountLine(
                     accountId = account.id,
@@ -244,14 +244,4 @@ class FinancialReportService(
         }
         return totals
     }
-
-    private fun signedBalance(
-        type: AccountType,
-        debits: BigDecimal,
-        credits: BigDecimal,
-    ): BigDecimal =
-        when (type) {
-            AccountType.ASSET, AccountType.EXPENSE -> debits.subtract(credits)
-            AccountType.LIABILITY, AccountType.EQUITY, AccountType.REVENUE -> credits.subtract(debits)
-        }
 }
