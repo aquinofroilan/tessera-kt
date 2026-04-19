@@ -615,6 +615,47 @@ class BillServiceTest {
     }
 
     @Test
+    fun `final payment should clear baseCurrencyAmountPaid to bill baseCurrencyAmount exactly`() {
+        val bill =
+            createBill(
+                status = BillStatus.APPROVED,
+                totalAmount = BigDecimal("3000.00"),
+                amountPaid = BigDecimal("2000.00"),
+                currencyCode = "PHP",
+                exchangeRate = BigDecimal("0.018"),
+                baseCurrencyAmount = BigDecimal("54.00"),
+                baseCurrencyAmountPaid = BigDecimal("36.01"),
+            )
+        val apAccount = createAccount("acc-ap", "2000", "Accounts Payable", AccountType.LIABILITY)
+        val cashAccount = createAccount("acc-cash", "1000", "Cash", AccountType.ASSET)
+        val mockEntry = createMockJournalEntry()
+
+        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2000")).thenReturn(Optional.of(apAccount))
+        `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1000")).thenReturn(Optional.of(cashAccount))
+        `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
+            .thenReturn(mockEntry)
+        `when`(billPaymentRepository.save(any<BillPayment>())).thenAnswer { it.arguments[0] }
+        `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
+
+        billService.recordPayment(
+            "bill-1",
+            RecordPaymentRequest(
+                paymentDate = LocalDate.of(2026, 3, 31),
+                amount = BigDecimal("1000.00"),
+                paymentMethod = PaymentMethod.BANK_TRANSFER,
+            ),
+            orgId,
+            userId,
+        )
+
+        val billCaptor = argumentCaptor<Bill>()
+        verify(billRepository).save(billCaptor.capture())
+        assertThat(billCaptor.firstValue.status).isEqualTo(BillStatus.PAID)
+        assertThat(billCaptor.firstValue.baseCurrencyAmountPaid).isEqualByComparingTo(BigDecimal("54.00"))
+    }
+
+    @Test
     fun `payment in foreign currency should post base amount via locked rate`() {
         val bill =
             createBill(

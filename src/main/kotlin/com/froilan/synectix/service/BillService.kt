@@ -139,7 +139,7 @@ class BillService(
         organizationRepository
             .findById(organizationId)
             .orElseThrow {
-                IllegalStateException("Organization $organizationId not found")
+                ResourceNotFoundException("Organization not found")
             }.baseCurrency
 
     fun getBill(
@@ -216,6 +216,10 @@ class BillService(
                 emptyList()
             }
 
+        val expenseTotal = expenseLines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.debit) }
+        val taxTotal = taxLines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.debit) }
+        val apCredit = expenseTotal.add(taxTotal)
+
         val journalLines =
             expenseLines +
                 taxLines +
@@ -224,7 +228,7 @@ class BillService(
                     accountCode = apAccount.code,
                     accountName = apAccount.name,
                     debit = BigDecimal.ZERO,
-                    credit = bill.baseCurrencyAmount,
+                    credit = apCredit,
                     description = "AP - ${bill.vendorName} - ${bill.billNumber}",
                 )
 
@@ -380,8 +384,9 @@ class BillService(
             )
 
         val newAmountPaid = bill.amountPaid.add(request.amount)
-        val newBaseAmountPaid = bill.baseCurrencyAmountPaid.add(paymentBaseAmount)
         val fullyPaid = newAmountPaid.compareTo(bill.totalAmount) >= 0
+        val newBaseAmountPaid =
+            if (fullyPaid) bill.baseCurrencyAmount else bill.baseCurrencyAmountPaid.add(paymentBaseAmount)
         val newStatus = if (fullyPaid) BillStatus.PAID else BillStatus.PARTIALLY_PAID
 
         billRepository.save(

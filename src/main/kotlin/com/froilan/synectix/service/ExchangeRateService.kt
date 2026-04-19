@@ -23,8 +23,24 @@ class ExchangeRateService(
         fromCurrency: String,
         toCurrency: String,
         onOrBefore: LocalDate,
-    ): BigDecimal {
-        if (fromCurrency == toCurrency) return BigDecimal.ONE
+    ): BigDecimal = lookupRate(organizationId, fromCurrency, toCurrency, onOrBefore).rate
+
+    data class RateLookup(
+        val rate: BigDecimal,
+        val effectiveDate: LocalDate?,
+        val source: ExchangeRateSource?,
+        val direction: String,
+    )
+
+    fun lookupRate(
+        organizationId: String,
+        fromCurrency: String,
+        toCurrency: String,
+        onOrBefore: LocalDate,
+    ): RateLookup {
+        if (fromCurrency == toCurrency) {
+            return RateLookup(BigDecimal.ONE, null, null, "SAME_CURRENCY")
+        }
 
         val direct =
             exchangeRateRepository
@@ -34,7 +50,10 @@ class ExchangeRateService(
                     toCurrency,
                     onOrBefore,
                 )
-        if (direct.isPresent) return direct.get().rate
+        if (direct.isPresent) {
+            val r = direct.get()
+            return RateLookup(r.rate, r.asOfDate, r.source, "DIRECT")
+        }
 
         val inverse =
             exchangeRateRepository
@@ -45,7 +64,13 @@ class ExchangeRateService(
                     onOrBefore,
                 )
         if (inverse.isPresent) {
-            return BigDecimal.ONE.divide(inverse.get().rate, 10, RoundingMode.HALF_UP)
+            val r = inverse.get()
+            return RateLookup(
+                BigDecimal.ONE.divide(r.rate, 10, RoundingMode.HALF_UP),
+                r.asOfDate,
+                r.source,
+                "INVERSE",
+            )
         }
 
         throw ResourceNotFoundException(

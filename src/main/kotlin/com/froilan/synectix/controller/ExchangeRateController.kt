@@ -51,13 +51,16 @@ class ExchangeRateController(
             if (from == null || to == null) {
                 return ResponseEntity.badRequest().body(mapOf("error" to "from and to are required when asOfDate is set"))
             }
-            val rate = exchangeRateService.getRate(orgId, from, to, asOfDate)
+            val lookup = exchangeRateService.lookupRate(orgId, from, to, asOfDate)
             return ResponseEntity.ok(
                 mapOf(
                     "from" to from,
                     "to" to to,
-                    "asOfDate" to asOfDate.toString(),
-                    "rate" to rate,
+                    "requestedAsOfDate" to asOfDate.toString(),
+                    "effectiveAsOfDate" to lookup.effectiveDate?.toString(),
+                    "source" to lookup.source?.name,
+                    "direction" to lookup.direction,
+                    "rate" to lookup.rate,
                 ),
             )
         }

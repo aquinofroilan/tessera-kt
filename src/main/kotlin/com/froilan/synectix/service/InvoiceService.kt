@@ -139,7 +139,7 @@ class InvoiceService(
         organizationRepository
             .findById(organizationId)
             .orElseThrow {
-                IllegalStateException("Organization $organizationId not found")
+                ResourceNotFoundException("Organization not found")
             }.baseCurrency
 
     fun getInvoice(
@@ -216,13 +216,17 @@ class InvoiceService(
                 emptyList()
             }
 
+        val revenueTotal = revenueLines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.credit) }
+        val taxTotal = taxLines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.credit) }
+        val arDebit = revenueTotal.add(taxTotal)
+
         val journalLines =
             listOf(
                 JournalEntryLine(
                     accountId = arAccount.id,
                     accountCode = arAccount.code,
                     accountName = arAccount.name,
-                    debit = invoice.baseCurrencyAmount,
+                    debit = arDebit,
                     credit = BigDecimal.ZERO,
                     description = "AR - ${invoice.customerName} - ${invoice.invoiceNumber}",
                 ),
@@ -383,8 +387,13 @@ class InvoiceService(
             )
 
         val newAmountReceived = invoice.amountReceived.add(request.amount)
-        val newBaseAmountReceived = invoice.baseCurrencyAmountReceived.add(receiptBaseAmount)
         val fullyPaid = newAmountReceived.compareTo(invoice.totalAmount) >= 0
+        val newBaseAmountReceived =
+            if (fullyPaid) {
+                invoice.baseCurrencyAmount
+            } else {
+                invoice.baseCurrencyAmountReceived.add(receiptBaseAmount)
+            }
         val newStatus = if (fullyPaid) InvoiceStatus.PAID else InvoiceStatus.PARTIALLY_PAID
 
         invoiceRepository.save(
