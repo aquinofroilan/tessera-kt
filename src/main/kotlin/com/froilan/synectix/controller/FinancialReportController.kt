@@ -20,6 +20,17 @@ class FinancialReportController(
     private val financialReportService: FinancialReportService,
     private val authContext: AuthenticationContext,
 ) {
+    @GetMapping("/trial-balance")
+    @PreAuthorize("hasAuthority('journal:read')")
+    fun getTrialBalance(
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) asOfDate: LocalDate?,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) compareAsOfDate: LocalDate?,
+    ): ResponseEntity<Any> {
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val report = financialReportService.getComparativeTrialBalance(orgId, asOfDate, compareAsOfDate)
+        return ResponseEntity.ok(report)
+    }
+
     @GetMapping("/income-statement")
     @PreAuthorize("hasAuthority('journal:read')")
     fun getIncomeStatement(

@@ -1,5 +1,6 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.dto.TrialBalanceResponse
 import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
@@ -21,6 +22,7 @@ class FinancialReportServiceTest {
     private lateinit var service: FinancialReportService
     private lateinit var journalEntryRepository: JournalEntryRepository
     private lateinit var accountRepository: AccountRepository
+    private lateinit var journalEntryService: JournalEntryService
 
     private val orgId = "org-1"
     private val userId = "user-1"
@@ -29,7 +31,8 @@ class FinancialReportServiceTest {
     fun setup() {
         journalEntryRepository = mock(JournalEntryRepository::class.java)
         accountRepository = mock(AccountRepository::class.java)
-        service = FinancialReportService(journalEntryRepository, accountRepository)
+        journalEntryService = mock(JournalEntryService::class.java)
+        service = FinancialReportService(journalEntryRepository, accountRepository, journalEntryService)
     }
 
     @Test
@@ -331,6 +334,35 @@ class FinancialReportServiceTest {
 
         assertThat(result.isBalanced).isFalse()
         assertThat(result.outOfBalanceAmount).isEqualByComparingTo(BigDecimal("20.00"))
+    }
+
+    @Test
+    fun `getComparativeTrialBalance returns current and comparative`() {
+        val asOf = LocalDate.of(2026, 3, 31)
+        val compareAsOf = LocalDate.of(2026, 2, 28)
+        val currentTb = TrialBalanceResponse(emptyList(), BigDecimal("100.00"), BigDecimal("100.00"), asOf.toString())
+        val compareTb =
+            TrialBalanceResponse(emptyList(), BigDecimal("80.00"), BigDecimal("80.00"), compareAsOf.toString())
+
+        `when`(journalEntryService.getTrialBalance(orgId, asOf)).thenReturn(currentTb)
+        `when`(journalEntryService.getTrialBalance(orgId, compareAsOf)).thenReturn(compareTb)
+
+        val result = service.getComparativeTrialBalance(orgId, asOf, compareAsOf)
+
+        assertThat(result.current).isSameAs(currentTb)
+        assertThat(result.comparative).isSameAs(compareTb)
+    }
+
+    @Test
+    fun `getComparativeTrialBalance omits comparative when not requested`() {
+        val asOf = LocalDate.of(2026, 3, 31)
+        val currentTb = TrialBalanceResponse(emptyList(), BigDecimal.ZERO, BigDecimal.ZERO, asOf.toString())
+
+        `when`(journalEntryService.getTrialBalance(orgId, asOf)).thenReturn(currentTb)
+
+        val result = service.getComparativeTrialBalance(orgId, asOf, null)
+
+        assertThat(result.comparative).isNull()
     }
 
     private fun account(

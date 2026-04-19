@@ -2,6 +2,7 @@ package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.BalanceSheetResponse
 import com.froilan.synectix.dto.ComparativePeriodMeta
+import com.froilan.synectix.dto.ComparativeTrialBalanceResponse
 import com.froilan.synectix.dto.IncomeStatementResponse
 import com.froilan.synectix.dto.ReportAccountLine
 import com.froilan.synectix.exception.BusinessRuleException
@@ -18,7 +19,17 @@ import java.time.LocalDate
 class FinancialReportService(
     private val journalEntryRepository: JournalEntryRepository,
     private val accountRepository: AccountRepository,
+    private val journalEntryService: JournalEntryService,
 ) {
+    fun getComparativeTrialBalance(
+        organizationId: String,
+        asOfDate: LocalDate?,
+        compareAsOfDate: LocalDate?,
+    ) = ComparativeTrialBalanceResponse(
+        current = journalEntryService.getTrialBalance(organizationId, asOfDate),
+        comparative = compareAsOfDate?.let { journalEntryService.getTrialBalance(organizationId, it) },
+    )
+
     fun getIncomeStatement(
         organizationId: String,
         startDate: LocalDate,
