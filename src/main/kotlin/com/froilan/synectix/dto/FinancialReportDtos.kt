@@ -8,7 +8,12 @@ data class ReportAccountLine(
     val accountName: String,
     val amount: BigDecimal,
     val comparativeAmount: BigDecimal? = null,
+    val isSynthetic: Boolean = false,
 )
+
+object SyntheticAccountIds {
+    const val CURRENT_PERIOD_EARNINGS = "__current_period_earnings__"
+}
 
 data class ComparativePeriodMeta(
     val startDate: String,

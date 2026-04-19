@@ -5,6 +5,7 @@ import com.froilan.synectix.dto.ComparativePeriodMeta
 import com.froilan.synectix.dto.ComparativeTrialBalanceResponse
 import com.froilan.synectix.dto.IncomeStatementResponse
 import com.froilan.synectix.dto.ReportAccountLine
+import com.froilan.synectix.dto.SyntheticAccountIds
 import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
@@ -116,11 +117,12 @@ class FinancialReportService(
 
         val earningsLine =
             ReportAccountLine(
-                accountId = "",
-                accountCode = "",
+                accountId = SyntheticAccountIds.CURRENT_PERIOD_EARNINGS,
+                accountCode = SyntheticAccountIds.CURRENT_PERIOD_EARNINGS,
                 accountName = "Current Period Earnings",
                 amount = currentEarnings,
                 comparativeAmount = comparativeCurrentEarnings,
+                isSynthetic = true,
             )
         val equity = equityAccounts + earningsLine
 
@@ -211,7 +213,7 @@ class FinancialReportService(
                 )
             }.sortedBy { it.accountCode }
 
-    internal fun computePeriodTotals(
+    private fun computePeriodTotals(
         organizationId: String,
         startDate: LocalDate?,
         endDate: LocalDate,
@@ -243,7 +245,7 @@ class FinancialReportService(
         return totals
     }
 
-    internal fun signedBalance(
+    private fun signedBalance(
         type: AccountType,
         debits: BigDecimal,
         credits: BigDecimal,

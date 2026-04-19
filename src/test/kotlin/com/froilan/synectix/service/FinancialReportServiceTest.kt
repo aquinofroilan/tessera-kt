@@ -1,5 +1,6 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.dto.SyntheticAccountIds
 import com.froilan.synectix.dto.TrialBalanceResponse
 import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.model.Account
@@ -33,77 +34,6 @@ class FinancialReportServiceTest {
         accountRepository = mock(AccountRepository::class.java)
         journalEntryService = mock(JournalEntryService::class.java)
         service = FinancialReportService(journalEntryRepository, accountRepository, journalEntryService)
-    }
-
-    @Test
-    fun `computePeriodTotals sums debits and credits per account within range`() {
-        val start = LocalDate.of(2026, 3, 1)
-        val end = LocalDate.of(2026, 3, 31)
-        val entries =
-            listOf(
-                entry(
-                    "je-1",
-                    LocalDate.of(2026, 3, 5),
-                    listOf(
-                        line("acc-1", BigDecimal("100.00"), BigDecimal.ZERO),
-                        line("acc-2", BigDecimal.ZERO, BigDecimal("100.00")),
-                    ),
-                ),
-                entry(
-                    "je-2",
-                    LocalDate.of(2026, 3, 20),
-                    listOf(
-                        line("acc-1", BigDecimal("50.00"), BigDecimal.ZERO),
-                        line("acc-2", BigDecimal.ZERO, BigDecimal("50.00")),
-                    ),
-                ),
-            )
-        `when`(
-            journalEntryRepository.findByOrganizationIdAndStatusInAndDateBetween(
-                orgId,
-                listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED),
-                start,
-                end,
-            ),
-        ).thenReturn(entries)
-
-        val totals = service.computePeriodTotals(orgId, start, end)
-
-        assertThat(totals["acc-1"]).isEqualTo(BigDecimal("150.00") to BigDecimal.ZERO)
-        assertThat(totals["acc-2"]).isEqualTo(BigDecimal.ZERO to BigDecimal("150.00"))
-    }
-
-    @Test
-    fun `computePeriodTotals uses inception query when startDate is null`() {
-        val end = LocalDate.of(2026, 3, 31)
-        `when`(
-            journalEntryRepository.findByOrganizationIdAndStatusInAndDateLessThanEqual(
-                orgId,
-                listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED),
-                end,
-            ),
-        ).thenReturn(emptyList())
-
-        val totals = service.computePeriodTotals(orgId, null, end)
-
-        assertThat(totals).isEmpty()
-    }
-
-    @Test
-    fun `signedBalance applies normal sides per account type`() {
-        val debits = BigDecimal("100.00")
-        val credits = BigDecimal("30.00")
-
-        assertThat(service.signedBalance(AccountType.ASSET, debits, credits))
-            .isEqualByComparingTo(BigDecimal("70.00"))
-        assertThat(service.signedBalance(AccountType.EXPENSE, debits, credits))
-            .isEqualByComparingTo(BigDecimal("70.00"))
-        assertThat(service.signedBalance(AccountType.LIABILITY, debits, credits))
-            .isEqualByComparingTo(BigDecimal("-70.00"))
-        assertThat(service.signedBalance(AccountType.EQUITY, debits, credits))
-            .isEqualByComparingTo(BigDecimal("-70.00"))
-        assertThat(service.signedBalance(AccountType.REVENUE, debits, credits))
-            .isEqualByComparingTo(BigDecimal("-70.00"))
     }
 
     @Test
@@ -300,7 +230,11 @@ class FinancialReportServiceTest {
         assertThat(result.totalLiabilitiesAndEquity).isEqualByComparingTo(BigDecimal("12500.00"))
         assertThat(result.isBalanced).isTrue()
         assertThat(result.outOfBalanceAmount).isEqualByComparingTo(BigDecimal.ZERO)
-        assertThat(result.equity.last().accountName).isEqualTo("Current Period Earnings")
+        val earningsRow = result.equity.last()
+        assertThat(earningsRow.accountName).isEqualTo("Current Period Earnings")
+        assertThat(earningsRow.accountId).isEqualTo(SyntheticAccountIds.CURRENT_PERIOD_EARNINGS)
+        assertThat(earningsRow.accountCode).isEqualTo(SyntheticAccountIds.CURRENT_PERIOD_EARNINGS)
+        assertThat(earningsRow.isSynthetic).isTrue()
     }
 
     @Test
