@@ -392,11 +392,9 @@ class JournalEntryServiceTest {
         val allSaved = captor.allValues
         assertThat(allSaved).hasSize(2)
 
-        // First save is the voided entry
         val voidedSave = allSaved[0]
         assertThat(voidedSave.status).isEqualTo(JournalEntryStatus.VOIDED)
 
-        // Second save is the reversing entry
         val reversingSave = allSaved[1]
         assertThat(reversingSave.status).isEqualTo(JournalEntryStatus.POSTED)
         assertThat(reversingSave.source).isEqualTo(JournalEntrySource.SYSTEM)
@@ -509,7 +507,6 @@ class JournalEntryServiceTest {
         assertThat(result.accountType).isEqualTo("ASSET")
         assertThat(result.totalDebits).isEqualByComparingTo(BigDecimal("500.00"))
         assertThat(result.totalCredits).isEqualByComparingTo(BigDecimal("150.00"))
-        // ASSET: balance = debits - credits
         assertThat(result.balance).isEqualByComparingTo(BigDecimal("350.00"))
     }
 
@@ -554,7 +551,6 @@ class JournalEntryServiceTest {
         assertThat(result.accounts).hasSize(2)
         assertThat(result.totalDebits).isEqualByComparingTo(BigDecimal("300.00"))
         assertThat(result.totalCredits).isEqualByComparingTo(BigDecimal("300.00"))
-        // Trial balance must balance: total debits == total credits
         assertThat(result.totalDebits).isEqualByComparingTo(result.totalCredits)
 
         val cashBalance = result.accounts.find { it.accountId == "acc-1" }
@@ -565,7 +561,6 @@ class JournalEntryServiceTest {
         val revenueBalance = result.accounts.find { it.accountId == "acc-2" }
         assertThat(revenueBalance).isNotNull
         assertThat(revenueBalance!!.totalCredits).isEqualByComparingTo(BigDecimal("300.00"))
-        // REVENUE: balance = credits - debits
         assertThat(revenueBalance.balance).isEqualByComparingTo(BigDecimal("300.00"))
     }
 

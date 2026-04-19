@@ -46,7 +46,6 @@ class EnvironmentInitializer : ApplicationContextInitializer<ConfigurableApplica
             } catch (e: IllegalStateException) {
                 log.warn("Could not load .env file: {}", e.message)
             } catch (e: Exception) {
-                // Broad catch intentional: .env loading must never block startup
                 log.error("Unexpected error loading .env file: {}", e.message)
             }
         } else {

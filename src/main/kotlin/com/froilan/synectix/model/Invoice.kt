@@ -44,11 +44,13 @@ data class Invoice(
     val date: LocalDate,
     val dueDate: LocalDate,
     val referenceNumber: String? = null,
+    val taxGroupId: String? = null,
     @Indexed
     val organizationId: String,
     val status: InvoiceStatus = InvoiceStatus.DRAFT,
     val lines: List<InvoiceLine>,
     val totalAmount: BigDecimal,
+    val taxAmount: BigDecimal = BigDecimal.ZERO,
     val amountReceived: BigDecimal = BigDecimal.ZERO,
     val journalEntryId: String? = null,
     val createdBy: String,
