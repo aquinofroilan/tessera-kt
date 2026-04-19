@@ -196,6 +196,60 @@ class TaxGroupServiceTest {
     }
 
     @Test
+    fun `getTaxGroupWithRates should reject cross-org rate ids`() {
+        val group =
+            TaxGroup(
+                id = "tg-1",
+                name = "Group",
+                code = "GRP",
+                taxRateIds = listOf("tr-1", "tr-foreign"),
+                combinedRate = BigDecimal("10.00"),
+                organizationId = orgId,
+            )
+        val rate1 = createTaxRate("tr-1", BigDecimal("5.00"))
+        val foreignRate = createTaxRate("tr-foreign", BigDecimal("5.00"), orgId = "other-org")
+
+        `when`(taxGroupRepository.findById("tg-1")).thenReturn(Optional.of(group))
+        `when`(taxRateRepository.findAllById(listOf("tr-1", "tr-foreign")))
+            .thenReturn(listOf(rate1, foreignRate))
+
+        val exception =
+            assertThrows<BusinessRuleException> {
+                taxGroupService.getTaxGroupWithRates("tg-1", orgId)
+            }
+        assertThat(exception.message).contains("tr-foreign")
+    }
+
+    @Test
+    fun `update without taxRateIds should validate existing rates and reject cross-org`() {
+        val group =
+            TaxGroup(
+                id = "tg-1",
+                name = "Existing",
+                code = "EXG",
+                taxRateIds = listOf("tr-1", "tr-foreign"),
+                combinedRate = BigDecimal("10.00"),
+                organizationId = orgId,
+            )
+        val rate1 = createTaxRate("tr-1", BigDecimal("5.00"))
+        val foreignRate = createTaxRate("tr-foreign", BigDecimal("5.00"), orgId = "other-org")
+
+        `when`(taxGroupRepository.findById("tg-1")).thenReturn(Optional.of(group))
+        `when`(taxRateRepository.findAllById(listOf("tr-1", "tr-foreign")))
+            .thenReturn(listOf(rate1, foreignRate))
+
+        val exception =
+            assertThrows<BusinessRuleException> {
+                taxGroupService.updateTaxGroup(
+                    "tg-1",
+                    UpdateTaxGroupRequest(name = "Renamed"),
+                    orgId,
+                )
+            }
+        assertThat(exception.message).contains("not found")
+    }
+
+    @Test
     fun `getTaxGroupWithRates should throw when referenced rate is missing`() {
         val group =
             TaxGroup(

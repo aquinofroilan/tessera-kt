@@ -79,6 +79,10 @@ class TaxGroupService(
         if (missing.isNotEmpty()) {
             throw BusinessRuleException("Tax rates not found: ${missing.joinToString(", ")}")
         }
+        val crossOrg = ratesById.values.filter { it.organizationId != organizationId }.map { it.id }
+        if (crossOrg.isNotEmpty()) {
+            throw BusinessRuleException("Tax rates not found: ${crossOrg.joinToString(", ")}")
+        }
         val orderedRates = taxGroup.taxRateIds.map { ratesById.getValue(it) }
         return taxGroup to orderedRates
     }
@@ -112,12 +116,7 @@ class TaxGroupService(
             throw BusinessRuleException("At least one tax rate is required")
         }
         val newRateIds = request.taxRateIds?.distinct() ?: taxGroup.taxRateIds
-        val rates =
-            if (request.taxRateIds != null) {
-                validateAndLoadRates(newRateIds, organizationId)
-            } else {
-                taxRateRepository.findAllById(taxGroup.taxRateIds)
-            }
+        val rates = validateAndLoadRates(newRateIds, organizationId)
 
         val combinedRate = rates.fold(BigDecimal.ZERO) { sum, rate -> sum.add(rate.percentage) }
 
