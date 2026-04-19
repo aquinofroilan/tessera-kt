@@ -74,8 +74,13 @@ class TaxGroupService(
         organizationId: String,
     ): Pair<TaxGroup, List<TaxRate>> {
         val taxGroup = getTaxGroup(taxGroupId, organizationId)
-        val rates = taxRateRepository.findAllById(taxGroup.taxRateIds)
-        return taxGroup to rates
+        val ratesById = taxRateRepository.findAllById(taxGroup.taxRateIds).associateBy { it.id }
+        val missing = taxGroup.taxRateIds.filter { it !in ratesById }
+        if (missing.isNotEmpty()) {
+            throw BusinessRuleException("Tax rates not found: ${missing.joinToString(", ")}")
+        }
+        val orderedRates = taxGroup.taxRateIds.map { ratesById.getValue(it) }
+        return taxGroup to orderedRates
     }
 
     fun listTaxGroups(

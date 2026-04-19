@@ -363,6 +363,35 @@ class InvoiceServiceTest {
     )
 
     @Test
+    fun `create with taxGroupId should compute and store tax`() {
+        val customer = createCustomer()
+        val revenueAccount = createAccount("acc-1", "4100", "Service Revenue", AccountType.REVENUE)
+
+        `when`(customerService.getCustomer("c-1", orgId)).thenReturn(customer)
+        `when`(accountRepository.findAllById(listOf("acc-1")))
+            .thenReturn(listOf(revenueAccount))
+        `when`(invoiceRepository.countByOrganizationId(orgId)).thenReturn(0L)
+        `when`(invoiceRepository.save(any<Invoice>())).thenAnswer { it.arguments[0] }
+        `when`(taxGroupService.calculateTaxAmount(any(), any(), any()))
+            .thenReturn(BigDecimal("170.00"))
+
+        val request =
+            CreateInvoiceRequest(
+                customerId = "c-1",
+                date = LocalDate.of(2026, 3, 1),
+                dueDate = LocalDate.of(2026, 3, 31),
+                taxGroupId = "tg-1",
+                lines = listOf(InvoiceLineRequest(accountId = "acc-1", amount = BigDecimal("2000.00"))),
+            )
+
+        val result = invoiceService.createInvoice(request, orgId, userId)
+
+        assertThat(result.taxGroupId).isEqualTo("tg-1")
+        assertThat(result.taxAmount).isEqualByComparingTo(BigDecimal("170.00"))
+        assertThat(result.totalAmount).isEqualByComparingTo(BigDecimal("2170.00"))
+    }
+
+    @Test
     fun `approve with tax should include tax payable credit and correct AR debit`() {
         val invoice =
             createInvoice(
