@@ -1,7 +1,13 @@
 package com.froilan.synectix.service
 
+import com.froilan.synectix.dto.ComparativePeriodMeta
+import com.froilan.synectix.dto.IncomeStatementResponse
+import com.froilan.synectix.dto.ReportAccountLine
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.model.JournalEntryStatus
+import com.froilan.synectix.repository.AccountRepository
 import com.froilan.synectix.repository.JournalEntryRepository
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -10,7 +16,101 @@ import java.time.LocalDate
 @Service
 class FinancialReportService(
     private val journalEntryRepository: JournalEntryRepository,
+    private val accountRepository: AccountRepository,
 ) {
+    fun getIncomeStatement(
+        organizationId: String,
+        startDate: LocalDate,
+        endDate: LocalDate,
+        compareStartDate: LocalDate? = null,
+        compareEndDate: LocalDate? = null,
+    ): IncomeStatementResponse {
+        if (endDate.isBefore(startDate)) {
+            throw BusinessRuleException("End date must be on or after start date")
+        }
+        if ((compareStartDate == null) != (compareEndDate == null)) {
+            throw BusinessRuleException("Both comparative dates must be provided together")
+        }
+        if (compareStartDate != null && compareEndDate!!.isBefore(compareStartDate)) {
+            throw BusinessRuleException("Comparative end date must be on or after comparative start date")
+        }
+
+        val accounts =
+            accountRepository
+                .findByOrganizationIdAndIsActive(organizationId, true)
+                .filter { it.type == AccountType.REVENUE || it.type == AccountType.EXPENSE }
+        val currentTotals = computePeriodTotals(organizationId, startDate, endDate)
+        val comparativeTotals =
+            if (compareStartDate != null && compareEndDate != null) {
+                computePeriodTotals(organizationId, compareStartDate, compareEndDate)
+            } else {
+                null
+            }
+
+        val revenueLines = buildLines(accounts, AccountType.REVENUE, currentTotals, comparativeTotals)
+        val expenseLines = buildLines(accounts, AccountType.EXPENSE, currentTotals, comparativeTotals)
+
+        val totalRevenue = revenueLines.fold(BigDecimal.ZERO) { acc, l -> acc.add(l.amount) }
+        val totalExpenses = expenseLines.fold(BigDecimal.ZERO) { acc, l -> acc.add(l.amount) }
+        val comparativeTotalRevenue =
+            comparativeTotals?.let {
+                revenueLines.fold(BigDecimal.ZERO) { acc, l -> acc.add(l.comparativeAmount ?: BigDecimal.ZERO) }
+            }
+        val comparativeTotalExpenses =
+            comparativeTotals?.let {
+                expenseLines.fold(BigDecimal.ZERO) { acc, l -> acc.add(l.comparativeAmount ?: BigDecimal.ZERO) }
+            }
+
+        return IncomeStatementResponse(
+            startDate = startDate.toString(),
+            endDate = endDate.toString(),
+            comparativePeriod =
+                if (compareStartDate != null && compareEndDate != null) {
+                    ComparativePeriodMeta(compareStartDate.toString(), compareEndDate.toString())
+                } else {
+                    null
+                },
+            revenue = revenueLines,
+            totalRevenue = totalRevenue,
+            comparativeTotalRevenue = comparativeTotalRevenue,
+            expenses = expenseLines,
+            totalExpenses = totalExpenses,
+            comparativeTotalExpenses = comparativeTotalExpenses,
+            netIncome = totalRevenue.subtract(totalExpenses),
+            comparativeNetIncome =
+                if (comparativeTotalRevenue != null && comparativeTotalExpenses != null) {
+                    comparativeTotalRevenue.subtract(comparativeTotalExpenses)
+                } else {
+                    null
+                },
+        )
+    }
+
+    private fun buildLines(
+        accounts: List<Account>,
+        type: AccountType,
+        current: Map<String, Pair<BigDecimal, BigDecimal>>,
+        comparative: Map<String, Pair<BigDecimal, BigDecimal>>?,
+    ): List<ReportAccountLine> =
+        accounts
+            .filter { it.type == type }
+            .map { account ->
+                val (debits, credits) = current.getOrDefault(account.id, BigDecimal.ZERO to BigDecimal.ZERO)
+                val amount = signedBalance(account.type, debits, credits)
+                val compAmount =
+                    comparative?.let {
+                        val (cd, cc) = it.getOrDefault(account.id, BigDecimal.ZERO to BigDecimal.ZERO)
+                        signedBalance(account.type, cd, cc)
+                    }
+                ReportAccountLine(
+                    accountId = account.id,
+                    accountCode = account.code,
+                    accountName = account.name,
+                    amount = amount,
+                    comparativeAmount = compAmount,
+                )
+            }.sortedBy { it.accountCode }
+
     internal fun computePeriodTotals(
         organizationId: String,
         startDate: LocalDate?,
