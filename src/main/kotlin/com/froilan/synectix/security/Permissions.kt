@@ -49,6 +49,9 @@ object Permissions {
     const val TAX_READ = "tax:read"
     const val TAX_DELETE = "tax:delete"
 
+    const val FX_READ = "fx:read"
+    const val FX_CREATE = "fx:create"
+
     val ALL_PERMISSIONS =
         listOf(
             SESSION_READ,
@@ -87,5 +90,7 @@ object Permissions {
             TAX_CREATE,
             TAX_READ,
             TAX_DELETE,
+            FX_READ,
+            FX_CREATE,
         )
 }

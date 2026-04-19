@@ -69,6 +69,8 @@ class RoleSeeder(
                             Permissions.TAX_CREATE,
                             Permissions.TAX_READ,
                             Permissions.TAX_DELETE,
+                            Permissions.FX_READ,
+                            Permissions.FX_CREATE,
                         ),
                 ),
                 Role(
@@ -106,6 +108,8 @@ class RoleSeeder(
                             Permissions.TAX_CREATE,
                             Permissions.TAX_READ,
                             Permissions.TAX_DELETE,
+                            Permissions.FX_READ,
+                            Permissions.FX_CREATE,
                         ),
                 ),
                 Role(
@@ -128,6 +132,7 @@ class RoleSeeder(
                             Permissions.AR_CREATE,
                             Permissions.AR_READ,
                             Permissions.TAX_READ,
+                            Permissions.FX_READ,
                         ),
                 ),
                 Role(
@@ -144,6 +149,7 @@ class RoleSeeder(
                             Permissions.AP_READ,
                             Permissions.AR_READ,
                             Permissions.TAX_READ,
+                            Permissions.FX_READ,
                         ),
                 ),
             )

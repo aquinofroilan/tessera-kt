@@ -18,7 +18,7 @@ data class Organizations(
     val description: String? = null,
     val legalName: String,
     val tradeName: String,
-    val baseCurrency: String,
+    val baseCurrency: String = "USD",
     val fiscalYearStart: LocalDateTime,
     val timezone: String,
     val status: String = "ACTIVE",
