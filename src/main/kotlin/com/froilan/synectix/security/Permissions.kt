@@ -45,6 +45,10 @@ object Permissions {
     const val AR_RECEIVE = "ar:receive"
     const val AR_VOID = "ar:void"
 
+    const val TAX_CREATE = "tax:create"
+    const val TAX_READ = "tax:read"
+    const val TAX_DELETE = "tax:delete"
+
     val ALL_PERMISSIONS =
         listOf(
             SESSION_READ,
@@ -80,5 +84,8 @@ object Permissions {
             AR_APPROVE,
             AR_RECEIVE,
             AR_VOID,
+            TAX_CREATE,
+            TAX_READ,
+            TAX_DELETE,
         )
 }

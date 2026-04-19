@@ -12,6 +12,7 @@ import com.froilan.synectix.model.InvoiceLine
 import com.froilan.synectix.model.InvoiceReceipt
 import com.froilan.synectix.model.InvoiceStatus
 import com.froilan.synectix.model.JournalEntry
+import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.model.JournalEntryStatus
 import com.froilan.synectix.model.PaymentMethod
 import com.froilan.synectix.repository.AccountRepository
@@ -25,6 +26,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -37,6 +39,7 @@ class InvoiceServiceTest {
     private lateinit var accountRepository: AccountRepository
     private lateinit var customerService: CustomerService
     private lateinit var journalEntryService: JournalEntryService
+    private lateinit var taxGroupService: TaxGroupService
 
     private val orgId = "org-123"
     private val userId = "user-1"
@@ -48,6 +51,9 @@ class InvoiceServiceTest {
         accountRepository = mock(AccountRepository::class.java)
         customerService = mock(CustomerService::class.java)
         journalEntryService = mock(JournalEntryService::class.java)
+        taxGroupService = mock(TaxGroupService::class.java)
+        `when`(taxGroupService.calculateTaxAmount(anyOrNull(), any(), any()))
+            .thenReturn(java.math.BigDecimal.ZERO)
         invoiceService =
             InvoiceService(
                 invoiceRepository = invoiceRepository,
@@ -55,6 +61,7 @@ class InvoiceServiceTest {
                 accountRepository = accountRepository,
                 customerService = customerService,
                 journalEntryService = journalEntryService,
+                taxGroupService = taxGroupService,
             )
     }
 
@@ -336,11 +343,8 @@ class InvoiceServiceTest {
         val customerAging = report.customers[0]
         assertThat(customerAging.customerName).isEqualTo("BigCorp")
 
-        // inv-1: due May 15, asOf May 1 -> not overdue -> current
         assertThat(customerAging.aging.current).isEqualByComparingTo(BigDecimal("500.00"))
-        // inv-2: due Apr 15, asOf May 1 -> 16 days overdue -> 1-30 bucket
         assertThat(customerAging.aging.days1to30).isEqualByComparingTo(BigDecimal("800.00"))
-        // inv-3: due Feb 1, asOf May 1 -> 89 days overdue -> 61-90 bucket, outstanding = 800
         assertThat(customerAging.aging.days61to90).isEqualByComparingTo(BigDecimal("800.00"))
 
         assertThat(report.totals.total).isEqualByComparingTo(BigDecimal("2100.00"))
@@ -357,6 +361,82 @@ class InvoiceServiceTest {
         organizationId = orgId,
         isActive = isActive,
     )
+
+    @Test
+    fun `create with taxGroupId should compute and store tax`() {
+        val customer = createCustomer()
+        val revenueAccount = createAccount("acc-1", "4100", "Service Revenue", AccountType.REVENUE)
+
+        `when`(customerService.getCustomer("c-1", orgId)).thenReturn(customer)
+        `when`(accountRepository.findAllById(listOf("acc-1")))
+            .thenReturn(listOf(revenueAccount))
+        `when`(invoiceRepository.countByOrganizationId(orgId)).thenReturn(0L)
+        `when`(invoiceRepository.save(any<Invoice>())).thenAnswer { it.arguments[0] }
+        `when`(taxGroupService.calculateTaxAmount(any(), any(), any()))
+            .thenReturn(BigDecimal("170.00"))
+
+        val request =
+            CreateInvoiceRequest(
+                customerId = "c-1",
+                date = LocalDate.of(2026, 3, 1),
+                dueDate = LocalDate.of(2026, 3, 31),
+                taxGroupId = "tg-1",
+                lines = listOf(InvoiceLineRequest(accountId = "acc-1", amount = BigDecimal("2000.00"))),
+            )
+
+        val result = invoiceService.createInvoice(request, orgId, userId)
+
+        assertThat(result.taxGroupId).isEqualTo("tg-1")
+        assertThat(result.taxAmount).isEqualByComparingTo(BigDecimal("170.00"))
+        assertThat(result.totalAmount).isEqualByComparingTo(BigDecimal("2170.00"))
+    }
+
+    @Test
+    fun `approve with tax should include tax payable credit and correct AR debit`() {
+        val invoice =
+            createInvoice(
+                status = InvoiceStatus.DRAFT,
+                totalAmount = BigDecimal("2170.00"),
+                taxAmount = BigDecimal("170.00"),
+            )
+        val arAccount = createAccount("acc-ar", "1100", "Accounts Receivable", AccountType.ASSET)
+        val taxPayableAccount = createAccount("acc-tax", "2300", "Sales Tax Payable", AccountType.LIABILITY)
+        val mockEntry = createMockJournalEntry()
+
+        `when`(invoiceRepository.findById("inv-1")).thenReturn(Optional.of(invoice))
+        `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1100"))
+            .thenReturn(Optional.of(arAccount))
+        `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2300"))
+            .thenReturn(Optional.of(taxPayableAccount))
+        `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
+            .thenReturn(mockEntry)
+        `when`(invoiceRepository.save(any<Invoice>())).thenAnswer { it.arguments[0] }
+
+        invoiceService.approveInvoice("inv-1", orgId, userId)
+
+        val linesCaptor = argumentCaptor<List<JournalEntryLine>>()
+        verify(journalEntryService).createSystemEntry(
+            any(),
+            any(),
+            any(),
+            linesCaptor.capture(),
+            any(),
+            any(),
+        )
+        val lines = linesCaptor.firstValue
+
+        val arDebit = lines.find { it.accountCode == "1100" }
+        assertThat(arDebit).isNotNull
+        assertThat(arDebit!!.debit).isEqualByComparingTo(BigDecimal("2170.00"))
+
+        val revenueCredit = lines.find { it.accountCode == "4100" }
+        assertThat(revenueCredit).isNotNull
+        assertThat(revenueCredit!!.credit).isEqualByComparingTo(BigDecimal("2000.00"))
+
+        val taxCredit = lines.find { it.accountCode == "2300" }
+        assertThat(taxCredit).isNotNull
+        assertThat(taxCredit!!.credit).isEqualByComparingTo(BigDecimal("170.00"))
+    }
 
     private fun createAccount(
         id: String,
@@ -376,6 +456,7 @@ class InvoiceServiceTest {
         customerId: String = "c-1",
         status: InvoiceStatus = InvoiceStatus.DRAFT,
         totalAmount: BigDecimal = BigDecimal("2000.00"),
+        taxAmount: BigDecimal = BigDecimal.ZERO,
         amountReceived: BigDecimal = BigDecimal.ZERO,
         dueDate: LocalDate = LocalDate.of(2026, 3, 31),
         journalEntryId: String? = null,
@@ -394,10 +475,11 @@ class InvoiceServiceTest {
                     accountId = "acc-1",
                     accountCode = "4100",
                     accountName = "Service Revenue",
-                    amount = totalAmount,
+                    amount = totalAmount.subtract(taxAmount),
                 ),
             ),
         totalAmount = totalAmount,
+        taxAmount = taxAmount,
         amountReceived = amountReceived,
         journalEntryId = journalEntryId,
         createdBy = userId,

@@ -66,6 +66,9 @@ class RoleSeeder(
                             Permissions.AR_APPROVE,
                             Permissions.AR_RECEIVE,
                             Permissions.AR_VOID,
+                            Permissions.TAX_CREATE,
+                            Permissions.TAX_READ,
+                            Permissions.TAX_DELETE,
                         ),
                 ),
                 Role(
@@ -100,6 +103,9 @@ class RoleSeeder(
                             Permissions.AR_READ,
                             Permissions.AR_APPROVE,
                             Permissions.AR_RECEIVE,
+                            Permissions.TAX_CREATE,
+                            Permissions.TAX_READ,
+                            Permissions.TAX_DELETE,
                         ),
                 ),
                 Role(
@@ -121,6 +127,7 @@ class RoleSeeder(
                             Permissions.AP_READ,
                             Permissions.AR_CREATE,
                             Permissions.AR_READ,
+                            Permissions.TAX_READ,
                         ),
                 ),
                 Role(
@@ -136,6 +143,7 @@ class RoleSeeder(
                             Permissions.FISCAL_READ,
                             Permissions.AP_READ,
                             Permissions.AR_READ,
+                            Permissions.TAX_READ,
                         ),
                 ),
             )

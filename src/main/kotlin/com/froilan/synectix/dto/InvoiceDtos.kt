@@ -22,6 +22,7 @@ data class CreateInvoiceRequest(
     val date: LocalDate,
     val dueDate: LocalDate,
     val referenceNumber: String? = null,
+    val taxGroupId: String? = null,
     @field:NotEmpty(message = "At least one line item is required")
     @field:Valid
     val lines: List<InvoiceLineRequest>,
@@ -56,10 +57,12 @@ data class InvoiceResponse(
     val date: String,
     val dueDate: String,
     val referenceNumber: String?,
+    val taxGroupId: String?,
     val organizationId: String,
     val status: String,
     val lines: List<InvoiceLineResponse>,
     val totalAmount: BigDecimal,
+    val taxAmount: BigDecimal,
     val amountReceived: BigDecimal,
     val journalEntryId: String?,
     val createdBy: String,
@@ -81,6 +84,7 @@ data class InvoiceSummaryResponse(
     val dueDate: String,
     val status: String,
     val totalAmount: BigDecimal,
+    val taxAmount: BigDecimal,
     val amountReceived: BigDecimal,
 )
 

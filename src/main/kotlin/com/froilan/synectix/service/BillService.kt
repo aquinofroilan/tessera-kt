@@ -33,6 +33,7 @@ class BillService(
     private val accountRepository: AccountRepository,
     private val vendorService: VendorService,
     private val journalEntryService: JournalEntryService,
+    private val taxGroupService: TaxGroupService,
 ) {
     @Transactional
     fun createBill(
@@ -88,7 +89,9 @@ class BillService(
                 )
             }
 
-        val totalAmount = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.amount) }
+        val subtotalAmount = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.amount) }
+        val taxAmount = taxGroupService.calculateTaxAmount(request.taxGroupId, organizationId, subtotalAmount)
+        val totalAmount = subtotalAmount.add(taxAmount)
 
         return saveBillWithRetry(organizationId) { billNumber ->
             Bill(
@@ -98,9 +101,11 @@ class BillService(
                 date = request.date,
                 dueDate = request.dueDate,
                 referenceNumber = request.referenceNumber,
+                taxGroupId = request.taxGroupId,
                 organizationId = organizationId,
                 lines = lines,
                 totalAmount = totalAmount,
+                taxAmount = taxAmount,
                 createdBy = createdBy,
             )
         }
@@ -150,7 +155,7 @@ class BillService(
 
         val apAccount = getApAccount(organizationId)
 
-        val journalLines =
+        val expenseLines =
             bill.lines.map { line ->
                 JournalEntryLine(
                     accountId = line.accountId,
@@ -160,7 +165,28 @@ class BillService(
                     credit = BigDecimal.ZERO,
                     description = line.description,
                 )
-            } +
+            }
+
+        val taxLines =
+            if (bill.taxAmount.compareTo(BigDecimal.ZERO) > 0) {
+                val taxInputAccount = getTaxInputAccount(organizationId)
+                listOf(
+                    JournalEntryLine(
+                        accountId = taxInputAccount.id,
+                        accountCode = taxInputAccount.code,
+                        accountName = taxInputAccount.name,
+                        debit = bill.taxAmount,
+                        credit = BigDecimal.ZERO,
+                        description = "Tax Input - ${bill.vendorName} - ${bill.billNumber}",
+                    ),
+                )
+            } else {
+                emptyList()
+            }
+
+        val journalLines =
+            expenseLines +
+                taxLines +
                 JournalEntryLine(
                     accountId = apAccount.id,
                     accountCode = apAccount.code,
@@ -205,7 +231,6 @@ class BillService(
         }
         val now = LocalDateTime.now(ZoneOffset.UTC)
 
-        // Draft voids skip fiscal validation — no GL entries are posted
         if (bill.status == BillStatus.DRAFT) {
             return billRepository.save(
                 bill.copy(
@@ -448,6 +473,17 @@ class BillService(
             }
         if (!account.isActive) {
             throw BusinessRuleException("Cash account (1000) is inactive")
+        }
+        return account
+    }
+
+    private fun getTaxInputAccount(organizationId: String): Account {
+        val account =
+            accountRepository.findByOrganizationIdAndCode(organizationId, "2310").orElseThrow {
+                IllegalStateException("Tax Input Credits account (2310) not found")
+            }
+        if (!account.isActive) {
+            throw BusinessRuleException("Tax Input Credits account (2310) is inactive")
         }
         return account
     }

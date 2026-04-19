@@ -52,11 +52,13 @@ data class Bill(
     val date: LocalDate,
     val dueDate: LocalDate,
     val referenceNumber: String? = null,
+    val taxGroupId: String? = null,
     @Indexed
     val organizationId: String,
     val status: BillStatus = BillStatus.DRAFT,
     val lines: List<BillLine>,
     val totalAmount: BigDecimal,
+    val taxAmount: BigDecimal = BigDecimal.ZERO,
     val amountPaid: BigDecimal = BigDecimal.ZERO,
     val journalEntryId: String? = null,
     val createdBy: String,

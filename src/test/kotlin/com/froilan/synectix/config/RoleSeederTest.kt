@@ -86,6 +86,9 @@ class RoleSeederTest {
                         Permissions.AR_APPROVE,
                         Permissions.AR_RECEIVE,
                         Permissions.AR_VOID,
+                        Permissions.TAX_CREATE,
+                        Permissions.TAX_READ,
+                        Permissions.TAX_DELETE,
                     ),
             )
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
@@ -164,6 +167,9 @@ class RoleSeederTest {
                         Permissions.AR_APPROVE,
                         Permissions.AR_RECEIVE,
                         Permissions.AR_VOID,
+                        Permissions.TAX_CREATE,
+                        Permissions.TAX_READ,
+                        Permissions.TAX_DELETE,
                     ),
             )
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
@@ -269,6 +275,9 @@ class RoleSeederTest {
                         Permissions.AR_APPROVE,
                         Permissions.AR_RECEIVE,
                         Permissions.AR_VOID,
+                        Permissions.TAX_CREATE,
+                        Permissions.TAX_READ,
+                        Permissions.TAX_DELETE,
                     ),
             )
         val admin =
@@ -304,6 +313,9 @@ class RoleSeederTest {
                         Permissions.AR_READ,
                         Permissions.AR_APPROVE,
                         Permissions.AR_RECEIVE,
+                        Permissions.TAX_CREATE,
+                        Permissions.TAX_READ,
+                        Permissions.TAX_DELETE,
                     ),
             )
         val member =
@@ -326,6 +338,7 @@ class RoleSeederTest {
                         Permissions.AP_READ,
                         Permissions.AR_CREATE,
                         Permissions.AR_READ,
+                        Permissions.TAX_READ,
                     ),
             )
         val viewer =
@@ -342,6 +355,7 @@ class RoleSeederTest {
                         Permissions.FISCAL_READ,
                         Permissions.AP_READ,
                         Permissions.AR_READ,
+                        Permissions.TAX_READ,
                     ),
             )
 

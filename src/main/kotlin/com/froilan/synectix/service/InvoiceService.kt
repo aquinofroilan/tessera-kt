@@ -33,6 +33,7 @@ class InvoiceService(
     private val accountRepository: AccountRepository,
     private val customerService: CustomerService,
     private val journalEntryService: JournalEntryService,
+    private val taxGroupService: TaxGroupService,
 ) {
     @Transactional
     fun createInvoice(
@@ -88,7 +89,9 @@ class InvoiceService(
                 )
             }
 
-        val totalAmount = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.amount) }
+        val subtotalAmount = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.amount) }
+        val taxAmount = taxGroupService.calculateTaxAmount(request.taxGroupId, organizationId, subtotalAmount)
+        val totalAmount = subtotalAmount.add(taxAmount)
 
         return saveInvoiceWithRetry(organizationId) { invoiceNumber ->
             Invoice(
@@ -98,9 +101,11 @@ class InvoiceService(
                 date = request.date,
                 dueDate = request.dueDate,
                 referenceNumber = request.referenceNumber,
+                taxGroupId = request.taxGroupId,
                 organizationId = organizationId,
                 lines = lines,
                 totalAmount = totalAmount,
+                taxAmount = taxAmount,
                 createdBy = createdBy,
             )
         }
@@ -150,7 +155,7 @@ class InvoiceService(
 
         val arAccount = getArAccount(organizationId)
 
-        val journalLines =
+        val revenueLines =
             invoice.lines.map { line ->
                 JournalEntryLine(
                     accountId = line.accountId,
@@ -160,7 +165,27 @@ class InvoiceService(
                     credit = line.amount,
                     description = line.description,
                 )
-            } +
+            }
+
+        val taxLines =
+            if (invoice.taxAmount.compareTo(BigDecimal.ZERO) > 0) {
+                val taxPayableAccount = getTaxPayableAccount(organizationId)
+                listOf(
+                    JournalEntryLine(
+                        accountId = taxPayableAccount.id,
+                        accountCode = taxPayableAccount.code,
+                        accountName = taxPayableAccount.name,
+                        debit = BigDecimal.ZERO,
+                        credit = invoice.taxAmount,
+                        description = "Tax Payable - ${invoice.customerName} - ${invoice.invoiceNumber}",
+                    ),
+                )
+            } else {
+                emptyList()
+            }
+
+        val journalLines =
+            listOf(
                 JournalEntryLine(
                     accountId = arAccount.id,
                     accountCode = arAccount.code,
@@ -168,7 +193,8 @@ class InvoiceService(
                     debit = invoice.totalAmount,
                     credit = BigDecimal.ZERO,
                     description = "AR - ${invoice.customerName} - ${invoice.invoiceNumber}",
-                )
+                ),
+            ) + revenueLines + taxLines
 
         val journalEntry =
             journalEntryService.createSystemEntry(
@@ -206,7 +232,6 @@ class InvoiceService(
 
         val now = LocalDateTime.now(ZoneOffset.UTC)
 
-        // Draft voids skip fiscal validation — no GL entries are posted
         if (invoice.status == InvoiceStatus.DRAFT) {
             return invoiceRepository.save(
                 invoice.copy(
@@ -431,6 +456,17 @@ class InvoiceService(
             }
         if (!account.isActive) {
             throw BusinessRuleException("Cash account (1000) is inactive")
+        }
+        return account
+    }
+
+    private fun getTaxPayableAccount(organizationId: String): Account {
+        val account =
+            accountRepository.findByOrganizationIdAndCode(organizationId, "2300").orElseThrow {
+                IllegalStateException("Sales Tax Payable account (2300) not found")
+            }
+        if (!account.isActive) {
+            throw BusinessRuleException("Sales Tax Payable account (2300) is inactive")
         }
         return account
     }

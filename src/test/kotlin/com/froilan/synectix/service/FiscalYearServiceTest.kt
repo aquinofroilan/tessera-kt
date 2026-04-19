@@ -449,17 +449,14 @@ class FiscalYearServiceTest {
         assertThat(closingEntry.description).contains("Year-end closing entry")
         assertThat(closingEntry.status).isEqualTo(JournalEntryStatus.POSTED)
 
-        // Revenue (1000 credit balance) should be debited to zero it
         val revenueLine = closingEntry.lines.find { it.accountId == "acc-revenue" }
         assertThat(revenueLine).isNotNull
         assertThat(revenueLine!!.debit).isEqualByComparingTo(BigDecimal("1000.00"))
 
-        // Expense (300 debit balance) should be credited to zero it
         val expenseLine = closingEntry.lines.find { it.accountId == "acc-expense" }
         assertThat(expenseLine).isNotNull
         assertThat(expenseLine!!.credit).isEqualByComparingTo(BigDecimal("300.00"))
 
-        // Net income = 1000 - 300 = 700, credited to Retained Earnings
         val reLine = closingEntry.lines.find { it.accountId == "acc-re" }
         assertThat(reLine).isNotNull
         assertThat(reLine!!.credit).isEqualByComparingTo(BigDecimal("700.00"))
@@ -556,8 +553,6 @@ class FiscalYearServiceTest {
         verify(journalEntryRepository).save(entryCaptor.capture())
 
         val closingEntry = entryCaptor.firstValue
-        // Net loss: 0 revenue - 500 expense = -500
-        // Retained Earnings should be debited (reducing equity)
         val reLine = closingEntry.lines.find { it.accountId == "acc-re" }
         assertThat(reLine).isNotNull
         assertThat(reLine!!.debit).isEqualByComparingTo(BigDecimal("500.00"))
