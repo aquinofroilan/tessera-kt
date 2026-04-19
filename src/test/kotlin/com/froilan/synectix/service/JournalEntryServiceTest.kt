@@ -10,6 +10,7 @@ import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.model.JournalEntrySource
 import com.froilan.synectix.model.JournalEntryStatus
 import com.froilan.synectix.repository.AccountRepository
+import com.froilan.synectix.repository.AccountTotals
 import com.froilan.synectix.repository.JournalEntryRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -445,59 +446,8 @@ class JournalEntryServiceTest {
     fun `getAccountBalance should sum debits and credits from posted entries`() {
         val account = createMockAccount(id = "acc-1", code = "1000", name = "Cash", type = AccountType.ASSET, orgId = orgId)
         `when`(accountRepository.findById("acc-1")).thenReturn(Optional.of(account))
-
-        val entries =
-            listOf(
-                createMockEntry(
-                    id = "entry-1",
-                    entryNumber = "JE-0001",
-                    status = JournalEntryStatus.POSTED,
-                    lines =
-                        listOf(
-                            JournalEntryLine(
-                                accountId = "acc-1",
-                                accountCode = "1000",
-                                accountName = "Cash",
-                                debit = BigDecimal("500.00"),
-                                credit = BigDecimal.ZERO,
-                            ),
-                            JournalEntryLine(
-                                accountId = "acc-2",
-                                accountCode = "4000",
-                                accountName = "Revenue",
-                                debit = BigDecimal.ZERO,
-                                credit = BigDecimal("500.00"),
-                            ),
-                        ),
-                    orgId = orgId,
-                ),
-                createMockEntry(
-                    id = "entry-2",
-                    entryNumber = "JE-0002",
-                    status = JournalEntryStatus.POSTED,
-                    lines =
-                        listOf(
-                            JournalEntryLine(
-                                accountId = "acc-3",
-                                accountCode = "5000",
-                                accountName = "Expense",
-                                debit = BigDecimal("150.00"),
-                                credit = BigDecimal.ZERO,
-                            ),
-                            JournalEntryLine(
-                                accountId = "acc-1",
-                                accountCode = "1000",
-                                accountName = "Cash",
-                                debit = BigDecimal.ZERO,
-                                credit = BigDecimal("150.00"),
-                            ),
-                        ),
-                    orgId = orgId,
-                ),
-            )
-
-        val postedStatuses = listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED)
-        `when`(journalEntryRepository.findByOrganizationIdAndStatusIn(orgId, postedStatuses)).thenReturn(entries)
+        `when`(journalEntryRepository.aggregateAccountTotals(orgId, listOf("acc-1"), null, null))
+            .thenReturn(mapOf("acc-1" to AccountTotals(BigDecimal("500.00"), BigDecimal("150.00"))))
 
         val result = journalEntryService.getAccountBalance("acc-1", orgId)
 
@@ -515,36 +465,14 @@ class JournalEntryServiceTest {
         val cashAccount = createMockAccount(id = "acc-1", code = "1000", name = "Cash", type = AccountType.ASSET, orgId = orgId)
         val revenueAccount = createMockAccount(id = "acc-2", code = "4000", name = "Revenue", type = AccountType.REVENUE, orgId = orgId)
 
-        val entries =
-            listOf(
-                createMockEntry(
-                    id = "entry-1",
-                    entryNumber = "JE-0001",
-                    status = JournalEntryStatus.POSTED,
-                    lines =
-                        listOf(
-                            JournalEntryLine(
-                                accountId = "acc-1",
-                                accountCode = "1000",
-                                accountName = "Cash",
-                                debit = BigDecimal("300.00"),
-                                credit = BigDecimal.ZERO,
-                            ),
-                            JournalEntryLine(
-                                accountId = "acc-2",
-                                accountCode = "4000",
-                                accountName = "Revenue",
-                                debit = BigDecimal.ZERO,
-                                credit = BigDecimal("300.00"),
-                            ),
-                        ),
-                    orgId = orgId,
+        `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(listOf(cashAccount, revenueAccount))
+        `when`(journalEntryRepository.aggregateAccountTotals(orgId, listOf("acc-1", "acc-2"), null, null))
+            .thenReturn(
+                mapOf(
+                    "acc-1" to AccountTotals(BigDecimal("300.00"), BigDecimal.ZERO),
+                    "acc-2" to AccountTotals(BigDecimal.ZERO, BigDecimal("300.00")),
                 ),
             )
-
-        val postedStatuses = listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED)
-        `when`(journalEntryRepository.findByOrganizationIdAndStatusIn(orgId, postedStatuses)).thenReturn(entries)
-        `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(listOf(cashAccount, revenueAccount))
 
         val result = journalEntryService.getTrialBalance(orgId)
 
