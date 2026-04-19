@@ -10,14 +10,17 @@ import com.froilan.synectix.model.Bill
 import com.froilan.synectix.model.BillLine
 import com.froilan.synectix.model.BillPayment
 import com.froilan.synectix.model.BillStatus
+import com.froilan.synectix.model.Currency
 import com.froilan.synectix.model.JournalEntry
 import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.model.JournalEntryStatus
+import com.froilan.synectix.model.Organizations
 import com.froilan.synectix.model.PaymentMethod
 import com.froilan.synectix.model.Vendor
 import com.froilan.synectix.repository.AccountRepository
 import com.froilan.synectix.repository.BillPaymentRepository
 import com.froilan.synectix.repository.BillRepository
+import com.froilan.synectix.repository.OrganizationRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -30,6 +33,7 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.Optional
 
 class BillServiceTest {
@@ -40,6 +44,9 @@ class BillServiceTest {
     private lateinit var vendorService: VendorService
     private lateinit var journalEntryService: JournalEntryService
     private lateinit var taxGroupService: TaxGroupService
+    private lateinit var organizationRepository: OrganizationRepository
+    private lateinit var currencyService: CurrencyService
+    private lateinit var exchangeRateService: ExchangeRateService
 
     private val orgId = "org-123"
     private val userId = "user-1"
@@ -52,8 +59,28 @@ class BillServiceTest {
         vendorService = mock(VendorService::class.java)
         journalEntryService = mock(JournalEntryService::class.java)
         taxGroupService = mock(TaxGroupService::class.java)
+        organizationRepository = mock(OrganizationRepository::class.java)
+        currencyService = mock(CurrencyService::class.java)
+        exchangeRateService = mock(ExchangeRateService::class.java)
         `when`(taxGroupService.calculateTaxAmount(anyOrNull(), any(), any()))
             .thenReturn(java.math.BigDecimal.ZERO)
+        `when`(organizationRepository.findById(orgId)).thenReturn(
+            Optional.of(
+                Organizations(
+                    uuid = orgId,
+                    orgSlug = "test",
+                    name = "Test",
+                    legalName = "Test",
+                    tradeName = "Test",
+                    baseCurrency = "USD",
+                    fiscalYearStart = LocalDateTime.of(2026, 1, 1, 0, 0),
+                    timezone = "UTC",
+                ),
+            ),
+        )
+        `when`(currencyService.getCurrency("USD")).thenReturn(Currency("USD", "US Dollar", "\$", 2))
+        `when`(currencyService.getCurrency("PHP")).thenReturn(Currency("PHP", "Philippine Peso", "₱", 2))
+        `when`(currencyService.getCurrency("JPY")).thenReturn(Currency("JPY", "Japanese Yen", "¥", 0))
         billService =
             BillService(
                 billRepository = billRepository,
@@ -62,6 +89,9 @@ class BillServiceTest {
                 vendorService = vendorService,
                 journalEntryService = journalEntryService,
                 taxGroupService = taxGroupService,
+                organizationRepository = organizationRepository,
+                currencyService = currencyService,
+                exchangeRateService = exchangeRateService,
             )
     }
 
@@ -480,6 +510,11 @@ class BillServiceTest {
         amountPaid: BigDecimal = BigDecimal.ZERO,
         dueDate: LocalDate = LocalDate.of(2026, 3, 31),
         journalEntryId: String? = null,
+        currencyCode: String = "USD",
+        exchangeRate: BigDecimal = BigDecimal.ONE,
+        baseCurrencyAmount: BigDecimal = totalAmount,
+        baseCurrencyTaxAmount: BigDecimal = taxAmount,
+        baseCurrencyAmountPaid: BigDecimal = amountPaid,
     ) = Bill(
         id = id,
         billNumber = "BILL-0001",
@@ -501,6 +536,11 @@ class BillServiceTest {
         totalAmount = totalAmount,
         taxAmount = taxAmount,
         amountPaid = amountPaid,
+        currencyCode = currencyCode,
+        exchangeRate = exchangeRate,
+        baseCurrencyAmount = baseCurrencyAmount,
+        baseCurrencyTaxAmount = baseCurrencyTaxAmount,
+        baseCurrencyAmountPaid = baseCurrencyAmountPaid,
         journalEntryId = journalEntryId,
         createdBy = userId,
     )
@@ -516,4 +556,102 @@ class BillServiceTest {
             lines = emptyList(),
             createdBy = userId,
         )
+
+    @Test
+    fun `create in foreign currency should lock rate and compute baseCurrencyAmount`() {
+        val vendor = createVendor()
+        val expenseAccount = createAccount("acc-1", "5000", "Office Supplies", AccountType.EXPENSE)
+
+        `when`(vendorService.getVendor("v-1", orgId)).thenReturn(vendor)
+        `when`(accountRepository.findAllById(listOf("acc-1"))).thenReturn(listOf(expenseAccount))
+        `when`(billRepository.countByOrganizationId(orgId)).thenReturn(0L)
+        `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
+        `when`(exchangeRateService.getRate(orgId, "PHP", "USD", LocalDate.of(2026, 3, 1)))
+            .thenReturn(BigDecimal("0.018"))
+
+        val request =
+            CreateBillRequest(
+                vendorId = "v-1",
+                date = LocalDate.of(2026, 3, 1),
+                dueDate = LocalDate.of(2026, 3, 31),
+                currencyCode = "PHP",
+                lines = listOf(BillLineRequest(accountId = "acc-1", amount = BigDecimal("10000.00"))),
+            )
+
+        val result = billService.createBill(request, orgId, userId)
+
+        assertThat(result.currencyCode).isEqualTo("PHP")
+        assertThat(result.totalAmount).isEqualByComparingTo(BigDecimal("10000.00"))
+        assertThat(result.exchangeRate).isEqualByComparingTo(BigDecimal("0.018"))
+        assertThat(result.baseCurrencyAmount).isEqualByComparingTo(BigDecimal("180.00"))
+    }
+
+    @Test
+    fun `approve in foreign currency should post AP credit in base currency`() {
+        val bill =
+            createBill(
+                status = BillStatus.DRAFT,
+                totalAmount = BigDecimal("10000.00"),
+                currencyCode = "PHP",
+                exchangeRate = BigDecimal("0.018"),
+                baseCurrencyAmount = BigDecimal("180.00"),
+            )
+        val apAccount = createAccount("acc-ap", "2000", "Accounts Payable", AccountType.LIABILITY)
+        val mockEntry = createMockJournalEntry()
+
+        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2000"))
+            .thenReturn(Optional.of(apAccount))
+        `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
+            .thenReturn(mockEntry)
+        `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
+
+        billService.approveBill("bill-1", orgId, userId)
+
+        val linesCaptor = argumentCaptor<List<JournalEntryLine>>()
+        verify(journalEntryService).createSystemEntry(any(), any(), any(), linesCaptor.capture(), any(), any())
+        val apLine = linesCaptor.firstValue.first { it.accountCode == "2000" }
+        assertThat(apLine.credit).isEqualByComparingTo(BigDecimal("180.00"))
+    }
+
+    @Test
+    fun `payment in foreign currency should post base amount via locked rate`() {
+        val bill =
+            createBill(
+                status = BillStatus.APPROVED,
+                totalAmount = BigDecimal("10000.00"),
+                currencyCode = "PHP",
+                exchangeRate = BigDecimal("0.018"),
+                baseCurrencyAmount = BigDecimal("180.00"),
+            )
+        val apAccount = createAccount("acc-ap", "2000", "Accounts Payable", AccountType.LIABILITY)
+        val cashAccount = createAccount("acc-cash", "1000", "Cash", AccountType.ASSET)
+        val mockEntry = createMockJournalEntry()
+
+        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2000")).thenReturn(Optional.of(apAccount))
+        `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1000")).thenReturn(Optional.of(cashAccount))
+        `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
+            .thenReturn(mockEntry)
+        `when`(billPaymentRepository.save(any<BillPayment>())).thenAnswer { it.arguments[0] }
+        `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
+
+        val payment =
+            billService.recordPayment(
+                "bill-1",
+                RecordPaymentRequest(
+                    paymentDate = LocalDate.of(2026, 3, 15),
+                    amount = BigDecimal("5000.00"),
+                    paymentMethod = PaymentMethod.BANK_TRANSFER,
+                ),
+                orgId,
+                userId,
+            )
+
+        assertThat(payment.amount).isEqualByComparingTo(BigDecimal("5000.00"))
+        assertThat(payment.baseCurrencyAmount).isEqualByComparingTo(BigDecimal("90.00"))
+        val billCaptor = argumentCaptor<Bill>()
+        verify(billRepository).save(billCaptor.capture())
+        assertThat(billCaptor.firstValue.baseCurrencyAmountPaid).isEqualByComparingTo(BigDecimal("90.00"))
+    }
 }

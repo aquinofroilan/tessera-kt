@@ -22,6 +22,8 @@ data class BillPayment(
     val billId: String,
     val paymentDate: LocalDate,
     val amount: BigDecimal,
+    val baseCurrencyAmount: BigDecimal,
+    val exchangeRate: BigDecimal = BigDecimal.ONE,
     val paymentMethod: PaymentMethod,
     val referenceNumber: String? = null,
     val journalEntryId: String? = null,
