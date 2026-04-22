@@ -89,8 +89,7 @@ class CustomerGraphqlController(
         return customerService.deleteCustomer(id, orgId).toGraphql()
     }
 
-    private fun requireOrganizationId(): String =
-        authContext.organizationId() ?: throw AuthenticationException("Authentication required")
+    private fun requireOrganizationId(): String = authContext.organizationId() ?: throw AuthenticationException("Authentication required")
 
     private fun Customer.toGraphql() =
         CustomerGraphql(
