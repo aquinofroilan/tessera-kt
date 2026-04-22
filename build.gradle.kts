@@ -39,6 +39,7 @@ repositories {
 }
 
 dependencies {
+    implementation("com.posthog.java:posthog:1.2.0")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
