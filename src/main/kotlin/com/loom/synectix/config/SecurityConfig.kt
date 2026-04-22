@@ -54,6 +54,7 @@ class SecurityConfig(
                 it.requestMatchers("/finance/**").authenticated()
                 it.requestMatchers("/auth/**").permitAll()
                 it.requestMatchers("/health/**").permitAll()
+                it.requestMatchers("/graphql", "/graphiql", "/graphiql/**").permitAll()
                 it.requestMatchers("/actuator/health/**").permitAll()
                 it.requestMatchers("/actuator/info").permitAll()
                 it.anyRequest().authenticated()
