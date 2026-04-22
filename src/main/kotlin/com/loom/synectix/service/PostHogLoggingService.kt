@@ -27,7 +27,7 @@ class PostHogLoggingService(
         val postHog = postHogProvider.ifAvailable ?: return
 
         val properties =
-            linkedMapOf<String, Any>(
+            mutableMapOf<String, Any>(
                 "level" to level,
                 "source" to source,
                 "exception_type" to throwable.javaClass.name,
