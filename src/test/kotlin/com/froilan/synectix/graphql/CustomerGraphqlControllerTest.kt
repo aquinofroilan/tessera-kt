@@ -20,7 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 @GraphQlTest(controllers = [CustomerGraphqlController::class])
-@Import(TestSecurityConfig::class, SynectixPermissionEvaluator::class, GraphqlExceptionResolver::class)
+@Import(TestSecurityConfig::class, SynectixPermissionEvaluator::class, GraphqlExceptionResolver::class, GraphqlScalarConfig::class)
 class CustomerGraphqlControllerTest {
     @Autowired
     private lateinit var graphQlTester: GraphQlTester

@@ -21,8 +21,8 @@ import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest
 import org.springframework.context.annotation.Import
-import org.springframework.http.ResponseEntity
 import org.springframework.graphql.test.tester.GraphQlTester
+import org.springframework.http.ResponseEntity
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 @GraphQlTest(controllers = [RestGraphqlController::class])

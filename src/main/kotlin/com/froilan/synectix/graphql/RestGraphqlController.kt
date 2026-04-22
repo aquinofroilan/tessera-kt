@@ -1,6 +1,5 @@
 package com.froilan.synectix.graphql
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.froilan.synectix.controller.AccountController
 import com.froilan.synectix.controller.ApiKeyController
 import com.froilan.synectix.controller.AuthController
@@ -53,6 +52,7 @@ import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
+import tools.jackson.databind.ObjectMapper
 import java.time.LocalDate
 
 @Controller
@@ -90,7 +90,9 @@ class RestGraphqlController(
     fun environmentVariables(): Any = environmentController.getAllEnvironmentVariables()
 
     @MutationMapping
-    fun signup(@Argument input: Any): Any = unwrap(authController.register(toRequest<RegisterRequest>(input)))
+    fun signup(
+        @Argument input: Any,
+    ): Any = unwrap(authController.register(toRequest<RegisterRequest>(input)))
 
     @MutationMapping
     fun signin(
@@ -99,16 +101,24 @@ class RestGraphqlController(
     ): Any = unwrap(authController.login(toRequest<LoginRequest>(input), request(env)))
 
     @MutationMapping
-    fun refresh(@Argument input: Any): Any = unwrap(authController.refresh(toRequest<RefreshRequest>(input)))
+    fun refresh(
+        @Argument input: Any,
+    ): Any = unwrap(authController.refresh(toRequest<RefreshRequest>(input)))
 
     @MutationMapping
-    fun changePassword(@Argument input: Any): Any = unwrap(authController.changePassword(toRequest<ChangePasswordRequest>(input)))
+    fun changePassword(
+        @Argument input: Any,
+    ): Any = unwrap(authController.changePassword(toRequest<ChangePasswordRequest>(input)))
 
     @MutationMapping
-    fun forgotPassword(@Argument input: Any): Any = unwrap(authController.forgotPassword(toRequest<ForgotPasswordRequest>(input)))
+    fun forgotPassword(
+        @Argument input: Any,
+    ): Any = unwrap(authController.forgotPassword(toRequest<ForgotPasswordRequest>(input)))
 
     @MutationMapping
-    fun resetPassword(@Argument input: Any): Any = unwrap(authController.resetPassword(toRequest<ResetPasswordRequest>(input)))
+    fun resetPassword(
+        @Argument input: Any,
+    ): Any = unwrap(authController.resetPassword(toRequest<ResetPasswordRequest>(input)))
 
     @QueryMapping
     fun organizations(): Any = unwrap(authController.listOrganizations())
@@ -135,31 +145,45 @@ class RestGraphqlController(
     fun revokeOtherSessions(env: DataFetchingEnvironment): Any = unwrap(sessionController.revokeOtherSessions(authHeader(env).orEmpty()))
 
     @MutationMapping
-    fun createInvitation(@Argument input: Any): Any = unwrap(invitationController.createInvitation(toRequest<CreateInvitationRequest>(input)))
+    fun createInvitation(
+        @Argument input: Any,
+    ): Any = unwrap(invitationController.createInvitation(toRequest<CreateInvitationRequest>(input)))
 
     @QueryMapping
     fun invitations(): Any = unwrap(invitationController.listInvitations())
 
     @MutationMapping
-    fun validateInvitation(@Argument input: Any): Any = unwrap(invitationController.validateInvitation(toRequest<ValidateInvitationRequest>(input)))
+    fun validateInvitation(
+        @Argument input: Any,
+    ): Any = unwrap(invitationController.validateInvitation(toRequest<ValidateInvitationRequest>(input)))
 
     @MutationMapping
-    fun acceptInvitation(@Argument input: Any): Any = unwrap(invitationController.acceptInvitation(toRequest<AcceptInvitationRequest>(input)))
+    fun acceptInvitation(
+        @Argument input: Any,
+    ): Any = unwrap(invitationController.acceptInvitation(toRequest<AcceptInvitationRequest>(input)))
 
     @MutationMapping
-    fun revokeInvitation(@Argument id: String): Any = unwrap(invitationController.revokeInvitation(id))
+    fun revokeInvitation(
+        @Argument id: String,
+    ): Any = unwrap(invitationController.revokeInvitation(id))
 
     @MutationMapping
-    fun createApiKey(@Argument input: Any): Any = unwrap(apiKeyController.createApiKey(toRequest<CreateApiKeyRequest>(input)))
+    fun createApiKey(
+        @Argument input: Any,
+    ): Any = unwrap(apiKeyController.createApiKey(toRequest<CreateApiKeyRequest>(input)))
 
     @QueryMapping
     fun apiKeys(): Any = unwrap(apiKeyController.listApiKeys())
 
     @MutationMapping
-    fun revokeApiKey(@Argument id: String): Any = unwrap(apiKeyController.revokeApiKey(id))
+    fun revokeApiKey(
+        @Argument id: String,
+    ): Any = unwrap(apiKeyController.revokeApiKey(id))
 
     @MutationMapping
-    fun createAccount(@Argument input: Any): Any = unwrap(accountController.createAccount(toRequest<CreateAccountRequest>(input)))
+    fun createAccount(
+        @Argument input: Any,
+    ): Any = unwrap(accountController.createAccount(toRequest<CreateAccountRequest>(input)))
 
     @QueryMapping
     fun accounts(
@@ -168,7 +192,9 @@ class RestGraphqlController(
     ): Any = unwrap(accountController.listAccounts(type, parentId))
 
     @QueryMapping
-    fun account(@Argument id: String): Any = unwrap(accountController.getAccount(id))
+    fun account(
+        @Argument id: String,
+    ): Any = unwrap(accountController.getAccount(id))
 
     @MutationMapping
     fun updateAccount(
@@ -177,7 +203,9 @@ class RestGraphqlController(
     ): Any = unwrap(accountController.updateAccount(id, toRequest<UpdateAccountRequest>(input)))
 
     @MutationMapping
-    fun deleteAccount(@Argument id: String): Any = unwrap(accountController.deleteAccount(id))
+    fun deleteAccount(
+        @Argument id: String,
+    ): Any = unwrap(accountController.deleteAccount(id))
 
     @QueryMapping
     fun accountBalance(
@@ -186,13 +214,17 @@ class RestGraphqlController(
     ): Any = unwrap(accountController.getAccountBalance(id, asOfDate?.let(LocalDate::parse)))
 
     @MutationMapping
-    fun createFiscalYear(@Argument input: Any): Any = unwrap(fiscalYearController.createFiscalYear(toRequest<CreateFiscalYearRequest>(input)))
+    fun createFiscalYear(
+        @Argument input: Any,
+    ): Any = unwrap(fiscalYearController.createFiscalYear(toRequest<CreateFiscalYearRequest>(input)))
 
     @QueryMapping
     fun fiscalYears(): Any = unwrap(fiscalYearController.listFiscalYears())
 
     @QueryMapping
-    fun fiscalYear(@Argument id: String): Any = unwrap(fiscalYearController.getFiscalYear(id))
+    fun fiscalYear(
+        @Argument id: String,
+    ): Any = unwrap(fiscalYearController.getFiscalYear(id))
 
     @MutationMapping
     fun closePeriod(
@@ -207,10 +239,14 @@ class RestGraphqlController(
     ): Any = unwrap(fiscalYearController.reopenPeriod(id, periodId))
 
     @MutationMapping
-    fun closeYear(@Argument id: String): Any = unwrap(fiscalYearController.closeYear(id))
+    fun closeYear(
+        @Argument id: String,
+    ): Any = unwrap(fiscalYearController.closeYear(id))
 
     @MutationMapping
-    fun createJournalEntry(@Argument input: Any): Any = unwrap(journalEntryController.createJournalEntry(toRequest<CreateJournalEntryRequest>(input)))
+    fun createJournalEntry(
+        @Argument input: Any,
+    ): Any = unwrap(journalEntryController.createJournalEntry(toRequest<CreateJournalEntryRequest>(input)))
 
     @QueryMapping
     fun journalEntries(
@@ -227,10 +263,14 @@ class RestGraphqlController(
         )
 
     @QueryMapping
-    fun journalEntry(@Argument id: String): Any = unwrap(journalEntryController.getJournalEntry(id))
+    fun journalEntry(
+        @Argument id: String,
+    ): Any = unwrap(journalEntryController.getJournalEntry(id))
 
     @MutationMapping
-    fun postJournalEntry(@Argument id: String): Any = unwrap(journalEntryController.postJournalEntry(id))
+    fun postJournalEntry(
+        @Argument id: String,
+    ): Any = unwrap(journalEntryController.postJournalEntry(id))
 
     @MutationMapping
     fun voidJournalEntry(
@@ -239,7 +279,9 @@ class RestGraphqlController(
     ): Any = unwrap(journalEntryController.voidJournalEntry(id, toRequest<VoidJournalEntryRequest>(input)))
 
     @QueryMapping
-    fun journalTrialBalance(@Argument asOfDate: String?): Any = unwrap(journalEntryController.getTrialBalance(asOfDate?.let(LocalDate::parse)))
+    fun journalTrialBalance(
+        @Argument asOfDate: String?,
+    ): Any = unwrap(journalEntryController.getTrialBalance(asOfDate?.let(LocalDate::parse)))
 
     @QueryMapping
     fun reportTrialBalance(
@@ -282,13 +324,19 @@ class RestGraphqlController(
         )
 
     @MutationMapping
-    fun createTaxRate(@Argument input: Any): Any = unwrap(taxController.createTaxRate(toRequest<CreateTaxRateRequest>(input)))
+    fun createTaxRate(
+        @Argument input: Any,
+    ): Any = unwrap(taxController.createTaxRate(toRequest<CreateTaxRateRequest>(input)))
 
     @QueryMapping
-    fun taxRates(@Argument active: Boolean?): Any = unwrap(taxController.listTaxRates(active))
+    fun taxRates(
+        @Argument active: Boolean?,
+    ): Any = unwrap(taxController.listTaxRates(active))
 
     @QueryMapping
-    fun taxRate(@Argument id: String): Any = unwrap(taxController.getTaxRate(id))
+    fun taxRate(
+        @Argument id: String,
+    ): Any = unwrap(taxController.getTaxRate(id))
 
     @MutationMapping
     fun updateTaxRate(
@@ -297,16 +345,24 @@ class RestGraphqlController(
     ): Any = unwrap(taxController.updateTaxRate(id, toRequest<UpdateTaxRateRequest>(input)))
 
     @MutationMapping
-    fun deleteTaxRate(@Argument id: String): Any = unwrap(taxController.deleteTaxRate(id))
+    fun deleteTaxRate(
+        @Argument id: String,
+    ): Any = unwrap(taxController.deleteTaxRate(id))
 
     @MutationMapping
-    fun createTaxGroup(@Argument input: Any): Any = unwrap(taxController.createTaxGroup(toRequest<CreateTaxGroupRequest>(input)))
+    fun createTaxGroup(
+        @Argument input: Any,
+    ): Any = unwrap(taxController.createTaxGroup(toRequest<CreateTaxGroupRequest>(input)))
 
     @QueryMapping
-    fun taxGroups(@Argument active: Boolean?): Any = unwrap(taxController.listTaxGroups(active))
+    fun taxGroups(
+        @Argument active: Boolean?,
+    ): Any = unwrap(taxController.listTaxGroups(active))
 
     @QueryMapping
-    fun taxGroup(@Argument id: String): Any = unwrap(taxController.getTaxGroup(id))
+    fun taxGroup(
+        @Argument id: String,
+    ): Any = unwrap(taxController.getTaxGroup(id))
 
     @MutationMapping
     fun updateTaxGroup(
@@ -315,7 +371,9 @@ class RestGraphqlController(
     ): Any = unwrap(taxController.updateTaxGroup(id, toRequest<UpdateTaxGroupRequest>(input)))
 
     @MutationMapping
-    fun deleteTaxGroup(@Argument id: String): Any = unwrap(taxController.deleteTaxGroup(id))
+    fun deleteTaxGroup(
+        @Argument id: String,
+    ): Any = unwrap(taxController.deleteTaxGroup(id))
 
     @QueryMapping
     fun taxSummary(
@@ -324,13 +382,17 @@ class RestGraphqlController(
     ): Any = unwrap(taxController.getTaxSummary(LocalDate.parse(startDate), LocalDate.parse(endDate)))
 
     @MutationMapping
-    fun createVendor(@Argument input: Any): Any = unwrap(vendorController.createVendor(toRequest<CreateVendorRequest>(input)))
+    fun createVendor(
+        @Argument input: Any,
+    ): Any = unwrap(vendorController.createVendor(toRequest<CreateVendorRequest>(input)))
 
     @QueryMapping
     fun vendors(): Any = unwrap(vendorController.listVendors())
 
     @QueryMapping
-    fun vendor(@Argument id: String): Any = unwrap(vendorController.getVendor(id))
+    fun vendor(
+        @Argument id: String,
+    ): Any = unwrap(vendorController.getVendor(id))
 
     @MutationMapping
     fun updateVendor(
@@ -339,10 +401,14 @@ class RestGraphqlController(
     ): Any = unwrap(vendorController.updateVendor(id, toRequest<UpdateVendorRequest>(input)))
 
     @MutationMapping
-    fun deleteVendor(@Argument id: String): Any = unwrap(vendorController.deleteVendor(id))
+    fun deleteVendor(
+        @Argument id: String,
+    ): Any = unwrap(vendorController.deleteVendor(id))
 
     @MutationMapping
-    fun createBill(@Argument input: Any): Any = unwrap(billController.createBill(toRequest<CreateBillRequest>(input)))
+    fun createBill(
+        @Argument input: Any,
+    ): Any = unwrap(billController.createBill(toRequest<CreateBillRequest>(input)))
 
     @QueryMapping
     fun bills(
@@ -351,10 +417,14 @@ class RestGraphqlController(
     ): Any = unwrap(billController.listBills(status, vendorId))
 
     @QueryMapping
-    fun bill(@Argument id: String): Any = unwrap(billController.getBill(id))
+    fun bill(
+        @Argument id: String,
+    ): Any = unwrap(billController.getBill(id))
 
     @MutationMapping
-    fun approveBill(@Argument id: String): Any = unwrap(billController.approveBill(id))
+    fun approveBill(
+        @Argument id: String,
+    ): Any = unwrap(billController.approveBill(id))
 
     @MutationMapping
     fun voidBill(
@@ -369,13 +439,19 @@ class RestGraphqlController(
     ): Any = unwrap(billController.recordPayment(id, toRequest<RecordPaymentRequest>(input)))
 
     @QueryMapping
-    fun billPayments(@Argument id: String): Any = unwrap(billController.listPayments(id))
+    fun billPayments(
+        @Argument id: String,
+    ): Any = unwrap(billController.listPayments(id))
 
     @QueryMapping
-    fun billAging(@Argument asOfDate: String?): Any = unwrap(billController.getAgingReport(asOfDate?.let(LocalDate::parse)))
+    fun billAging(
+        @Argument asOfDate: String?,
+    ): Any = unwrap(billController.getAgingReport(asOfDate?.let(LocalDate::parse)))
 
     @MutationMapping
-    fun createInvoice(@Argument input: Any): Any = unwrap(invoiceController.createInvoice(toRequest<CreateInvoiceRequest>(input)))
+    fun createInvoice(
+        @Argument input: Any,
+    ): Any = unwrap(invoiceController.createInvoice(toRequest<CreateInvoiceRequest>(input)))
 
     @QueryMapping
     fun invoices(
@@ -384,10 +460,14 @@ class RestGraphqlController(
     ): Any = unwrap(invoiceController.listInvoices(status, customerId))
 
     @QueryMapping
-    fun invoice(@Argument id: String): Any = unwrap(invoiceController.getInvoice(id))
+    fun invoice(
+        @Argument id: String,
+    ): Any = unwrap(invoiceController.getInvoice(id))
 
     @MutationMapping
-    fun approveInvoice(@Argument id: String): Any = unwrap(invoiceController.approveInvoice(id))
+    fun approveInvoice(
+        @Argument id: String,
+    ): Any = unwrap(invoiceController.approveInvoice(id))
 
     @MutationMapping
     fun voidInvoice(
@@ -402,10 +482,14 @@ class RestGraphqlController(
     ): Any = unwrap(invoiceController.recordReceipt(id, toRequest<RecordReceiptRequest>(input)))
 
     @QueryMapping
-    fun invoiceReceipts(@Argument id: String): Any = unwrap(invoiceController.listReceipts(id))
+    fun invoiceReceipts(
+        @Argument id: String,
+    ): Any = unwrap(invoiceController.listReceipts(id))
 
     @QueryMapping
-    fun invoiceAging(@Argument asOfDate: String?): Any = unwrap(invoiceController.getAgingReport(asOfDate?.let(LocalDate::parse)))
+    fun invoiceAging(
+        @Argument asOfDate: String?,
+    ): Any = unwrap(invoiceController.getAgingReport(asOfDate?.let(LocalDate::parse)))
 
     private fun request(env: DataFetchingEnvironment): HttpServletRequest =
         env.graphQlContext.getOrDefault(HttpServletRequest::class.java, null)

@@ -6,14 +6,10 @@ import graphql.language.EnumValue
 import graphql.language.FloatValue
 import graphql.language.IntValue
 import graphql.language.NullValue
-import graphql.language.ObjectField
 import graphql.language.ObjectValue
 import graphql.language.StringValue
-import graphql.language.Value
 import graphql.schema.Coercing
 import graphql.schema.CoercingParseLiteralException
-import graphql.schema.CoercingParseValueException
-import graphql.schema.CoercingSerializeException
 import graphql.schema.GraphQLScalarType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -40,42 +36,19 @@ class GraphqlScalarConfig {
 
         override fun parseValue(input: Any): Any = input
 
-        override fun parseLiteral(input: Value<*>): Any = parseLiteralValue(input)
+        override fun parseLiteral(input: Any): Any? = parseLiteralValue(input)
 
-        private fun parseLiteralValue(value: Value<*>): Any =
+        private fun parseLiteralValue(value: Any): Any? =
             when (value) {
-                is NullValue -> emptyMap<String, Any>()
+                is NullValue -> null
                 is StringValue -> value.value
                 is BooleanValue -> value.isValue
                 is IntValue -> value.value
                 is FloatValue -> value.value
                 is EnumValue -> value.name
                 is ArrayValue -> value.values.map { parseLiteralValue(it) }
-                is ObjectValue -> value.objectFields.associate(ObjectField::name) { parseLiteralValue(it.value) }
+                is ObjectValue -> value.objectFields.associate { field -> field.name to parseLiteralValue(field.value) }
                 else -> throw CoercingParseLiteralException("Unsupported JSON literal: ${value.javaClass.simpleName}")
-            }
-
-        override fun valueToLiteral(input: Any): Value<*> = throw CoercingSerializeException("JSON scalar does not support valueToLiteral")
-
-        override fun parseValue(input: Any, graphQLContext: graphql.GraphQLContext, locale: java.util.Locale): Any =
-            try {
-                parseValue(input)
-            } catch (e: Exception) {
-                throw CoercingParseValueException(e.message ?: "Invalid JSON value")
-            }
-
-        override fun parseLiteral(
-            input: Value<*>,
-            variables: MutableMap<String, Any>,
-            graphQLContext: graphql.GraphQLContext,
-            locale: java.util.Locale,
-        ): Any = parseLiteral(input)
-
-        override fun serialize(input: Any, graphQLContext: graphql.GraphQLContext, locale: java.util.Locale): Any =
-            try {
-                serialize(input)
-            } catch (e: Exception) {
-                throw CoercingSerializeException(e.message ?: "Unable to serialize JSON value")
             }
     }
 }
