@@ -10,7 +10,6 @@ import org.springframework.dao.DuplicateKeyException
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.LocalDate
-import java.time.ZoneOffset
 
 @Service
 @ConditionalOnProperty(
@@ -25,19 +24,17 @@ class FxAutoFetchJob(
 ) {
     private val log = LoggerFactory.getLogger(FxAutoFetchJob::class.java)
 
-    @Scheduled(cron = "\${synectix.fx.auto-fetch.cron}")
+    @Scheduled(cron = "\${synectix.fx.auto-fetch.cron}", zone = "UTC")
     fun fetchDailyRates() {
-        val today = LocalDate.now(ZoneOffset.UTC)
         val orgs = organizationRepository.findAll().filter { it.isActive }
         if (orgs.isEmpty()) return
 
         val byBase = orgs.groupBy { it.baseCurrency }
         byBase.forEach { (base, orgsForBase) ->
-            val rates = frankfurterClient.fetchLatest(base, FrankfurterClient.SUPPORTED_CURRENCIES)
-            if (rates.isEmpty()) return@forEach
+            val result = frankfurterClient.fetchLatest(base, FrankfurterClient.SUPPORTED_CURRENCIES) ?: return@forEach
             orgsForBase.forEach { org ->
-                rates.forEach { (target, rate) ->
-                    upsertAuto(org.uuid, base, target, rate, today)
+                result.rates.forEach { (target, rate) ->
+                    upsertAuto(org.uuid, base, target, rate, result.asOfDate)
                 }
             }
         }

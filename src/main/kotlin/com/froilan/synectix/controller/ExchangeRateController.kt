@@ -47,6 +47,9 @@ class ExchangeRateController(
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) asOfDate: LocalDate?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        if ((from == null) != (to == null)) {
+            return ResponseEntity.badRequest().body(mapOf("error" to "from and to must be provided together"))
+        }
         if (asOfDate != null) {
             if (from == null || to == null) {
                 return ResponseEntity.badRequest().body(mapOf("error" to "from and to are required when asOfDate is set"))

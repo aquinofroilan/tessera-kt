@@ -41,9 +41,13 @@ class FxAutoFetchJobTest {
         `when`(organizationRepository.findAll()).thenReturn(listOf(orgWithBase("USD")))
         `when`(frankfurterClient.fetchLatest("USD", FrankfurterClient.SUPPORTED_CURRENCIES))
             .thenReturn(
-                mapOf(
-                    "EUR" to BigDecimal("0.92"),
-                    "PHP" to BigDecimal("57.50"),
+                FxFetchResult(
+                    asOfDate = LocalDate.of(2026, 5, 1),
+                    rates =
+                        mapOf(
+                            "EUR" to BigDecimal("0.92"),
+                            "PHP" to BigDecimal("57.50"),
+                        ),
                 ),
             )
         `when`(
@@ -81,7 +85,7 @@ class FxAutoFetchJobTest {
 
         `when`(organizationRepository.findAll()).thenReturn(listOf(orgWithBase("USD")))
         `when`(frankfurterClient.fetchLatest("USD", FrankfurterClient.SUPPORTED_CURRENCIES))
-            .thenReturn(mapOf("PHP" to BigDecimal("57.50")))
+            .thenReturn(FxFetchResult(asOfDate = today, rates = mapOf("PHP" to BigDecimal("57.50"))))
         `when`(
             exchangeRateRepository.findByOrganizationIdAndFromCurrencyAndToCurrencyAndAsOfDate(
                 orgId,
