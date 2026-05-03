@@ -7,7 +7,9 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
 @Repository
-interface JournalEntryRepository : MongoRepository<JournalEntry, String> {
+interface JournalEntryRepository :
+    MongoRepository<JournalEntry, String>,
+    JournalEntryAggregations {
     fun findByOrganizationId(organizationId: String): List<JournalEntry>
 
     fun findByOrganizationIdAndStatus(

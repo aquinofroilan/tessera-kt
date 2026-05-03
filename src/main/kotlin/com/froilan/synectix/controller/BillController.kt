@@ -168,6 +168,11 @@ class BillController(
             totalAmount = totalAmount,
             taxAmount = taxAmount,
             amountPaid = amountPaid,
+            currencyCode = currencyCode,
+            exchangeRate = exchangeRate,
+            baseCurrencyAmount = baseCurrencyAmount,
+            baseCurrencyTaxAmount = baseCurrencyTaxAmount,
+            baseCurrencyAmountPaid = baseCurrencyAmountPaid,
             journalEntryId = journalEntryId,
             createdBy = createdBy,
             approvedAt = approvedAt?.toString(),
@@ -191,6 +196,7 @@ class BillController(
             totalAmount = totalAmount,
             taxAmount = taxAmount,
             amountPaid = amountPaid,
+            currencyCode = currencyCode,
         )
 
     private fun BillPayment.toResponse() =
@@ -199,6 +205,8 @@ class BillController(
             billId = billId,
             paymentDate = paymentDate.toString(),
             amount = amount,
+            baseCurrencyAmount = baseCurrencyAmount,
+            exchangeRate = exchangeRate,
             paymentMethod = paymentMethod.name,
             referenceNumber = referenceNumber,
             journalEntryId = journalEntryId,

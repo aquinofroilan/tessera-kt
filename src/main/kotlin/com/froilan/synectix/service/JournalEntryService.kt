@@ -5,12 +5,12 @@ import com.froilan.synectix.dto.CreateJournalEntryRequest
 import com.froilan.synectix.dto.TrialBalanceResponse
 import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.exception.ResourceNotFoundException
-import com.froilan.synectix.model.AccountType
 import com.froilan.synectix.model.JournalEntry
 import com.froilan.synectix.model.JournalEntryLine
 import com.froilan.synectix.model.JournalEntrySource
 import com.froilan.synectix.model.JournalEntryStatus
 import com.froilan.synectix.repository.AccountRepository
+import com.froilan.synectix.repository.AccountTotals
 import com.froilan.synectix.repository.JournalEntryRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -265,44 +265,19 @@ class JournalEntryService(
             throw ResourceNotFoundException("Account not found")
         }
 
-        val postedStatuses = listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED)
-        val entries =
-            if (asOfDate != null) {
-                journalEntryRepository.findByOrganizationIdAndStatusInAndDateLessThanEqual(
-                    organizationId,
-                    postedStatuses,
-                    asOfDate,
-                )
-            } else {
-                journalEntryRepository.findByOrganizationIdAndStatusIn(
-                    organizationId,
-                    postedStatuses,
-                )
-            }
-
-        var totalDebits = BigDecimal.ZERO
-        var totalCredits = BigDecimal.ZERO
-        entries.forEach { entry ->
-            entry.lines.filter { it.accountId == accountId }.forEach { line ->
-                totalDebits = totalDebits.add(line.debit)
-                totalCredits = totalCredits.add(line.credit)
-            }
-        }
-
-        val balance =
-            when (account.type) {
-                AccountType.ASSET, AccountType.EXPENSE -> totalDebits.subtract(totalCredits)
-                AccountType.LIABILITY, AccountType.EQUITY, AccountType.REVENUE -> totalCredits.subtract(totalDebits)
-            }
+        val totals =
+            journalEntryRepository
+                .aggregateAccountTotals(organizationId, listOf(accountId), null, asOfDate)
+                .getOrDefault(accountId, AccountTotals(BigDecimal.ZERO, BigDecimal.ZERO))
 
         return AccountBalanceResponse(
             accountId = account.id,
             accountCode = account.code,
             accountName = account.name,
             accountType = account.type.name,
-            totalDebits = totalDebits,
-            totalCredits = totalCredits,
-            balance = balance,
+            totalDebits = totals.totalDebits,
+            totalCredits = totals.totalCredits,
+            balance = account.type.signedBalance(totals.totalDebits, totals.totalCredits),
         )
     }
 
@@ -310,49 +285,35 @@ class JournalEntryService(
         organizationId: String,
         asOfDate: LocalDate? = null,
     ): TrialBalanceResponse {
-        val postedStatuses = listOf(JournalEntryStatus.POSTED, JournalEntryStatus.VOIDED)
-        val entries =
-            if (asOfDate != null) {
-                journalEntryRepository.findByOrganizationIdAndStatusInAndDateLessThanEqual(
-                    organizationId,
-                    postedStatuses,
-                    asOfDate,
-                )
-            } else {
-                journalEntryRepository.findByOrganizationIdAndStatusIn(
-                    organizationId,
-                    postedStatuses,
-                )
-            }
-
-        val accountTotals = mutableMapOf<String, Pair<BigDecimal, BigDecimal>>()
-        entries.forEach { entry ->
-            entry.lines.forEach { line ->
-                val (debits, credits) = accountTotals.getOrDefault(line.accountId, BigDecimal.ZERO to BigDecimal.ZERO)
-                accountTotals[line.accountId] = debits.add(line.debit) to credits.add(line.credit)
-            }
-        }
-
         val allAccounts = accountRepository.findByOrganizationIdAndIsActive(organizationId, true)
+        if (allAccounts.isEmpty()) {
+            return TrialBalanceResponse(
+                accounts = emptyList(),
+                totalDebits = BigDecimal.ZERO,
+                totalCredits = BigDecimal.ZERO,
+                asOfDate = asOfDate?.toString(),
+            )
+        }
+        val totals =
+            journalEntryRepository.aggregateAccountTotals(
+                organizationId = organizationId,
+                accountIds = allAccounts.map { it.id },
+                startDate = null,
+                endDate = asOfDate,
+            )
 
         val accountBalances =
             allAccounts
                 .map { account ->
-                    val (totalDebits, totalCredits) =
-                        accountTotals.getOrDefault(account.id, BigDecimal.ZERO to BigDecimal.ZERO)
-                    val balance =
-                        when (account.type) {
-                            AccountType.ASSET, AccountType.EXPENSE -> totalDebits.subtract(totalCredits)
-                            AccountType.LIABILITY, AccountType.EQUITY, AccountType.REVENUE -> totalCredits.subtract(totalDebits)
-                        }
+                    val t = totals.getOrDefault(account.id, AccountTotals(BigDecimal.ZERO, BigDecimal.ZERO))
                     AccountBalanceResponse(
                         accountId = account.id,
                         accountCode = account.code,
                         accountName = account.name,
                         accountType = account.type.name,
-                        totalDebits = totalDebits,
-                        totalCredits = totalCredits,
-                        balance = balance,
+                        totalDebits = t.totalDebits,
+                        totalCredits = t.totalCredits,
+                        balance = account.type.signedBalance(t.totalDebits, t.totalCredits),
                     )
                 }.sortedBy { it.accountCode }
 

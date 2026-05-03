@@ -37,6 +37,10 @@ data class JournalEntryLine(
     def = "{'organizationId': 1, 'entryNumber': 1}",
     unique = true,
 )
+@CompoundIndex(
+    name = "org_status_date",
+    def = "{'organizationId': 1, 'status': 1, 'date': 1}",
+)
 data class JournalEntry(
     @Id
     val id: String = UUID.randomUUID().toString(),
