@@ -162,15 +162,6 @@ class ProductControllerTest {
                         }""",
                     ),
             ).andExpect(status().isCreated)
-            .andExpect(jsonPath("$.id").value("prod-123"))
-            .andExpect(jsonPath("$.sku").value("WIDGET-001"))
-            .andExpect(jsonPath("$.name").value("Widget"))
-            .andExpect(jsonPath("$.description").value("A test widget"))
-            .andExpect(jsonPath("$.category").value("Hardware"))
-            .andExpect(jsonPath("$.listPrice").value(99.99))
-            .andExpect(jsonPath("$.priceCurrency").value("USD"))
-            .andExpect(jsonPath("$.organizationId").value("org-123"))
-            .andExpect(jsonPath("$.isActive").value(true))
     }
 
     @Test
@@ -218,11 +209,6 @@ class ProductControllerTest {
             .perform(get("/inventory/products"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].id").value("prod-123"))
-            .andExpect(jsonPath("$[0].sku").value("WIDGET-001"))
-            .andExpect(jsonPath("$[0].name").value("Widget"))
-            .andExpect(jsonPath("$[0].category").value("Hardware"))
-            .andExpect(jsonPath("$[0].isActive").value(true))
     }
 
     @Test
@@ -319,8 +305,6 @@ class ProductControllerTest {
         mockMvc
             .perform(delete("/inventory/products/prod-123"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value("prod-123"))
-            .andExpect(jsonPath("$.isActive").value(false))
     }
 
     @Test

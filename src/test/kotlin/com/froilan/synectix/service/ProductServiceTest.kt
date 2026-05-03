@@ -142,6 +142,7 @@ class ProductServiceTest {
 
     @Test
     fun `createProduct should validate tax group exists and is active`() {
+        mockOrganization()
         mockCurrency("USD")
         `when`(taxGroupService.getTaxGroup("tax-123", orgId))
             .thenReturn(
@@ -173,6 +174,7 @@ class ProductServiceTest {
 
     @Test
     fun `createProduct should throw on duplicate SKU in organization`() {
+        mockOrganization()
         mockCurrency("USD")
         `when`(productRepository.save(any<Product>()))
             .thenThrow(DuplicateKeyException("duplicate key error"))
@@ -226,7 +228,7 @@ class ProductServiceTest {
     fun `listProducts should return all products for org when no filters`() {
         val product1 = createMockProduct(sku = "WIDGET-001")
         val product2 = createMockProduct(sku = "GADGET-001")
-        `when`(productRepository.findByOrganizationId(orgId)).thenReturn(listOf(product1, product2))
+        `when`(productRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(listOf(product1, product2))
 
         val result = productService.listProducts(orgId)
 
@@ -237,7 +239,7 @@ class ProductServiceTest {
     @Test
     fun `listProducts should filter by category`() {
         val product = createMockProduct()
-        `when`(productRepository.findByOrganizationIdAndCategory(orgId, "Hardware"))
+        `when`(productRepository.findByOrganizationIdAndCategoryAndIsActive(orgId, "Hardware", true))
             .thenReturn(listOf(product))
 
         val result = productService.listProducts(orgId, category = "Hardware")
@@ -279,7 +281,7 @@ class ProductServiceTest {
     @Test
     fun `listProducts should search by SKU case-insensitive`() {
         val product = createMockProduct(sku = "WIDGET-001")
-        `when`(productRepository.findByOrganizationId(orgId)).thenReturn(listOf(product))
+        `when`(productRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(listOf(product))
 
         val result = productService.listProducts(orgId, search = "widget")
 
@@ -290,7 +292,7 @@ class ProductServiceTest {
     @Test
     fun `listProducts should search by name case-insensitive`() {
         val product = createMockProduct()
-        `when`(productRepository.findByOrganizationId(orgId)).thenReturn(listOf(product))
+        `when`(productRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(listOf(product))
 
         val result = productService.listProducts(orgId, search = "WIDGET")
 
@@ -301,7 +303,7 @@ class ProductServiceTest {
     @Test
     fun `listProducts should return empty when search matches nothing`() {
         val product = createMockProduct()
-        `when`(productRepository.findByOrganizationId(orgId)).thenReturn(listOf(product))
+        `when`(productRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(listOf(product))
 
         val result = productService.listProducts(orgId, search = "NOMATCH")
 
