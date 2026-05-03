@@ -185,7 +185,8 @@ class BillService(
         }
 
         val apAccount = getApAccount(organizationId)
-        val baseDecimals = currencyService.getCurrency(getBaseCurrency(organizationId)).decimalPlaces
+        val baseCurrency = getBaseCurrency(organizationId)
+        val baseDecimals = currencyService.getCurrency(baseCurrency).decimalPlaces
 
         val expenseLines =
             bill.lines.map { line ->
@@ -233,7 +234,7 @@ class BillService(
                 )
 
         val description =
-            if (bill.currencyCode == getBaseCurrency(organizationId)) {
+            if (bill.currencyCode == baseCurrency) {
                 "Bill ${bill.billNumber} - ${bill.vendorName}"
             } else {
                 "Bill ${bill.billNumber} - ${bill.vendorName} (${bill.currencyCode} ${bill.totalAmount} @ ${bill.exchangeRate})"

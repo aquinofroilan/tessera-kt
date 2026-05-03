@@ -185,7 +185,8 @@ class InvoiceService(
         }
 
         val arAccount = getArAccount(organizationId)
-        val baseDecimals = currencyService.getCurrency(getBaseCurrency(organizationId)).decimalPlaces
+        val baseCurrency = getBaseCurrency(organizationId)
+        val baseDecimals = currencyService.getCurrency(baseCurrency).decimalPlaces
 
         val revenueLines =
             invoice.lines.map { line ->
@@ -233,7 +234,7 @@ class InvoiceService(
             ) + revenueLines + taxLines
 
         val description =
-            if (invoice.currencyCode == getBaseCurrency(organizationId)) {
+            if (invoice.currencyCode == baseCurrency) {
                 "Invoice ${invoice.invoiceNumber} - ${invoice.customerName}"
             } else {
                 "Invoice ${invoice.invoiceNumber} - ${invoice.customerName} " +

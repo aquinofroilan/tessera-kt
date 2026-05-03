@@ -65,6 +65,11 @@ class ExchangeRateService(
                 )
         if (inverse.isPresent) {
             val r = inverse.get()
+            if (r.rate.signum() <= 0) {
+                throw BusinessRuleException(
+                    "Stored exchange rate ${r.fromCurrency}->${r.toCurrency} on ${r.asOfDate} is non-positive",
+                )
+            }
             return RateLookup(
                 BigDecimal.ONE.divide(r.rate, 10, RoundingMode.HALF_UP),
                 r.asOfDate,
@@ -85,6 +90,9 @@ class ExchangeRateService(
     ): ExchangeRate {
         if (request.fromCurrency == request.toCurrency) {
             throw BusinessRuleException("fromCurrency and toCurrency must differ")
+        }
+        if (request.rate.signum() <= 0) {
+            throw BusinessRuleException("Exchange rate must be positive")
         }
         currencyService.getCurrency(request.fromCurrency)
         currencyService.getCurrency(request.toCurrency)
