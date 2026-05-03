@@ -168,6 +168,11 @@ class InvoiceController(
             totalAmount = totalAmount,
             taxAmount = taxAmount,
             amountReceived = amountReceived,
+            currencyCode = currencyCode,
+            exchangeRate = exchangeRate,
+            baseCurrencyAmount = baseCurrencyAmount,
+            baseCurrencyTaxAmount = baseCurrencyTaxAmount,
+            baseCurrencyAmountReceived = baseCurrencyAmountReceived,
             journalEntryId = journalEntryId,
             createdBy = createdBy,
             approvedAt = approvedAt?.toString(),
@@ -191,6 +196,7 @@ class InvoiceController(
             totalAmount = totalAmount,
             taxAmount = taxAmount,
             amountReceived = amountReceived,
+            currencyCode = currencyCode,
         )
 
     private fun InvoiceReceipt.toResponse() =
@@ -199,6 +205,8 @@ class InvoiceController(
             invoiceId = invoiceId,
             receiptDate = receiptDate.toString(),
             amount = amount,
+            baseCurrencyAmount = baseCurrencyAmount,
+            exchangeRate = exchangeRate,
             paymentMethod = paymentMethod.name,
             referenceNumber = referenceNumber,
             journalEntryId = journalEntryId,
