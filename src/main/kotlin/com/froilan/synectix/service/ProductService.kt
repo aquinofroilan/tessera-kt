@@ -1,0 +1,160 @@
+package com.froilan.synectix.service
+
+import com.froilan.synectix.dto.CreateProductRequest
+import com.froilan.synectix.dto.UpdateProductRequest
+import com.froilan.synectix.exception.BusinessRuleException
+import com.froilan.synectix.exception.ResourceNotFoundException
+import com.froilan.synectix.model.Product
+import com.froilan.synectix.repository.OrganizationRepository
+import com.froilan.synectix.repository.ProductRepository
+import org.springframework.dao.DuplicateKeyException
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+
+@Service
+class ProductService(
+    private val productRepository: ProductRepository,
+    private val organizationRepository: OrganizationRepository,
+    private val currencyService: CurrencyService,
+    private val taxGroupService: TaxGroupService,
+) {
+    @Transactional
+    fun createProduct(
+        request: CreateProductRequest,
+        organizationId: String,
+    ): Product {
+        val priceCurrency = (request.priceCurrency ?: getBaseCurrency(organizationId)).uppercase()
+        currencyService.getCurrency(priceCurrency)
+
+        if (request.taxGroupId != null) {
+            validateTaxGroup(request.taxGroupId, organizationId)
+        }
+
+        val product =
+            Product(
+                sku = request.sku,
+                name = request.name,
+                description = request.description,
+                category = request.category,
+                imageUrl = request.imageUrl,
+                listPrice = request.listPrice,
+                priceCurrency = priceCurrency,
+                taxGroupId = request.taxGroupId,
+                organizationId = organizationId,
+            )
+
+        return try {
+            productRepository.save(product)
+        } catch (e: DuplicateKeyException) {
+            throw BusinessRuleException(
+                "Product with SKU '${request.sku}' already exists in this organization",
+                e,
+            )
+        }
+    }
+
+    fun getProduct(
+        productId: String,
+        organizationId: String,
+    ): Product {
+        val product =
+            productRepository.findById(productId).orElseThrow {
+                ResourceNotFoundException("Product not found")
+            }
+        if (product.organizationId != organizationId) {
+            throw ResourceNotFoundException("Product not found")
+        }
+        return product
+    }
+
+    fun listProducts(
+        organizationId: String,
+        category: String? = null,
+        isActive: Boolean? = true,
+        search: String? = null,
+    ): List<Product> {
+        val base =
+            when {
+                category != null && isActive != null ->
+                    productRepository.findByOrganizationIdAndCategoryAndIsActive(
+                        organizationId,
+                        category,
+                        isActive,
+                    )
+                category != null ->
+                    productRepository.findByOrganizationIdAndCategory(organizationId, category)
+                isActive != null ->
+                    productRepository.findByOrganizationIdAndIsActive(organizationId, isActive)
+                else ->
+                    productRepository.findByOrganizationId(organizationId)
+            }
+        val term = search?.trim()?.takeIf { it.isNotEmpty() } ?: return base.sortedBy { it.sku }
+        return base
+            .filter { it.sku.contains(term, ignoreCase = true) || it.name.contains(term, ignoreCase = true) }
+            .sortedBy { it.sku }
+    }
+
+    @Transactional
+    fun updateProduct(
+        productId: String,
+        request: UpdateProductRequest,
+        organizationId: String,
+    ): Product {
+        val existing = getProduct(productId, organizationId)
+        if (!existing.isActive) {
+            throw BusinessRuleException("Cannot update inactive product")
+        }
+
+        val newCurrency =
+            request.priceCurrency?.uppercase()?.also { currencyService.getCurrency(it) }
+                ?: existing.priceCurrency
+
+        if (request.taxGroupId != null && request.taxGroupId != existing.taxGroupId) {
+            validateTaxGroup(request.taxGroupId, organizationId)
+        }
+
+        val updated =
+            existing.copy(
+                name = request.name ?: existing.name,
+                description = request.description ?: existing.description,
+                category = request.category ?: existing.category,
+                imageUrl = request.imageUrl ?: existing.imageUrl,
+                listPrice = request.listPrice ?: existing.listPrice,
+                priceCurrency = newCurrency,
+                taxGroupId = request.taxGroupId ?: existing.taxGroupId,
+            )
+
+        return productRepository.save(updated)
+    }
+
+    @Transactional
+    fun deleteProduct(
+        productId: String,
+        organizationId: String,
+    ): Product {
+        val product = getProduct(productId, organizationId)
+        if (!product.isActive) {
+            throw BusinessRuleException("Product is already inactive")
+        }
+        // TODO: when #41/#10/#9 land, block hard delete (or even soft delete) if product
+        // is referenced by stock movements, sales lines, or purchase lines.
+        return productRepository.save(product.copy(isActive = false))
+    }
+
+    private fun validateTaxGroup(
+        taxGroupId: String,
+        organizationId: String,
+    ) {
+        val group = taxGroupService.getTaxGroup(taxGroupId, organizationId)
+        if (!group.isActive) {
+            throw BusinessRuleException("Tax group '${group.code}' is inactive")
+        }
+    }
+
+    private fun getBaseCurrency(organizationId: String): String =
+        organizationRepository
+            .findById(organizationId)
+            .orElseThrow {
+                ResourceNotFoundException("Organization not found")
+            }.baseCurrency
+}
