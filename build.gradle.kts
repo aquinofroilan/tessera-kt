@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.froilan"
-version = "0.7.0"
+version = "0.8.0"
 description = "Synectix an ERP System"
 
 java {
