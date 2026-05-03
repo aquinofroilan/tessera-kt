@@ -52,6 +52,9 @@ object Permissions {
     const val FX_READ = "fx:read"
     const val FX_CREATE = "fx:create"
 
+    const val INVENTORY_READ = "inventory:read"
+    const val INVENTORY_WRITE = "inventory:write"
+
     val ALL_PERMISSIONS =
         listOf(
             SESSION_READ,
@@ -92,5 +95,7 @@ object Permissions {
             TAX_DELETE,
             FX_READ,
             FX_CREATE,
+            INVENTORY_READ,
+            INVENTORY_WRITE,
         )
 }
