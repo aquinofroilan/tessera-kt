@@ -537,11 +537,18 @@ class BillService(
         delta: BigDecimal,
     ): List<JournalEntryLine> {
         if (delta.signum() == 0 || lines.isEmpty()) return lines
-        val targetIndex =
-            lines.indices.maxByOrNull { lines[it].debit } ?: return lines
-        return lines.mapIndexed { i, line ->
-            if (i == targetIndex) line.copy(debit = line.debit.add(delta)) else line
+        val mutable = lines.toMutableList()
+        var remaining = delta
+        val order = mutable.indices.sortedByDescending { mutable[it].debit }
+        for (i in order) {
+            if (remaining.signum() == 0) break
+            val line = mutable[i]
+            val applied =
+                if (remaining.signum() < 0) remaining.max(line.debit.negate()) else remaining
+            mutable[i] = line.copy(debit = line.debit.add(applied))
+            remaining = remaining.subtract(applied)
         }
+        return mutable
     }
 
     private fun getTaxInputAccount(organizationId: String): Account {
