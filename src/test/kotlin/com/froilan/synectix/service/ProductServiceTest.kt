@@ -45,6 +45,7 @@ class ProductServiceTest {
         sku: String = "WIDGET-001",
         organizationId: String = orgId,
         isActive: Boolean = true,
+        priceCurrency: String = "USD",
     ) =
         Product(
             id = "prod-123",
@@ -54,7 +55,7 @@ class ProductServiceTest {
             category = "Hardware",
             imageUrl = "https://example.com/image.jpg",
             listPrice = BigDecimal("99.99"),
-            priceCurrency = "USD",
+            priceCurrency = priceCurrency,
             taxGroupId = "tax-123",
             organizationId = organizationId,
             isActive = isActive,
@@ -62,7 +63,7 @@ class ProductServiceTest {
 
     private fun mockCurrency(code: String = "USD") {
         `when`(currencyService.getCurrency(code))
-            .thenReturn(Currency(code = code, name = "US Dollar", symbol = "$"))
+            .thenReturn(Currency(code = code, name = "US Dollar", symbol = "$", decimalPlaces = 2))
     }
 
     private fun mockOrganization(id: String = orgId, baseCurrency: String = "USD") {
@@ -70,24 +71,15 @@ class ProductServiceTest {
             .thenReturn(
                 Optional.of(
                     Organizations(
-                        id = id,
+                        uuid = id,
+                        orgSlug = "test-org",
                         name = "Test Org",
+                        legalName = "Test Organization LLC",
+                        tradeName = "Test Org",
                         baseCurrency = baseCurrency,
+                        fiscalYearStart = java.time.LocalDateTime.now(),
+                        timezone = "UTC",
                     ),
-                ),
-            )
-    }
-
-    private fun mockTaxGroup(id: String = "tax-123", isActive: Boolean = true) {
-        `when`(taxGroupService.getTaxGroup(id, orgId))
-            .thenReturn(
-                TaxGroup(
-                    id = id,
-                    code = "TS",
-                    name = "Test",
-                    taxRateIds = listOf(),
-                    organizationId = orgId,
-                    isActive = isActive,
                 ),
             )
     }
@@ -158,6 +150,7 @@ class ProductServiceTest {
                     code = "TS",
                     name = "Test",
                     taxRateIds = listOf(),
+                    combinedRate = BigDecimal("5.00"),
                     organizationId = orgId,
                     isActive = false,
                 ),
@@ -354,6 +347,7 @@ class ProductServiceTest {
                     code = "NT",
                     name = "New",
                     taxRateIds = listOf(),
+                    combinedRate = BigDecimal("5.00"),
                     organizationId = orgId,
                     isActive = false,
                 ),
