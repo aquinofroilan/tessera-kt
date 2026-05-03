@@ -188,7 +188,7 @@ class InvoiceService(
         val baseCurrency = getBaseCurrency(organizationId)
         val baseDecimals = currencyService.getCurrency(baseCurrency).decimalPlaces
 
-        val revenueLines =
+        val rawRevenueLines =
             invoice.lines.map { line ->
                 JournalEntryLine(
                     accountId = line.accountId,
@@ -199,6 +199,10 @@ class InvoiceService(
                     description = line.description,
                 )
             }
+
+        val expectedRevenueTotal = invoice.baseCurrencyAmount.subtract(invoice.baseCurrencyTaxAmount)
+        val rawRevenueTotal = rawRevenueLines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.credit) }
+        val revenueLines = absorbCreditDelta(rawRevenueLines, expectedRevenueTotal.subtract(rawRevenueTotal))
 
         val taxLines =
             if (invoice.baseCurrencyTaxAmount.compareTo(BigDecimal.ZERO) > 0) {
@@ -217,17 +221,13 @@ class InvoiceService(
                 emptyList()
             }
 
-        val revenueTotal = revenueLines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.credit) }
-        val taxTotal = taxLines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.credit) }
-        val arDebit = revenueTotal.add(taxTotal)
-
         val journalLines =
             listOf(
                 JournalEntryLine(
                     accountId = arAccount.id,
                     accountCode = arAccount.code,
                     accountName = arAccount.name,
-                    debit = arDebit,
+                    debit = invoice.baseCurrencyAmount,
                     credit = BigDecimal.ZERO,
                     description = "AR - ${invoice.customerName} - ${invoice.invoiceNumber}",
                 ),
@@ -339,8 +339,14 @@ class InvoiceService(
 
         val receiptId = UUID.randomUUID().toString()
         val baseDecimals = currencyService.getCurrency(getBaseCurrency(organizationId)).decimalPlaces
+        val newAmountReceived = invoice.amountReceived.add(request.amount)
+        val fullyPaid = newAmountReceived.compareTo(invoice.totalAmount) >= 0
         val receiptBaseAmount =
-            request.amount.multiply(invoice.exchangeRate).setScale(baseDecimals, RoundingMode.HALF_UP)
+            if (fullyPaid) {
+                invoice.baseCurrencyAmount.subtract(invoice.baseCurrencyAmountReceived)
+            } else {
+                request.amount.multiply(invoice.exchangeRate).setScale(baseDecimals, RoundingMode.HALF_UP)
+            }
 
         val journalEntry =
             journalEntryService.createSystemEntry(
@@ -387,14 +393,7 @@ class InvoiceService(
                 ),
             )
 
-        val newAmountReceived = invoice.amountReceived.add(request.amount)
-        val fullyPaid = newAmountReceived.compareTo(invoice.totalAmount) >= 0
-        val newBaseAmountReceived =
-            if (fullyPaid) {
-                invoice.baseCurrencyAmount
-            } else {
-                invoice.baseCurrencyAmountReceived.add(receiptBaseAmount)
-            }
+        val newBaseAmountReceived = invoice.baseCurrencyAmountReceived.add(receiptBaseAmount)
         val newStatus = if (fullyPaid) InvoiceStatus.PAID else InvoiceStatus.PARTIALLY_PAID
 
         invoiceRepository.save(
@@ -493,6 +492,18 @@ class InvoiceService(
             days90plus = days90plus,
             total = total,
         )
+    }
+
+    private fun absorbCreditDelta(
+        lines: List<JournalEntryLine>,
+        delta: BigDecimal,
+    ): List<JournalEntryLine> {
+        if (delta.signum() == 0 || lines.isEmpty()) return lines
+        val targetIndex =
+            lines.indices.maxByOrNull { lines[it].credit } ?: return lines
+        return lines.mapIndexed { i, line ->
+            if (i == targetIndex) line.copy(credit = line.credit.add(delta)) else line
+        }
     }
 
     private fun getArAccount(organizationId: String): Account {

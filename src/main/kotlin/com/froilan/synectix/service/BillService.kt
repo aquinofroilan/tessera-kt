@@ -188,7 +188,7 @@ class BillService(
         val baseCurrency = getBaseCurrency(organizationId)
         val baseDecimals = currencyService.getCurrency(baseCurrency).decimalPlaces
 
-        val expenseLines =
+        val rawExpenseLines =
             bill.lines.map { line ->
                 JournalEntryLine(
                     accountId = line.accountId,
@@ -199,6 +199,10 @@ class BillService(
                     description = line.description,
                 )
             }
+
+        val expectedExpenseTotal = bill.baseCurrencyAmount.subtract(bill.baseCurrencyTaxAmount)
+        val rawExpenseTotal = rawExpenseLines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.debit) }
+        val expenseLines = absorbDebitDelta(rawExpenseLines, expectedExpenseTotal.subtract(rawExpenseTotal))
 
         val taxLines =
             if (bill.baseCurrencyTaxAmount.compareTo(BigDecimal.ZERO) > 0) {
@@ -217,10 +221,6 @@ class BillService(
                 emptyList()
             }
 
-        val expenseTotal = expenseLines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.debit) }
-        val taxTotal = taxLines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.debit) }
-        val apCredit = expenseTotal.add(taxTotal)
-
         val journalLines =
             expenseLines +
                 taxLines +
@@ -229,7 +229,7 @@ class BillService(
                     accountCode = apAccount.code,
                     accountName = apAccount.name,
                     debit = BigDecimal.ZERO,
-                    credit = apCredit,
+                    credit = bill.baseCurrencyAmount,
                     description = "AP - ${bill.vendorName} - ${bill.billNumber}",
                 )
 
@@ -336,8 +336,14 @@ class BillService(
 
         val paymentId = UUID.randomUUID().toString()
         val baseDecimals = currencyService.getCurrency(getBaseCurrency(organizationId)).decimalPlaces
+        val newAmountPaid = bill.amountPaid.add(request.amount)
+        val fullyPaid = newAmountPaid.compareTo(bill.totalAmount) >= 0
         val paymentBaseAmount =
-            request.amount.multiply(bill.exchangeRate).setScale(baseDecimals, RoundingMode.HALF_UP)
+            if (fullyPaid) {
+                bill.baseCurrencyAmount.subtract(bill.baseCurrencyAmountPaid)
+            } else {
+                request.amount.multiply(bill.exchangeRate).setScale(baseDecimals, RoundingMode.HALF_UP)
+            }
 
         val journalEntry =
             journalEntryService.createSystemEntry(
@@ -384,10 +390,7 @@ class BillService(
                 ),
             )
 
-        val newAmountPaid = bill.amountPaid.add(request.amount)
-        val fullyPaid = newAmountPaid.compareTo(bill.totalAmount) >= 0
-        val newBaseAmountPaid =
-            if (fullyPaid) bill.baseCurrencyAmount else bill.baseCurrencyAmountPaid.add(paymentBaseAmount)
+        val newBaseAmountPaid = bill.baseCurrencyAmountPaid.add(paymentBaseAmount)
         val newStatus = if (fullyPaid) BillStatus.PAID else BillStatus.PARTIALLY_PAID
 
         billRepository.save(
@@ -527,6 +530,18 @@ class BillService(
             throw BusinessRuleException("Cash account (1000) is inactive")
         }
         return account
+    }
+
+    private fun absorbDebitDelta(
+        lines: List<JournalEntryLine>,
+        delta: BigDecimal,
+    ): List<JournalEntryLine> {
+        if (delta.signum() == 0 || lines.isEmpty()) return lines
+        val targetIndex =
+            lines.indices.maxByOrNull { lines[it].debit } ?: return lines
+        return lines.mapIndexed { i, line ->
+            if (i == targetIndex) line.copy(debit = line.debit.add(delta)) else line
+        }
     }
 
     private fun getTaxInputAccount(organizationId: String): Account {
