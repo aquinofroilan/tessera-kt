@@ -46,27 +46,29 @@ class ProductServiceTest {
         organizationId: String = orgId,
         isActive: Boolean = true,
         priceCurrency: String = "USD",
-    ) =
-        Product(
-            id = "prod-123",
-            sku = sku,
-            name = "Widget",
-            description = "A test widget",
-            category = "Hardware",
-            imageUrl = "https://example.com/image.jpg",
-            listPrice = BigDecimal("99.99"),
-            priceCurrency = priceCurrency,
-            taxGroupId = "tax-123",
-            organizationId = organizationId,
-            isActive = isActive,
-        )
+    ) = Product(
+        id = "prod-123",
+        sku = sku,
+        name = "Widget",
+        description = "A test widget",
+        category = "Hardware",
+        imageUrl = "https://example.com/image.jpg",
+        listPrice = BigDecimal("99.99"),
+        priceCurrency = priceCurrency,
+        taxGroupId = "tax-123",
+        organizationId = organizationId,
+        isActive = isActive,
+    )
 
     private fun mockCurrency(code: String = "USD") {
         `when`(currencyService.getCurrency(code))
             .thenReturn(Currency(code = code, name = "US Dollar", symbol = "$", decimalPlaces = 2))
     }
 
-    private fun mockOrganization(id: String = orgId, baseCurrency: String = "USD") {
+    private fun mockOrganization(
+        id: String = orgId,
+        baseCurrency: String = "USD",
+    ) {
         `when`(organizationRepository.findById(id))
             .thenReturn(
                 Optional.of(
