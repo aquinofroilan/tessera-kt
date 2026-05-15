@@ -5,6 +5,7 @@ import com.loom.synectix.model.ExchangeRateSource
 import com.loom.synectix.model.Organizations
 import com.loom.synectix.repository.ExchangeRateRepository
 import com.loom.synectix.repository.OrganizationRepository
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -33,7 +34,7 @@ class FxAutoFetchJobTest {
         organizationRepository = mock(OrganizationRepository::class.java)
         exchangeRateRepository = mock(ExchangeRateRepository::class.java)
         frankfurterClient = mock(FrankfurterClient::class.java)
-        job = FxAutoFetchJob(organizationRepository, exchangeRateRepository, frankfurterClient)
+        job = FxAutoFetchJob(organizationRepository, exchangeRateRepository, frankfurterClient, SimpleMeterRegistry())
     }
 
     @Test

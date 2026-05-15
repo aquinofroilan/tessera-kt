@@ -14,6 +14,13 @@ Prometheus metrics endpoint:
 
 - `http://localhost:8080/api/actuator/prometheus`
 
+Custom app metrics added in code (examples):
+
+- `synectix_fx_auto_fetch_job_runs_total`
+- `synectix_fx_auto_fetch_job_failures_total`
+- `synectix_fx_auto_fetch_base_fetches_total` (tags: `base`, `outcome`)
+- `synectix_fx_auto_fetch_rate_upserts_total` (tag: `outcome`)
+
 ## 2) Run Prometheus + Grafana
 
 From the repo root:
