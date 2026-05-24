@@ -1,13 +1,13 @@
-package com.froilan.synectix.repository
+﻿package com.froilan.synectix.repository
 
 import com.froilan.synectix.model.Bill
 import com.froilan.synectix.model.BillStatus
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
 @Repository
-interface BillRepository : MongoRepository<Bill, String> {
+interface BillRepository : JpaRepository<Bill, String> {
     fun findByOrganizationId(organizationId: String): List<Bill>
 
     fun findByOrganizationIdAndStatus(

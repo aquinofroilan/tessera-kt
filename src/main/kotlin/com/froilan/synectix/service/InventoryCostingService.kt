@@ -70,7 +70,8 @@ class InventoryCostingService(
                 }
             StockMovementType.TRANSFER -> {
                 val consumed = consumeFifo(movement, movement.warehouseId, q)
-                if (movement.transferToWarehouseId != null) {
+                val destId = movement.transferToWarehouseId
+                if (destId != null) {
                     val avgCost =
                         if (consumed.signum() > 0 && q.signum() > 0) {
                             consumed.divide(q, 6, RoundingMode.HALF_UP)
@@ -81,7 +82,7 @@ class InventoryCostingService(
                         InventoryCostLayer(
                             organizationId = movement.organizationId,
                             productId = movement.productId,
-                            warehouseId = movement.transferToWarehouseId,
+                            warehouseId = destId,
                             originalQuantity = q,
                             remainingQuantity = q,
                             unitCost = avgCost,
@@ -171,10 +172,11 @@ class InventoryCostingService(
                 }
             StockMovementType.TRANSFER -> {
                 val consumedCost = consumeWa(movement, movement.warehouseId, q)
-                if (movement.transferToWarehouseId != null) {
+                val destId = movement.transferToWarehouseId
+                if (destId != null) {
                     val unitCost =
                         if (q.signum() > 0) consumedCost.divide(q, 6, RoundingMode.HALF_UP) else BigDecimal.ZERO
-                    addToWa(movement, movement.transferToWarehouseId, q, unitCost)
+                    addToWa(movement, destId, q, unitCost)
                 }
             }
         }

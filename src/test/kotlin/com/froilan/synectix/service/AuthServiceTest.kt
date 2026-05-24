@@ -1,4 +1,4 @@
-package com.froilan.synectix.service
+﻿package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest
@@ -31,7 +31,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.springframework.dao.DuplicateKeyException
-import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -46,7 +46,7 @@ class AuthServiceTest {
     private lateinit var refreshTokenRepository: RefreshTokenRepository
     private lateinit var passwordResetTokenRepository: PasswordResetTokenRepository
     private lateinit var accountService: AccountService
-    private lateinit var mongoTemplate: MongoTemplate
+    private lateinit var jdbcTemplate: JdbcTemplate
     private lateinit var tokenHasher: TokenHasher
     private lateinit var passwordEncoder: PasswordEncoder
 
@@ -58,7 +58,7 @@ class AuthServiceTest {
         refreshTokenRepository = mock(RefreshTokenRepository::class.java)
         passwordResetTokenRepository = mock(PasswordResetTokenRepository::class.java)
         accountService = mock(AccountService::class.java)
-        mongoTemplate = mock(MongoTemplate::class.java)
+        jdbcTemplate = mock(JdbcTemplate::class.java)
         tokenHasher = mock(TokenHasher::class.java)
         passwordEncoder = mock(PasswordEncoder::class.java)
 
@@ -73,7 +73,7 @@ class AuthServiceTest {
                 refreshTokenRepository = refreshTokenRepository,
                 passwordResetTokenRepository = passwordResetTokenRepository,
                 accountService = accountService,
-                mongoTemplate = mongoTemplate,
+                jdbcTemplate = jdbcTemplate,
                 tokenHasher = tokenHasher,
                 passwordEncoder = passwordEncoder,
                 tokenValidityMs = 86400000L,
@@ -366,7 +366,7 @@ class AuthServiceTest {
         `when`(userRepository.findById(user.uuid)).thenReturn(Optional.of(user))
         `when`(sessionTokenRepository.save(any<SessionToken>())).thenAnswer { it.arguments[0] }
         `when`(refreshTokenRepository.save(any<RefreshToken>())).thenAnswer { it.arguments[0] }
-        `when`(mongoTemplate.findAndRemove(any(), eq(RefreshToken::class.java))).thenReturn(existingRefreshToken)
+        `when`(jdbcTemplate.update(any<String>(), eq(oldRefreshTokenHash))).thenReturn(1)
 
         val result = authService.refresh(oldRefreshTokenStr)
 
@@ -619,7 +619,7 @@ class AuthServiceTest {
             )
 
         `when`(passwordResetTokenRepository.findByTokenHash("hashed-valid-token")).thenReturn(Optional.of(resetToken))
-        `when`(mongoTemplate.findAndRemove(any(), eq(PasswordResetToken::class.java))).thenReturn(resetToken)
+        `when`(jdbcTemplate.update(any<String>(), eq("hashed-valid-token"))).thenReturn(1)
         `when`(userRepository.findById(user.uuid)).thenReturn(Optional.of(user))
         `when`(passwordEncoder.encode("NewPassword123!")).thenReturn("newEncodedPass")
         `when`(userRepository.save(any<User>())).thenAnswer { it.arguments[0] }
@@ -660,7 +660,7 @@ class AuthServiceTest {
             }
         assertThat(exception.message).isEqualTo("Invalid or expired reset token")
         verify(passwordResetTokenRepository).deleteById(expiredToken.id)
-        verify(mongoTemplate, never()).findAndRemove(any(), eq(PasswordResetToken::class.java))
+        verify(jdbcTemplate, never()).update(any<String>(), eq("hashed-expired-token"))
     }
 
     private fun createValidRegisterRequest() =

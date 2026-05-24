@@ -23,9 +23,7 @@ import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.util.TokenHasher
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.DuplicateKeyException
-import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.Query
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -42,7 +40,7 @@ class AuthService(
     private val refreshTokenRepository: RefreshTokenRepository,
     private val passwordResetTokenRepository: PasswordResetTokenRepository,
     private val accountService: AccountService,
-    private val mongoTemplate: MongoTemplate,
+    private val jdbcTemplate: JdbcTemplate,
     private val tokenHasher: TokenHasher,
     private val passwordEncoder: PasswordEncoder,
     @Value("\${security.jwt.expiration:86400000}")
@@ -208,11 +206,11 @@ class AuthService(
         refreshTokenRepository.save(newRefreshToken)
 
         val consumed =
-            mongoTemplate.findAndRemove(
-                Query.query(Criteria.where("tokenHash").`is`(refreshTokenHash)),
-                RefreshToken::class.java,
+            jdbcTemplate.update(
+                "DELETE FROM refresh_tokens WHERE token_hash = ?",
+                refreshTokenHash,
             )
-        if (consumed == null) {
+        if (consumed == 0) {
             refreshTokenRepository.deleteByTokenHash(newRefreshTokenHash)
             sessionTokenRepository.deleteById(savedSession.id)
             throw AuthenticationException("Invalid or expired refresh token")
@@ -291,15 +289,18 @@ class AuthService(
             throw BusinessRuleException("Invalid or expired reset token")
         }
 
-        val resetToken =
-            mongoTemplate.findAndRemove(
-                Query.query(Criteria.where("tokenHash").`is`(tokenHash)),
-                PasswordResetToken::class.java,
-            ) ?: throw BusinessRuleException("Invalid or expired reset token")
+        val deleted =
+            jdbcTemplate.update(
+                "DELETE FROM password_reset_tokens WHERE token_hash = ?",
+                tokenHash,
+            )
+        if (deleted == 0) {
+            throw BusinessRuleException("Invalid or expired reset token")
+        }
 
         val user =
             userRepository
-                .findById(resetToken.userId)
+                .findById(existing.userId)
                 .orElseThrow { BusinessRuleException("Invalid or expired reset token") }
 
         val updatedUser = user.copy(passwordHash = passwordEncoder.encode(newPassword) as String)

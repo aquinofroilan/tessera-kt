@@ -1,12 +1,12 @@
-package com.froilan.synectix.repository
+﻿package com.froilan.synectix.repository
 
 import com.froilan.synectix.model.FiscalYear
 import com.froilan.synectix.model.FiscalYearStatus
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface FiscalYearRepository : MongoRepository<FiscalYear, String> {
+interface FiscalYearRepository : JpaRepository<FiscalYear, String> {
     fun findByOrganizationId(organizationId: String): List<FiscalYear>
 
     fun findByOrganizationIdAndStatus(

@@ -1,13 +1,13 @@
-package com.froilan.synectix.repository
+﻿package com.froilan.synectix.repository
 
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface AccountRepository : MongoRepository<Account, String> {
+interface AccountRepository : JpaRepository<Account, String> {
     fun findByOrganizationIdAndIsActive(
         organizationId: String,
         isActive: Boolean,

@@ -1,11 +1,15 @@
 package com.froilan.synectix.model
 
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
-import org.springframework.data.mongodb.core.index.CompoundIndex
-import org.springframework.data.mongodb.core.index.Indexed
-import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
@@ -28,22 +32,30 @@ enum class AccountType {
         }
 }
 
-@Document(collection = "accounts")
-@CompoundIndex(name = "unique_code_per_org", def = "{'organizationId': 1, 'code': 1}", unique = true)
+@Entity
+@Table(name = "accounts")
+@EntityListeners(AuditingEntityListener::class)
 data class Account(
     @Id
+    @Column(columnDefinition = "uuid")
     val id: String = UUID.randomUUID().toString(),
     val code: String,
     val name: String,
     val description: String? = null,
+    @Enumerated(EnumType.STRING)
     val type: AccountType,
+    @Column(name = "parent_id", columnDefinition = "uuid")
     val parentId: String? = null,
-    @Indexed
+    @Column(name = "organization_id", columnDefinition = "uuid")
     val organizationId: String,
+    @Column(name = "is_active")
     val isActive: Boolean = true,
+    @Column(name = "is_system_account")
     val isSystemAccount: Boolean = false,
     @CreatedDate
+    @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,
     @LastModifiedDate
+    @Column(name = "updated_at")
     var updatedAt: LocalDateTime? = null,
 )

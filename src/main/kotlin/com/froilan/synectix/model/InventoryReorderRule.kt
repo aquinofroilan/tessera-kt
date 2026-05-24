@@ -1,30 +1,38 @@
 package com.froilan.synectix.model
 
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
-import org.springframework.data.mongodb.core.index.CompoundIndex
-import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 
-@Document(collection = "inventory_reorder_rules")
-@CompoundIndex(
-    name = "reorder_unique_org_product_warehouse",
-    def = "{'organizationId': 1, 'productId': 1, 'warehouseId': 1}",
-    unique = true,
-)
+@Entity
+@Table(name = "inventory_reorder_rules")
+@EntityListeners(AuditingEntityListener::class)
 data class InventoryReorderRule(
     @Id
+    @Column(columnDefinition = "uuid")
     val id: String = UUID.randomUUID().toString(),
+    @Column(name = "organization_id", columnDefinition = "uuid")
     val organizationId: String,
+    @Column(name = "product_id", columnDefinition = "uuid")
     val productId: String,
+    @Column(name = "warehouse_id", columnDefinition = "uuid")
     val warehouseId: String,
+    @Column(name = "reorder_point")
     val reorderPoint: BigDecimal,
+    @Column(name = "safety_stock")
     val safetyStock: BigDecimal = BigDecimal.ZERO,
     @CreatedDate
+    @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,
     @LastModifiedDate
+    @Column(name = "updated_at")
     var updatedAt: LocalDateTime? = null,
 )

@@ -1,33 +1,36 @@
 package com.froilan.synectix.model
 
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
-import org.springframework.data.mongodb.core.index.CompoundIndex
-import org.springframework.data.mongodb.core.index.Indexed
-import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 
-@Document(collection = "tax_rates")
-@CompoundIndex(
-    name = "unique_tax_rate_code_per_org",
-    def = "{'organizationId': 1, 'code': 1}",
-    unique = true,
-)
+@Entity
+@Table(name = "tax_rates")
+@EntityListeners(AuditingEntityListener::class)
 data class TaxRate(
     @Id
+    @Column(columnDefinition = "uuid")
     val id: String = UUID.randomUUID().toString(),
     val name: String,
     val code: String,
     val percentage: BigDecimal,
     val authority: String,
-    @Indexed
+    @Column(name = "organization_id", columnDefinition = "uuid")
     val organizationId: String,
+    @Column(name = "is_active")
     val isActive: Boolean = true,
     @CreatedDate
+    @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,
     @LastModifiedDate
+    @Column(name = "updated_at")
     var updatedAt: LocalDateTime? = null,
 )

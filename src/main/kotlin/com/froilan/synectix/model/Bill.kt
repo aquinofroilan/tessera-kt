@@ -1,11 +1,20 @@
 package com.froilan.synectix.model
 
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
+import jakarta.persistence.OrderBy
+import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
-import org.springframework.data.mongodb.core.index.CompoundIndex
-import org.springframework.data.mongodb.core.index.Indexed
-import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -27,54 +36,92 @@ enum class PaymentMethod {
     OTHER,
 }
 
+@Entity
+@Table(name = "bill_lines")
 data class BillLine(
+    @Id
+    @Column(columnDefinition = "uuid")
+    val id: String = UUID.randomUUID().toString(),
+    @Column(name = "line_number")
+    val lineNumber: Int = 0,
+    @Column(name = "account_id", columnDefinition = "uuid")
     val accountId: String,
+    @Column(name = "account_code")
     val accountCode: String,
+    @Column(name = "account_name")
     val accountName: String,
     val amount: BigDecimal,
     val description: String? = null,
 )
 
-@Document(collection = "bills")
-@CompoundIndex(
-    name = "unique_bill_number_per_org",
-    def = "{'organizationId': 1, 'billNumber': 1}",
-    unique = true,
-)
-@CompoundIndex(name = "org_status", def = "{'organizationId': 1, 'status': 1}")
-@CompoundIndex(name = "org_vendor", def = "{'organizationId': 1, 'vendorId': 1}")
+@Entity
+@Table(name = "bills")
+@EntityListeners(AuditingEntityListener::class)
 data class Bill(
     @Id
+    @Column(columnDefinition = "uuid")
     val id: String = UUID.randomUUID().toString(),
+    @Column(name = "bill_number")
     val billNumber: String,
+    @Column(name = "vendor_id", columnDefinition = "uuid")
     val vendorId: String,
+    @Column(name = "vendor_name")
     val vendorName: String,
     val date: LocalDate,
+    @Column(name = "due_date")
     val dueDate: LocalDate,
+    @Column(name = "reference_number")
     val referenceNumber: String? = null,
+    @Column(name = "tax_group_id", columnDefinition = "uuid")
     val taxGroupId: String? = null,
-    @Indexed
+    @Column(name = "organization_id", columnDefinition = "uuid")
     val organizationId: String,
+    @Enumerated(EnumType.STRING)
     val status: BillStatus = BillStatus.DRAFT,
+    @OneToMany(
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.EAGER,
+    )
+    @JoinColumn(name = "bill_id")
+    @OrderBy("lineNumber ASC")
     val lines: List<BillLine>,
+    @Column(name = "total_amount")
     val totalAmount: BigDecimal,
+    @Column(name = "tax_amount")
     val taxAmount: BigDecimal = BigDecimal.ZERO,
+    @Column(name = "amount_paid")
     val amountPaid: BigDecimal = BigDecimal.ZERO,
+    @Column(name = "currency_code", columnDefinition = "char(3)")
     val currencyCode: String = "USD",
+    @Column(name = "exchange_rate")
     val exchangeRate: BigDecimal = BigDecimal.ONE,
+    @Column(name = "base_currency_amount")
     val baseCurrencyAmount: BigDecimal = totalAmount,
+    @Column(name = "base_currency_tax_amount")
     val baseCurrencyTaxAmount: BigDecimal = taxAmount,
+    @Column(name = "base_currency_amount_paid")
     val baseCurrencyAmountPaid: BigDecimal = amountPaid,
+    @Column(name = "journal_entry_id", columnDefinition = "uuid")
     val journalEntryId: String? = null,
+    @Column(name = "created_by", columnDefinition = "uuid")
     val createdBy: String,
+    @Column(name = "approved_at")
     val approvedAt: LocalDateTime? = null,
+    @Column(name = "approved_by", columnDefinition = "uuid")
     val approvedBy: String? = null,
+    @Column(name = "paid_at")
     val paidAt: LocalDateTime? = null,
+    @Column(name = "voided_at")
     val voidedAt: LocalDateTime? = null,
+    @Column(name = "voided_by", columnDefinition = "uuid")
     val voidedBy: String? = null,
+    @Column(name = "void_reason")
     val voidReason: String? = null,
     @CreatedDate
+    @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,
     @LastModifiedDate
+    @Column(name = "updated_at")
     var updatedAt: LocalDateTime? = null,
 )

@@ -1,14 +1,12 @@
 package com.froilan.synectix.repository
 
-import com.froilan.synectix.model.StockOnHand
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.query.Query
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 import java.util.UUID
@@ -22,31 +20,34 @@ import java.util.concurrent.atomic.AtomicInteger
 @ActiveProfiles("test")
 class StockOnHandConcurrencyIT {
     @Autowired
-    private lateinit var mongoTemplate: MongoTemplate
+    private lateinit var jdbcTemplate: JdbcTemplate
 
     @Autowired
     private lateinit var stockOnHandRepository: StockOnHandRepository
 
-    private val orgId = "org-" + UUID.randomUUID()
-    private val productId = "prod-" + UUID.randomUUID()
-    private val warehouseId = "wh-" + UUID.randomUUID()
+    private val orgId = UUID.randomUUID().toString()
+    private val productId = UUID.randomUUID().toString()
+    private val warehouseId = UUID.randomUUID().toString()
 
     @BeforeEach
     fun setup() {
-        mongoTemplate.remove(Query(), StockOnHand::class.java)
-        mongoTemplate.save(
-            StockOnHand(
-                organizationId = orgId,
-                productId = productId,
-                warehouseId = warehouseId,
-                quantity = BigDecimal("100"),
-            ),
+        jdbcTemplate.update("DELETE FROM stock_on_hand WHERE organization_id = ?::uuid", orgId)
+        jdbcTemplate.update(
+            """
+            INSERT INTO stock_on_hand (id, organization_id, product_id, warehouse_id, quantity, created_at)
+            VALUES (?::uuid, ?::uuid, ?::uuid, ?::uuid, ?, current_timestamp)
+            """.trimIndent(),
+            UUID.randomUUID().toString(),
+            orgId,
+            productId,
+            warehouseId,
+            BigDecimal("100"),
         )
     }
 
     @AfterEach
     fun cleanup() {
-        mongoTemplate.remove(Query(), StockOnHand::class.java)
+        jdbcTemplate.update("DELETE FROM stock_on_hand WHERE organization_id = ?::uuid", orgId)
     }
 
     @Test
@@ -104,8 +105,8 @@ class StockOnHandConcurrencyIT {
     }
 
     @Test
-    fun `applyDelta upserts when counter doc does not yet exist`() {
-        val freshProductId = "fresh-" + UUID.randomUUID()
+    fun `applyDelta upserts when counter row does not yet exist`() {
+        val freshProductId = UUID.randomUUID().toString()
         val ok =
             stockOnHandRepository.applyDelta(
                 organizationId = orgId,
@@ -119,8 +120,8 @@ class StockOnHandConcurrencyIT {
     }
 
     @Test
-    fun `applyDelta rejects outbound when counter doc absent`() {
-        val freshProductId = "fresh-" + UUID.randomUUID()
+    fun `applyDelta rejects outbound when counter row absent`() {
+        val freshProductId = UUID.randomUUID().toString()
         val ok =
             stockOnHandRepository.applyDelta(
                 organizationId = orgId,

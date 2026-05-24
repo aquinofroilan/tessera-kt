@@ -1,21 +1,17 @@
 package com.froilan.synectix.repository
 
-import com.froilan.synectix.model.StockOnHand
-import org.springframework.dao.DuplicateKeyException
-import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.Update
+import org.springframework.jdbc.core.JdbcTemplate
 import java.math.BigDecimal
+import java.util.UUID
 
 interface StockOnHandQueries {
     /**
      * Atomically apply [delta] to the (organizationId, productId, warehouseId) counter.
      *
      * Returns true on success, false when [allowNegative] is false and the post-state
-     * would be negative (insufficient stock). All concurrency-relevant checks happen
-     * inside a single MongoDB updateFirst, so two callers cannot both succeed past a
-     * negative-stock boundary.
+     * would be negative (insufficient stock). The check and decrement happen in a single
+     * SQL UPDATE with a row-level negative-stock guard, so concurrent callers cannot
+     * both succeed past a negative-stock boundary.
      */
     fun applyDelta(
         organizationId: String,
@@ -33,7 +29,7 @@ interface StockOnHandQueries {
 }
 
 open class StockOnHandQueriesImpl(
-    private val mongoTemplate: MongoTemplate,
+    private val jdbc: JdbcTemplate,
 ) : StockOnHandQueries {
     override fun applyDelta(
         organizationId: String,
@@ -44,48 +40,42 @@ open class StockOnHandQueriesImpl(
     ): Boolean {
         if (delta.signum() == 0) return true
 
-        val keyCriteria =
-            Criteria
-                .where("organizationId")
-                .`is`(organizationId)
-                .and("productId")
-                .`is`(productId)
-                .and("warehouseId")
-                .`is`(warehouseId)
-
         if (!allowNegative && delta.signum() < 0) {
-            val guarded =
-                Query(keyCriteria)
-                    .addCriteria(Criteria.where("quantity").gte(delta.negate()))
-            val result =
-                mongoTemplate.updateFirst(
-                    guarded,
-                    Update().inc("quantity", delta),
-                    StockOnHand::class.java,
-                )
-            return result.modifiedCount > 0
+            // Atomic check-and-decrement on existing row only. No upsert: a missing row
+            // means quantity is implicitly 0, which fails the guard for an outbound delta.
+            val sql =
+                """
+                UPDATE stock_on_hand
+                   SET quantity = quantity + ?,
+                       updated_at = current_timestamp
+                 WHERE organization_id = ?::uuid
+                   AND product_id = ?::uuid
+                   AND warehouse_id = ?::uuid
+                   AND quantity >= ?
+                """.trimIndent()
+            val updated = jdbc.update(sql, delta, organizationId, productId, warehouseId, delta.negate())
+            return updated > 0
         }
 
-        var attempts = 0
-        while (attempts < 3) {
-            attempts++
-            try {
-                val result =
-                    mongoTemplate.upsert(
-                        Query(keyCriteria),
-                        Update()
-                            .inc("quantity", delta)
-                            .setOnInsert("organizationId", organizationId)
-                            .setOnInsert("productId", productId)
-                            .setOnInsert("warehouseId", warehouseId),
-                        StockOnHand::class.java,
-                    )
-                if (result.modifiedCount > 0 || result.upsertedId != null) return true
-            } catch (_: DuplicateKeyException) {
-                // Concurrent insert race; retry as a plain update against the now-existing doc.
-            }
-        }
-        return false
+        // Inbound (or allowed-negative): upsert. Postgres ON CONFLICT handles the race natively.
+        val sql =
+            """
+            INSERT INTO stock_on_hand (id, organization_id, product_id, warehouse_id, quantity, created_at, updated_at)
+            VALUES (?::uuid, ?::uuid, ?::uuid, ?::uuid, ?, current_timestamp, current_timestamp)
+            ON CONFLICT (organization_id, product_id, warehouse_id)
+            DO UPDATE SET quantity = stock_on_hand.quantity + EXCLUDED.quantity,
+                          updated_at = current_timestamp
+            """.trimIndent()
+        val updated =
+            jdbc.update(
+                sql,
+                UUID.randomUUID().toString(),
+                organizationId,
+                productId,
+                warehouseId,
+                delta,
+            )
+        return updated > 0
     }
 
     override fun get(
@@ -93,15 +83,14 @@ open class StockOnHandQueriesImpl(
         productId: String,
         warehouseId: String,
     ): BigDecimal {
-        val criteria =
-            Criteria
-                .where("organizationId")
-                .`is`(organizationId)
-                .and("productId")
-                .`is`(productId)
-                .and("warehouseId")
-                .`is`(warehouseId)
-        val doc = mongoTemplate.findOne(Query(criteria), StockOnHand::class.java)
-        return doc?.quantity ?: BigDecimal.ZERO
+        val sql =
+            """
+            SELECT quantity FROM stock_on_hand
+             WHERE organization_id = ?::uuid
+               AND product_id = ?::uuid
+               AND warehouse_id = ?::uuid
+            """.trimIndent()
+        val rows = jdbc.queryForList(sql, BigDecimal::class.java, organizationId, productId, warehouseId)
+        return rows.firstOrNull() ?: BigDecimal.ZERO
     }
 }

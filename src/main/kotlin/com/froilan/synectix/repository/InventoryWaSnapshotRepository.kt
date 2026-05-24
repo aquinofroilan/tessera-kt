@@ -1,12 +1,12 @@
-package com.froilan.synectix.repository
+﻿package com.froilan.synectix.repository
 
 import com.froilan.synectix.model.InventoryWaSnapshot
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface InventoryWaSnapshotRepository : MongoRepository<InventoryWaSnapshot, String> {
+interface InventoryWaSnapshotRepository : JpaRepository<InventoryWaSnapshot, String> {
     fun findByOrganizationIdAndProductIdAndWarehouseId(
         organizationId: String,
         productId: String,

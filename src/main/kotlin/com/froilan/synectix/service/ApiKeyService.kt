@@ -6,10 +6,6 @@ import com.froilan.synectix.model.ApiKey
 import com.froilan.synectix.repository.ApiKeyRepository
 import com.froilan.synectix.security.Permissions
 import com.froilan.synectix.util.TokenHasher
-import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -18,7 +14,6 @@ import java.time.ZoneOffset
 @Service
 class ApiKeyService(
     private val apiKeyRepository: ApiKeyRepository,
-    private val mongoTemplate: MongoTemplate,
     private val tokenHasher: TokenHasher,
 ) {
     @Transactional
@@ -79,18 +74,16 @@ class ApiKeyService(
         apiKeyRepository.save(apiKey.copy(isActive = false))
     }
 
+    @Transactional
     fun authenticateByApiKey(rawKey: String): ApiKey? {
         val keyHash = tokenHasher.hash(rawKey)
         val apiKey = apiKeyRepository.findByKeyHash(keyHash).orElse(null) ?: return null
 
         if (!apiKey.isActive) return null
-        if (apiKey.expiresAt != null && !apiKey.expiresAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) return null
+        val expiresAt = apiKey.expiresAt
+        if (expiresAt != null && !expiresAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) return null
 
-        mongoTemplate.updateFirst(
-            Query.query(Criteria.where("_id").`is`(apiKey.id)),
-            Update.update("lastUsedAt", LocalDateTime.now(ZoneOffset.UTC)),
-            ApiKey::class.java,
-        )
+        apiKeyRepository.save(apiKey.copy(lastUsedAt = LocalDateTime.now(ZoneOffset.UTC)))
 
         return apiKey
     }

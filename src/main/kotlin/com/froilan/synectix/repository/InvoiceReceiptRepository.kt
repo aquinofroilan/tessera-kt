@@ -1,11 +1,11 @@
-package com.froilan.synectix.repository
+﻿package com.froilan.synectix.repository
 
 import com.froilan.synectix.model.InvoiceReceipt
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface InvoiceReceiptRepository : MongoRepository<InvoiceReceipt, String> {
+interface InvoiceReceiptRepository : JpaRepository<InvoiceReceipt, String> {
     fun findByInvoiceIdAndOrganizationId(
         invoiceId: String,
         organizationId: String,

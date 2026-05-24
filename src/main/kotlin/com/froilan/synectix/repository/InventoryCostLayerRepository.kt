@@ -1,11 +1,11 @@
-package com.froilan.synectix.repository
+﻿package com.froilan.synectix.repository
 
 import com.froilan.synectix.model.InventoryCostLayer
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface InventoryCostLayerRepository : MongoRepository<InventoryCostLayer, String> {
+interface InventoryCostLayerRepository : JpaRepository<InventoryCostLayer, String> {
     fun findByOrganizationIdAndProductIdAndWarehouseIdOrderByOccurredAtAsc(
         organizationId: String,
         productId: String,
