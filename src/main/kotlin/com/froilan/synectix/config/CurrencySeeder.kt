@@ -32,8 +32,12 @@ class CurrencySeeder(
                 try {
                     currencyRepository.save(currency)
                     log.info("Seeded currency: {} ({})", currency.code, currency.name)
-                } catch (_: DataIntegrityViolationException) {
-                    // Race with another seeder run; the row is now present.
+                } catch (e: DataIntegrityViolationException) {
+                    // Only treat as a race-loss if the row is now present;
+                    // otherwise this is a real constraint problem worth surfacing.
+                    if (currencyRepository.findById(currency.code).isEmpty) {
+                        throw e
+                    }
                 }
             } else if (existing.get() != currency) {
                 currencyRepository.save(currency)

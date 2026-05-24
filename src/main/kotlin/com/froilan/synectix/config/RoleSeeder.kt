@@ -170,8 +170,15 @@ class RoleSeeder(
                     roleRepository.save(role)
                     log.info("Seeded role: {} ({})", role.name, role.level)
                     changed = true
-                } catch (_: DataIntegrityViolationException) {
-                    // Race with another seeder run; the row is now present.
+                } catch (e: DataIntegrityViolationException) {
+                    // A constraint failed. Only treat as a race-loss if the row is
+                    // now present; otherwise this is a real schema/data problem.
+                    if (roleRepository.findByName(role.name).isEmpty) {
+                        throw e
+                    }
+                    // Roles were inserted by another startup; our @PostConstruct
+                    // cache load ran before that, so flag for refresh.
+                    changed = true
                 }
             } else {
                 val current = existing.get()
