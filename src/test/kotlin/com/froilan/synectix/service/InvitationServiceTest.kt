@@ -23,6 +23,7 @@ import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyVararg
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.times
@@ -216,7 +217,7 @@ class InvitationServiceTest {
         val invitation = createMockInvitation()
         val accepted = invitation.copy(status = InvitationStatus.ACCEPTED)
 
-        `when`(jdbcTemplate.update(any<String>(), any(), any())).thenReturn(1)
+        `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
         `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(accepted))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
         `when`(passwordEncoder.encode("SecurePass123!")).thenReturn("encodedPassword")
@@ -252,7 +253,7 @@ class InvitationServiceTest {
                 roleAssignments = listOf(RoleAssignment("MEMBER", "other-org")),
             )
 
-        `when`(jdbcTemplate.update(any<String>(), any(), any())).thenReturn(1)
+        `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
         `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(accepted))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.of(existingUser))
         `when`(userRepository.save(any<User>())).thenAnswer { it.arguments[0] }
@@ -276,7 +277,7 @@ class InvitationServiceTest {
                 lastName = "L",
             )
 
-        `when`(jdbcTemplate.update(any<String>(), any(), any())).thenReturn(0)
+        `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(0)
 
         val exception = assertThrows<BusinessRuleException> { invitationService.acceptInvitation(request) }
         assertThat(exception.message).isEqualTo("Invalid or expired invitation token")
@@ -287,7 +288,7 @@ class InvitationServiceTest {
         val request = AcceptInvitationRequest(token = "raw-token")
         val invitation = createMockInvitation()
 
-        `when`(jdbcTemplate.update(any<String>(), any(), any())).thenReturn(1)
+        `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
         `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(invitation.copy(status = InvitationStatus.ACCEPTED)))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
 
@@ -307,7 +308,7 @@ class InvitationServiceTest {
             )
         val invitation = createMockInvitation()
 
-        `when`(jdbcTemplate.update(any<String>(), any(), any())).thenReturn(1)
+        `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
         `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(invitation.copy(status = InvitationStatus.ACCEPTED)))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
         `when`(passwordEncoder.encode("SecurePass123!")).thenReturn("encodedPassword")
