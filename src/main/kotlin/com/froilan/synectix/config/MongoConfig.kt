@@ -1,5 +1,7 @@
 package com.froilan.synectix.config
 
+import com.froilan.synectix.repository.StockMovementRepository
+import com.froilan.synectix.repository.StockOnHandRepository
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
 import com.mongodb.client.MongoClient
@@ -84,5 +86,47 @@ class MongoIndexInitializer(
                 .name("unique_pending_invitation_per_email_org"),
         )
         log.info("Ensured partial unique index on invitations(email, organizationId) where status=PENDING")
+    }
+}
+
+@Component
+@Order(1)
+class StockOnHandBackfillRunner(
+    private val mongoTemplate: MongoTemplate,
+    private val stockMovementRepository: StockMovementRepository,
+    private val stockOnHandRepository: StockOnHandRepository,
+) : ApplicationRunner {
+    private val log = LoggerFactory.getLogger(StockOnHandBackfillRunner::class.java)
+
+    override fun run(args: ApplicationArguments) {
+        val counterCount = mongoTemplate.getCollection("stock_on_hand").countDocuments()
+        if (counterCount > 0L) return
+
+        val movementCount = mongoTemplate.getCollection("stock_movements").countDocuments()
+        if (movementCount == 0L) return
+
+        log.info("Backfilling stock_on_hand from {} stock_movements...", movementCount)
+
+        val orgIds =
+            mongoTemplate
+                .getCollection("stock_movements")
+                .distinct("organizationId", String::class.java)
+                .into(mutableListOf())
+
+        var inserted = 0
+        for (orgId in orgIds) {
+            val totals = stockMovementRepository.onHandByProductWarehouse(orgId)
+            for ((key, qty) in totals) {
+                stockOnHandRepository.applyDelta(
+                    organizationId = orgId,
+                    productId = key.productId,
+                    warehouseId = key.warehouseId,
+                    delta = qty,
+                    allowNegative = true,
+                )
+                inserted++
+            }
+        }
+        log.info("stock_on_hand backfill complete: {} counter rows seeded", inserted)
     }
 }
