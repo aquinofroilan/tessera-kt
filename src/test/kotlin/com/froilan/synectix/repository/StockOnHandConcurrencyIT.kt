@@ -2,11 +2,13 @@ package com.froilan.synectix.repository
 
 import com.froilan.synectix.model.StockOnHand
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.query.Query
 import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 import java.util.UUID
@@ -31,7 +33,7 @@ class StockOnHandConcurrencyIT {
 
     @BeforeEach
     fun setup() {
-        mongoTemplate.dropCollection(StockOnHand::class.java)
+        mongoTemplate.remove(Query(), StockOnHand::class.java)
         mongoTemplate.save(
             StockOnHand(
                 organizationId = orgId,
@@ -40,6 +42,11 @@ class StockOnHandConcurrencyIT {
                 quantity = BigDecimal("100"),
             ),
         )
+    }
+
+    @AfterEach
+    fun cleanup() {
+        mongoTemplate.remove(Query(), StockOnHand::class.java)
     }
 
     @Test
