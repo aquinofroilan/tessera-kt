@@ -150,7 +150,7 @@ class StockOnHandConcurrencyIT {
 
     @Test
     fun `applyDelta upserts when counter row does not yet exist`() {
-        val freshProductId = UUID.randomUUID().toString()
+        val freshProductId = insertProduct()
         val ok =
             stockOnHandRepository.applyDelta(
                 organizationId = orgId,
@@ -165,7 +165,7 @@ class StockOnHandConcurrencyIT {
 
     @Test
     fun `applyDelta rejects outbound when counter row absent`() {
-        val freshProductId = UUID.randomUUID().toString()
+        val freshProductId = insertProduct()
         val ok =
             stockOnHandRepository.applyDelta(
                 organizationId = orgId,
@@ -175,5 +175,22 @@ class StockOnHandConcurrencyIT {
                 allowNegative = false,
             )
         assertThat(ok).isFalse()
+    }
+
+    private fun insertProduct(): String {
+        val pid = UUID.randomUUID().toString()
+        jdbcTemplate.update(
+            """
+            INSERT INTO products
+              (id, sku, name, list_price, price_currency, organization_id,
+               is_active, created_at)
+            VALUES (?::uuid, ?, ?, 0, 'USD', ?::uuid, true, current_timestamp)
+            """.trimIndent(),
+            pid,
+            "sku-$pid",
+            "Product $pid",
+            orgId,
+        )
+        return pid
     }
 }
