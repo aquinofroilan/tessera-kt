@@ -1,5 +1,7 @@
 package com.froilan.synectix.config
 
+import com.froilan.synectix.repository.StockMovementRepository
+import com.froilan.synectix.repository.StockOnHandRepository
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
 import com.mongodb.client.MongoClient
@@ -91,8 +93,8 @@ class MongoIndexInitializer(
 @Order(1)
 class StockOnHandBackfillRunner(
     private val mongoTemplate: MongoTemplate,
-    private val stockMovementRepository: com.froilan.synectix.repository.StockMovementRepository,
-    private val stockOnHandRepository: com.froilan.synectix.repository.StockOnHandRepository,
+    private val stockMovementRepository: StockMovementRepository,
+    private val stockOnHandRepository: StockOnHandRepository,
 ) : ApplicationRunner {
     private val log = LoggerFactory.getLogger(StockOnHandBackfillRunner::class.java)
 
