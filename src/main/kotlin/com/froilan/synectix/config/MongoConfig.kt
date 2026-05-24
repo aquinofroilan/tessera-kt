@@ -91,7 +91,7 @@ class MongoIndexInitializer(
 @Order(1)
 class StockOnHandBackfillRunner(
     private val mongoTemplate: MongoTemplate,
-    private val stockMovementQueries: com.froilan.synectix.repository.StockMovementQueries,
+    private val stockMovementRepository: com.froilan.synectix.repository.StockMovementRepository,
     private val stockOnHandRepository: com.froilan.synectix.repository.StockOnHandRepository,
 ) : ApplicationRunner {
     private val log = LoggerFactory.getLogger(StockOnHandBackfillRunner::class.java)
@@ -113,7 +113,7 @@ class StockOnHandBackfillRunner(
 
         var inserted = 0
         for (orgId in orgIds) {
-            val totals = stockMovementQueries.onHandByProductWarehouse(orgId)
+            val totals = stockMovementRepository.onHandByProductWarehouse(orgId)
             for ((key, qty) in totals) {
                 stockOnHandRepository.applyDelta(
                     organizationId = orgId,
