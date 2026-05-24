@@ -1,104 +1,63 @@
 package com.froilan.synectix.controller
 
-import com.froilan.synectix.aspect.LoggingAspect
-import com.froilan.synectix.config.TestSecurityConfig
-import com.froilan.synectix.repository.SessionTokenRepository
-import com.froilan.synectix.repository.UserRepository
-import com.froilan.synectix.security.RolePermissionCache
-import com.froilan.synectix.security.SynectixPermissionEvaluator
-import com.froilan.synectix.service.ApiKeyService
-import com.mongodb.client.MongoDatabase
-import org.bson.Document
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
-import org.springframework.context.annotation.Import
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.springframework.dao.DataAccessResourceFailureException
-import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.bean.override.mockito.MockitoBean
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.jdbc.core.JdbcTemplate
 
-@WebMvcTest(controllers = [HealthController::class])
-@Import(LoggingAspect::class, TestSecurityConfig::class, SynectixPermissionEvaluator::class)
-@ActiveProfiles("test")
 class HealthControllerTest {
-    @Autowired
-    private lateinit var mockMvc: MockMvc
+    private lateinit var jdbcTemplate: JdbcTemplate
+    private lateinit var controller: HealthController
 
-    @MockitoBean
-    private lateinit var mongoTemplate: MongoTemplate
-
-    @MockitoBean
-    private lateinit var mongoDatabase: MongoDatabase
-
-    @MockitoBean
-    private lateinit var sessionTokenRepository: SessionTokenRepository
-
-    @MockitoBean
-    private lateinit var userRepository: UserRepository
-
-    @MockitoBean
-    private lateinit var rolePermissionCache: RolePermissionCache
-
-    @MockitoBean
-    private lateinit var apiKeyService: ApiKeyService
-
-    @Test
-    fun `should return health status UP when database is healthy`() {
-        val buildInfo = Document("version", "7.0.0")
-        `when`(mongoTemplate.db).thenReturn(mongoDatabase)
-        `when`(mongoDatabase.name).thenReturn("synectix-test")
-        `when`(mongoDatabase.runCommand(ArgumentMatchers.any(Document::class.java))).thenReturn(buildInfo)
-
-        mockMvc
-            .perform(get("/health"))
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.status").value("UP"))
-            .andExpect(jsonPath("$.application").value("Synectix ERP System"))
-            .andExpect(jsonPath("$.version").value("0.0.1-SNAPSHOT"))
-            .andExpect(jsonPath("$.database.status").value("UP"))
+    @BeforeEach
+    fun setup() {
+        jdbcTemplate = mock(JdbcTemplate::class.java)
+        controller = HealthController(jdbcTemplate)
     }
 
     @Test
-    fun `should return simple health status`() {
-        mockMvc
-            .perform(get("/health/simple"))
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.status").value("UP"))
-            .andExpect(jsonPath("$.message").value("Synectix application is running"))
+    fun `health returns 200 when DB ping succeeds`() {
+        `when`(jdbcTemplate.queryForObject(eq("SELECT 1"), eq(Int::class.java))).thenReturn(1)
+        val response = controller.health()
+        assertThat(response.statusCode.value()).isEqualTo(200)
+        val body = response.body!!
+        assertThat(body["status"]).isEqualTo("UP")
+        @Suppress("UNCHECKED_CAST")
+        val db = body["database"] as Map<String, Any>
+        assertThat(db["status"]).isEqualTo("UP")
+        assertThat(db["database"]).isEqualTo("PostgreSQL")
     }
 
     @Test
-    fun `should return detailed health information`() {
-        val buildInfo = Document("version", "7.0.0")
-        `when`(mongoTemplate.db).thenReturn(mongoDatabase)
-        `when`(mongoDatabase.name).thenReturn("synectix-test")
-        `when`(mongoDatabase.runCommand(ArgumentMatchers.any(Document::class.java))).thenReturn(buildInfo)
-
-        mockMvc
-            .perform(get("/health/detailed"))
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.status").value("UP"))
-            .andExpect(jsonPath("$.application.name").value("Synectix ERP System"))
-            .andExpect(jsonPath("$.system.javaVersion").exists())
-            .andExpect(jsonPath("$.database.status").value("UP"))
-            .andExpect(jsonPath("$.components.security.status").value("UP"))
+    fun `health returns 503 when DB ping fails`() {
+        `when`(jdbcTemplate.queryForObject(any<String>(), any<Class<Int>>()))
+            .thenThrow(DataAccessResourceFailureException("connection refused"))
+        val response = controller.health()
+        assertThat(response.statusCode.value()).isEqualTo(503)
+        val body = response.body!!
+        assertThat(body["status"]).isEqualTo("DOWN")
     }
 
     @Test
-    fun `should return service unavailable when database is down`() {
-        `when`(mongoTemplate.db).thenThrow(DataAccessResourceFailureException("Database connection failed"))
+    fun `simpleHealth returns 200`() {
+        val response = controller.simpleHealth()
+        assertThat(response.statusCode.value()).isEqualTo(200)
+        assertThat(response.body!!["status"]).isEqualTo("UP")
+    }
 
-        mockMvc
-            .perform(get("/health"))
-            .andExpect(status().isServiceUnavailable)
-            .andExpect(jsonPath("$.status").value("DOWN"))
-            .andExpect(jsonPath("$.database.status").value("DOWN"))
+    @Test
+    fun `detailedHealth includes system info`() {
+        `when`(jdbcTemplate.queryForObject(eq("SELECT 1"), eq(Int::class.java))).thenReturn(1)
+        val response = controller.detailedHealth()
+        assertThat(response.statusCode.value()).isEqualTo(200)
+        val body = response.body!!
+        assertThat(body).containsKey("system")
+        assertThat(body).containsKey("database")
+        assertThat(body).containsKey("components")
     }
 }

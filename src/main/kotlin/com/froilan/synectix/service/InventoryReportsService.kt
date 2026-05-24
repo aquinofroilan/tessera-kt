@@ -95,9 +95,10 @@ class InventoryReportsService(
         for (m in all) {
             val primary = OnHandKey(m.productId, m.warehouseId)
             totals[primary] = (totals[primary] ?: BigDecimal.ZERO) + signedQuantity(m, m.warehouseId)
-            if (m.type == StockMovementType.TRANSFER && m.transferToWarehouseId != null) {
-                val dest = OnHandKey(m.productId, m.transferToWarehouseId)
-                totals[dest] = (totals[dest] ?: BigDecimal.ZERO) + signedQuantity(m, m.transferToWarehouseId)
+            val destId = m.transferToWarehouseId
+            if (m.type == StockMovementType.TRANSFER && destId != null) {
+                val dest = OnHandKey(m.productId, destId)
+                totals[dest] = (totals[dest] ?: BigDecimal.ZERO) + signedQuantity(m, destId)
             }
         }
         return totals
@@ -106,15 +107,17 @@ class InventoryReportsService(
     private fun primaryAffectedWarehouse(
         movement: StockMovement,
         filterWarehouseId: String?,
-    ): String =
-        if (movement.type == StockMovementType.TRANSFER &&
+    ): String {
+        val destId = movement.transferToWarehouseId
+        return if (movement.type == StockMovementType.TRANSFER &&
             filterWarehouseId != null &&
-            movement.transferToWarehouseId == filterWarehouseId
+            destId == filterWarehouseId
         ) {
-            movement.transferToWarehouseId
+            destId
         } else {
             movement.warehouseId
         }
+    }
 
     private fun signedQuantity(
         movement: StockMovement,

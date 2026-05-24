@@ -1,12 +1,12 @@
 package com.froilan.synectix.repository
 
 import com.froilan.synectix.model.InventoryReorderRule
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface InventoryReorderRuleRepository : MongoRepository<InventoryReorderRule, String> {
+interface InventoryReorderRuleRepository : JpaRepository<InventoryReorderRule, String> {
     fun findByOrganizationId(organizationId: String): List<InventoryReorderRule>
 
     fun findByOrganizationIdAndProductIdAndWarehouseId(

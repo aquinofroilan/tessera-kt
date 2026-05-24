@@ -1,48 +1,44 @@
 package com.froilan.synectix.model
 
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
-import org.springframework.data.mongodb.core.index.CompoundIndex
-import org.springframework.data.mongodb.core.index.CompoundIndexes
-import org.springframework.data.mongodb.core.index.Indexed
-import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 
-@Document(collection = "products")
-@CompoundIndexes(
-    CompoundIndex(
-        name = "unique_sku_per_org",
-        def = "{'organizationId': 1, 'sku': 1}",
-        unique = true,
-    ),
-    CompoundIndex(
-        name = "products_org_active",
-        def = "{'organizationId': 1, 'isActive': 1}",
-    ),
-    CompoundIndex(
-        name = "products_org_category",
-        def = "{'organizationId': 1, 'category': 1}",
-    ),
-)
+@Entity
+@Table(name = "products")
+@EntityListeners(AuditingEntityListener::class)
 data class Product(
     @Id
+    @Column(columnDefinition = "uuid")
     val id: String = UUID.randomUUID().toString(),
     val sku: String,
     val name: String,
     val description: String? = null,
     val category: String? = null,
+    @Column(name = "image_url")
     val imageUrl: String? = null,
+    @Column(name = "list_price")
     val listPrice: BigDecimal,
+    @Column(name = "price_currency", columnDefinition = "char(3)")
     val priceCurrency: String,
+    @Column(name = "tax_group_id", columnDefinition = "uuid")
     val taxGroupId: String? = null,
-    @Indexed
+    @Column(name = "organization_id", columnDefinition = "uuid")
     val organizationId: String,
+    @Column(name = "is_active")
     val isActive: Boolean = true,
     @CreatedDate
+    @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,
     @LastModifiedDate
+    @Column(name = "updated_at")
     var updatedAt: LocalDateTime? = null,
 )

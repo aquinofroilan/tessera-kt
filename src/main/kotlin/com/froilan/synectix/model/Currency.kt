@@ -1,13 +1,18 @@
 package com.froilan.synectix.model
 
-import org.springframework.data.annotation.Id
-import org.springframework.data.mongodb.core.mapping.Document
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 
-@Document(collection = "currencies")
+@Entity
+@Table(name = "currencies")
 data class Currency(
     @Id
+    @Column(columnDefinition = "char(3)")
     val code: String,
     val name: String,
     val symbol: String,
+    @Column(name = "decimal_places")
     val decimalPlaces: Int,
 )

@@ -289,9 +289,10 @@ class BillService(
             throw BusinessRuleException("Cannot void a bill with recorded payments")
         }
 
-        if (bill.journalEntryId != null) {
+        val journalEntryId = bill.journalEntryId
+        if (journalEntryId != null) {
             journalEntryService.voidJournalEntry(
-                bill.journalEntryId,
+                journalEntryId,
                 organizationId,
                 reason,
             )

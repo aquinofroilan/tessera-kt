@@ -2,11 +2,10 @@ package com.froilan.synectix.controller
 
 import com.froilan.synectix.annotation.LogLevel
 import com.froilan.synectix.annotation.Loggable
-import com.mongodb.MongoException
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataAccessException
-import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.http.ResponseEntity
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -17,7 +16,7 @@ import java.time.ZoneOffset
 @RequestMapping("/health")
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.DEBUG)
 class HealthController(
-    private val mongoTemplate: MongoTemplate,
+    private val jdbcTemplate: JdbcTemplate,
 ) {
     private val log = LoggerFactory.getLogger(HealthController::class.java)
 
@@ -27,7 +26,7 @@ class HealthController(
             mutableMapOf<String, Any>(
                 "status" to "UP",
                 "timestamp" to LocalDateTime.now(ZoneOffset.UTC),
-                "application" to "Synectix ERP System",
+                "application" to "Loom ERP System",
                 "version" to "0.0.1-SNAPSHOT",
             )
 
@@ -48,7 +47,7 @@ class HealthController(
         ResponseEntity.ok(
             mapOf(
                 "status" to "UP",
-                "message" to "Synectix application is running",
+                "message" to "Loom application is running",
             ),
         )
 
@@ -60,9 +59,9 @@ class HealthController(
                 "timestamp" to LocalDateTime.now(ZoneOffset.UTC),
                 "application" to
                     mapOf(
-                        "name" to "Synectix ERP System",
+                        "name" to "Loom ERP System",
                         "version" to "0.0.1-SNAPSHOT",
-                        "description" to "Synectix an ERP System",
+                        "description" to "Loom an ERP System",
                     ),
                 "system" to
                     mapOf(
@@ -90,19 +89,11 @@ class HealthController(
 
     private fun checkDatabaseHealth(): Map<String, Any> =
         try {
-            val db = mongoTemplate.db
-            db.runCommand(org.bson.Document("ping", 1))
-
+            jdbcTemplate.queryForObject("SELECT 1", Int::class.java)
             mapOf(
                 "status" to "UP",
-                "database" to "MongoDB",
+                "database" to "PostgreSQL",
                 "status_detail" to "Connected",
-                "databaseName" to db.name,
-            )
-        } catch (e: MongoException) {
-            mapOf(
-                "status" to "DOWN",
-                "error" to (e.message ?: "Unknown database error"),
             )
         } catch (e: DataAccessException) {
             mapOf(

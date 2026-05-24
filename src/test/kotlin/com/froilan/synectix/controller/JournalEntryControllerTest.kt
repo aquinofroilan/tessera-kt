@@ -138,8 +138,20 @@ class JournalEntryControllerTest {
             source = JournalEntrySource.MANUAL,
             lines =
                 listOf(
-                    JournalEntryLine("acc-1", "1000", "Cash", BigDecimal("100.00"), BigDecimal.ZERO, null),
-                    JournalEntryLine("acc-2", "4000", "Sales Revenue", BigDecimal.ZERO, BigDecimal("100.00"), null),
+                    JournalEntryLine(
+                        accountId = "acc-1",
+                        accountCode = "1000",
+                        accountName = "Cash",
+                        debit = BigDecimal("100.00"),
+                        credit = BigDecimal.ZERO,
+                    ),
+                    JournalEntryLine(
+                        accountId = "acc-2",
+                        accountCode = "4000",
+                        accountName = "Sales Revenue",
+                        debit = BigDecimal.ZERO,
+                        credit = BigDecimal("100.00"),
+                    ),
                 ),
             createdBy = "user-123",
         )

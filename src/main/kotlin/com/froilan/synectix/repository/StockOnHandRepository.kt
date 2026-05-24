@@ -1,12 +1,12 @@
 package com.froilan.synectix.repository
 
 import com.froilan.synectix.model.StockOnHand
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
 interface StockOnHandRepository :
-    MongoRepository<StockOnHand, String>,
+    JpaRepository<StockOnHand, String>,
     StockOnHandQueries {
     fun findByOrganizationId(organizationId: String): List<StockOnHand>
 }

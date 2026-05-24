@@ -1,10 +1,7 @@
 package com.froilan.synectix.repository
 
 import com.froilan.synectix.model.Warehouse
-import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.Query
+import jakarta.persistence.EntityManager
 
 interface WarehouseQueries {
     fun search(
@@ -15,30 +12,30 @@ interface WarehouseQueries {
 }
 
 open class WarehouseQueriesImpl(
-    private val mongoTemplate: MongoTemplate,
+    private val em: EntityManager,
 ) : WarehouseQueries {
     override fun search(
         organizationId: String,
         isActive: Boolean,
         term: String?,
     ): List<Warehouse> {
-        val criteria =
-            Criteria
-                .where("organizationId")
-                .`is`(organizationId)
-                .and("isActive")
-                .`is`(isActive)
         val cleaned = term?.trim()?.takeIf { it.isNotEmpty() }
+        val jpql =
+            buildString {
+                append("SELECT w FROM Warehouse w WHERE w.organizationId = :orgId AND w.isActive = :active")
+                if (cleaned != null) {
+                    append(" AND (LOWER(w.code) LIKE :q OR LOWER(w.name) LIKE :q)")
+                }
+                append(" ORDER BY w.code ASC")
+            }
+        val query =
+            em
+                .createQuery(jpql, Warehouse::class.java)
+                .setParameter("orgId", organizationId)
+                .setParameter("active", isActive)
         if (cleaned != null) {
-            val escaped = Regex.escape(cleaned)
-            criteria.orOperator(
-                Criteria.where("code").regex(escaped, "i"),
-                Criteria.where("name").regex(escaped, "i"),
-            )
+            query.setParameter("q", "%${cleaned.lowercase()}%")
         }
-        return mongoTemplate.find(
-            Query(criteria).with(Sort.by(Sort.Direction.ASC, "code")),
-            Warehouse::class.java,
-        )
+        return query.resultList
     }
 }

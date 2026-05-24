@@ -292,9 +292,10 @@ class InvoiceService(
             throw BusinessRuleException("Cannot void an invoice with recorded receipts")
         }
 
-        if (invoice.journalEntryId != null) {
+        val journalEntryId = invoice.journalEntryId
+        if (journalEntryId != null) {
             journalEntryService.voidJournalEntry(
-                invoice.journalEntryId,
+                journalEntryId,
                 organizationId,
                 reason,
             )

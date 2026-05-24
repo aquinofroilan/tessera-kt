@@ -1,12 +1,6 @@
 package com.froilan.synectix.repository
 
-import com.froilan.synectix.model.JournalEntry
-import com.froilan.synectix.model.JournalEntryStatus
-import org.bson.Document
-import org.bson.types.Decimal128
-import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.aggregation.Aggregation
-import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.jdbc.core.JdbcTemplate
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -25,7 +19,7 @@ interface JournalEntryAggregations {
 }
 
 open class JournalEntryAggregationsImpl(
-    private val mongoTemplate: MongoTemplate,
+    private val jdbc: JdbcTemplate,
 ) : JournalEntryAggregations {
     override fun aggregateAccountTotals(
         organizationId: String,
@@ -36,57 +30,47 @@ open class JournalEntryAggregationsImpl(
         if (accountIds != null && accountIds.isEmpty()) {
             return emptyMap()
         }
-        val entryCriteria =
-            Criteria()
-                .and("organizationId")
-                .`is`(organizationId)
-                .and("status")
-                .`in`(JournalEntryStatus.POSTED.name, JournalEntryStatus.VOIDED.name)
-        if (startDate != null && endDate != null) {
-            entryCriteria.and("date").gte(startDate).lte(endDate)
-        } else if (startDate != null) {
-            entryCriteria.and("date").gte(startDate)
-        } else if (endDate != null) {
-            entryCriteria.and("date").lte(endDate)
-        }
 
-        val stages = mutableListOf<org.springframework.data.mongodb.core.aggregation.AggregationOperation>()
-        stages.add(Aggregation.match(entryCriteria))
-        stages.add(Aggregation.unwind("lines"))
-        if (accountIds != null) {
-            stages.add(Aggregation.match(Criteria.where("lines.accountId").`in`(accountIds)))
-        }
-        stages.add(
-            Aggregation
-                .group("lines.accountId")
-                .sum("lines.debit")
-                .`as`("totalDebits")
-                .sum("lines.credit")
-                .`as`("totalCredits"),
-        )
+        val params = mutableListOf<Any>()
+        params.add(organizationId)
 
-        val results =
-            mongoTemplate.aggregate(
-                Aggregation.newAggregation(stages),
-                JournalEntry::class.java,
-                Document::class.java,
-            )
+        val sql =
+            buildString {
+                append(
+                    """
+                    SELECT l.account_id,
+                           COALESCE(SUM(l.debit), 0)  AS total_debits,
+                           COALESCE(SUM(l.credit), 0) AS total_credits
+                      FROM journal_entry_lines l
+                      JOIN journal_entries e ON e.id = l.journal_entry_id
+                     WHERE e.organization_id = ?::uuid
+                       AND e.status IN ('POSTED', 'VOIDED')
+                    """.trimIndent(),
+                )
+                if (startDate != null) {
+                    append(" AND e.date >= ?")
+                    params.add(startDate)
+                }
+                if (endDate != null) {
+                    append(" AND e.date <= ?")
+                    params.add(endDate)
+                }
+                if (accountIds != null) {
+                    val placeholders = accountIds.joinToString(",") { "?::uuid" }
+                    append(" AND l.account_id IN ($placeholders)")
+                    params.addAll(accountIds)
+                }
+                append(" GROUP BY l.account_id")
+            }
 
-        return results.mappedResults.associate { doc ->
-            val accountId = doc.getString("_id")
-            val debits = toBigDecimal(doc.get("totalDebits"))
-            val credits = toBigDecimal(doc.get("totalCredits"))
-            accountId to AccountTotals(debits, credits)
-        }
+        val totals = mutableMapOf<String, AccountTotals>()
+        jdbc.query(sql, { rs ->
+            val accountId = rs.getString("account_id")
+            val debits = rs.getBigDecimal("total_debits") ?: BigDecimal.ZERO
+            val credits = rs.getBigDecimal("total_credits") ?: BigDecimal.ZERO
+            totals[accountId] = AccountTotals(debits, credits)
+        }, *params.toTypedArray())
+
+        return totals
     }
-
-    private fun toBigDecimal(value: Any?): BigDecimal =
-        when (value) {
-            null -> BigDecimal.ZERO
-            is Decimal128 -> value.bigDecimalValue()
-            is BigDecimal -> value
-            is Number -> BigDecimal(value.toString())
-            is String -> value.toBigDecimalOrNull() ?: BigDecimal.ZERO
-            else -> BigDecimal.ZERO
-        }
 }
