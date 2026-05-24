@@ -227,22 +227,20 @@ class ProductServiceTest {
     }
 
     @Test
-    fun `listProducts should return all products for org when no filters`() {
-        val product1 = createMockProduct(sku = "WIDGET-001")
-        val product2 = createMockProduct(sku = "GADGET-001")
-        `when`(productRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(listOf(product1, product2))
+    fun `listProducts defaults to active-only with no other filters`() {
+        val product1 = createMockProduct(sku = "GADGET-001")
+        val product2 = createMockProduct(sku = "WIDGET-001")
+        `when`(productRepository.search(orgId, true, null, null)).thenReturn(listOf(product1, product2))
 
         val result = productService.listProducts(orgId)
 
-        assertThat(result).hasSize(2)
-        assertThat(result.map { it.sku }).containsExactly("GADGET-001", "WIDGET-001") // sorted
+        assertThat(result.map { it.sku }).containsExactly("GADGET-001", "WIDGET-001")
     }
 
     @Test
-    fun `listProducts should filter by category`() {
+    fun `listProducts passes category through to repository`() {
         val product = createMockProduct()
-        `when`(productRepository.findByOrganizationIdAndCategoryAndIsActive(orgId, "Hardware", true))
-            .thenReturn(listOf(product))
+        `when`(productRepository.search(orgId, true, "Hardware", null)).thenReturn(listOf(product))
 
         val result = productService.listProducts(orgId, category = "Hardware")
 
@@ -251,39 +249,31 @@ class ProductServiceTest {
     }
 
     @Test
-    fun `listProducts should filter by isActive`() {
-        val active = createMockProduct(sku = "ACTIVE-001", isActive = true)
-        `when`(productRepository.findByOrganizationIdAndIsActive(orgId, true))
-            .thenReturn(listOf(active))
+    fun `listProducts passes explicit isActive false for soft-deleted listing`() {
+        val inactive = createMockProduct(sku = "OLD-001", isActive = false)
+        `when`(productRepository.search(orgId, false, null, null)).thenReturn(listOf(inactive))
 
-        val result = productService.listProducts(orgId, isActive = true)
+        val result = productService.listProducts(orgId, isActive = false)
 
         assertThat(result).hasSize(1)
-        assertThat(result[0].isActive).isEqualTo(true)
+        assertThat(result[0].isActive).isFalse()
     }
 
     @Test
-    fun `listProducts should filter by category and isActive`() {
-        val product = createMockProduct(isActive = true)
-        `when`(
-            productRepository.findByOrganizationIdAndCategoryAndIsActive(
-                orgId,
-                "Hardware",
-                true,
-            ),
-        ).thenReturn(listOf(product))
+    fun `listProducts combines category and isActive filters`() {
+        val product = createMockProduct()
+        `when`(productRepository.search(orgId, true, "Hardware", null)).thenReturn(listOf(product))
 
         val result = productService.listProducts(orgId, category = "Hardware", isActive = true)
 
         assertThat(result).hasSize(1)
         assertThat(result[0].category).isEqualTo("Hardware")
-        assertThat(result[0].isActive).isEqualTo(true)
     }
 
     @Test
-    fun `listProducts should search by SKU case-insensitive`() {
+    fun `listProducts passes search term through to repository`() {
         val product = createMockProduct(sku = "WIDGET-001")
-        `when`(productRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(listOf(product))
+        `when`(productRepository.search(orgId, true, null, "widget")).thenReturn(listOf(product))
 
         val result = productService.listProducts(orgId, search = "widget")
 
@@ -292,20 +282,8 @@ class ProductServiceTest {
     }
 
     @Test
-    fun `listProducts should search by name case-insensitive`() {
-        val product = createMockProduct()
-        `when`(productRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(listOf(product))
-
-        val result = productService.listProducts(orgId, search = "WIDGET")
-
-        assertThat(result).hasSize(1)
-        assertThat(result[0].name).isEqualTo("Widget")
-    }
-
-    @Test
-    fun `listProducts should return empty when search matches nothing`() {
-        val product = createMockProduct()
-        `when`(productRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(listOf(product))
+    fun `listProducts returns empty when repository search yields nothing`() {
+        `when`(productRepository.search(orgId, true, null, "NOMATCH")).thenReturn(emptyList())
 
         val result = productService.listProducts(orgId, search = "NOMATCH")
 

@@ -70,29 +70,9 @@ class ProductService(
     fun listProducts(
         organizationId: String,
         category: String? = null,
-        isActive: Boolean? = true,
+        isActive: Boolean = true,
         search: String? = null,
-    ): List<Product> {
-        val base =
-            when {
-                category != null && isActive != null ->
-                    productRepository.findByOrganizationIdAndCategoryAndIsActive(
-                        organizationId,
-                        category,
-                        isActive,
-                    )
-                category != null ->
-                    productRepository.findByOrganizationIdAndCategory(organizationId, category)
-                isActive != null ->
-                    productRepository.findByOrganizationIdAndIsActive(organizationId, isActive)
-                else ->
-                    productRepository.findByOrganizationId(organizationId)
-            }
-        val term = search?.trim()?.takeIf { it.isNotEmpty() } ?: return base.sortedBy { it.sku }
-        return base
-            .filter { it.sku.contains(term, ignoreCase = true) || it.name.contains(term, ignoreCase = true) }
-            .sortedBy { it.sku }
-    }
+    ): List<Product> = productRepository.search(organizationId, isActive, category, search)
 
     @Transactional
     fun updateProduct(

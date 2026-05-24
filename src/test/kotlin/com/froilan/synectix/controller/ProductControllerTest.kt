@@ -203,7 +203,7 @@ class ProductControllerTest {
     @Test
     fun `GET products should return 200 with product list`() {
         val products = listOf(createMockProduct())
-        `when`(productService.listProducts(any(), anyOrNull(), anyOrNull(), anyOrNull())).thenReturn(products)
+        `when`(productService.listProducts(any(), anyOrNull(), any(), anyOrNull())).thenReturn(products)
 
         mockMvc
             .perform(get("/inventory/products"))
@@ -214,7 +214,7 @@ class ProductControllerTest {
     @Test
     fun `GET products should support category filter`() {
         val products = listOf(createMockProduct())
-        `when`(productService.listProducts(any(), any(), anyOrNull(), anyOrNull())).thenReturn(products)
+        `when`(productService.listProducts(any(), any(), any(), anyOrNull())).thenReturn(products)
 
         mockMvc
             .perform(get("/inventory/products").param("category", "Hardware"))
@@ -236,7 +236,7 @@ class ProductControllerTest {
     @Test
     fun `GET products should support search filter`() {
         val products = listOf(createMockProduct())
-        `when`(productService.listProducts(any(), anyOrNull(), anyOrNull(), any())).thenReturn(products)
+        `when`(productService.listProducts(any(), anyOrNull(), any(), any())).thenReturn(products)
 
         mockMvc
             .perform(get("/inventory/products").param("search", "WIDGET"))

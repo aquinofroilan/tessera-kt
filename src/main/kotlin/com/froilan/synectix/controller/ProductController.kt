@@ -44,7 +44,7 @@ class ProductController(
     @PreAuthorize("hasAuthority('inventory:read')")
     fun listProducts(
         @RequestParam(required = false) category: String?,
-        @RequestParam(required = false) isActive: Boolean?,
+        @RequestParam(required = false, defaultValue = "true") isActive: Boolean,
         @RequestParam(required = false) search: String?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
