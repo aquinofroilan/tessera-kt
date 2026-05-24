@@ -5,7 +5,9 @@ import com.froilan.synectix.exception.BusinessRuleException
 import com.froilan.synectix.exception.ResourceNotFoundException
 import com.froilan.synectix.model.StockMovement
 import com.froilan.synectix.model.StockMovementType
+import com.froilan.synectix.model.Warehouse
 import com.froilan.synectix.repository.StockMovementRepository
+import com.froilan.synectix.repository.StockOnHandRepository
 import com.froilan.synectix.repository.WarehouseRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -16,6 +18,7 @@ import java.time.LocalDateTime
 class StockMovementService(
     private val stockMovementRepository: StockMovementRepository,
     private val warehouseRepository: WarehouseRepository,
+    private val stockOnHandRepository: StockOnHandRepository,
 ) {
     @Transactional
     fun createMovement(
@@ -28,11 +31,14 @@ class StockMovementService(
         validateQuantitySign(type, quantity)
         validateUnitCost(type, request.unitCost)
         validateTransferShape(type, request.warehouseId, request.transferToWarehouseId)
-        ensureWarehouseInOrg(request.warehouseId, organizationId)
-        if (type == StockMovementType.TRANSFER && request.transferToWarehouseId != null) {
-            ensureWarehouseInOrg(request.transferToWarehouseId, organizationId)
-        }
-        enforceNegativeStockPolicy(type, request, organizationId, quantity)
+        val sourceWarehouse = loadActiveWarehouse(request.warehouseId, organizationId)
+        val destWarehouse =
+            if (type == StockMovementType.TRANSFER && request.transferToWarehouseId != null) {
+                loadActiveWarehouse(request.transferToWarehouseId, organizationId)
+            } else {
+                null
+            }
+        applyToCounter(type, request, organizationId, quantity, sourceWarehouse, destWarehouse)
 
         val movement =
             StockMovement(
@@ -64,7 +70,7 @@ class StockMovementService(
         organizationId: String,
         productId: String,
         warehouseId: String,
-    ): BigDecimal = stockMovementRepository.onHand(organizationId, productId, warehouseId)
+    ): BigDecimal = stockOnHandRepository.get(organizationId, productId, warehouseId)
 
     private fun validateQuantitySign(
         type: StockMovementType,
@@ -115,10 +121,10 @@ class StockMovementService(
         }
     }
 
-    private fun ensureWarehouseInOrg(
+    private fun loadActiveWarehouse(
         warehouseId: String,
         organizationId: String,
-    ) {
+    ): Warehouse {
         val warehouse =
             warehouseRepository.findById(warehouseId).orElseThrow {
                 ResourceNotFoundException("Warehouse not found")
@@ -129,41 +135,59 @@ class StockMovementService(
         if (!warehouse.isActive) {
             throw BusinessRuleException("Warehouse '${warehouse.code}' is inactive")
         }
+        return warehouse
     }
 
-    private fun enforceNegativeStockPolicy(
+    private fun applyToCounter(
         type: StockMovementType,
         request: CreateStockMovementRequest,
         organizationId: String,
         quantity: BigDecimal,
+        sourceWarehouse: Warehouse,
+        destWarehouse: Warehouse?,
     ) {
-        val outboundFromWarehouse =
-            when (type) {
-                StockMovementType.ISSUE,
-                StockMovementType.TRANSFER,
-                -> true
-                StockMovementType.ADJUSTMENT -> quantity.signum() < 0
-                else -> false
+        val sourceDelta = sourceDelta(type, quantity)
+        if (sourceDelta.signum() != 0) {
+            val ok =
+                stockOnHandRepository.applyDelta(
+                    organizationId,
+                    request.productId,
+                    sourceWarehouse.id,
+                    sourceDelta,
+                    allowNegative = sourceWarehouse.allowNegativeStock,
+                )
+            if (!ok) {
+                val current = stockOnHandRepository.get(organizationId, request.productId, sourceWarehouse.id)
+                throw BusinessRuleException(
+                    "Movement would drive on-hand below zero in warehouse '${sourceWarehouse.code}' " +
+                        "(current $current, requested $quantity); enable allowNegativeStock to permit",
+                )
             }
-        if (!outboundFromWarehouse) return
+        }
 
-        val warehouse =
-            warehouseRepository.findById(request.warehouseId).orElseThrow {
-                ResourceNotFoundException("Warehouse not found")
-            }
-        if (warehouse.allowNegativeStock) return
-
-        val onHand = stockMovementRepository.onHand(organizationId, request.productId, request.warehouseId)
-        val proposed =
-            when (type) {
-                StockMovementType.ADJUSTMENT -> onHand + quantity
-                else -> onHand - quantity
-            }
-        if (proposed.signum() < 0) {
-            throw BusinessRuleException(
-                "Movement would drive on-hand below zero in warehouse '${warehouse.code}' " +
-                    "(current $onHand, requested $quantity); enable allowNegativeStock to permit",
+        if (type == StockMovementType.TRANSFER && destWarehouse != null) {
+            // Crediting the destination can never violate the policy, so allowNegative=true.
+            stockOnHandRepository.applyDelta(
+                organizationId,
+                request.productId,
+                destWarehouse.id,
+                quantity,
+                allowNegative = true,
             )
         }
     }
+
+    private fun sourceDelta(
+        type: StockMovementType,
+        quantity: BigDecimal,
+    ): BigDecimal =
+        when (type) {
+            StockMovementType.RECEIPT,
+            StockMovementType.OPENING_BALANCE,
+            -> quantity
+            StockMovementType.ISSUE,
+            StockMovementType.TRANSFER,
+            -> quantity.negate()
+            StockMovementType.ADJUSTMENT -> quantity
+        }
 }

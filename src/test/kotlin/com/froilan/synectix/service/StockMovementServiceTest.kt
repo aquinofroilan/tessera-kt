@@ -7,14 +7,19 @@ import com.froilan.synectix.model.StockMovement
 import com.froilan.synectix.model.StockMovementType
 import com.froilan.synectix.model.Warehouse
 import com.froilan.synectix.repository.StockMovementRepository
+import com.froilan.synectix.repository.StockOnHandRepository
 import com.froilan.synectix.repository.WarehouseRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.Optional
@@ -23,6 +28,7 @@ class StockMovementServiceTest {
     private lateinit var stockMovementService: StockMovementService
     private lateinit var stockMovementRepository: StockMovementRepository
     private lateinit var warehouseRepository: WarehouseRepository
+    private lateinit var stockOnHandRepository: StockOnHandRepository
 
     private val orgId = "org-123"
     private val userId = "user-123"
@@ -34,7 +40,10 @@ class StockMovementServiceTest {
     fun setup() {
         stockMovementRepository = mock(StockMovementRepository::class.java)
         warehouseRepository = mock(WarehouseRepository::class.java)
-        stockMovementService = StockMovementService(stockMovementRepository, warehouseRepository)
+        stockOnHandRepository = mock(StockOnHandRepository::class.java)
+        whenever(stockOnHandRepository.applyDelta(any(), any(), any(), any(), any())).thenReturn(true)
+        stockMovementService =
+            StockMovementService(stockMovementRepository, warehouseRepository, stockOnHandRepository)
     }
 
     private fun mockWarehouse(
@@ -44,7 +53,7 @@ class StockMovementServiceTest {
         isActive: Boolean = true,
         organizationId: String = orgId,
     ) {
-        `when`(warehouseRepository.findById(id)).thenReturn(
+        whenever(warehouseRepository.findById(id)).thenReturn(
             Optional.of(
                 Warehouse(
                     id = id,
@@ -59,7 +68,7 @@ class StockMovementServiceTest {
     }
 
     private fun answerSave() {
-        `when`(stockMovementRepository.save(any<StockMovement>())).thenAnswer { it.arguments[0] }
+        whenever(stockMovementRepository.save(any<StockMovement>())).thenAnswer { it.arguments[0] }
     }
 
     @Test
@@ -100,6 +109,33 @@ class StockMovementServiceTest {
     }
 
     @Test
+    fun `createMovement RECEIPT increments counter with positive delta`() {
+        mockWarehouse(allowNegativeStock = false)
+        answerSave()
+        val request =
+            CreateStockMovementRequest(
+                type = StockMovementType.RECEIPT,
+                productId = productId,
+                warehouseId = warehouseId,
+                quantity = BigDecimal("10"),
+                unitCost = BigDecimal("1"),
+            )
+        stockMovementService.createMovement(request, orgId, userId)
+
+        val deltaCaptor = argumentCaptor<BigDecimal>()
+        val allowCaptor = argumentCaptor<Boolean>()
+        verify(stockOnHandRepository).applyDelta(
+            eq(orgId),
+            eq(productId),
+            eq(warehouseId),
+            deltaCaptor.capture(),
+            allowCaptor.capture(),
+        )
+        assertThat(deltaCaptor.firstValue).isEqualByComparingTo("10")
+        assertThat(allowCaptor.firstValue).isFalse()
+    }
+
+    @Test
     fun `createMovement OPENING_BALANCE requires unitCost`() {
         mockWarehouse()
         val request =
@@ -116,9 +152,12 @@ class StockMovementServiceTest {
     }
 
     @Test
-    fun `createMovement ISSUE rejects when negative stock disallowed`() {
+    fun `createMovement ISSUE rejects when applyDelta reports insufficient stock`() {
         mockWarehouse(allowNegativeStock = false)
-        `when`(stockMovementRepository.onHand(orgId, productId, warehouseId)).thenReturn(BigDecimal("3"))
+        whenever(
+            stockOnHandRepository.applyDelta(eq(orgId), eq(productId), eq(warehouseId), any(), eq(false)),
+        ).thenReturn(false)
+        whenever(stockOnHandRepository.get(orgId, productId, warehouseId)).thenReturn(BigDecimal("3"))
         val request =
             CreateStockMovementRequest(
                 type = StockMovementType.ISSUE,
@@ -131,12 +170,12 @@ class StockMovementServiceTest {
                 stockMovementService.createMovement(request, orgId, userId)
             }
         assertThat(ex.message).contains("below zero")
+        assertThat(ex.message).contains("current 3")
     }
 
     @Test
-    fun `createMovement ISSUE allowed when warehouse permits negative`() {
+    fun `createMovement ISSUE passes allowNegative=true through to counter when warehouse permits`() {
         mockWarehouse(allowNegativeStock = true)
-        `when`(stockMovementRepository.onHand(orgId, productId, warehouseId)).thenReturn(BigDecimal("3"))
         answerSave()
         val request =
             CreateStockMovementRequest(
@@ -145,14 +184,16 @@ class StockMovementServiceTest {
                 warehouseId = warehouseId,
                 quantity = BigDecimal("5"),
             )
-        val result = stockMovementService.createMovement(request, orgId, userId)
-        assertThat(result.quantity).isEqualByComparingTo("5")
+        stockMovementService.createMovement(request, orgId, userId)
+
+        val allowCaptor = argumentCaptor<Boolean>()
+        verify(stockOnHandRepository).applyDelta(any(), any(), any(), any(), allowCaptor.capture())
+        assertThat(allowCaptor.firstValue).isTrue()
     }
 
     @Test
-    fun `createMovement ISSUE allowed when stock sufficient`() {
+    fun `createMovement ISSUE decrements counter with negative delta`() {
         mockWarehouse(allowNegativeStock = false)
-        `when`(stockMovementRepository.onHand(orgId, productId, warehouseId)).thenReturn(BigDecimal("10"))
         answerSave()
         val request =
             CreateStockMovementRequest(
@@ -161,8 +202,11 @@ class StockMovementServiceTest {
                 warehouseId = warehouseId,
                 quantity = BigDecimal("4"),
             )
-        val result = stockMovementService.createMovement(request, orgId, userId)
-        assertThat(result.type).isEqualTo(StockMovementType.ISSUE)
+        stockMovementService.createMovement(request, orgId, userId)
+
+        val deltaCaptor = argumentCaptor<BigDecimal>()
+        verify(stockOnHandRepository).applyDelta(any(), any(), any(), deltaCaptor.capture(), any())
+        assertThat(deltaCaptor.firstValue).isEqualByComparingTo("-4")
     }
 
     @Test
@@ -199,7 +243,7 @@ class StockMovementServiceTest {
     }
 
     @Test
-    fun `createMovement TRANSFER saves both warehouse refs`() {
+    fun `createMovement TRANSFER applies delta to both source and destination`() {
         mockWarehouse(id = warehouseId, code = "MAIN", allowNegativeStock = true)
         mockWarehouse(id = otherWarehouseId, code = "EAST")
         answerSave()
@@ -214,10 +258,25 @@ class StockMovementServiceTest {
         val result = stockMovementService.createMovement(request, orgId, userId)
         assertThat(result.warehouseId).isEqualTo(warehouseId)
         assertThat(result.transferToWarehouseId).isEqualTo(otherWarehouseId)
+
+        verify(stockOnHandRepository).applyDelta(
+            eq(orgId),
+            eq(productId),
+            eq(warehouseId),
+            argThat<BigDecimal> { compareTo(BigDecimal("-2")) == 0 },
+            any(),
+        )
+        verify(stockOnHandRepository).applyDelta(
+            eq(orgId),
+            eq(productId),
+            eq(otherWarehouseId),
+            argThat<BigDecimal> { compareTo(BigDecimal("2")) == 0 },
+            eq(true),
+        )
     }
 
     @Test
-    fun `createMovement ADJUSTMENT positive does not check stock`() {
+    fun `createMovement ADJUSTMENT positive credits counter`() {
         mockWarehouse()
         answerSave()
         val request =
@@ -229,12 +288,19 @@ class StockMovementServiceTest {
             )
         val result = stockMovementService.createMovement(request, orgId, userId)
         assertThat(result.quantity).isEqualByComparingTo("3")
+
+        val deltaCaptor = argumentCaptor<BigDecimal>()
+        verify(stockOnHandRepository).applyDelta(any(), any(), any(), deltaCaptor.capture(), any())
+        assertThat(deltaCaptor.firstValue).isEqualByComparingTo("3")
     }
 
     @Test
-    fun `createMovement ADJUSTMENT negative enforces stock policy`() {
+    fun `createMovement ADJUSTMENT negative rejects when applyDelta reports insufficient`() {
         mockWarehouse(allowNegativeStock = false)
-        `when`(stockMovementRepository.onHand(orgId, productId, warehouseId)).thenReturn(BigDecimal("2"))
+        whenever(
+            stockOnHandRepository.applyDelta(any(), any(), any(), any(), any()),
+        ).thenReturn(false)
+        whenever(stockOnHandRepository.get(orgId, productId, warehouseId)).thenReturn(BigDecimal("2"))
         val request =
             CreateStockMovementRequest(
                 type = StockMovementType.ADJUSTMENT,
@@ -316,7 +382,7 @@ class StockMovementServiceTest {
     @Test
     fun `listMovements delegates to repository`() {
         val now = LocalDateTime.now()
-        `when`(stockMovementRepository.listMovements(orgId, productId, warehouseId, null, null, null))
+        whenever(stockMovementRepository.listMovements(orgId, productId, warehouseId, null, null, null))
             .thenReturn(
                 listOf(
                     StockMovement(
@@ -336,8 +402,8 @@ class StockMovementServiceTest {
     }
 
     @Test
-    fun `onHand delegates to repository`() {
-        `when`(stockMovementRepository.onHand(orgId, productId, warehouseId)).thenReturn(BigDecimal("7"))
+    fun `onHand reads from counter repository`() {
+        whenever(stockOnHandRepository.get(orgId, productId, warehouseId)).thenReturn(BigDecimal("7"))
         val result = stockMovementService.onHand(orgId, productId, warehouseId)
         assertThat(result).isEqualByComparingTo("7")
     }

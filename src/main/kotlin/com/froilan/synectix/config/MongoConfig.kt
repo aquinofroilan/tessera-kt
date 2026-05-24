@@ -86,3 +86,45 @@ class MongoIndexInitializer(
         log.info("Ensured partial unique index on invitations(email, organizationId) where status=PENDING")
     }
 }
+
+@Component
+@Order(1)
+class StockOnHandBackfillRunner(
+    private val mongoTemplate: MongoTemplate,
+    private val stockMovementQueries: com.froilan.synectix.repository.StockMovementQueries,
+    private val stockOnHandRepository: com.froilan.synectix.repository.StockOnHandRepository,
+) : ApplicationRunner {
+    private val log = LoggerFactory.getLogger(StockOnHandBackfillRunner::class.java)
+
+    override fun run(args: ApplicationArguments) {
+        val counterCount = mongoTemplate.getCollection("stock_on_hand").countDocuments()
+        if (counterCount > 0L) return
+
+        val movementCount = mongoTemplate.getCollection("stock_movements").countDocuments()
+        if (movementCount == 0L) return
+
+        log.info("Backfilling stock_on_hand from {} stock_movements...", movementCount)
+
+        val orgIds =
+            mongoTemplate
+                .getCollection("stock_movements")
+                .distinct("organizationId", String::class.java)
+                .into(mutableListOf())
+
+        var inserted = 0
+        for (orgId in orgIds) {
+            val totals = stockMovementQueries.onHandByProductWarehouse(orgId)
+            for ((key, qty) in totals) {
+                stockOnHandRepository.applyDelta(
+                    organizationId = orgId,
+                    productId = key.productId,
+                    warehouseId = key.warehouseId,
+                    delta = qty,
+                    allowNegative = true,
+                )
+                inserted++
+            }
+        }
+        log.info("stock_on_hand backfill complete: {} counter rows seeded", inserted)
+    }
+}
