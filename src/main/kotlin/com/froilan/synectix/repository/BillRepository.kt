@@ -1,4 +1,4 @@
-﻿package com.froilan.synectix.repository
+package com.froilan.synectix.repository
 
 import com.froilan.synectix.model.Bill
 import com.froilan.synectix.model.BillStatus

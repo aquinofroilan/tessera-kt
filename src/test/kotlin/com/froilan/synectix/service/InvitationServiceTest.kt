@@ -1,4 +1,4 @@
-﻿package com.froilan.synectix.service
+package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.AcceptInvitationRequest
 import com.froilan.synectix.dto.CreateInvitationRequest

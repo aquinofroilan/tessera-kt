@@ -1,4 +1,4 @@
-﻿package com.froilan.synectix.service
+package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.LoginRequest
 import com.froilan.synectix.dto.RegisterRequest

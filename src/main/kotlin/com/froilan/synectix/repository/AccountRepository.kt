@@ -1,4 +1,4 @@
-﻿package com.froilan.synectix.repository
+package com.froilan.synectix.repository
 
 import com.froilan.synectix.model.Account
 import com.froilan.synectix.model.AccountType

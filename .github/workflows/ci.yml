@@ -21,7 +21,7 @@ jobs:
         ports:
           - 5432:5432
         env:
-          POSTGRES_DB: loom
+          POSTGRES_DB: loom_test
           POSTGRES_USER: loom
           POSTGRES_PASSWORD: loom
         options: >-
@@ -52,7 +52,7 @@ jobs:
 
       - name: Run Tests
         env:
-          DATABASE_URL: jdbc:postgresql://localhost:5432/loom
+          DATABASE_URL: jdbc:postgresql://localhost:5432/loom_test
           DATABASE_USERNAME: loom
           DATABASE_PASSWORD: loom
           JWT_SECRET: test-secret-key-for-ci-cd
@@ -60,7 +60,7 @@ jobs:
 
       - name: Start Application and Health Check
         env:
-          DATABASE_URL: jdbc:postgresql://localhost:5432/loom
+          DATABASE_URL: jdbc:postgresql://localhost:5432/loom_test
           DATABASE_USERNAME: loom
           DATABASE_PASSWORD: loom
           JWT_SECRET: test-secret-key-for-ci-cd
