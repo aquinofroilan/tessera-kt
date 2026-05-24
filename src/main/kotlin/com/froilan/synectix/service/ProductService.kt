@@ -23,6 +23,8 @@ class ProductService(
         request: CreateProductRequest,
         organizationId: String,
     ): Product {
+        val sku = requireNonBlankTrimmed(request.sku, "SKU")
+        val name = requireNonBlankTrimmed(request.name, "Product name")
         val priceCurrency = (request.priceCurrency ?: getBaseCurrency(organizationId)).uppercase()
         currencyService.getCurrency(priceCurrency)
 
@@ -32,8 +34,8 @@ class ProductService(
 
         val product =
             Product(
-                sku = request.sku,
-                name = request.name,
+                sku = sku,
+                name = name,
                 description = request.description,
                 category = request.category,
                 imageUrl = request.imageUrl,
@@ -47,7 +49,7 @@ class ProductService(
             productRepository.save(product)
         } catch (e: DuplicateKeyException) {
             throw BusinessRuleException(
-                "Product with SKU '${request.sku}' already exists in this organization",
+                "Product with SKU '$sku' already exists in this organization",
                 e,
             )
         }
@@ -93,9 +95,12 @@ class ProductService(
             validateTaxGroup(request.taxGroupId, organizationId)
         }
 
+        val newName =
+            request.name?.let { requireNonBlankTrimmed(it, "Product name") } ?: existing.name
+
         val updated =
             existing.copy(
-                name = request.name ?: existing.name,
+                name = newName,
                 description = request.description ?: existing.description,
                 category = request.category ?: existing.category,
                 imageUrl = request.imageUrl ?: existing.imageUrl,
@@ -105,6 +110,17 @@ class ProductService(
             )
 
         return productRepository.save(updated)
+    }
+
+    private fun requireNonBlankTrimmed(
+        value: String,
+        fieldLabel: String,
+    ): String {
+        val trimmed = value.trim()
+        if (trimmed.isEmpty()) {
+            throw BusinessRuleException("$fieldLabel must not be blank")
+        }
+        return trimmed
     }
 
     @Transactional

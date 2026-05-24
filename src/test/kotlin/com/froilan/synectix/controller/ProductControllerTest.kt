@@ -212,6 +212,23 @@ class ProductControllerTest {
     }
 
     @Test
+    fun `GET products defaults isActive to true when param omitted`() {
+        `when`(productService.listProducts(any(), anyOrNull(), any(), anyOrNull())).thenReturn(emptyList())
+
+        mockMvc
+            .perform(get("/inventory/products"))
+            .andExpect(status().isOk)
+
+        val captor = org.mockito.ArgumentCaptor.forClass(Boolean::class.javaObjectType)
+        org.mockito.Mockito
+            .verify(productService)
+            .listProducts(any(), org.mockito.kotlin.anyOrNull(), captor.capture(), org.mockito.kotlin.anyOrNull())
+        org.assertj.core.api.Assertions
+            .assertThat(captor.value)
+            .isTrue()
+    }
+
+    @Test
     fun `GET products should support category filter`() {
         val products = listOf(createMockProduct())
         `when`(productService.listProducts(any(), any(), any(), anyOrNull())).thenReturn(products)

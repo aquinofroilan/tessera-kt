@@ -387,4 +387,81 @@ class ProductServiceTest {
             productService.deleteProduct("prod-123", orgId)
         }
     }
+
+    @Test
+    fun `createProduct trims surrounding whitespace from sku and name`() {
+        mockCurrency("USD")
+        `when`(productRepository.save(any<Product>())).thenAnswer { it.arguments[0] }
+
+        val request =
+            CreateProductRequest(
+                sku = "  WIDGET-001  ",
+                name = "  Widget  ",
+                listPrice = BigDecimal("1"),
+                priceCurrency = "USD",
+            )
+
+        val result = productService.createProduct(request, orgId)
+
+        assertThat(result.sku).isEqualTo("WIDGET-001")
+        assertThat(result.name).isEqualTo("Widget")
+    }
+
+    @Test
+    fun `createProduct rejects blank sku after trim`() {
+        mockCurrency("USD")
+        val request =
+            CreateProductRequest(
+                sku = "   ",
+                name = "Widget",
+                listPrice = BigDecimal("1"),
+                priceCurrency = "USD",
+            )
+        val ex =
+            assertThrows<BusinessRuleException> {
+                productService.createProduct(request, orgId)
+            }
+        assertThat(ex.message).contains("SKU")
+    }
+
+    @Test
+    fun `createProduct rejects blank name after trim`() {
+        mockCurrency("USD")
+        val request =
+            CreateProductRequest(
+                sku = "WIDGET-001",
+                name = "   ",
+                listPrice = BigDecimal("1"),
+                priceCurrency = "USD",
+            )
+        val ex =
+            assertThrows<BusinessRuleException> {
+                productService.createProduct(request, orgId)
+            }
+        assertThat(ex.message).contains("name")
+    }
+
+    @Test
+    fun `updateProduct trims name when provided`() {
+        val existing = createMockProduct()
+        `when`(productRepository.findById("prod-123")).thenReturn(Optional.of(existing))
+        mockCurrency("USD")
+        `when`(productRepository.save(any<Product>())).thenAnswer { it.arguments[0] }
+
+        val request = UpdateProductRequest(name = "  Renamed Widget  ")
+        val result = productService.updateProduct("prod-123", request, orgId)
+
+        assertThat(result.name).isEqualTo("Renamed Widget")
+    }
+
+    @Test
+    fun `updateProduct rejects blank name`() {
+        val existing = createMockProduct()
+        `when`(productRepository.findById("prod-123")).thenReturn(Optional.of(existing))
+
+        val request = UpdateProductRequest(name = "   ")
+        assertThrows<BusinessRuleException> {
+            productService.updateProduct("prod-123", request, orgId)
+        }
+    }
 }
