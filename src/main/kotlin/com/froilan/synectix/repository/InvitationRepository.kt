@@ -2,13 +2,13 @@ package com.froilan.synectix.repository
 
 import com.froilan.synectix.model.Invitation
 import com.froilan.synectix.model.InvitationStatus
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 import java.util.Optional
 
 @Repository
-interface InvitationRepository : MongoRepository<Invitation, String> {
+interface InvitationRepository : JpaRepository<Invitation, String> {
     fun findByTokenHash(tokenHash: String): Optional<Invitation>
 
     fun findByOrganizationIdAndStatusAndExpiryAtAfter(

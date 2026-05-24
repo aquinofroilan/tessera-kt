@@ -91,6 +91,8 @@ class RoleSeederTest {
                         Permissions.TAX_DELETE,
                         Permissions.FX_READ,
                         Permissions.FX_CREATE,
+                        Permissions.INVENTORY_READ,
+                        Permissions.INVENTORY_WRITE,
                     ),
             )
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
@@ -282,6 +284,8 @@ class RoleSeederTest {
                         Permissions.TAX_DELETE,
                         Permissions.FX_READ,
                         Permissions.FX_CREATE,
+                        Permissions.INVENTORY_READ,
+                        Permissions.INVENTORY_WRITE,
                     ),
             )
         val admin =
@@ -322,6 +326,8 @@ class RoleSeederTest {
                         Permissions.TAX_DELETE,
                         Permissions.FX_READ,
                         Permissions.FX_CREATE,
+                        Permissions.INVENTORY_READ,
+                        Permissions.INVENTORY_WRITE,
                     ),
             )
         val member =
@@ -346,6 +352,8 @@ class RoleSeederTest {
                         Permissions.AR_READ,
                         Permissions.TAX_READ,
                         Permissions.FX_READ,
+                        Permissions.INVENTORY_READ,
+                        Permissions.INVENTORY_WRITE,
                     ),
             )
         val viewer =
@@ -364,6 +372,7 @@ class RoleSeederTest {
                         Permissions.AR_READ,
                         Permissions.TAX_READ,
                         Permissions.FX_READ,
+                        Permissions.INVENTORY_READ,
                     ),
             )
 

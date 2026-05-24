@@ -2,23 +2,20 @@ package com.froilan.synectix.health
 
 import org.springframework.boot.health.contributor.Health
 import org.springframework.boot.health.contributor.HealthIndicator
-import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Component
 
 @Component
 class DatabaseConnectionHealthIndicator(
-    private val mongoTemplate: MongoTemplate,
+    private val jdbcTemplate: JdbcTemplate,
 ) : HealthIndicator {
     override fun health(): Health =
         try {
-            val db = mongoTemplate.db
-            db.runCommand(org.bson.Document("ping", 1))
-
+            jdbcTemplate.queryForObject("SELECT 1", Int::class.java)
             Health
                 .up()
-                .withDetail("database", "MongoDB")
+                .withDetail("database", "PostgreSQL")
                 .withDetail("status", "Connected")
-                .withDetail("databaseName", db.name)
                 .build()
         } catch (e: Exception) {
             Health

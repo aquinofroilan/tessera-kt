@@ -23,12 +23,12 @@ import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyVararg
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.times
 import org.springframework.dao.DuplicateKeyException
-import org.springframework.data.mongodb.core.FindAndModifyOptions
-import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -39,7 +39,7 @@ class InvitationServiceTest {
     private lateinit var invitationRepository: InvitationRepository
     private lateinit var userRepository: UserRepository
     private lateinit var roleRepository: RoleRepository
-    private lateinit var mongoTemplate: MongoTemplate
+    private lateinit var jdbcTemplate: JdbcTemplate
     private lateinit var tokenHasher: TokenHasher
     private lateinit var passwordEncoder: PasswordEncoder
 
@@ -48,7 +48,7 @@ class InvitationServiceTest {
         invitationRepository = mock(InvitationRepository::class.java)
         userRepository = mock(UserRepository::class.java)
         roleRepository = mock(RoleRepository::class.java)
-        mongoTemplate = mock(MongoTemplate::class.java)
+        jdbcTemplate = mock(JdbcTemplate::class.java)
         tokenHasher = mock(TokenHasher::class.java)
         passwordEncoder = mock(PasswordEncoder::class.java)
 
@@ -60,7 +60,7 @@ class InvitationServiceTest {
                 invitationRepository = invitationRepository,
                 userRepository = userRepository,
                 roleRepository = roleRepository,
-                mongoTemplate = mongoTemplate,
+                jdbcTemplate = jdbcTemplate,
                 tokenHasher = tokenHasher,
                 passwordEncoder = passwordEncoder,
                 invitationExpiryHours = 72L,
@@ -217,8 +217,8 @@ class InvitationServiceTest {
         val invitation = createMockInvitation()
         val accepted = invitation.copy(status = InvitationStatus.ACCEPTED)
 
-        `when`(mongoTemplate.findAndModify(any(), any(), any<FindAndModifyOptions>(), eq(Invitation::class.java)))
-            .thenReturn(accepted)
+        `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
+        `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(accepted))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
         `when`(passwordEncoder.encode("SecurePass123!")).thenReturn("encodedPassword")
         `when`(userRepository.save(any<User>())).thenAnswer { it.arguments[0] }
@@ -253,8 +253,8 @@ class InvitationServiceTest {
                 roleAssignments = listOf(RoleAssignment("MEMBER", "other-org")),
             )
 
-        `when`(mongoTemplate.findAndModify(any(), any(), any<FindAndModifyOptions>(), eq(Invitation::class.java)))
-            .thenReturn(accepted)
+        `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
+        `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(accepted))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.of(existingUser))
         `when`(userRepository.save(any<User>())).thenAnswer { it.arguments[0] }
 
@@ -277,8 +277,7 @@ class InvitationServiceTest {
                 lastName = "L",
             )
 
-        `when`(mongoTemplate.findAndModify(any(), any(), any<FindAndModifyOptions>(), eq(Invitation::class.java)))
-            .thenReturn(null)
+        `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(0)
 
         val exception = assertThrows<BusinessRuleException> { invitationService.acceptInvitation(request) }
         assertThat(exception.message).isEqualTo("Invalid or expired invitation token")
@@ -289,8 +288,8 @@ class InvitationServiceTest {
         val request = AcceptInvitationRequest(token = "raw-token")
         val invitation = createMockInvitation()
 
-        `when`(mongoTemplate.findAndModify(any(), any(), any<FindAndModifyOptions>(), eq(Invitation::class.java)))
-            .thenReturn(invitation.copy(status = InvitationStatus.ACCEPTED))
+        `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
+        `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(invitation.copy(status = InvitationStatus.ACCEPTED)))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
 
         val exception = assertThrows<BusinessRuleException> { invitationService.acceptInvitation(request) }
@@ -309,8 +308,8 @@ class InvitationServiceTest {
             )
         val invitation = createMockInvitation()
 
-        `when`(mongoTemplate.findAndModify(any(), any(), any<FindAndModifyOptions>(), eq(Invitation::class.java)))
-            .thenReturn(invitation.copy(status = InvitationStatus.ACCEPTED))
+        `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
+        `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(invitation.copy(status = InvitationStatus.ACCEPTED)))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
         `when`(passwordEncoder.encode("SecurePass123!")).thenReturn("encodedPassword")
         `when`(userRepository.save(any<User>()))

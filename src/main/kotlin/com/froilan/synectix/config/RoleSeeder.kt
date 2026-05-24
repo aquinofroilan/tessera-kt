@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.core.annotation.Order
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Component
 
 @Component
@@ -71,6 +72,8 @@ class RoleSeeder(
                             Permissions.TAX_DELETE,
                             Permissions.FX_READ,
                             Permissions.FX_CREATE,
+                            Permissions.INVENTORY_READ,
+                            Permissions.INVENTORY_WRITE,
                         ),
                 ),
                 Role(
@@ -110,6 +113,8 @@ class RoleSeeder(
                             Permissions.TAX_DELETE,
                             Permissions.FX_READ,
                             Permissions.FX_CREATE,
+                            Permissions.INVENTORY_READ,
+                            Permissions.INVENTORY_WRITE,
                         ),
                 ),
                 Role(
@@ -133,6 +138,8 @@ class RoleSeeder(
                             Permissions.AR_READ,
                             Permissions.TAX_READ,
                             Permissions.FX_READ,
+                            Permissions.INVENTORY_READ,
+                            Permissions.INVENTORY_WRITE,
                         ),
                 ),
                 Role(
@@ -150,6 +157,7 @@ class RoleSeeder(
                             Permissions.AR_READ,
                             Permissions.TAX_READ,
                             Permissions.FX_READ,
+                            Permissions.INVENTORY_READ,
                         ),
                 ),
             )
@@ -158,9 +166,20 @@ class RoleSeeder(
         defaultRoles.forEach { role ->
             val existing = roleRepository.findByName(role.name)
             if (existing.isEmpty) {
-                roleRepository.save(role)
-                log.info("Seeded role: {} ({})", role.name, role.level)
-                changed = true
+                try {
+                    roleRepository.save(role)
+                    log.info("Seeded role: {} ({})", role.name, role.level)
+                    changed = true
+                } catch (e: DataIntegrityViolationException) {
+                    // A constraint failed. Only treat as a race-loss if the row is
+                    // now present; otherwise this is a real schema/data problem.
+                    if (roleRepository.findByName(role.name).isEmpty) {
+                        throw e
+                    }
+                    // Roles were inserted by another startup; our @PostConstruct
+                    // cache load ran before that, so flag for refresh.
+                    changed = true
+                }
             } else {
                 val current = existing.get()
                 if (current.description != role.description ||

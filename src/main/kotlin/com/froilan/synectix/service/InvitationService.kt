@@ -16,11 +16,7 @@ import com.froilan.synectix.repository.UserRepository
 import com.froilan.synectix.util.TokenHasher
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.DuplicateKeyException
-import org.springframework.data.mongodb.core.FindAndModifyOptions
-import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.Update
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -33,7 +29,7 @@ class InvitationService(
     private val invitationRepository: InvitationRepository,
     private val userRepository: UserRepository,
     private val roleRepository: RoleRepository,
-    private val mongoTemplate: MongoTemplate,
+    private val jdbcTemplate: JdbcTemplate,
     private val tokenHasher: TokenHasher,
     private val passwordEncoder: PasswordEncoder,
     @Value("\${security.invitation.expiration-hours:72}")
@@ -110,21 +106,26 @@ class InvitationService(
     fun acceptInvitation(request: AcceptInvitationRequest): User {
         val tokenHash = tokenHasher.hash(request.token)
 
+        val now = LocalDateTime.now(ZoneOffset.UTC)
+        val updated =
+            jdbcTemplate.update(
+                """
+                UPDATE invitations
+                   SET status = 'ACCEPTED'
+                 WHERE token_hash = ?
+                   AND status = 'PENDING'
+                   AND expiry_at > ?
+                """.trimIndent(),
+                tokenHash,
+                now,
+            )
+        if (updated == 0) {
+            throw BusinessRuleException("Invalid or expired invitation token")
+        }
         val accepted =
-            mongoTemplate.findAndModify(
-                Query.query(
-                    Criteria
-                        .where("tokenHash")
-                        .`is`(tokenHash)
-                        .and("status")
-                        .`is`(InvitationStatus.PENDING)
-                        .and("expiryAt")
-                        .gt(LocalDateTime.now(ZoneOffset.UTC)),
-                ),
-                Update.update("status", InvitationStatus.ACCEPTED),
-                FindAndModifyOptions.options().returnNew(true),
-                Invitation::class.java,
-            ) ?: throw BusinessRuleException("Invalid or expired invitation token")
+            invitationRepository
+                .findByTokenHash(tokenHash)
+                .orElseThrow { BusinessRuleException("Invalid or expired invitation token") }
 
         val existingUser = userRepository.findByEmail(accepted.email)
         if (existingUser.isPresent) {

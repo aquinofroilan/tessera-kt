@@ -3,13 +3,15 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "2.3.0"
     kotlin("plugin.spring") version "2.3.0"
+    kotlin("plugin.jpa") version "2.3.0"
+    kotlin("plugin.allopen") version "2.3.0"
     id("org.springframework.boot") version "4.0.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.jlleitschuh.gradle.ktlint") version "12.3.0"
 }
 
 group = "com.froilan"
-version = "0.7.0"
+version = "0.8.0"
 description = "Synectix an ERP System"
 
 java {
@@ -46,9 +48,11 @@ dependencies {
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-authorization-server")
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
-    implementation("org.springframework.boot:spring-boot-mongodb")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
+    implementation("org.flywaydb:flyway-database-postgresql")
+    runtimeOnly("org.postgresql:postgresql")
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
@@ -58,7 +62,6 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
-    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring4x:4.22.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -66,6 +69,12 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
     }
+}
+
+allOpen {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.MappedSuperclass")
+    annotation("jakarta.persistence.Embeddable")
 }
 
 tasks.named<Jar>("jar") {

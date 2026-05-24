@@ -58,6 +58,11 @@ class SecurityConfig(
                 it.requestMatchers("/actuator/info").permitAll()
                 it.anyRequest().authenticated()
             }.exceptionHandling {
+                it.authenticationEntryPoint { _, resp, _ ->
+                    resp.status = 401
+                    resp.contentType = "application/json"
+                    resp.writer.write("""{"error":"Authentication required"}""")
+                }
                 it.accessDeniedHandler { _, resp, _ ->
                     resp.status = 403
                     resp.contentType = "application/json"

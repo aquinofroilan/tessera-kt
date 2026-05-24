@@ -16,15 +16,16 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      mongodb:
-        image: mongo:7.0
+      postgres:
+        image: postgres:18
         ports:
-          - 27017:27017
+          - 5432:5432
         env:
-          MONGO_INITDB_ROOT_USERNAME: testuser
-          MONGO_INITDB_ROOT_PASSWORD: testpass
+          POSTGRES_DB: loom_test
+          POSTGRES_USER: loom
+          POSTGRES_PASSWORD: loom
         options: >-
-          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-cmd "pg_isready -U loom"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -51,14 +52,17 @@ jobs:
 
       - name: Run Tests
         env:
-          TEST_MONGODB_URI: mongodb://testuser:testpass@localhost:27017/synectix-test?authSource=admin
-          MONGODB_URI: mongodb://testuser:testpass@localhost:27017/synectix?authSource=admin
+          DATABASE_URL: jdbc:postgresql://localhost:5432/loom_test
+          DATABASE_USERNAME: loom
+          DATABASE_PASSWORD: loom
           JWT_SECRET: test-secret-key-for-ci-cd
         run: ./gradlew test
 
       - name: Start Application and Health Check
         env:
-          MONGODB_URI: mongodb://testuser:testpass@localhost:27017/synectix?authSource=admin
+          DATABASE_URL: jdbc:postgresql://localhost:5432/loom_test
+          DATABASE_USERNAME: loom
+          DATABASE_PASSWORD: loom
           JWT_SECRET: test-secret-key-for-ci-cd
         run: |
           ./gradlew bootJar

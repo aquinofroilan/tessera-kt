@@ -14,7 +14,6 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
-import org.springframework.data.mongodb.core.MongoTemplate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.Optional
@@ -22,13 +21,11 @@ import java.util.Optional
 class ApiKeyServiceTest {
     private lateinit var apiKeyService: ApiKeyService
     private lateinit var apiKeyRepository: ApiKeyRepository
-    private lateinit var mongoTemplate: MongoTemplate
     private lateinit var tokenHasher: TokenHasher
 
     @BeforeEach
     fun setup() {
         apiKeyRepository = mock(ApiKeyRepository::class.java)
-        mongoTemplate = mock(MongoTemplate::class.java)
         tokenHasher = mock(TokenHasher::class.java)
 
         `when`(tokenHasher.hash(any())).thenAnswer { "hashed-${it.arguments[0]}" }
@@ -37,7 +34,6 @@ class ApiKeyServiceTest {
         apiKeyService =
             ApiKeyService(
                 apiKeyRepository = apiKeyRepository,
-                mongoTemplate = mongoTemplate,
                 tokenHasher = tokenHasher,
             )
     }
