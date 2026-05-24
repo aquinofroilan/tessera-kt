@@ -58,7 +58,8 @@ class InventoryReportsService(
         val runningByPair = mutableMapOf<OnHandKey, BigDecimal>()
         val lines =
             movements.map { m ->
-                val pair = OnHandKey(m.productId, primaryAffectedWarehouse(m, warehouseId))
+                val affectedWarehouseId = primaryAffectedWarehouse(m, warehouseId)
+                val pair = OnHandKey(m.productId, affectedWarehouseId)
                 val current = runningByPair[pair] ?: BigDecimal.ZERO
                 val newBalance = current + signedQuantity(m, pair.warehouseId)
                 runningByPair[pair] = newBalance
@@ -66,7 +67,10 @@ class InventoryReportsService(
                     id = m.id,
                     type = m.type,
                     productId = m.productId,
-                    warehouseId = m.warehouseId,
+                    // Report the warehouse the running balance is keyed on so a
+                    // caller filtering by a destination warehouse sees that
+                    // warehouse on the line, not the TRANSFER's source side.
+                    warehouseId = affectedWarehouseId,
                     transferToWarehouseId = m.transferToWarehouseId,
                     quantity = m.quantity,
                     unitCost = m.unitCost,
