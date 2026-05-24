@@ -2,7 +2,6 @@ package com.froilan.synectix.service
 
 import com.froilan.synectix.dto.ValuationLineResponse
 import com.froilan.synectix.dto.ValuationReportResponse
-import com.froilan.synectix.repository.OnHandKey
 import com.froilan.synectix.repository.StockMovementRepository
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -34,7 +33,4 @@ class InventoryValuationService(
             totalValue = total,
         )
     }
-
-    @Suppress("unused")
-    private fun unusedKey(): OnHandKey = OnHandKey("", "")
 }
