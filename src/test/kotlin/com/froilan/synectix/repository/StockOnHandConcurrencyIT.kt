@@ -31,7 +31,48 @@ class StockOnHandConcurrencyIT {
 
     @BeforeEach
     fun setup() {
-        jdbcTemplate.update("DELETE FROM stock_on_hand WHERE organization_id = ?::uuid", orgId)
+        // FK chain: stock_on_hand → organizations / products / warehouses,
+        // products.price_currency → currencies, organizations.base_currency → currencies.
+        // CurrencySeeder seeds USD on startup, so just bootstrap the rest.
+        jdbcTemplate.update(
+            """
+            INSERT INTO organizations
+              (uuid, org_slug, name, legal_name, trade_name, base_currency,
+               fiscal_year_start, timezone, status, inventory_costing_method,
+               is_active, created_at)
+            VALUES (?::uuid, ?, ?, ?, ?, 'USD', current_timestamp, 'UTC',
+                    'ACTIVE', 'WEIGHTED_AVERAGE', true, current_timestamp)
+            """.trimIndent(),
+            orgId,
+            "slug-$orgId",
+            "Org $orgId",
+            "Legal $orgId",
+            "Trade $orgId",
+        )
+        jdbcTemplate.update(
+            """
+            INSERT INTO products
+              (id, sku, name, list_price, price_currency, organization_id,
+               is_active, created_at)
+            VALUES (?::uuid, ?, ?, 0, 'USD', ?::uuid, true, current_timestamp)
+            """.trimIndent(),
+            productId,
+            "sku-$productId",
+            "Product $productId",
+            orgId,
+        )
+        jdbcTemplate.update(
+            """
+            INSERT INTO warehouses
+              (id, code, name, allow_negative_stock, organization_id, is_active,
+               created_at)
+            VALUES (?::uuid, ?, ?, false, ?::uuid, true, current_timestamp)
+            """.trimIndent(),
+            warehouseId,
+            "code-$warehouseId",
+            "Warehouse $warehouseId",
+            orgId,
+        )
         jdbcTemplate.update(
             """
             INSERT INTO stock_on_hand (id, organization_id, product_id, warehouse_id, quantity, created_at)
@@ -48,6 +89,9 @@ class StockOnHandConcurrencyIT {
     @AfterEach
     fun cleanup() {
         jdbcTemplate.update("DELETE FROM stock_on_hand WHERE organization_id = ?::uuid", orgId)
+        jdbcTemplate.update("DELETE FROM warehouses WHERE organization_id = ?::uuid", orgId)
+        jdbcTemplate.update("DELETE FROM products WHERE organization_id = ?::uuid", orgId)
+        jdbcTemplate.update("DELETE FROM organizations WHERE uuid = ?::uuid", orgId)
     }
 
     @Test
