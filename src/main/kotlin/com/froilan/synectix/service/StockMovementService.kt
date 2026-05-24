@@ -19,6 +19,7 @@ class StockMovementService(
     private val stockMovementRepository: StockMovementRepository,
     private val warehouseRepository: WarehouseRepository,
     private val stockOnHandRepository: StockOnHandRepository,
+    private val inventoryCostingService: InventoryCostingService,
 ) {
     @Transactional
     fun createMovement(
@@ -54,7 +55,9 @@ class StockMovementService(
                 occurredAt = request.occurredAt ?: LocalDateTime.now(),
                 createdBy = userId,
             )
-        return stockMovementRepository.save(movement)
+        val saved = stockMovementRepository.save(movement)
+        inventoryCostingService.apply(saved)
+        return saved
     }
 
     fun listMovements(

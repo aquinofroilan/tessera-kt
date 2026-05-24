@@ -22,6 +22,12 @@ data class Organizations(
     val fiscalYearStart: LocalDateTime,
     val timezone: String,
     val status: String = "ACTIVE",
+    val inventoryCostingMethod: InventoryCostingMethod = InventoryCostingMethod.WEIGHTED_AVERAGE,
     val createdAt: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC),
     val isActive: Boolean = true,
 )
+
+enum class InventoryCostingMethod {
+    FIFO,
+    WEIGHTED_AVERAGE,
+}
