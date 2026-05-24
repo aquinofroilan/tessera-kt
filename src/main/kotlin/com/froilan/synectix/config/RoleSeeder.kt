@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.core.annotation.Order
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Component
 
 @Component
@@ -165,9 +166,13 @@ class RoleSeeder(
         defaultRoles.forEach { role ->
             val existing = roleRepository.findByName(role.name)
             if (existing.isEmpty) {
-                roleRepository.save(role)
-                log.info("Seeded role: {} ({})", role.name, role.level)
-                changed = true
+                try {
+                    roleRepository.save(role)
+                    log.info("Seeded role: {} ({})", role.name, role.level)
+                    changed = true
+                } catch (_: DataIntegrityViolationException) {
+                    // Race with another seeder run; the row is now present.
+                }
             } else {
                 val current = existing.get()
                 if (current.description != role.description ||

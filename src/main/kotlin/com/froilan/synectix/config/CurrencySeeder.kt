@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.core.annotation.Order
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Component
 
 @Component
@@ -28,8 +29,12 @@ class CurrencySeeder(
         seeded.forEach { currency ->
             val existing = currencyRepository.findById(currency.code)
             if (existing.isEmpty) {
-                currencyRepository.save(currency)
-                log.info("Seeded currency: {} ({})", currency.code, currency.name)
+                try {
+                    currencyRepository.save(currency)
+                    log.info("Seeded currency: {} ({})", currency.code, currency.name)
+                } catch (_: DataIntegrityViolationException) {
+                    // Race with another seeder run; the row is now present.
+                }
             } else if (existing.get() != currency) {
                 currencyRepository.save(currency)
                 log.info("Updated currency: {}", currency.code)
