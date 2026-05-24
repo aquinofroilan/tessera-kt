@@ -25,6 +25,7 @@ import com.froilan.synectix.security.SynectixPermissionEvaluator
 import com.froilan.synectix.service.AccountService
 import com.froilan.synectix.service.ApiKeyService
 import com.froilan.synectix.service.AuthService
+import com.froilan.synectix.service.InventoryReorderRuleService
 import com.froilan.synectix.service.InventoryReportsService
 import com.froilan.synectix.service.InventoryValuationService
 import com.froilan.synectix.service.JournalEntryService
@@ -97,6 +98,9 @@ class InventoryReportsControllerTest {
 
     @MockitoBean
     private lateinit var inventoryReportsService: InventoryReportsService
+
+    @MockitoBean
+    private lateinit var reorderRuleService: InventoryReorderRuleService
 
     @MockitoBean
     private lateinit var authenticationContext: AuthenticationContext

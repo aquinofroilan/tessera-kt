@@ -3,6 +3,7 @@ package com.froilan.synectix.controller
 import com.froilan.synectix.annotation.LogLevel
 import com.froilan.synectix.annotation.Loggable
 import com.froilan.synectix.security.AuthenticationContext
+import com.froilan.synectix.service.InventoryReorderRuleService
 import com.froilan.synectix.service.InventoryReportsService
 import com.froilan.synectix.service.InventoryValuationService
 import org.springframework.format.annotation.DateTimeFormat
@@ -20,6 +21,7 @@ import java.time.LocalDateTime
 class InventoryReportsController(
     private val inventoryValuationService: InventoryValuationService,
     private val inventoryReportsService: InventoryReportsService,
+    private val reorderRuleService: InventoryReorderRuleService,
     private val authContext: AuthenticationContext,
 ) {
     @GetMapping("/valuation")
@@ -56,5 +58,12 @@ class InventoryReportsController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(inventoryReportsService.movementHistory(orgId, productId, warehouseId, from, to))
+    }
+
+    @GetMapping("/low-stock")
+    @PreAuthorize("hasAuthority('inventory:read')")
+    fun lowStock(): ResponseEntity<Any> {
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        return ResponseEntity.ok(reorderRuleService.lowStockReport(orgId))
     }
 }
