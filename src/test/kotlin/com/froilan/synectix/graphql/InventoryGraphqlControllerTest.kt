@@ -20,7 +20,13 @@ import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 @GraphQlTest(controllers = [InventoryGraphqlController::class])
-@Import(TestSecurityConfig::class, SynectixPermissionEvaluator::class, GraphqlExceptionResolver::class, GraphqlScalarConfig::class)
+@Import(
+    TestSecurityConfig::class,
+    SynectixPermissionEvaluator::class,
+    GraphqlExceptionResolver::class,
+    GraphqlScalarConfig::class,
+    GraphqlBridgeSupport::class,
+)
 class InventoryGraphqlControllerTest {
     @Autowired
     private lateinit var graphQlTester: GraphQlTester

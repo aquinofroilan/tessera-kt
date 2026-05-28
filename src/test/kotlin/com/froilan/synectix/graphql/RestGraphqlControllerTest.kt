@@ -26,7 +26,13 @@ import org.springframework.http.ResponseEntity
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 @GraphQlTest(controllers = [RestGraphqlController::class])
-@Import(TestSecurityConfig::class, SynectixPermissionEvaluator::class, GraphqlExceptionResolver::class, GraphqlScalarConfig::class)
+@Import(
+    TestSecurityConfig::class,
+    SynectixPermissionEvaluator::class,
+    GraphqlExceptionResolver::class,
+    GraphqlScalarConfig::class,
+    GraphqlBridgeSupport::class,
+)
 class RestGraphqlControllerTest {
     @Autowired
     private lateinit var graphQlTester: GraphQlTester

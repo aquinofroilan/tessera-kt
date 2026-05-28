@@ -21,6 +21,7 @@ class GraphqlExceptionResolver : DataFetcherExceptionResolverAdapter() {
             is BusinessRuleException, is IllegalArgumentException -> error(env, ex.message ?: "Invalid request", ErrorType.BAD_REQUEST)
             is AuthenticationException -> error(env, ex.message ?: "Authentication failed", ErrorType.UNAUTHORIZED)
             is IllegalStateException -> error(env, ex.message ?: "Unable to process request", ErrorType.BAD_REQUEST)
+            is UpstreamServiceException -> error(env, ex.message ?: "Upstream service error", ErrorType.INTERNAL_ERROR)
             else -> null
         }
 
