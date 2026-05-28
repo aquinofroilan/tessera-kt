@@ -46,3 +46,10 @@ In Grafana, import a Spring Boot dashboard, for example:
 
 - Prometheus scrapes the app via `host.docker.internal:8080` and `metrics_path: /api/actuator/prometheus` (see `observability/prometheus/prometheus.yml`).
 - The `/actuator/prometheus` endpoint is explicitly permitted in `SecurityConfig`, so Prometheus can scrape without authentication.
+
+## Production hardening
+
+The Prometheus endpoint is intentionally unauthenticated so the scraper can reach it without a user JWT (the app has no service-account token mechanism). Because metrics can leak internal signals (heap usage, request patterns, per-org/rate counters), do **not** expose `/actuator/prometheus` on a public interface in production. Recommended options:
+
+- Restrict access at the network layer (firewall/security group / service mesh) so only the Prometheus scraper can reach it.
+- Or move actuator to a separate, non-public management port via `management.server.port` and update `observability/prometheus/prometheus.yml` accordingly.
