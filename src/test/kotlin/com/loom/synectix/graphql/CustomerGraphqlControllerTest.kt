@@ -1,11 +1,11 @@
-package com.froilan.synectix.graphql
+package com.loom.synectix.graphql
 
-import com.froilan.synectix.config.TestSecurityConfig
-import com.froilan.synectix.dto.CreateCustomerRequest
-import com.froilan.synectix.model.Customer
-import com.froilan.synectix.security.AuthenticationContext
-import com.froilan.synectix.security.SynectixPermissionEvaluator
-import com.froilan.synectix.service.CustomerService
+import com.loom.synectix.config.TestSecurityConfig
+import com.loom.synectix.dto.CreateCustomerRequest
+import com.loom.synectix.model.Customer
+import com.loom.synectix.security.AuthenticationContext
+import com.loom.synectix.security.SynectixPermissionEvaluator
+import com.loom.synectix.service.CustomerService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

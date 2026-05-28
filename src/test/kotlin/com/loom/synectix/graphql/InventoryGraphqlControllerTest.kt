@@ -1,14 +1,14 @@
-package com.froilan.synectix.graphql
+package com.loom.synectix.graphql
 
-import com.froilan.synectix.config.TestSecurityConfig
-import com.froilan.synectix.controller.CurrencyController
-import com.froilan.synectix.controller.ExchangeRateController
-import com.froilan.synectix.controller.InventoryReorderRuleController
-import com.froilan.synectix.controller.InventoryReportsController
-import com.froilan.synectix.controller.ProductController
-import com.froilan.synectix.controller.StockMovementController
-import com.froilan.synectix.controller.WarehouseController
-import com.froilan.synectix.security.SynectixPermissionEvaluator
+import com.loom.synectix.config.TestSecurityConfig
+import com.loom.synectix.controller.CurrencyController
+import com.loom.synectix.controller.ExchangeRateController
+import com.loom.synectix.controller.InventoryReorderRuleController
+import com.loom.synectix.controller.InventoryReportsController
+import com.loom.synectix.controller.ProductController
+import com.loom.synectix.controller.StockMovementController
+import com.loom.synectix.controller.WarehouseController
+import com.loom.synectix.security.SynectixPermissionEvaluator
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired

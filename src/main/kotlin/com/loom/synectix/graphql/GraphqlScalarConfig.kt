@@ -1,4 +1,4 @@
-package com.froilan.synectix.graphql
+package com.loom.synectix.graphql
 
 import graphql.language.ArrayValue
 import graphql.language.BooleanValue

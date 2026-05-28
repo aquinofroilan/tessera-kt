@@ -1,7 +1,7 @@
-package com.froilan.synectix.graphql
+package com.loom.synectix.graphql
 
-import com.froilan.synectix.exception.AuthenticationException
-import com.froilan.synectix.exception.ResourceNotFoundException
+import com.loom.synectix.exception.AuthenticationException
+import com.loom.synectix.exception.ResourceNotFoundException
 import jakarta.validation.Validator
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component

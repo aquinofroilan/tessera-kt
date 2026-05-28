@@ -1,11 +1,11 @@
-package com.froilan.synectix.graphql
+package com.loom.synectix.graphql
 
-import com.froilan.synectix.dto.CreateCustomerRequest
-import com.froilan.synectix.dto.UpdateCustomerRequest
-import com.froilan.synectix.exception.AuthenticationException
-import com.froilan.synectix.model.Customer
-import com.froilan.synectix.security.AuthenticationContext
-import com.froilan.synectix.service.CustomerService
+import com.loom.synectix.dto.CreateCustomerRequest
+import com.loom.synectix.dto.UpdateCustomerRequest
+import com.loom.synectix.exception.AuthenticationException
+import com.loom.synectix.model.Customer
+import com.loom.synectix.security.AuthenticationContext
+import com.loom.synectix.service.CustomerService
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank

@@ -1,8 +1,8 @@
-package com.froilan.synectix.graphql
+package com.loom.synectix.graphql
 
-import com.froilan.synectix.exception.AuthenticationException
-import com.froilan.synectix.exception.BusinessRuleException
-import com.froilan.synectix.exception.ResourceNotFoundException
+import com.loom.synectix.exception.AuthenticationException
+import com.loom.synectix.exception.BusinessRuleException
+import com.loom.synectix.exception.ResourceNotFoundException
 import graphql.GraphQLError
 import graphql.GraphqlErrorBuilder
 import graphql.schema.DataFetchingEnvironment
