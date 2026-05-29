@@ -56,6 +56,7 @@ class SecurityConfig(
                 it.requestMatchers("/health/**").permitAll()
                 it.requestMatchers("/actuator/health/**").permitAll()
                 it.requestMatchers("/actuator/info").permitAll()
+                it.requestMatchers("/actuator/prometheus").permitAll()
                 it.anyRequest().authenticated()
             }.exceptionHandling {
                 it.authenticationEntryPoint { _, resp, _ ->
