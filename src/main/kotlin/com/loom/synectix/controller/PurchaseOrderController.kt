@@ -3,7 +3,9 @@ package com.loom.synectix.controller
 import com.loom.synectix.annotation.LogLevel
 import com.loom.synectix.annotation.Loggable
 import com.loom.synectix.dto.CreatePurchaseOrderRequest
+import com.loom.synectix.dto.GenerateBillRequest
 import com.loom.synectix.dto.PurchaseOrderResponse
+import com.loom.synectix.dto.ReceivePurchaseOrderRequest
 import com.loom.synectix.model.PurchaseOrderStatus
 import com.loom.synectix.security.AuthenticationContext
 import com.loom.synectix.service.PurchaseOrderService
@@ -82,10 +84,23 @@ class PurchaseOrderController(
     @PreAuthorize("hasAuthority('procurement:receive')")
     fun receivePurchaseOrder(
         @PathVariable id: String,
+        @Valid @RequestBody(required = false) request: ReceivePurchaseOrderRequest?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
-        return ResponseEntity.ok(PurchaseOrderResponse.from(purchaseOrderService.receivePurchaseOrder(id, orgId, userId)))
+        return ResponseEntity.ok(PurchaseOrderResponse.from(purchaseOrderService.receivePurchaseOrder(id, request, orgId, userId)))
+    }
+
+    @PostMapping("/{id}/generate-bill")
+    @PreAuthorize("hasAuthority('procurement:receive')")
+    fun generateBill(
+        @PathVariable id: String,
+        @Valid @RequestBody(required = false) request: GenerateBillRequest?,
+    ): ResponseEntity<Any> {
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val createdBy = authContext.userId() ?: "api-key"
+        val bill = purchaseOrderService.generateBill(id, request, orgId, createdBy)
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("billId" to bill.id, "billNumber" to bill.billNumber))
     }
 
     @PostMapping("/{id}/close")

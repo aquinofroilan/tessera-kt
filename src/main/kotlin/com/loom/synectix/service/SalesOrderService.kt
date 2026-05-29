@@ -1,9 +1,14 @@
 package com.loom.synectix.service
 
+import com.loom.synectix.dto.CreateInvoiceRequest
 import com.loom.synectix.dto.CreateSalesOrderRequest
 import com.loom.synectix.dto.CreateStockMovementRequest
+import com.loom.synectix.dto.FulfillSalesOrderRequest
+import com.loom.synectix.dto.GenerateInvoiceRequest
+import com.loom.synectix.dto.InvoiceLineRequest
 import com.loom.synectix.exception.BusinessRuleException
 import com.loom.synectix.exception.ResourceNotFoundException
+import com.loom.synectix.model.Invoice
 import com.loom.synectix.model.SalesOrder
 import com.loom.synectix.model.SalesOrderLine
 import com.loom.synectix.model.SalesOrderStatus
@@ -13,6 +18,7 @@ import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
@@ -23,6 +29,7 @@ class SalesOrderService(
     private val warehouseService: WarehouseService,
     private val productService: ProductService,
     private val stockMovementService: StockMovementService,
+    private val invoiceService: InvoiceService,
 ) {
     @Transactional
     fun createSalesOrder(
@@ -133,34 +140,131 @@ class SalesOrderService(
     @Transactional
     fun fulfillSalesOrder(
         id: String,
+        request: FulfillSalesOrderRequest?,
         organizationId: String,
         userId: String,
     ): SalesOrder {
         val so = getSalesOrder(id, organizationId)
-        if (so.status != SalesOrderStatus.APPROVED) {
-            throw BusinessRuleException("Only approved sales orders can be fulfilled")
+        if (so.status != SalesOrderStatus.APPROVED && so.status != SalesOrderStatus.PARTIALLY_FULFILLED) {
+            throw BusinessRuleException("Only approved or partially fulfilled sales orders can be fulfilled")
         }
 
-        so.lines.forEach { line ->
-            stockMovementService.createMovement(
-                CreateStockMovementRequest(
-                    type = StockMovementType.ISSUE,
-                    productId = line.productId,
-                    warehouseId = so.warehouseId,
-                    quantity = line.quantity,
-                    reference = "SO-${so.soNumber}",
-                ),
-                organizationId,
-                userId,
-            )
+        val byId = so.lines.associateBy { it.id }
+        val requested =
+            if (request?.lines.isNullOrEmpty()) {
+                so.lines
+                    .associate { it.id to it.quantity.subtract(it.fulfilledQuantity) }
+                    .filterValues { it.signum() > 0 }
+            } else {
+                request.lines!!.associate { it.lineId to (it.quantity ?: throw BusinessRuleException("Quantity is required")) }
+            }
+        requested.keys.forEach { if (it !in byId) throw BusinessRuleException("Unknown sales order line '$it'") }
+        if (requested.isEmpty()) {
+            throw BusinessRuleException("Nothing left to fulfill on this sales order")
         }
 
+        val updatedLines =
+            so.lines.map { line ->
+                val qty = requested[line.id] ?: return@map line
+                if (qty.signum() <= 0) throw BusinessRuleException("Fulfill quantity must be positive")
+                val remaining = line.quantity.subtract(line.fulfilledQuantity)
+                if (qty > remaining) {
+                    throw BusinessRuleException("Cannot fulfill $qty of '${line.productSku}'; only $remaining remaining")
+                }
+                stockMovementService.createMovement(
+                    CreateStockMovementRequest(
+                        type = StockMovementType.ISSUE,
+                        productId = line.productId,
+                        warehouseId = so.warehouseId,
+                        quantity = qty,
+                        reference = "SO-${so.soNumber}",
+                    ),
+                    organizationId,
+                    userId,
+                )
+                line.copy(fulfilledQuantity = line.fulfilledQuantity.add(qty))
+            }
+
+        val fullyFulfilled = updatedLines.all { it.fulfilledQuantity >= it.quantity }
         return salesOrderRepository.save(
             so.copy(
-                status = SalesOrderStatus.FULFILLED,
-                fulfilledAt = LocalDateTime.now(ZoneOffset.UTC),
+                lines = updatedLines,
+                status = if (fullyFulfilled) SalesOrderStatus.FULFILLED else SalesOrderStatus.PARTIALLY_FULFILLED,
+                fulfilledAt = if (fullyFulfilled) LocalDateTime.now(ZoneOffset.UTC) else so.fulfilledAt,
             ),
         )
+    }
+
+    @Transactional
+    fun generateInvoice(
+        id: String,
+        request: GenerateInvoiceRequest?,
+        organizationId: String,
+        createdBy: String,
+    ): Invoice {
+        val so = getSalesOrder(id, organizationId)
+        if (so.status != SalesOrderStatus.PARTIALLY_FULFILLED && so.status != SalesOrderStatus.FULFILLED) {
+            throw BusinessRuleException("Sales order must be fulfilled before invoicing")
+        }
+        val customer = customerService.getCustomer(so.customerId, organizationId)
+        val revenueAccountId =
+            customer.defaultRevenueAccountId
+                ?: throw BusinessRuleException("Customer '${customer.name}' has no default revenue account")
+
+        val byId = so.lines.associateBy { it.id }
+        val requested =
+            if (request?.lines.isNullOrEmpty()) {
+                so.lines
+                    .associate { it.id to (it.fulfilledQuantity.subtract(it.invoicedQuantity) to null as BigDecimal?) }
+                    .filterValues { it.first.signum() > 0 }
+            } else {
+                request.lines!!.associate {
+                    it.lineId to ((it.quantity ?: throw BusinessRuleException("Quantity is required")) to it.unitPrice)
+                }
+            }
+        requested.keys.forEach { if (it !in byId) throw BusinessRuleException("Unknown sales order line '$it'") }
+        if (requested.isEmpty()) {
+            throw BusinessRuleException("Nothing left to invoice on this sales order")
+        }
+
+        val invoiceLines = mutableListOf<InvoiceLineRequest>()
+        val updatedLines =
+            so.lines.map { line ->
+                val entry = requested[line.id] ?: return@map line
+                val (qty, overridePrice) = entry
+                if (qty.signum() <= 0) throw BusinessRuleException("Invoice quantity must be positive")
+                val invoiceable = line.fulfilledQuantity.subtract(line.invoicedQuantity)
+                if (qty > invoiceable) {
+                    throw BusinessRuleException(
+                        "Cannot invoice $qty of '${line.productSku}'; only $invoiceable fulfilled and uninvoiced",
+                    )
+                }
+                val unitPrice = overridePrice ?: line.unitPrice
+                invoiceLines.add(
+                    InvoiceLineRequest(
+                        accountId = revenueAccountId,
+                        amount = qty.multiply(unitPrice),
+                        description = "${line.productSku} - ${line.productName}",
+                    ),
+                )
+                line.copy(invoicedQuantity = line.invoicedQuantity.add(qty))
+            }
+
+        val today = LocalDate.now(ZoneOffset.UTC)
+        val invoice =
+            invoiceService.createInvoice(
+                CreateInvoiceRequest(
+                    customerId = so.customerId,
+                    date = today,
+                    dueDate = today.plusDays(DEFAULT_INVOICE_TERM_DAYS),
+                    referenceNumber = "SO-${so.soNumber}",
+                    lines = invoiceLines,
+                ),
+                organizationId,
+                createdBy,
+            )
+        salesOrderRepository.save(so.copy(lines = updatedLines))
+        return invoice
     }
 
     @Transactional
@@ -209,5 +313,9 @@ class SalesOrderService(
             }
         }
         throw IllegalStateException("Failed to generate unique SO number")
+    }
+
+    private companion object {
+        const val DEFAULT_INVOICE_TERM_DAYS = 30L
     }
 }

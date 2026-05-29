@@ -3,6 +3,8 @@ package com.loom.synectix.controller
 import com.loom.synectix.annotation.LogLevel
 import com.loom.synectix.annotation.Loggable
 import com.loom.synectix.dto.CreateSalesOrderRequest
+import com.loom.synectix.dto.FulfillSalesOrderRequest
+import com.loom.synectix.dto.GenerateInvoiceRequest
 import com.loom.synectix.dto.SalesOrderResponse
 import com.loom.synectix.model.SalesOrderStatus
 import com.loom.synectix.security.AuthenticationContext
@@ -82,10 +84,23 @@ class SalesOrderController(
     @PreAuthorize("hasAuthority('sales:fulfill')")
     fun fulfillSalesOrder(
         @PathVariable id: String,
+        @Valid @RequestBody(required = false) request: FulfillSalesOrderRequest?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
-        return ResponseEntity.ok(SalesOrderResponse.from(salesOrderService.fulfillSalesOrder(id, orgId, userId)))
+        return ResponseEntity.ok(SalesOrderResponse.from(salesOrderService.fulfillSalesOrder(id, request, orgId, userId)))
+    }
+
+    @PostMapping("/{id}/generate-invoice")
+    @PreAuthorize("hasAuthority('sales:fulfill')")
+    fun generateInvoice(
+        @PathVariable id: String,
+        @Valid @RequestBody(required = false) request: GenerateInvoiceRequest?,
+    ): ResponseEntity<Any> {
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val createdBy = authContext.userId() ?: "api-key"
+        val invoice = salesOrderService.generateInvoice(id, request, orgId, createdBy)
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("invoiceId" to invoice.id, "invoiceNumber" to invoice.invoiceNumber))
     }
 
     @PostMapping("/{id}/close")
