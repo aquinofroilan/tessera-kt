@@ -55,6 +55,16 @@ object Permissions {
     const val INVENTORY_READ = "inventory:read"
     const val INVENTORY_WRITE = "inventory:write"
 
+    const val PROCUREMENT_READ = "procurement:read"
+    const val PROCUREMENT_WRITE = "procurement:write"
+    const val PROCUREMENT_APPROVE = "procurement:approve"
+    const val PROCUREMENT_RECEIVE = "procurement:receive"
+
+    const val SALES_READ = "sales:read"
+    const val SALES_WRITE = "sales:write"
+    const val SALES_APPROVE = "sales:approve"
+    const val SALES_FULFILL = "sales:fulfill"
+
     val ALL_PERMISSIONS =
         listOf(
             SESSION_READ,
@@ -97,5 +107,13 @@ object Permissions {
             FX_CREATE,
             INVENTORY_READ,
             INVENTORY_WRITE,
+            PROCUREMENT_READ,
+            PROCUREMENT_WRITE,
+            PROCUREMENT_APPROVE,
+            PROCUREMENT_RECEIVE,
+            SALES_READ,
+            SALES_WRITE,
+            SALES_APPROVE,
+            SALES_FULFILL,
         )
 }

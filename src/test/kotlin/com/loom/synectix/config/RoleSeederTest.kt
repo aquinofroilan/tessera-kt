@@ -93,6 +93,14 @@ class RoleSeederTest {
                         Permissions.FX_CREATE,
                         Permissions.INVENTORY_READ,
                         Permissions.INVENTORY_WRITE,
+                        Permissions.PROCUREMENT_READ,
+                        Permissions.PROCUREMENT_WRITE,
+                        Permissions.PROCUREMENT_APPROVE,
+                        Permissions.PROCUREMENT_RECEIVE,
+                        Permissions.SALES_READ,
+                        Permissions.SALES_WRITE,
+                        Permissions.SALES_APPROVE,
+                        Permissions.SALES_FULFILL,
                     ),
             )
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
@@ -286,6 +294,14 @@ class RoleSeederTest {
                         Permissions.FX_CREATE,
                         Permissions.INVENTORY_READ,
                         Permissions.INVENTORY_WRITE,
+                        Permissions.PROCUREMENT_READ,
+                        Permissions.PROCUREMENT_WRITE,
+                        Permissions.PROCUREMENT_APPROVE,
+                        Permissions.PROCUREMENT_RECEIVE,
+                        Permissions.SALES_READ,
+                        Permissions.SALES_WRITE,
+                        Permissions.SALES_APPROVE,
+                        Permissions.SALES_FULFILL,
                     ),
             )
         val admin =
@@ -328,6 +344,14 @@ class RoleSeederTest {
                         Permissions.FX_CREATE,
                         Permissions.INVENTORY_READ,
                         Permissions.INVENTORY_WRITE,
+                        Permissions.PROCUREMENT_READ,
+                        Permissions.PROCUREMENT_WRITE,
+                        Permissions.PROCUREMENT_APPROVE,
+                        Permissions.PROCUREMENT_RECEIVE,
+                        Permissions.SALES_READ,
+                        Permissions.SALES_WRITE,
+                        Permissions.SALES_APPROVE,
+                        Permissions.SALES_FULFILL,
                     ),
             )
         val member =
@@ -354,6 +378,10 @@ class RoleSeederTest {
                         Permissions.FX_READ,
                         Permissions.INVENTORY_READ,
                         Permissions.INVENTORY_WRITE,
+                        Permissions.PROCUREMENT_READ,
+                        Permissions.PROCUREMENT_WRITE,
+                        Permissions.SALES_READ,
+                        Permissions.SALES_WRITE,
                     ),
             )
         val viewer =
@@ -373,6 +401,8 @@ class RoleSeederTest {
                         Permissions.TAX_READ,
                         Permissions.FX_READ,
                         Permissions.INVENTORY_READ,
+                        Permissions.PROCUREMENT_READ,
+                        Permissions.SALES_READ,
                     ),
             )
 
