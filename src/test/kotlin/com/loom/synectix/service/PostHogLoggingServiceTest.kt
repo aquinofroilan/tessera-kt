@@ -11,6 +11,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.support.DefaultListableBeanFactory
 
 class PostHogLoggingServiceTest {
@@ -36,6 +37,25 @@ class PostHogLoggingServiceTest {
         // Raw message text must never be forwarded to the third party.
         assertThat(props).doesNotContainKeys("message", "exception_message")
         assertThat(props.values.map { it.toString() }).noneMatch { it.contains("123-45-6789") }
+    }
+
+    @Test
+    fun `captureException must not throw when the PostHog SDK fails`() {
+        val postHog = mock<PostHog>()
+        whenever(postHog.capture(any(), any(), any<Map<String, Any>>()))
+            .thenThrow(RuntimeException("SDK down"))
+        val beanFactory = DefaultListableBeanFactory()
+        beanFactory.registerSingleton("postHog", postHog)
+
+        val service =
+            PostHogLoggingService(
+                postHogProperties = PostHogProperties(enabled = true, loggingEnabled = true, distinctId = "test-app"),
+                postHogProvider = beanFactory.getBeanProvider(PostHog::class.java),
+            )
+
+        assertThatCode {
+            service.captureException(level = "ERROR", source = "service", throwable = RuntimeException("boom"))
+        }.doesNotThrowAnyException()
     }
 
     @Test
