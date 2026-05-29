@@ -20,6 +20,7 @@ class StockMovementService(
     private val warehouseRepository: WarehouseRepository,
     private val stockOnHandRepository: StockOnHandRepository,
     private val inventoryCostingService: InventoryCostingService,
+    private val inventoryPostingService: InventoryPostingService,
 ) {
     @Transactional
     fun createMovement(
@@ -56,7 +57,8 @@ class StockMovementService(
                 createdBy = userId,
             )
         val saved = stockMovementRepository.save(movement)
-        inventoryCostingService.apply(saved)
+        val cost = inventoryCostingService.apply(saved)
+        inventoryPostingService.postMovement(saved, cost)
         return saved
     }
 
