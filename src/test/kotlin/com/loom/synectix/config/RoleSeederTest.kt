@@ -95,6 +95,7 @@ class RoleSeederTest {
                         Permissions.INVENTORY_WRITE,
                         Permissions.HR_READ,
                         Permissions.HR_WRITE,
+                        Permissions.HR_APPROVE,
                     ),
             )
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
@@ -290,6 +291,7 @@ class RoleSeederTest {
                         Permissions.INVENTORY_WRITE,
                         Permissions.HR_READ,
                         Permissions.HR_WRITE,
+                        Permissions.HR_APPROVE,
                     ),
             )
         val admin =
@@ -334,6 +336,7 @@ class RoleSeederTest {
                         Permissions.INVENTORY_WRITE,
                         Permissions.HR_READ,
                         Permissions.HR_WRITE,
+                        Permissions.HR_APPROVE,
                     ),
             )
         val member =
