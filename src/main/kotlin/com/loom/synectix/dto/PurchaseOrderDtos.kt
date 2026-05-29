@@ -62,6 +62,48 @@ data class GenerateBillRequest(
     val lines: List<GenerateBillLine>? = null,
 )
 
+enum class MatchStatus {
+    MATCHED,
+    PRICE_VARIANCE,
+    OVER_BILLED,
+}
+
+data class BillMatchLineRequest(
+    @field:NotBlank(message = "Line ID is required")
+    val lineId: String,
+    @field:NotNull(message = "Quantity is required")
+    @field:Positive(message = "Quantity must be positive")
+    val quantity: BigDecimal?,
+    @field:NotNull(message = "Unit cost is required")
+    val unitCost: BigDecimal?,
+)
+
+data class BillMatchRequest(
+    @field:NotEmpty(message = "At least one line is required")
+    @field:Valid
+    val lines: List<BillMatchLineRequest>,
+)
+
+data class BillMatchLineResult(
+    val lineId: String,
+    val productSku: String,
+    val orderedQuantity: BigDecimal,
+    val receivedQuantity: BigDecimal,
+    val billedQuantity: BigDecimal,
+    val billableQuantity: BigDecimal,
+    val poUnitCost: BigDecimal,
+    val vendorUnitCost: BigDecimal,
+    val vendorQuantity: BigDecimal,
+    val status: MatchStatus,
+)
+
+data class BillMatchResult(
+    val purchaseOrderId: String,
+    val poNumber: String,
+    val matched: Boolean,
+    val lines: List<BillMatchLineResult>,
+)
+
 data class PurchaseOrderLineResponse(
     val id: String,
     val lineNumber: Int,

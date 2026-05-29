@@ -2,6 +2,7 @@ package com.loom.synectix.controller
 
 import com.loom.synectix.annotation.LogLevel
 import com.loom.synectix.annotation.Loggable
+import com.loom.synectix.dto.BillMatchRequest
 import com.loom.synectix.dto.CreatePurchaseOrderRequest
 import com.loom.synectix.dto.GenerateBillRequest
 import com.loom.synectix.dto.PurchaseOrderResponse
@@ -89,6 +90,16 @@ class PurchaseOrderController(
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
         return ResponseEntity.ok(PurchaseOrderResponse.from(purchaseOrderService.receivePurchaseOrder(id, request, orgId, userId)))
+    }
+
+    @PostMapping("/{id}/match-bill")
+    @PreAuthorize("hasAuthority('procurement:read')")
+    fun matchBill(
+        @PathVariable id: String,
+        @Valid @RequestBody request: BillMatchRequest,
+    ): ResponseEntity<Any> {
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        return ResponseEntity.ok(purchaseOrderService.previewBillMatch(id, request, orgId))
     }
 
     @PostMapping("/{id}/generate-bill")

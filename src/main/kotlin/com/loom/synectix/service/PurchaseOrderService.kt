@@ -1,10 +1,14 @@
 package com.loom.synectix.service
 
 import com.loom.synectix.dto.BillLineRequest
+import com.loom.synectix.dto.BillMatchLineResult
+import com.loom.synectix.dto.BillMatchRequest
+import com.loom.synectix.dto.BillMatchResult
 import com.loom.synectix.dto.CreateBillRequest
 import com.loom.synectix.dto.CreatePurchaseOrderRequest
 import com.loom.synectix.dto.CreateStockMovementRequest
 import com.loom.synectix.dto.GenerateBillRequest
+import com.loom.synectix.dto.MatchStatus
 import com.loom.synectix.dto.ReceivePurchaseOrderRequest
 import com.loom.synectix.exception.BusinessRuleException
 import com.loom.synectix.exception.ResourceNotFoundException
@@ -269,6 +273,61 @@ class PurchaseOrderService(
         return bill
     }
 
+    /**
+     * Three-way match preview: compares a vendor-supplied bill against the PO and
+     * its receipts without creating anything. Flags over-billed quantities and
+     * unit-cost variances beyond tolerance.
+     */
+    fun previewBillMatch(
+        id: String,
+        request: BillMatchRequest,
+        organizationId: String,
+    ): BillMatchResult {
+        val po = getPurchaseOrder(id, organizationId)
+        val byId = po.lines.associateBy { it.id }
+        val results =
+            request.lines.map { reqLine ->
+                val line =
+                    byId[reqLine.lineId]
+                        ?: throw BusinessRuleException("Unknown purchase order line '${reqLine.lineId}'")
+                val vendorQty = reqLine.quantity ?: throw BusinessRuleException("Quantity is required")
+                val vendorCost = reqLine.unitCost ?: throw BusinessRuleException("Unit cost is required")
+                val billable = line.receivedQuantity.subtract(line.billedQuantity)
+                val status =
+                    when {
+                        vendorQty > billable -> MatchStatus.OVER_BILLED
+                        priceVariance(line.unitCost, vendorCost) > PRICE_TOLERANCE -> MatchStatus.PRICE_VARIANCE
+                        else -> MatchStatus.MATCHED
+                    }
+                BillMatchLineResult(
+                    lineId = line.id,
+                    productSku = line.productSku,
+                    orderedQuantity = line.quantity,
+                    receivedQuantity = line.receivedQuantity,
+                    billedQuantity = line.billedQuantity,
+                    billableQuantity = billable,
+                    poUnitCost = line.unitCost,
+                    vendorUnitCost = vendorCost,
+                    vendorQuantity = vendorQty,
+                    status = status,
+                )
+            }
+        return BillMatchResult(
+            purchaseOrderId = po.id,
+            poNumber = po.poNumber,
+            matched = results.all { it.status == MatchStatus.MATCHED },
+            lines = results,
+        )
+    }
+
+    private fun priceVariance(
+        poCost: BigDecimal,
+        vendorCost: BigDecimal,
+    ): BigDecimal {
+        if (poCost.signum() <= 0) return BigDecimal.ZERO
+        return vendorCost.subtract(poCost).abs().divide(poCost, 6, RoundingMode.HALF_UP)
+    }
+
     private fun billExpenseAccountId(
         po: PurchaseOrder,
         organizationId: String,
@@ -289,9 +348,7 @@ class PurchaseOrderService(
         unitCost: BigDecimal,
     ) {
         if (line.unitCost.signum() <= 0) return
-        val variance =
-            unitCost.subtract(line.unitCost).abs().divide(line.unitCost, 6, RoundingMode.HALF_UP)
-        if (variance > PRICE_TOLERANCE) {
+        if (priceVariance(line.unitCost, unitCost) > PRICE_TOLERANCE) {
             throw BusinessRuleException(
                 "Billed unit cost $unitCost for '${line.productSku}' exceeds PO cost ${line.unitCost} beyond tolerance",
             )

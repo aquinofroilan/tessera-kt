@@ -1,10 +1,13 @@
 package com.loom.synectix.service
 
+import com.loom.synectix.dto.BillMatchLineRequest
+import com.loom.synectix.dto.BillMatchRequest
 import com.loom.synectix.dto.CreateBillRequest
 import com.loom.synectix.dto.CreatePurchaseOrderLineRequest
 import com.loom.synectix.dto.CreatePurchaseOrderRequest
 import com.loom.synectix.dto.GenerateBillLine
 import com.loom.synectix.dto.GenerateBillRequest
+import com.loom.synectix.dto.MatchStatus
 import com.loom.synectix.dto.ReceivePurchaseOrderLine
 import com.loom.synectix.dto.ReceivePurchaseOrderRequest
 import com.loom.synectix.exception.BusinessRuleException
@@ -266,5 +269,47 @@ class PurchaseOrderServiceTest {
         assertThatThrownBy { service.cancelPurchaseOrder(billed.id, orgId, userId) }
             .isInstanceOf(BusinessRuleException::class.java)
         verify(stockMovementService, never()).reverseByReference(any(), any(), any())
+    }
+
+    @Test
+    fun `match preview flags price variance and over-billing`() {
+        val received =
+            service
+                .createPurchaseOrder(createRequest(), orgId, userId)
+                .let { po ->
+                    po.copy(status = PurchaseOrderStatus.RECEIVED, lines = po.lines.map { it.copy(receivedQuantity = it.quantity) })
+                }
+        val lineId = received.lines.first().id
+        whenever(repository.findById(received.id)).thenReturn(Optional.of(received))
+
+        // PO: qty 10 @ 5, fully received. Vendor bills 12 @ 5.10 -> over-billed AND >5% price variance.
+        val overBilled =
+            service.previewBillMatch(
+                received.id,
+                BillMatchRequest(listOf(BillMatchLineRequest(lineId, BigDecimal("12"), BigDecimal("5.10")))),
+                orgId,
+            )
+        assertThat(overBilled.matched).isFalse()
+        assertThat(overBilled.lines.first().status).isEqualTo(MatchStatus.OVER_BILLED)
+        assertThat(overBilled.lines.first().billableQuantity).isEqualByComparingTo("10")
+
+        // Vendor bills 10 @ 5.10 -> within qty, but 2% price variance is within the 5% tolerance.
+        val matched =
+            service.previewBillMatch(
+                received.id,
+                BillMatchRequest(listOf(BillMatchLineRequest(lineId, BigDecimal("10"), BigDecimal("5.10")))),
+                orgId,
+            )
+        assertThat(matched.matched).isTrue()
+        assertThat(matched.lines.first().status).isEqualTo(MatchStatus.MATCHED)
+
+        // Vendor bills 10 @ 6 -> 20% price variance, beyond tolerance.
+        val priceVariance =
+            service.previewBillMatch(
+                received.id,
+                BillMatchRequest(listOf(BillMatchLineRequest(lineId, BigDecimal("10"), BigDecimal("6")))),
+                orgId,
+            )
+        assertThat(priceVariance.lines.first().status).isEqualTo(MatchStatus.PRICE_VARIANCE)
     }
 }
