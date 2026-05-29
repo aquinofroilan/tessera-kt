@@ -1,0 +1,87 @@
+package com.loom.synectix.service
+
+import com.loom.synectix.dto.CreateLeaveTypeRequest
+import com.loom.synectix.dto.UpdateLeaveTypeRequest
+import com.loom.synectix.exception.BusinessRuleException
+import com.loom.synectix.exception.ResourceNotFoundException
+import com.loom.synectix.model.LeaveType
+import com.loom.synectix.repository.LeaveTypeRepository
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+
+@Service
+class LeaveTypeService(
+    private val leaveTypeRepository: LeaveTypeRepository,
+) {
+    @Transactional
+    fun createLeaveType(
+        request: CreateLeaveTypeRequest,
+        organizationId: String,
+    ): LeaveType {
+        val code = request.code.trim()
+        if (leaveTypeRepository.findByOrganizationIdAndCode(organizationId, code).isPresent) {
+            throw BusinessRuleException("Leave type code '$code' already exists")
+        }
+        return leaveTypeRepository.save(
+            LeaveType(
+                code = code,
+                name = request.name.trim(),
+                paid = request.paid,
+                defaultAnnualDays = request.defaultAnnualDays,
+                organizationId = organizationId,
+            ),
+        )
+    }
+
+    fun getLeaveType(
+        id: String,
+        organizationId: String,
+    ): LeaveType {
+        val leaveType =
+            leaveTypeRepository.findById(id).orElseThrow {
+                ResourceNotFoundException("Leave type not found")
+            }
+        if (leaveType.organizationId != organizationId) {
+            throw ResourceNotFoundException("Leave type not found")
+        }
+        return leaveType
+    }
+
+    fun listLeaveTypes(
+        organizationId: String,
+        activeOnly: Boolean = false,
+    ): List<LeaveType> =
+        if (activeOnly) {
+            leaveTypeRepository.findByOrganizationIdAndIsActive(organizationId, true)
+        } else {
+            leaveTypeRepository.findByOrganizationId(organizationId)
+        }
+
+    @Transactional
+    fun updateLeaveType(
+        id: String,
+        request: UpdateLeaveTypeRequest,
+        organizationId: String,
+    ): LeaveType {
+        val leaveType = getLeaveType(id, organizationId)
+        return leaveTypeRepository.save(
+            leaveType.copy(
+                name = request.name?.trim() ?: leaveType.name,
+                paid = request.paid ?: leaveType.paid,
+                defaultAnnualDays = request.defaultAnnualDays ?: leaveType.defaultAnnualDays,
+            ),
+        )
+    }
+
+    @Transactional
+    fun deactivateLeaveType(
+        id: String,
+        organizationId: String,
+    ): LeaveType {
+        val leaveType = getLeaveType(id, organizationId)
+        if (!leaveType.isActive) {
+            throw BusinessRuleException("Leave type is already inactive")
+        }
+        return leaveTypeRepository.save(leaveType.copy(isActive = false))
+    }
+}
