@@ -118,6 +118,7 @@ class SalesOrderController(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(SalesOrderResponse.from(salesOrderService.cancelSalesOrder(id, orgId)))
+        val userId = authContext.userId() ?: "api-key"
+        return ResponseEntity.ok(SalesOrderResponse.from(salesOrderService.cancelSalesOrder(id, orgId, userId)))
     }
 }

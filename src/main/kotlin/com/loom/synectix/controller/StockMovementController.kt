@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -38,6 +39,17 @@ class StockMovementController(
         val userId = authContext.userId() ?: return authContext.unauthorized()
         val movement = stockMovementService.createMovement(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(movement.toResponse())
+    }
+
+    @PostMapping("/movements/{id}/reverse")
+    @PreAuthorize("hasAuthority('inventory:write')")
+    fun reverseMovement(
+        @PathVariable id: String,
+    ): ResponseEntity<Any> {
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val userId = authContext.userId() ?: return authContext.unauthorized()
+        val reversal = stockMovementService.reverseMovement(id, orgId, userId)
+        return ResponseEntity.status(HttpStatus.CREATED).body(reversal.toResponse())
     }
 
     @GetMapping("/movements")

@@ -7,4 +7,9 @@ import org.springframework.stereotype.Repository
 @Repository
 interface StockMovementRepository :
     JpaRepository<StockMovement, String>,
-    StockMovementQueries
+    StockMovementQueries {
+    fun findByOrganizationIdAndReference(
+        organizationId: String,
+        reference: String,
+    ): List<StockMovement>
+}

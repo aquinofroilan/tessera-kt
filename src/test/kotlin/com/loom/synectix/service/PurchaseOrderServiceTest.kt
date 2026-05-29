@@ -233,4 +233,38 @@ class PurchaseOrderServiceTest {
         }.isInstanceOf(BusinessRuleException::class.java)
         verify(billService, never()).createBill(any(), any(), any())
     }
+
+    @Test
+    fun `cancel of a received order reverses stock by reference`() {
+        val received =
+            service
+                .createPurchaseOrder(createRequest(), orgId, userId)
+                .let { po ->
+                    po.copy(status = PurchaseOrderStatus.RECEIVED, lines = po.lines.map { it.copy(receivedQuantity = it.quantity) })
+                }
+        whenever(repository.findById(received.id)).thenReturn(Optional.of(received))
+
+        val result = service.cancelPurchaseOrder(received.id, orgId, userId)
+
+        assertThat(result.status).isEqualTo(PurchaseOrderStatus.CANCELLED)
+        verify(stockMovementService).reverseByReference(eq("PO-${received.poNumber}"), eq(orgId), eq(userId))
+    }
+
+    @Test
+    fun `cancel is blocked once a bill has been generated`() {
+        val billed =
+            service
+                .createPurchaseOrder(createRequest(), orgId, userId)
+                .let { po ->
+                    po.copy(
+                        status = PurchaseOrderStatus.RECEIVED,
+                        lines = po.lines.map { it.copy(receivedQuantity = it.quantity, billedQuantity = it.quantity) },
+                    )
+                }
+        whenever(repository.findById(billed.id)).thenReturn(Optional.of(billed))
+
+        assertThatThrownBy { service.cancelPurchaseOrder(billed.id, orgId, userId) }
+            .isInstanceOf(BusinessRuleException::class.java)
+        verify(stockMovementService, never()).reverseByReference(any(), any(), any())
+    }
 }

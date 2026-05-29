@@ -314,13 +314,24 @@ class PurchaseOrderService(
     fun cancelPurchaseOrder(
         id: String,
         organizationId: String,
+        userId: String,
     ): PurchaseOrder {
         val po = getPurchaseOrder(id, organizationId)
-        if (po.status != PurchaseOrderStatus.DRAFT && po.status != PurchaseOrderStatus.APPROVED) {
-            throw BusinessRuleException("Only draft or approved purchase orders can be cancelled")
+        if (po.status == PurchaseOrderStatus.CANCELLED || po.status == PurchaseOrderStatus.CLOSED) {
+            throw BusinessRuleException("Closed or cancelled purchase orders cannot be cancelled")
         }
+        if (po.lines.any { it.billedQuantity.signum() > 0 }) {
+            throw BusinessRuleException("Cannot cancel a purchase order that has generated bills; void the bills first")
+        }
+
+        val received = po.status == PurchaseOrderStatus.PARTIALLY_RECEIVED || po.status == PurchaseOrderStatus.RECEIVED
+        if (received) {
+            stockMovementService.reverseByReference("PO-${po.poNumber}", organizationId, userId)
+        }
+
         return purchaseOrderRepository.save(
             po.copy(
+                lines = if (received) po.lines.map { it.copy(receivedQuantity = BigDecimal.ZERO) } else po.lines,
                 status = PurchaseOrderStatus.CANCELLED,
                 cancelledAt = LocalDateTime.now(ZoneOffset.UTC),
             ),
