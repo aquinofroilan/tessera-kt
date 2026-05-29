@@ -57,6 +57,7 @@ object Permissions {
 
     const val HR_READ = "hr:read"
     const val HR_WRITE = "hr:write"
+    const val HR_APPROVE = "hr:approve"
 
     val ALL_PERMISSIONS =
         listOf(
@@ -102,5 +103,6 @@ object Permissions {
             INVENTORY_WRITE,
             HR_READ,
             HR_WRITE,
+            HR_APPROVE,
         )
 }

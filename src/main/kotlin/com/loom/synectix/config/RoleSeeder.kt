@@ -76,6 +76,7 @@ class RoleSeeder(
                             Permissions.INVENTORY_WRITE,
                             Permissions.HR_READ,
                             Permissions.HR_WRITE,
+                            Permissions.HR_APPROVE,
                         ),
                 ),
                 Role(
@@ -119,6 +120,7 @@ class RoleSeeder(
                             Permissions.INVENTORY_WRITE,
                             Permissions.HR_READ,
                             Permissions.HR_WRITE,
+                            Permissions.HR_APPROVE,
                         ),
                 ),
                 Role(
