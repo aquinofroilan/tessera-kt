@@ -58,11 +58,19 @@ class EmployeeCompensationService(
         employeeId: String,
         organizationId: String,
         asOf: LocalDate,
-    ): EmployeeCompensation {
+    ): EmployeeCompensation =
+        currentCompensationOrNull(employeeId, organizationId, asOf)
+            ?: throw ResourceNotFoundException("No compensation effective on or before $asOf for this employee")
+
+    /** Like [currentCompensation] but returns null instead of throwing when none applies. */
+    fun currentCompensationOrNull(
+        employeeId: String,
+        organizationId: String,
+        asOf: LocalDate,
+    ): EmployeeCompensation? {
         employeeService.getEmployee(employeeId, organizationId)
         return compensationRepository
             .findByOrganizationIdAndEmployeeIdOrderByEffectiveDateDesc(organizationId, employeeId)
             .firstOrNull { !it.effectiveDate.isAfter(asOf) }
-            ?: throw ResourceNotFoundException("No compensation effective on or before $asOf for this employee")
     }
 }
