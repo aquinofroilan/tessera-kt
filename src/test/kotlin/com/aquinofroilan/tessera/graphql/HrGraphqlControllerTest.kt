@@ -72,6 +72,29 @@ class HrGraphqlControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = ["hr:read"])
+    fun `departmentOrgChart query should return the nested tree`() {
+        `when`(departmentController.getOrgChart())
+            .thenReturn(
+                ResponseEntity.ok(
+                    listOf(mapOf("id" to "d1", "children" to listOf(mapOf("id" to "d2", "children" to emptyList<Any>())))),
+                ),
+            )
+
+        graphQlTester
+            .document(
+                """
+                query {
+                  departmentOrgChart
+                }
+                """.trimIndent(),
+            ).execute()
+            .path("departmentOrgChart[0].children[0].id")
+            .entity(String::class.java)
+            .isEqualTo("d2")
+    }
+
+    @Test
     @WithMockUser(authorities = ["hr:approve"])
     fun `approvePayrollRun mutation should bridge to controller`() {
         `when`(payrollRunController.approvePayrollRun("pr1"))
