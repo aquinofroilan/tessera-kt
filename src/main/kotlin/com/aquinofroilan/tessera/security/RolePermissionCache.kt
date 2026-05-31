@@ -1,7 +1,7 @@
 package com.aquinofroilan.tessera.security
 
-import com.github.benmanes.caffeine.cache.Caffeine
 import com.aquinofroilan.tessera.repository.RoleRepository
+import com.github.benmanes.caffeine.cache.Caffeine
 import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Component
 import java.time.Duration

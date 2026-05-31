@@ -74,6 +74,9 @@ class RoleSeeder(
                             Permissions.FX_CREATE,
                             Permissions.INVENTORY_READ,
                             Permissions.INVENTORY_WRITE,
+                            Permissions.HR_READ,
+                            Permissions.HR_WRITE,
+                            Permissions.HR_APPROVE,
                         ),
                 ),
                 Role(
@@ -115,6 +118,9 @@ class RoleSeeder(
                             Permissions.FX_CREATE,
                             Permissions.INVENTORY_READ,
                             Permissions.INVENTORY_WRITE,
+                            Permissions.HR_READ,
+                            Permissions.HR_WRITE,
+                            Permissions.HR_APPROVE,
                         ),
                 ),
                 Role(
@@ -140,6 +146,8 @@ class RoleSeeder(
                             Permissions.FX_READ,
                             Permissions.INVENTORY_READ,
                             Permissions.INVENTORY_WRITE,
+                            Permissions.HR_READ,
+                            Permissions.HR_WRITE,
                         ),
                 ),
                 Role(
@@ -158,6 +166,7 @@ class RoleSeeder(
                             Permissions.TAX_READ,
                             Permissions.FX_READ,
                             Permissions.INVENTORY_READ,
+                            Permissions.HR_READ,
                         ),
                 ),
             )
