@@ -1,0 +1,56 @@
+extend type Query {
+  payrollRuns(status: String): JSON!
+  payrollRun(id: ID!): JSON!
+
+  departments(activeOnly: Boolean = false): JSON!
+  department(id: ID!): JSON!
+
+  employees(status: String, departmentId: String): JSON!
+  employee(id: ID!): JSON!
+
+  positions(activeOnly: Boolean = false): JSON!
+  position(id: ID!): JSON!
+
+  leaveTypes(activeOnly: Boolean = false): JSON!
+  leaveType(id: ID!): JSON!
+
+  leaveRequests(employeeId: String, status: String): JSON!
+  leaveRequest(id: ID!): JSON!
+  leaveBalance(employeeId: ID!, leaveTypeId: ID!, year: Int): JSON!
+
+  employeeCompensations(employeeId: ID!): JSON!
+  currentEmployeeCompensation(employeeId: ID!, asOf: String): JSON!
+}
+
+extend type Mutation {
+  createPayrollRun(input: JSON!): JSON!
+  approvePayrollRun(id: ID!): JSON!
+  payPayrollRun(id: ID!): JSON!
+  cancelPayrollRun(id: ID!): JSON!
+
+  createDepartment(input: JSON!): JSON!
+  updateDepartment(id: ID!, input: JSON!): JSON!
+  deactivateDepartment(id: ID!): JSON!
+
+  createEmployee(input: JSON!): JSON!
+  updateEmployee(id: ID!, input: JSON!): JSON!
+  assignEmployeeDepartment(id: ID!, departmentId: String): JSON!
+  placeEmployeeOnLeave(id: ID!): JSON!
+  returnEmployeeFromLeave(id: ID!): JSON!
+  terminateEmployee(id: ID!, input: JSON!): JSON!
+
+  createPosition(input: JSON!): JSON!
+  updatePosition(id: ID!, input: JSON!): JSON!
+  deactivatePosition(id: ID!): JSON!
+
+  createLeaveType(input: JSON!): JSON!
+  updateLeaveType(id: ID!, input: JSON!): JSON!
+  deactivateLeaveType(id: ID!): JSON!
+
+  createLeaveRequest(input: JSON!): JSON!
+  approveLeaveRequest(id: ID!): JSON!
+  rejectLeaveRequest(id: ID!, input: JSON): JSON!
+  cancelLeaveRequest(id: ID!): JSON!
+
+  addEmployeeCompensation(employeeId: ID!, input: JSON!): JSON!
+}
