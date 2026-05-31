@@ -30,6 +30,7 @@ class StockMovementServiceTest {
     private lateinit var warehouseRepository: WarehouseRepository
     private lateinit var stockOnHandRepository: StockOnHandRepository
     private lateinit var inventoryCostingService: InventoryCostingService
+    private lateinit var inventoryPostingService: InventoryPostingService
 
     private val orgId = "org-123"
     private val userId = "user-123"
@@ -43,13 +44,16 @@ class StockMovementServiceTest {
         warehouseRepository = mock(WarehouseRepository::class.java)
         stockOnHandRepository = mock(StockOnHandRepository::class.java)
         inventoryCostingService = mock(InventoryCostingService::class.java)
+        inventoryPostingService = mock(InventoryPostingService::class.java)
         whenever(stockOnHandRepository.applyDelta(any(), any(), any(), any(), any())).thenReturn(true)
+        whenever(inventoryCostingService.apply(any())).thenReturn(BigDecimal.ZERO)
         stockMovementService =
             StockMovementService(
                 stockMovementRepository,
                 warehouseRepository,
                 stockOnHandRepository,
                 inventoryCostingService,
+                inventoryPostingService,
             )
     }
 
