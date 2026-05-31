@@ -1,6 +1,5 @@
 package com.aquinofroilan.tessera.config
 
-import com.github.benmanes.caffeine.cache.Caffeine
 import com.aquinofroilan.tessera.repository.SessionTokenRepository
 import com.aquinofroilan.tessera.repository.UserRepository
 import com.aquinofroilan.tessera.security.ApiKeyContext
@@ -8,6 +7,7 @@ import com.aquinofroilan.tessera.security.ApiKeyPrincipal
 import com.aquinofroilan.tessera.security.RolePermissionCache
 import com.aquinofroilan.tessera.security.SessionContext
 import com.aquinofroilan.tessera.service.ApiKeyService
+import com.github.benmanes.caffeine.cache.Caffeine
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse

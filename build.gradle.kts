@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "com.aquinofroilan"
-version = "0.9.0"
+version = "0.10.0"
 description = "Tessera an ERP System"
 
 java {
@@ -39,8 +39,10 @@ repositories {
 }
 
 dependencies {
+    implementation("com.posthog.java:posthog:1.2.0")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-graphql")
     implementation("org.springframework.boot:spring-boot-starter-validation")
