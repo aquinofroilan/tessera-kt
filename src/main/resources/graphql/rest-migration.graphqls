@@ -1,0 +1,105 @@
+scalar JSON
+
+extend type Query {
+  health: JSON!
+  simpleHealth: JSON!
+  detailedHealth: JSON!
+
+  environmentInfo: JSON!
+  environmentVariables: JSON!
+
+  organizations: JSON!
+  sessions: JSON!
+  invitations: JSON!
+  apiKeys: JSON!
+
+  accounts(type: String, parentId: String): JSON!
+  account(id: ID!): JSON!
+  accountBalance(id: ID!, asOfDate: String): JSON!
+
+  fiscalYears: JSON!
+  fiscalYear(id: ID!): JSON!
+
+  journalEntries(status: String, startDate: String, endDate: String): JSON!
+  journalEntry(id: ID!): JSON!
+  journalTrialBalance(asOfDate: String): JSON!
+
+  reportTrialBalance(asOfDate: String, compareAsOfDate: String): JSON!
+  reportIncomeStatement(startDate: String!, endDate: String!, compareStartDate: String, compareEndDate: String): JSON!
+  reportBalanceSheet(asOfDate: String!, compareAsOfDate: String): JSON!
+
+  taxRates(active: Boolean): JSON!
+  taxRate(id: ID!): JSON!
+  taxGroups(active: Boolean): JSON!
+  taxGroup(id: ID!): JSON!
+  taxSummary(startDate: String!, endDate: String!): JSON!
+
+  vendors: JSON!
+  vendor(id: ID!): JSON!
+
+  bills(status: String, vendorId: String): JSON!
+  bill(id: ID!): JSON!
+  billPayments(id: ID!): JSON!
+  billAging(asOfDate: String): JSON!
+
+  invoices(status: String, customerId: String): JSON!
+  invoice(id: ID!): JSON!
+  invoiceReceipts(id: ID!): JSON!
+  invoiceAging(asOfDate: String): JSON!
+}
+
+extend type Mutation {
+  signup(input: JSON!): JSON!
+  signin(input: JSON!): JSON!
+  refresh(input: JSON!): JSON!
+  changePassword(input: JSON!): JSON!
+  forgotPassword(input: JSON!): JSON!
+  resetPassword(input: JSON!): JSON!
+  switchOrganization(input: JSON!): JSON!
+  logout: JSON!
+
+  revokeSession(sessionId: ID!): JSON!
+  revokeOtherSessions: JSON!
+
+  createInvitation(input: JSON!): JSON!
+  validateInvitation(input: JSON!): JSON!
+  acceptInvitation(input: JSON!): JSON!
+  revokeInvitation(id: ID!): JSON!
+
+  createApiKey(input: JSON!): JSON!
+  revokeApiKey(id: ID!): JSON!
+
+  createAccount(input: JSON!): JSON!
+  updateAccount(id: ID!, input: JSON!): JSON!
+  deleteAccount(id: ID!): JSON!
+
+  createFiscalYear(input: JSON!): JSON!
+  closePeriod(id: ID!, periodId: ID!): JSON!
+  reopenPeriod(id: ID!, periodId: ID!): JSON!
+  closeYear(id: ID!): JSON!
+
+  createJournalEntry(input: JSON!): JSON!
+  postJournalEntry(id: ID!): JSON!
+  voidJournalEntry(id: ID!, input: JSON!): JSON!
+
+  createTaxRate(input: JSON!): JSON!
+  updateTaxRate(id: ID!, input: JSON!): JSON!
+  deleteTaxRate(id: ID!): JSON!
+  createTaxGroup(input: JSON!): JSON!
+  updateTaxGroup(id: ID!, input: JSON!): JSON!
+  deleteTaxGroup(id: ID!): JSON!
+
+  createVendor(input: JSON!): JSON!
+  updateVendor(id: ID!, input: JSON!): JSON!
+  deleteVendor(id: ID!): JSON!
+
+  createBill(input: JSON!): JSON!
+  approveBill(id: ID!): JSON!
+  voidBill(id: ID!, input: JSON!): JSON!
+  recordBillPayment(id: ID!, input: JSON!): JSON!
+
+  createInvoice(input: JSON!): JSON!
+  approveInvoice(id: ID!): JSON!
+  voidInvoice(id: ID!, input: JSON!): JSON!
+  recordInvoiceReceipt(id: ID!, input: JSON!): JSON!
+}

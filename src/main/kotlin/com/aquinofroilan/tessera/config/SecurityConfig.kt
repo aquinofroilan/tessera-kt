@@ -4,6 +4,8 @@ import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.env.Environment
+import org.springframework.core.env.Profiles
 import org.springframework.http.HttpMethod
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler
@@ -24,6 +26,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableMethodSecurity
 class SecurityConfig(
     private val tokenAuthenticationFilter: TokenAuthenticationFilter,
+    private val environment: Environment,
     @Value("\${spring.web.cors.allowed-origins:http://localhost:3000,http://localhost:8080}")
     private val corsAllowedOrigins: String,
 ) {
@@ -54,6 +57,12 @@ class SecurityConfig(
                 it.requestMatchers("/finance/**").authenticated()
                 it.requestMatchers("/auth/**").permitAll()
                 it.requestMatchers("/health/**").permitAll()
+                it.requestMatchers("/graphql").permitAll()
+                if (environment.acceptsProfiles(Profiles.of("dev", "test"))) {
+                    it.requestMatchers("/graphiql", "/graphiql/**").permitAll()
+                } else {
+                    it.requestMatchers("/graphiql", "/graphiql/**").denyAll()
+                }
                 it.requestMatchers("/actuator/health/**").permitAll()
                 it.requestMatchers("/actuator/info").permitAll()
                 it.requestMatchers("/actuator/prometheus").permitAll()

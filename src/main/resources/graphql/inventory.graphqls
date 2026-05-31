@@ -1,0 +1,34 @@
+extend type Query {
+  products(category: String, isActive: Boolean, search: String): JSON!
+  product(id: ID!): JSON!
+
+  warehouses(isActive: Boolean, search: String): JSON!
+  warehouse(id: ID!): JSON!
+
+  stockMovements(productId: String, warehouseId: String, type: String, from: String, to: String): JSON!
+  stockOnHand(productId: String!, warehouseId: String!): JSON!
+
+  reorderRules: JSON!
+  reorderRule(id: ID!): JSON!
+
+  inventoryValuation: JSON!
+  inventoryStockOnHand(productId: String, warehouseId: String, asOfDate: String): JSON!
+  inventoryMovementHistory(productId: String, warehouseId: String, from: String, to: String): JSON!
+  lowStockReport: JSON!
+}
+
+extend type Mutation {
+  createProduct(input: JSON!): JSON!
+  updateProduct(id: ID!, input: JSON!): JSON!
+  deleteProduct(id: ID!): JSON!
+
+  createWarehouse(input: JSON!): JSON!
+  updateWarehouse(id: ID!, input: JSON!): JSON!
+  deleteWarehouse(id: ID!): JSON!
+
+  createStockMovement(input: JSON!): JSON!
+
+  createReorderRule(input: JSON!): JSON!
+  updateReorderRule(id: ID!, input: JSON!): JSON!
+  deleteReorderRule(id: ID!): JSON!
+}

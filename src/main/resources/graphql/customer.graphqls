@@ -1,0 +1,42 @@
+extend type Query {
+  customers: [Customer!]!
+  customer(id: ID!): Customer!
+}
+
+extend type Mutation {
+  createCustomer(input: CreateCustomerInput!): Customer!
+  updateCustomer(id: ID!, input: UpdateCustomerInput!): Customer!
+  deleteCustomer(id: ID!): Customer!
+}
+
+type Customer {
+  id: ID!
+  name: String!
+  contactName: String
+  contactEmail: String
+  contactPhone: String
+  paymentTermDays: Int!
+  defaultRevenueAccountId: String
+  organizationId: String!
+  isActive: Boolean!
+  createdAt: String
+  updatedAt: String
+}
+
+input CreateCustomerInput {
+  name: String!
+  contactName: String
+  contactEmail: String
+  contactPhone: String
+  paymentTermDays: Int = 30
+  defaultRevenueAccountId: String
+}
+
+input UpdateCustomerInput {
+  name: String
+  contactName: String
+  contactEmail: String
+  contactPhone: String
+  paymentTermDays: Int
+  defaultRevenueAccountId: String
+}
