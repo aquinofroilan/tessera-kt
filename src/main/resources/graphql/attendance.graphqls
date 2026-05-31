@@ -1,0 +1,10 @@
+extend type Query {
+  attendance(employeeId: String, from: String, to: String): JSON!
+  attendanceRecord(id: ID!): JSON!
+}
+
+extend type Mutation {
+  clockIn(input: JSON!): JSON!
+  clockOut(input: JSON!): JSON!
+  recordAttendance(input: JSON!): JSON!
+}
