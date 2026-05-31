@@ -1,6 +1,5 @@
 package com.aquinofroilan.tessera.controller
 
-import com.github.benmanes.caffeine.cache.Caffeine
 import com.aquinofroilan.tessera.annotation.LogLevel
 import com.aquinofroilan.tessera.annotation.Loggable
 import com.aquinofroilan.tessera.dto.ChangePasswordRequest
@@ -14,6 +13,7 @@ import com.aquinofroilan.tessera.exception.AuthenticationException
 import com.aquinofroilan.tessera.model.User
 import com.aquinofroilan.tessera.security.SessionContext
 import com.aquinofroilan.tessera.service.AuthService
+import com.github.benmanes.caffeine.cache.Caffeine
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory

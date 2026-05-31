@@ -82,6 +82,9 @@ class RoleSeeder(
                             Permissions.SALES_WRITE,
                             Permissions.SALES_APPROVE,
                             Permissions.SALES_FULFILL,
+                            Permissions.HR_READ,
+                            Permissions.HR_WRITE,
+                            Permissions.HR_APPROVE,
                         ),
                 ),
                 Role(
@@ -131,6 +134,9 @@ class RoleSeeder(
                             Permissions.SALES_WRITE,
                             Permissions.SALES_APPROVE,
                             Permissions.SALES_FULFILL,
+                            Permissions.HR_READ,
+                            Permissions.HR_WRITE,
+                            Permissions.HR_APPROVE,
                         ),
                 ),
                 Role(
@@ -160,6 +166,8 @@ class RoleSeeder(
                             Permissions.PROCUREMENT_WRITE,
                             Permissions.SALES_READ,
                             Permissions.SALES_WRITE,
+                            Permissions.HR_READ,
+                            Permissions.HR_WRITE,
                         ),
                 ),
                 Role(
@@ -180,6 +188,7 @@ class RoleSeeder(
                             Permissions.INVENTORY_READ,
                             Permissions.PROCUREMENT_READ,
                             Permissions.SALES_READ,
+                            Permissions.HR_READ,
                         ),
                 ),
             )
