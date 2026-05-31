@@ -2,6 +2,7 @@ package com.aquinofroilan.tessera.service
 
 import com.aquinofroilan.tessera.dto.CreateEmployeeRequest
 import com.aquinofroilan.tessera.exception.BusinessRuleException
+import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import com.aquinofroilan.tessera.model.Department
 import com.aquinofroilan.tessera.model.Employee
 import com.aquinofroilan.tessera.model.EmploymentStatus
@@ -100,5 +101,38 @@ class EmployeeServiceTest {
         whenever(repository.findById("e1")).thenReturn(Optional.of(employee(status = EmploymentStatus.TERMINATED)))
         assertThatThrownBy { service.assignDepartment("e1", "d1", orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
+    }
+
+    @Test
+    fun `create links a user`() {
+        whenever(repository.findByOrganizationIdAndUserId(orgId, "u1")).thenReturn(Optional.empty())
+        val emp =
+            service.createEmployee(
+                CreateEmployeeRequest(firstName = "Ada", lastName = "Lovelace", hireDate = hireDate, userId = "u1"),
+                orgId,
+            )
+        assertThat(emp.userId).isEqualTo("u1")
+    }
+
+    @Test
+    fun `create rejects linking a user already linked to another employee`() {
+        whenever(repository.findByOrganizationIdAndUserId(orgId, "u1"))
+            .thenReturn(Optional.of(employee(id = "other")))
+        assertThatThrownBy {
+            service.createEmployee(
+                CreateEmployeeRequest(firstName = "Ada", lastName = "Lovelace", hireDate = hireDate, userId = "u1"),
+                orgId,
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
+    }
+
+    @Test
+    fun `getEmployeeByUser resolves the linked employee or throws`() {
+        whenever(repository.findByOrganizationIdAndUserId(orgId, "u1")).thenReturn(Optional.of(employee()))
+        assertThat(service.getEmployeeByUser("u1", orgId).id).isEqualTo("e1")
+
+        whenever(repository.findByOrganizationIdAndUserId(orgId, "u2")).thenReturn(Optional.empty())
+        assertThatThrownBy { service.getEmployeeByUser("u2", orgId) }
+            .isInstanceOf(ResourceNotFoundException::class.java)
     }
 }

@@ -24,6 +24,7 @@ class EmployeeService(
     ): Employee {
         val hireDate = request.hireDate ?: throw BusinessRuleException("Hire date is required")
         request.departmentId?.let { requireActiveDepartment(it, organizationId) }
+        request.userId?.let { requireUserUnlinked(it, organizationId, excludingEmployeeId = null) }
         return saveWithRetry(organizationId) { number ->
             Employee(
                 employeeNumber = number,
@@ -32,6 +33,7 @@ class EmployeeService(
                 email = request.email?.trim(),
                 jobTitle = request.jobTitle?.trim(),
                 departmentId = request.departmentId,
+                userId = request.userId,
                 hireDate = hireDate,
                 organizationId = organizationId,
             )
@@ -70,15 +72,26 @@ class EmployeeService(
         organizationId: String,
     ): Employee {
         val employee = getEmployee(id, organizationId)
+        request.userId?.let { requireUserUnlinked(it, organizationId, excludingEmployeeId = employee.id) }
         return employeeRepository.save(
             employee.copy(
                 firstName = request.firstName?.trim() ?: employee.firstName,
                 lastName = request.lastName?.trim() ?: employee.lastName,
                 email = request.email?.trim() ?: employee.email,
                 jobTitle = request.jobTitle?.trim() ?: employee.jobTitle,
+                userId = request.userId ?: employee.userId,
             ),
         )
     }
+
+    /** Resolves the employee record linked to the given login user, for self-service. */
+    fun getEmployeeByUser(
+        userId: String,
+        organizationId: String,
+    ): Employee =
+        employeeRepository.findByOrganizationIdAndUserId(organizationId, userId).orElseThrow {
+            ResourceNotFoundException("No employee record is linked to your account")
+        }
 
     @Transactional
     fun assignDepartment(
@@ -134,6 +147,17 @@ class EmployeeService(
         return employeeRepository.save(
             employee.copy(status = EmploymentStatus.TERMINATED, terminationDate = terminationDate),
         )
+    }
+
+    private fun requireUserUnlinked(
+        userId: String,
+        organizationId: String,
+        excludingEmployeeId: String?,
+    ) {
+        val existing = employeeRepository.findByOrganizationIdAndUserId(organizationId, userId)
+        if (existing.isPresent && existing.get().id != excludingEmployeeId) {
+            throw BusinessRuleException("That user is already linked to another employee")
+        }
     }
 
     private fun requireActiveDepartment(
