@@ -35,6 +35,33 @@ data class CreateSalesOrderRequest(
     val lines: List<CreateSalesOrderLineRequest>,
 )
 
+data class FulfillSalesOrderLine(
+    @field:NotBlank(message = "Line ID is required")
+    val lineId: String,
+    @field:NotNull(message = "Quantity is required")
+    @field:Positive(message = "Quantity must be positive")
+    val quantity: BigDecimal?,
+)
+
+data class FulfillSalesOrderRequest(
+    @field:Valid
+    val lines: List<FulfillSalesOrderLine>? = null,
+)
+
+data class GenerateInvoiceLine(
+    @field:NotBlank(message = "Line ID is required")
+    val lineId: String,
+    @field:NotNull(message = "Quantity is required")
+    @field:Positive(message = "Quantity must be positive")
+    val quantity: BigDecimal?,
+    val unitPrice: BigDecimal? = null,
+)
+
+data class GenerateInvoiceRequest(
+    @field:Valid
+    val lines: List<GenerateInvoiceLine>? = null,
+)
+
 data class SalesOrderLineResponse(
     val id: String,
     val lineNumber: Int,
@@ -44,6 +71,8 @@ data class SalesOrderLineResponse(
     val quantity: BigDecimal,
     val unitPrice: BigDecimal,
     val lineTotal: BigDecimal,
+    val fulfilledQuantity: BigDecimal,
+    val invoicedQuantity: BigDecimal,
     val description: String?,
 )
 
@@ -91,6 +120,8 @@ data class SalesOrderResponse(
                             quantity = line.quantity,
                             unitPrice = line.unitPrice,
                             lineTotal = line.lineTotal,
+                            fulfilledQuantity = line.fulfilledQuantity,
+                            invoicedQuantity = line.invoicedQuantity,
                             description = line.description,
                         )
                     },
