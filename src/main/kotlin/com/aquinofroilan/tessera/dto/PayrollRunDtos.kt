@@ -1,0 +1,82 @@
+package com.aquinofroilan.tessera.dto
+
+import com.aquinofroilan.tessera.model.PayrollRun
+import com.aquinofroilan.tessera.model.PayrollRunStatus
+import jakarta.validation.constraints.NotNull
+import java.math.BigDecimal
+import java.time.LocalDate
+
+data class CreatePayrollRunRequest(
+    @field:NotNull(message = "Period start is required")
+    val periodStart: LocalDate?,
+    @field:NotNull(message = "Period end is required")
+    val periodEnd: LocalDate?,
+    @field:NotNull(message = "Pay date is required")
+    val payDate: LocalDate?,
+)
+
+data class PayrollRunLineResponse(
+    val id: String,
+    val lineNumber: Int,
+    val employeeId: String,
+    val employeeNumber: String,
+    val employeeName: String,
+    val compensationId: String,
+    val grossAmount: BigDecimal,
+)
+
+data class PayrollRunResponse(
+    val id: String,
+    val runNumber: String,
+    val periodStart: String,
+    val periodEnd: String,
+    val payDate: String,
+    val organizationId: String,
+    val status: PayrollRunStatus,
+    val lines: List<PayrollRunLineResponse>,
+    val totalGross: BigDecimal,
+    val currency: String,
+    val createdBy: String,
+    val accrualJournalEntryId: String?,
+    val paymentJournalEntryId: String?,
+    val approvedAt: String?,
+    val paidAt: String?,
+    val cancelledAt: String?,
+    val createdAt: String?,
+    val updatedAt: String?,
+) {
+    companion object {
+        fun from(run: PayrollRun) =
+            PayrollRunResponse(
+                id = run.id,
+                runNumber = run.runNumber,
+                periodStart = run.periodStart.toString(),
+                periodEnd = run.periodEnd.toString(),
+                payDate = run.payDate.toString(),
+                organizationId = run.organizationId,
+                status = run.status,
+                lines =
+                    run.lines.map { line ->
+                        PayrollRunLineResponse(
+                            id = line.id,
+                            lineNumber = line.lineNumber,
+                            employeeId = line.employeeId,
+                            employeeNumber = line.employeeNumber,
+                            employeeName = line.employeeName,
+                            compensationId = line.compensationId,
+                            grossAmount = line.grossAmount,
+                        )
+                    },
+                totalGross = run.totalGross,
+                currency = run.currency,
+                createdBy = run.createdBy,
+                accrualJournalEntryId = run.accrualJournalEntryId,
+                paymentJournalEntryId = run.paymentJournalEntryId,
+                approvedAt = run.approvedAt?.toString(),
+                paidAt = run.paidAt?.toString(),
+                cancelledAt = run.cancelledAt?.toString(),
+                createdAt = run.createdAt?.toString(),
+                updatedAt = run.updatedAt?.toString(),
+            )
+    }
+}
