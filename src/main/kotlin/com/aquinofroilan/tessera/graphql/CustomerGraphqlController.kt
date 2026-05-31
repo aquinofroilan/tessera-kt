@@ -6,6 +6,7 @@ import com.aquinofroilan.tessera.exception.AuthenticationException
 import com.aquinofroilan.tessera.model.Customer
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.service.CustomerService
+import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
@@ -39,7 +40,7 @@ class CustomerGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('ar:create')")
     fun createCustomer(
-        @Argument input: CreateCustomerInput,
+        @Argument @Valid input: CreateCustomerInput,
     ): CustomerGraphql {
         val orgId = requireOrganizationId()
         val customer =
@@ -61,7 +62,7 @@ class CustomerGraphqlController(
     @PreAuthorize("hasAuthority('ar:create')")
     fun updateCustomer(
         @Argument id: String,
-        @Argument input: UpdateCustomerInput,
+        @Argument @Valid input: UpdateCustomerInput,
     ): CustomerGraphql {
         val orgId = requireOrganizationId()
         val customer =

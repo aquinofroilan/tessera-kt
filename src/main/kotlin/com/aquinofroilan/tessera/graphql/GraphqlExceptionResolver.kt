@@ -6,6 +6,7 @@ import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import graphql.GraphQLError
 import graphql.GraphqlErrorBuilder
 import graphql.schema.DataFetchingEnvironment
+import jakarta.validation.ConstraintViolationException
 import org.springframework.graphql.execution.DataFetcherExceptionResolverAdapter
 import org.springframework.graphql.execution.ErrorType
 import org.springframework.stereotype.Component
@@ -18,6 +19,12 @@ class GraphqlExceptionResolver : DataFetcherExceptionResolverAdapter() {
     ): GraphQLError? =
         when (ex) {
             is ResourceNotFoundException -> error(env, ex.message ?: "Resource not found", ErrorType.NOT_FOUND)
+            is ConstraintViolationException ->
+                error(
+                    env,
+                    ex.constraintViolations.joinToString("; ") { it.message }.ifBlank { "Invalid request" },
+                    ErrorType.BAD_REQUEST,
+                )
             is BusinessRuleException, is IllegalArgumentException -> error(env, ex.message ?: "Invalid request", ErrorType.BAD_REQUEST)
             is AuthenticationException -> error(env, ex.message ?: "Authentication failed", ErrorType.UNAUTHORIZED)
             is IllegalStateException -> error(env, ex.message ?: "Unable to process request", ErrorType.BAD_REQUEST)

@@ -10,6 +10,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest
 import org.springframework.context.annotation.Import
@@ -104,6 +107,25 @@ class CustomerGraphqlControllerTest {
             .path("createCustomer.id")
             .entity(String::class.java)
             .isEqualTo("cust-2")
+    }
+
+    @Test
+    fun `createCustomer mutation should reject invalid input without calling the service`() {
+        graphQlTester
+            .document(
+                """
+                mutation(${'$'}input: CreateCustomerInput!) {
+                  createCustomer(input: ${'$'}input) {
+                    id
+                  }
+                }
+                """.trimIndent(),
+            ).variable("input", mapOf("name" to "", "contactEmail" to "not-an-email", "paymentTermDays" to -5))
+            .execute()
+            .errors()
+            .satisfy { errors -> assertThat(errors).isNotEmpty() }
+
+        verify(customerService, never()).createCustomer(any(), any())
     }
 
     @Test
