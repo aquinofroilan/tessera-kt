@@ -21,6 +21,8 @@ data class Department(
     val code: String,
     val name: String,
     val description: String? = null,
+    @Column(name = "parent_id", columnDefinition = "uuid")
+    val parentId: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
     val organizationId: String,
     @Column(name = "is_active")

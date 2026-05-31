@@ -4,6 +4,7 @@ import com.aquinofroilan.tessera.annotation.LogLevel
 import com.aquinofroilan.tessera.annotation.Loggable
 import com.aquinofroilan.tessera.dto.CreateDepartmentRequest
 import com.aquinofroilan.tessera.dto.DepartmentResponse
+import com.aquinofroilan.tessera.dto.SetDepartmentParentRequest
 import com.aquinofroilan.tessera.dto.UpdateDepartmentRequest
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.service.DepartmentService
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -47,6 +49,13 @@ class DepartmentController(
         return ResponseEntity.ok(departmentService.listDepartments(orgId, activeOnly).map { DepartmentResponse.from(it) })
     }
 
+    @GetMapping("/org-chart")
+    @PreAuthorize("hasAuthority('hr:read')")
+    fun getOrgChart(): ResponseEntity<Any> {
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        return ResponseEntity.ok(departmentService.getOrgChart(orgId))
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:read')")
     fun getDepartment(
@@ -64,6 +73,16 @@ class DepartmentController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(DepartmentResponse.from(departmentService.updateDepartment(id, request, orgId)))
+    }
+
+    @PutMapping("/{id}/parent")
+    @PreAuthorize("hasAuthority('hr:write')")
+    fun setParent(
+        @PathVariable id: String,
+        @Valid @RequestBody request: SetDepartmentParentRequest,
+    ): ResponseEntity<Any> {
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        return ResponseEntity.ok(DepartmentResponse.from(departmentService.setParent(id, request.parentId, orgId)))
     }
 
     @DeleteMapping("/{id}")
