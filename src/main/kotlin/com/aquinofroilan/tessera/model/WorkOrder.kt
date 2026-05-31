@@ -54,6 +54,8 @@ data class WorkOrderComponent(
     val plannedQuantity: BigDecimal,
     @Column(name = "issued_quantity")
     val issuedQuantity: BigDecimal = BigDecimal.ZERO,
+    @Column(name = "issued_cost")
+    val issuedCost: BigDecimal = BigDecimal.ZERO,
     val uom: String? = null,
     @Column(name = "scrap_pct")
     val scrapPct: BigDecimal = BigDecimal.ZERO,
@@ -108,6 +110,10 @@ data class WorkOrder(
     val quantityCompleted: BigDecimal = BigDecimal.ZERO,
     @Column(name = "quantity_scrapped")
     val quantityScrapped: BigDecimal = BigDecimal.ZERO,
+    @Column(name = "total_issued_cost")
+    val totalIssuedCost: BigDecimal = BigDecimal.ZERO,
+    @Column(name = "total_completed_cost")
+    val totalCompletedCost: BigDecimal = BigDecimal.ZERO,
     @Column(name = "source_warehouse_id", columnDefinition = "uuid")
     val sourceWarehouseId: String,
     @Column(name = "target_warehouse_id", columnDefinition = "uuid")

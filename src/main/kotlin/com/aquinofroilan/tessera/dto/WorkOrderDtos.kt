@@ -36,6 +36,7 @@ data class WorkOrderComponentResponse(
     val componentName: String,
     val plannedQuantity: BigDecimal,
     val issuedQuantity: BigDecimal,
+    val issuedCost: BigDecimal,
     val uom: String?,
     val scrapPct: BigDecimal,
 ) {
@@ -49,6 +50,7 @@ data class WorkOrderComponentResponse(
                 componentName = c.componentName,
                 plannedQuantity = c.plannedQuantity,
                 issuedQuantity = c.issuedQuantity,
+                issuedCost = c.issuedCost,
                 uom = c.uom,
                 scrapPct = c.scrapPct,
             )
@@ -93,6 +95,8 @@ data class WorkOrderResponse(
     val quantity: BigDecimal,
     val quantityCompleted: BigDecimal,
     val quantityScrapped: BigDecimal,
+    val totalIssuedCost: BigDecimal,
+    val totalCompletedCost: BigDecimal,
     val sourceWarehouseId: String,
     val targetWarehouseId: String,
     val status: WorkOrderStatus,
@@ -115,6 +119,8 @@ data class WorkOrderResponse(
                 quantity = wo.quantity,
                 quantityCompleted = wo.quantityCompleted,
                 quantityScrapped = wo.quantityScrapped,
+                totalIssuedCost = wo.totalIssuedCost,
+                totalCompletedCost = wo.totalCompletedCost,
                 sourceWarehouseId = wo.sourceWarehouseId,
                 targetWarehouseId = wo.targetWarehouseId,
                 status = wo.status,

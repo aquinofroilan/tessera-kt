@@ -2,10 +2,13 @@ package com.aquinofroilan.tessera.controller
 
 import com.aquinofroilan.tessera.annotation.LogLevel
 import com.aquinofroilan.tessera.annotation.Loggable
+import com.aquinofroilan.tessera.dto.CompleteWorkOrderRequest
 import com.aquinofroilan.tessera.dto.CreateWorkOrderRequest
+import com.aquinofroilan.tessera.dto.IssueMaterialRequest
 import com.aquinofroilan.tessera.dto.WorkOrderResponse
 import com.aquinofroilan.tessera.model.WorkOrderStatus
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.service.WorkOrderExecutionService
 import com.aquinofroilan.tessera.service.WorkOrderService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -25,6 +28,7 @@ import java.util.Locale
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
 class WorkOrderController(
     private val workOrderService: WorkOrderService,
+    private val workOrderExecutionService: WorkOrderExecutionService,
     private val authContext: AuthenticationContext,
 ) {
     @PostMapping
@@ -86,5 +90,29 @@ class WorkOrderController(
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
         return ResponseEntity.ok(WorkOrderResponse.from(workOrderService.cancelWorkOrder(id, orgId, userId)))
+    }
+
+    @PostMapping("/{id}/issue-material")
+    @PreAuthorize("hasAuthority('mfg:write')")
+    fun issueMaterial(
+        @PathVariable id: String,
+        @Valid @RequestBody request: IssueMaterialRequest,
+    ): ResponseEntity<Any> {
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val userId = authContext.userId() ?: "api-key"
+        val wo = workOrderExecutionService.issueMaterial(id, request, orgId, userId)
+        return ResponseEntity.ok(WorkOrderResponse.from(wo))
+    }
+
+    @PostMapping("/{id}/complete")
+    @PreAuthorize("hasAuthority('mfg:approve')")
+    fun complete(
+        @PathVariable id: String,
+        @Valid @RequestBody request: CompleteWorkOrderRequest,
+    ): ResponseEntity<Any> {
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val userId = authContext.userId() ?: "api-key"
+        val wo = workOrderExecutionService.completeProduction(id, request, orgId, userId)
+        return ResponseEntity.ok(WorkOrderResponse.from(wo))
     }
 }
