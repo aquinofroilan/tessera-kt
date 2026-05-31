@@ -1,0 +1,11 @@
+extend type Query {
+  projectTasks(projectId: ID!): JSON!
+  projectTaskTree(projectId: ID!): JSON!
+  projectTask(projectId: ID!, taskId: ID!): JSON!
+}
+
+extend type Mutation {
+  createProjectTask(projectId: ID!, input: JSON!): JSON!
+  updateProjectTask(projectId: ID!, taskId: ID!, input: JSON!): JSON!
+  setProjectTaskParent(projectId: ID!, taskId: ID!, input: JSON): JSON!
+}
