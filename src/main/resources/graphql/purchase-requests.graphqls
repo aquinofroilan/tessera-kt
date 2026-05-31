@@ -1,0 +1,13 @@
+extend type Query {
+  purchaseRequests(status: String, requestedBy: String): JSON!
+  purchaseRequest(id: ID!): JSON!
+}
+
+extend type Mutation {
+  createPurchaseRequest(input: JSON!): JSON!
+  submitPurchaseRequest(id: ID!): JSON!
+  approvePurchaseRequest(id: ID!): JSON!
+  rejectPurchaseRequest(id: ID!, input: JSON): JSON!
+  cancelPurchaseRequest(id: ID!): JSON!
+  convertPurchaseRequest(id: ID!, input: JSON): JSON!
+}

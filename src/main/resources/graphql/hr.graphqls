@@ -4,6 +4,7 @@ extend type Query {
 
   departments(activeOnly: Boolean = false): JSON!
   department(id: ID!): JSON!
+  departmentOrgChart: JSON!
 
   employees(status: String, departmentId: String): JSON!
   employee(id: ID!): JSON!
@@ -30,6 +31,7 @@ extend type Mutation {
 
   createDepartment(input: JSON!): JSON!
   updateDepartment(id: ID!, input: JSON!): JSON!
+  setDepartmentParent(id: ID!, input: JSON): JSON!
   deactivateDepartment(id: ID!): JSON!
 
   createEmployee(input: JSON!): JSON!
