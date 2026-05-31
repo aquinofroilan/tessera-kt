@@ -1,0 +1,13 @@
+extend type Query {
+  quotations(status: String, customerId: String): JSON!
+  quotation(id: ID!): JSON!
+}
+
+extend type Mutation {
+  createQuotation(input: JSON!): JSON!
+  sendQuotation(id: ID!): JSON!
+  acceptQuotation(id: ID!): JSON!
+  rejectQuotation(id: ID!, input: JSON): JSON!
+  cancelQuotation(id: ID!): JSON!
+  convertQuotation(id: ID!, input: JSON): JSON!
+}
