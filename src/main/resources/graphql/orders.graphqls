@@ -1,0 +1,24 @@
+extend type Query {
+  purchaseOrders(status: String, vendorId: String): JSON!
+  purchaseOrder(id: ID!): JSON!
+
+  salesOrders(status: String, customerId: String): JSON!
+  salesOrder(id: ID!): JSON!
+}
+
+extend type Mutation {
+  createPurchaseOrder(input: JSON!): JSON!
+  approvePurchaseOrder(id: ID!): JSON!
+  receivePurchaseOrder(id: ID!, input: JSON): JSON!
+  matchPurchaseOrderBill(id: ID!, input: JSON!): JSON!
+  generatePurchaseOrderBill(id: ID!, input: JSON): JSON!
+  closePurchaseOrder(id: ID!): JSON!
+  cancelPurchaseOrder(id: ID!): JSON!
+
+  createSalesOrder(input: JSON!): JSON!
+  approveSalesOrder(id: ID!): JSON!
+  fulfillSalesOrder(id: ID!, input: JSON): JSON!
+  generateSalesOrderInvoice(id: ID!, input: JSON): JSON!
+  closeSalesOrder(id: ID!): JSON!
+  cancelSalesOrder(id: ID!): JSON!
+}
