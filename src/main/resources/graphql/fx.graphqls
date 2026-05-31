@@ -1,0 +1,9 @@
+extend type Query {
+  currencies: JSON!
+  exchangeRates(from: String, to: String, asOfDate: String): JSON!
+}
+
+extend type Mutation {
+  createExchangeRate(input: JSON!): JSON!
+  deleteExchangeRate(id: ID!): JSON!
+}

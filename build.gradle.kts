@@ -10,9 +10,9 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "12.3.0"
 }
 
-group = "com.froilan"
-version = "0.8.0"
-description = "Synectix an ERP System"
+group = "com.aquinofroilan"
+version = "0.10.0"
+description = "Tessera an ERP System"
 
 java {
     toolchain {
@@ -39,9 +39,12 @@ repositories {
 }
 
 dependencies {
+    implementation("com.posthog.java:posthog:1.2.0")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-graphql")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-health:4.0.1")
     implementation("org.aspectj:aspectjweaver")
@@ -58,6 +61,7 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-graphql-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")

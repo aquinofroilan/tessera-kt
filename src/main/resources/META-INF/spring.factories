@@ -1,2 +1,2 @@
 org.springframework.context.ApplicationContextInitializer=\
-com.froilan.synectix.config.EnvironmentInitializer
+com.aquinofroilan.tessera.config.EnvironmentInitializer
