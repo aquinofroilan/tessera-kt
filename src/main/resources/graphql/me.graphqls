@@ -1,0 +1,11 @@
+extend type Query {
+  me: JSON!
+  myLeaveRequests: JSON!
+  myLeaveBalance(leaveTypeId: ID!, year: Int): JSON!
+  myCompensation: JSON!
+  myCurrentCompensation(asOf: String): JSON!
+}
+
+extend type Mutation {
+  submitMyLeave(input: JSON!): JSON!
+}
