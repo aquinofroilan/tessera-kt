@@ -21,13 +21,19 @@ class InventoryCostingService(
     private val waSnapshotRepository: InventoryWaSnapshotRepository,
     private val organizationRepository: OrganizationRepository,
 ) {
+    /**
+     * Applies the movement to the cost layers / WA snapshot and returns the
+     * absolute monetary cost of the movement, for downstream GL posting:
+     * - inbound (RECEIPT/OPENING_BALANCE/positive ADJUSTMENT): quantity x unit cost added
+     * - outbound (ISSUE/negative ADJUSTMENT/TRANSFER source): cost consumed
+     * The value is always non-negative; the caller derives debit/credit direction.
+     */
     @Transactional
-    fun apply(movement: StockMovement) {
+    fun apply(movement: StockMovement): BigDecimal =
         when (costingMethodFor(movement.organizationId)) {
             InventoryCostingMethod.FIFO -> applyFifo(movement)
             InventoryCostingMethod.WEIGHTED_AVERAGE -> applyWeightedAverage(movement)
         }
-    }
 
     fun valuationCost(
         organizationId: String,
@@ -55,9 +61,9 @@ class InventoryCostingService(
             .orElseThrow { ResourceNotFoundException("Organization not found") }
             .inventoryCostingMethod
 
-    private fun applyFifo(movement: StockMovement) {
+    private fun applyFifo(movement: StockMovement): BigDecimal {
         val q = movement.quantity
-        when (movement.type) {
+        return when (movement.type) {
             StockMovementType.RECEIPT,
             StockMovementType.OPENING_BALANCE,
             -> addLayer(movement, q, movement.unitCost ?: BigDecimal.ZERO)
@@ -91,6 +97,7 @@ class InventoryCostingService(
                         ),
                     )
                 }
+                consumed
             }
         }
     }
@@ -99,7 +106,7 @@ class InventoryCostingService(
         movement: StockMovement,
         quantity: BigDecimal,
         unitCost: BigDecimal,
-    ) {
+    ): BigDecimal {
         layerRepository.save(
             InventoryCostLayer(
                 organizationId = movement.organizationId,
@@ -112,6 +119,7 @@ class InventoryCostingService(
                 occurredAt = movement.occurredAt,
             ),
         )
+        return quantity.multiply(unitCost)
     }
 
     private fun consumeFifo(
@@ -157,9 +165,9 @@ class InventoryCostingService(
         return totalCost.divide(totalQty, 6, RoundingMode.HALF_UP)
     }
 
-    private fun applyWeightedAverage(movement: StockMovement) {
+    private fun applyWeightedAverage(movement: StockMovement): BigDecimal {
         val q = movement.quantity
-        when (movement.type) {
+        return when (movement.type) {
             StockMovementType.RECEIPT,
             StockMovementType.OPENING_BALANCE,
             -> addToWa(movement, movement.warehouseId, q, movement.unitCost ?: BigDecimal.ZERO)
@@ -178,6 +186,7 @@ class InventoryCostingService(
                         if (q.signum() > 0) consumedCost.divide(q, 6, RoundingMode.HALF_UP) else BigDecimal.ZERO
                     addToWa(movement, destId, q, unitCost)
                 }
+                consumedCost
             }
         }
     }
@@ -187,7 +196,7 @@ class InventoryCostingService(
         warehouseId: String,
         quantity: BigDecimal,
         unitCost: BigDecimal,
-    ) {
+    ): BigDecimal {
         val existing =
             waSnapshotRepository.findByOrganizationIdAndProductIdAndWarehouseId(
                 movement.organizationId,
@@ -209,6 +218,7 @@ class InventoryCostingService(
                     )
                 }
         waSnapshotRepository.save(snapshot)
+        return quantity.multiply(unitCost)
     }
 
     private fun consumeWa(

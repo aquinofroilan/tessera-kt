@@ -65,6 +65,10 @@ object Permissions {
     const val SALES_APPROVE = "sales:approve"
     const val SALES_FULFILL = "sales:fulfill"
 
+    const val HR_READ = "hr:read"
+    const val HR_WRITE = "hr:write"
+    const val HR_APPROVE = "hr:approve"
+
     val ALL_PERMISSIONS =
         listOf(
             SESSION_READ,
@@ -115,5 +119,8 @@ object Permissions {
             SALES_WRITE,
             SALES_APPROVE,
             SALES_FULFILL,
+            HR_READ,
+            HR_WRITE,
+            HR_APPROVE,
         )
 }
