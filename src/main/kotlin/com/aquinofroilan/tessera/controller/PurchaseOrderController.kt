@@ -2,6 +2,7 @@ package com.aquinofroilan.tessera.controller
 
 import com.aquinofroilan.tessera.annotation.LogLevel
 import com.aquinofroilan.tessera.annotation.Loggable
+import com.aquinofroilan.tessera.dto.BillMatchRequest
 import com.aquinofroilan.tessera.dto.CreatePurchaseOrderRequest
 import com.aquinofroilan.tessera.dto.GenerateBillRequest
 import com.aquinofroilan.tessera.dto.PurchaseOrderResponse
@@ -91,6 +92,16 @@ class PurchaseOrderController(
         return ResponseEntity.ok(PurchaseOrderResponse.from(purchaseOrderService.receivePurchaseOrder(id, request, orgId, userId)))
     }
 
+    @PostMapping("/{id}/match-bill")
+    @PreAuthorize("hasAuthority('procurement:read')")
+    fun matchBill(
+        @PathVariable id: String,
+        @Valid @RequestBody request: BillMatchRequest,
+    ): ResponseEntity<Any> {
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        return ResponseEntity.ok(purchaseOrderService.previewBillMatch(id, request, orgId))
+    }
+
     @PostMapping("/{id}/generate-bill")
     @PreAuthorize("hasAuthority('procurement:receive')")
     fun generateBill(
@@ -118,6 +129,7 @@ class PurchaseOrderController(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(PurchaseOrderResponse.from(purchaseOrderService.cancelPurchaseOrder(id, orgId)))
+        val userId = authContext.userId() ?: "api-key"
+        return ResponseEntity.ok(PurchaseOrderResponse.from(purchaseOrderService.cancelPurchaseOrder(id, orgId, userId)))
     }
 }

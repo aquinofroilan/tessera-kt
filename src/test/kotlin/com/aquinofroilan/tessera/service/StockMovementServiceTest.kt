@@ -18,6 +18,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
@@ -417,5 +418,56 @@ class StockMovementServiceTest {
         whenever(stockOnHandRepository.get(orgId, productId, warehouseId)).thenReturn(BigDecimal("7"))
         val result = stockMovementService.onHand(orgId, productId, warehouseId)
         assertThat(result).isEqualByComparingTo("7")
+    }
+
+    @Test
+    fun `reverseMovement compensates a RECEIPT and marks the original reversed`() {
+        mockWarehouse()
+        answerSave()
+        val original =
+            StockMovement(
+                id = "m1",
+                organizationId = orgId,
+                type = StockMovementType.RECEIPT,
+                productId = productId,
+                warehouseId = warehouseId,
+                quantity = BigDecimal("10"),
+                unitCost = BigDecimal("5"),
+                reference = "PO-PO-0001",
+                occurredAt = LocalDateTime.now(),
+                createdBy = userId,
+            )
+        whenever(stockMovementRepository.findById("m1")).thenReturn(Optional.of(original))
+
+        val reversal = stockMovementService.reverseMovement("m1", orgId, userId)
+
+        assertThat(reversal.type).isEqualTo(StockMovementType.ADJUSTMENT)
+        assertThat(reversal.quantity).isEqualByComparingTo("-10")
+        assertThat(reversal.reversalOfMovementId).isEqualTo("m1")
+
+        val captor = argumentCaptor<StockMovement>()
+        verify(stockMovementRepository, org.mockito.kotlin.atLeastOnce()).save(captor.capture())
+        assertThat(captor.allValues).anyMatch { it.id == "m1" && it.reversed }
+    }
+
+    @Test
+    fun `reverseMovement rejects an already-reversed movement`() {
+        val original =
+            StockMovement(
+                id = "m1",
+                organizationId = orgId,
+                type = StockMovementType.RECEIPT,
+                productId = productId,
+                warehouseId = warehouseId,
+                quantity = BigDecimal("10"),
+                unitCost = BigDecimal("5"),
+                reversed = true,
+                occurredAt = LocalDateTime.now(),
+                createdBy = userId,
+            )
+        whenever(stockMovementRepository.findById("m1")).thenReturn(Optional.of(original))
+
+        assertThrows<BusinessRuleException> { stockMovementService.reverseMovement("m1", orgId, userId) }
+        verify(stockMovementRepository, never()).save(any<StockMovement>())
     }
 }

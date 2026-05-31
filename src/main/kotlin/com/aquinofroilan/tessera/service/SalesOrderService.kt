@@ -283,13 +283,24 @@ class SalesOrderService(
     fun cancelSalesOrder(
         id: String,
         organizationId: String,
+        userId: String,
     ): SalesOrder {
         val so = getSalesOrder(id, organizationId)
-        if (so.status != SalesOrderStatus.DRAFT && so.status != SalesOrderStatus.APPROVED) {
-            throw BusinessRuleException("Only draft or approved sales orders can be cancelled")
+        if (so.status == SalesOrderStatus.CANCELLED || so.status == SalesOrderStatus.CLOSED) {
+            throw BusinessRuleException("Closed or cancelled sales orders cannot be cancelled")
         }
+        if (so.lines.any { it.invoicedQuantity.signum() > 0 }) {
+            throw BusinessRuleException("Cannot cancel a sales order that has generated invoices; void the invoices first")
+        }
+
+        val fulfilled = so.status == SalesOrderStatus.PARTIALLY_FULFILLED || so.status == SalesOrderStatus.FULFILLED
+        if (fulfilled) {
+            stockMovementService.reverseByReference("SO-${so.soNumber}", organizationId, userId)
+        }
+
         return salesOrderRepository.save(
             so.copy(
+                lines = if (fulfilled) so.lines.map { it.copy(fulfilledQuantity = BigDecimal.ZERO) } else so.lines,
                 status = SalesOrderStatus.CANCELLED,
                 cancelledAt = LocalDateTime.now(ZoneOffset.UTC),
             ),
