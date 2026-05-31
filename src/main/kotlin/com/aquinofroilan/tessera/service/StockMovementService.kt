@@ -62,6 +62,83 @@ class StockMovementService(
         return saved
     }
 
+    @Transactional
+    fun reverseMovement(
+        movementId: String,
+        organizationId: String,
+        userId: String,
+    ): StockMovement {
+        val original =
+            stockMovementRepository.findById(movementId).orElseThrow {
+                ResourceNotFoundException("Stock movement not found")
+            }
+        if (original.organizationId != organizationId) {
+            throw ResourceNotFoundException("Stock movement not found")
+        }
+        return reverse(original, organizationId, userId)
+    }
+
+    /** Reverses every not-yet-reversed movement carrying [reference]. Returns the compensating movements. */
+    @Transactional
+    fun reverseByReference(
+        reference: String,
+        organizationId: String,
+        userId: String,
+    ): List<StockMovement> =
+        stockMovementRepository
+            .findByOrganizationIdAndReference(organizationId, reference)
+            .filter { !it.reversed && it.reversalOfMovementId == null }
+            .map { reverse(it, organizationId, userId) }
+
+    private fun reverse(
+        original: StockMovement,
+        organizationId: String,
+        userId: String,
+    ): StockMovement {
+        if (original.reversed) {
+            throw BusinessRuleException("Stock movement has already been reversed")
+        }
+        if (original.reversalOfMovementId != null) {
+            throw BusinessRuleException("A reversal movement cannot itself be reversed")
+        }
+        if (original.type == StockMovementType.TRANSFER) {
+            throw BusinessRuleException("Transfer movements cannot be reversed")
+        }
+
+        // Inverse on-hand effect: undo what the original did to the source warehouse.
+        val inverseQuantity =
+            when (original.type) {
+                StockMovementType.RECEIPT,
+                StockMovementType.OPENING_BALANCE,
+                -> original.quantity.negate()
+                StockMovementType.ISSUE -> original.quantity
+                StockMovementType.ADJUSTMENT -> original.quantity.negate()
+                StockMovementType.TRANSFER -> throw BusinessRuleException("unreachable")
+            }
+        // Re-adding stock needs a cost; reuse the original's when known, otherwise
+        // let costing fall back to the current average.
+        val unitCost = if (inverseQuantity.signum() > 0) original.unitCost else null
+
+        val compensating =
+            createMovement(
+                CreateStockMovementRequest(
+                    type = StockMovementType.ADJUSTMENT,
+                    productId = original.productId,
+                    warehouseId = original.warehouseId,
+                    quantity = inverseQuantity,
+                    unitCost = unitCost,
+                    reference = "REVERSAL-${original.reference ?: original.id}",
+                    notes = "Reversal of movement ${original.id}",
+                ),
+                organizationId,
+                userId,
+            )
+        val marked = compensating.copy(reversalOfMovementId = original.id)
+        val saved = stockMovementRepository.save(marked)
+        stockMovementRepository.save(original.copy(reversed = true))
+        return saved
+    }
+
     fun listMovements(
         organizationId: String,
         productId: String? = null,

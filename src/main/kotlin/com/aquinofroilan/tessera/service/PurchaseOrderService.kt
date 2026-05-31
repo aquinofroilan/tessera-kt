@@ -1,10 +1,14 @@
 package com.aquinofroilan.tessera.service
 
 import com.aquinofroilan.tessera.dto.BillLineRequest
+import com.aquinofroilan.tessera.dto.BillMatchLineResult
+import com.aquinofroilan.tessera.dto.BillMatchRequest
+import com.aquinofroilan.tessera.dto.BillMatchResult
 import com.aquinofroilan.tessera.dto.CreateBillRequest
 import com.aquinofroilan.tessera.dto.CreatePurchaseOrderRequest
 import com.aquinofroilan.tessera.dto.CreateStockMovementRequest
 import com.aquinofroilan.tessera.dto.GenerateBillRequest
+import com.aquinofroilan.tessera.dto.MatchStatus
 import com.aquinofroilan.tessera.dto.ReceivePurchaseOrderRequest
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
@@ -269,6 +273,61 @@ class PurchaseOrderService(
         return bill
     }
 
+    /**
+     * Three-way match preview: compares a vendor-supplied bill against the PO and
+     * its receipts without creating anything. Flags over-billed quantities and
+     * unit-cost variances beyond tolerance.
+     */
+    fun previewBillMatch(
+        id: String,
+        request: BillMatchRequest,
+        organizationId: String,
+    ): BillMatchResult {
+        val po = getPurchaseOrder(id, organizationId)
+        val byId = po.lines.associateBy { it.id }
+        val results =
+            request.lines.map { reqLine ->
+                val line =
+                    byId[reqLine.lineId]
+                        ?: throw BusinessRuleException("Unknown purchase order line '${reqLine.lineId}'")
+                val vendorQty = reqLine.quantity ?: throw BusinessRuleException("Quantity is required")
+                val vendorCost = reqLine.unitCost ?: throw BusinessRuleException("Unit cost is required")
+                val billable = line.receivedQuantity.subtract(line.billedQuantity)
+                val status =
+                    when {
+                        vendorQty > billable -> MatchStatus.OVER_BILLED
+                        priceVariance(line.unitCost, vendorCost) > PRICE_TOLERANCE -> MatchStatus.PRICE_VARIANCE
+                        else -> MatchStatus.MATCHED
+                    }
+                BillMatchLineResult(
+                    lineId = line.id,
+                    productSku = line.productSku,
+                    orderedQuantity = line.quantity,
+                    receivedQuantity = line.receivedQuantity,
+                    billedQuantity = line.billedQuantity,
+                    billableQuantity = billable,
+                    poUnitCost = line.unitCost,
+                    vendorUnitCost = vendorCost,
+                    vendorQuantity = vendorQty,
+                    status = status,
+                )
+            }
+        return BillMatchResult(
+            purchaseOrderId = po.id,
+            poNumber = po.poNumber,
+            matched = results.all { it.status == MatchStatus.MATCHED },
+            lines = results,
+        )
+    }
+
+    private fun priceVariance(
+        poCost: BigDecimal,
+        vendorCost: BigDecimal,
+    ): BigDecimal {
+        if (poCost.signum() <= 0) return BigDecimal.ZERO
+        return vendorCost.subtract(poCost).abs().divide(poCost, 6, RoundingMode.HALF_UP)
+    }
+
     private fun billExpenseAccountId(
         po: PurchaseOrder,
         organizationId: String,
@@ -289,9 +348,7 @@ class PurchaseOrderService(
         unitCost: BigDecimal,
     ) {
         if (line.unitCost.signum() <= 0) return
-        val variance =
-            unitCost.subtract(line.unitCost).abs().divide(line.unitCost, 6, RoundingMode.HALF_UP)
-        if (variance > PRICE_TOLERANCE) {
+        if (priceVariance(line.unitCost, unitCost) > PRICE_TOLERANCE) {
             throw BusinessRuleException(
                 "Billed unit cost $unitCost for '${line.productSku}' exceeds PO cost ${line.unitCost} beyond tolerance",
             )
@@ -314,13 +371,24 @@ class PurchaseOrderService(
     fun cancelPurchaseOrder(
         id: String,
         organizationId: String,
+        userId: String,
     ): PurchaseOrder {
         val po = getPurchaseOrder(id, organizationId)
-        if (po.status != PurchaseOrderStatus.DRAFT && po.status != PurchaseOrderStatus.APPROVED) {
-            throw BusinessRuleException("Only draft or approved purchase orders can be cancelled")
+        if (po.status == PurchaseOrderStatus.CANCELLED || po.status == PurchaseOrderStatus.CLOSED) {
+            throw BusinessRuleException("Closed or cancelled purchase orders cannot be cancelled")
         }
+        if (po.lines.any { it.billedQuantity.signum() > 0 }) {
+            throw BusinessRuleException("Cannot cancel a purchase order that has generated bills; void the bills first")
+        }
+
+        val received = po.status == PurchaseOrderStatus.PARTIALLY_RECEIVED || po.status == PurchaseOrderStatus.RECEIVED
+        if (received) {
+            stockMovementService.reverseByReference("PO-${po.poNumber}", organizationId, userId)
+        }
+
         return purchaseOrderRepository.save(
             po.copy(
+                lines = if (received) po.lines.map { it.copy(receivedQuantity = BigDecimal.ZERO) } else po.lines,
                 status = PurchaseOrderStatus.CANCELLED,
                 cancelledAt = LocalDateTime.now(ZoneOffset.UTC),
             ),

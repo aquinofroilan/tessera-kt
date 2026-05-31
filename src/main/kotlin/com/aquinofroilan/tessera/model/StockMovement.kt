@@ -43,6 +43,10 @@ data class StockMovement(
     val unitCost: BigDecimal? = null,
     val reference: String? = null,
     val notes: String? = null,
+    @Column(name = "reversed")
+    val reversed: Boolean = false,
+    @Column(name = "reversal_of_movement_id", columnDefinition = "uuid")
+    val reversalOfMovementId: String? = null,
     @Column(name = "occurred_at")
     val occurredAt: LocalDateTime,
     @Column(name = "created_by", columnDefinition = "uuid")
