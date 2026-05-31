@@ -3,7 +3,7 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: loom-kt
+  - job_name: tessera
     metrics_path: /api/actuator/prometheus
     static_configs:
       - targets:
