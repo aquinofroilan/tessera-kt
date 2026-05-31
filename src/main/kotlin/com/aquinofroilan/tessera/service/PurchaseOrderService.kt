@@ -1,18 +1,26 @@
 package com.aquinofroilan.tessera.service
 
+import com.aquinofroilan.tessera.dto.BillLineRequest
+import com.aquinofroilan.tessera.dto.CreateBillRequest
 import com.aquinofroilan.tessera.dto.CreatePurchaseOrderRequest
 import com.aquinofroilan.tessera.dto.CreateStockMovementRequest
+import com.aquinofroilan.tessera.dto.GenerateBillRequest
+import com.aquinofroilan.tessera.dto.ReceivePurchaseOrderRequest
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
+import com.aquinofroilan.tessera.model.Bill
 import com.aquinofroilan.tessera.model.PurchaseOrder
 import com.aquinofroilan.tessera.model.PurchaseOrderLine
 import com.aquinofroilan.tessera.model.PurchaseOrderStatus
 import com.aquinofroilan.tessera.model.StockMovementType
+import com.aquinofroilan.tessera.repository.AccountRepository
 import com.aquinofroilan.tessera.repository.PurchaseOrderRepository
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
+import java.math.RoundingMode
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
@@ -23,6 +31,8 @@ class PurchaseOrderService(
     private val warehouseService: WarehouseService,
     private val productService: ProductService,
     private val stockMovementService: StockMovementService,
+    private val accountRepository: AccountRepository,
+    private val billService: BillService,
 ) {
     @Transactional
     fun createPurchaseOrder(
@@ -133,35 +143,159 @@ class PurchaseOrderService(
     @Transactional
     fun receivePurchaseOrder(
         id: String,
+        request: ReceivePurchaseOrderRequest?,
         organizationId: String,
         userId: String,
     ): PurchaseOrder {
         val po = getPurchaseOrder(id, organizationId)
-        if (po.status != PurchaseOrderStatus.APPROVED) {
-            throw BusinessRuleException("Only approved purchase orders can be received")
+        if (po.status != PurchaseOrderStatus.APPROVED && po.status != PurchaseOrderStatus.PARTIALLY_RECEIVED) {
+            throw BusinessRuleException("Only approved or partially received purchase orders can be received")
         }
 
-        po.lines.forEach { line ->
-            stockMovementService.createMovement(
-                CreateStockMovementRequest(
-                    type = StockMovementType.RECEIPT,
-                    productId = line.productId,
-                    warehouseId = po.warehouseId,
-                    quantity = line.quantity,
-                    unitCost = line.unitCost,
-                    reference = "PO-${po.poNumber}",
-                ),
-                organizationId,
-                userId,
-            )
+        val byId = po.lines.associateBy { it.id }
+        val requested =
+            if (request?.lines.isNullOrEmpty()) {
+                po.lines
+                    .associate { it.id to it.quantity.subtract(it.receivedQuantity) }
+                    .filterValues { it.signum() > 0 }
+            } else {
+                request.lines!!.associate { it.lineId to (it.quantity ?: throw BusinessRuleException("Quantity is required")) }
+            }
+        requested.keys.forEach { if (it !in byId) throw BusinessRuleException("Unknown purchase order line '$it'") }
+        if (requested.isEmpty()) {
+            throw BusinessRuleException("Nothing left to receive on this purchase order")
         }
 
+        val updatedLines =
+            po.lines.map { line ->
+                val qty = requested[line.id] ?: return@map line
+                if (qty.signum() <= 0) throw BusinessRuleException("Receive quantity must be positive")
+                val remaining = line.quantity.subtract(line.receivedQuantity)
+                if (qty > remaining) {
+                    throw BusinessRuleException("Cannot receive $qty of '${line.productSku}'; only $remaining remaining")
+                }
+                stockMovementService.createMovement(
+                    CreateStockMovementRequest(
+                        type = StockMovementType.RECEIPT,
+                        productId = line.productId,
+                        warehouseId = po.warehouseId,
+                        quantity = qty,
+                        unitCost = line.unitCost,
+                        reference = "PO-${po.poNumber}",
+                    ),
+                    organizationId,
+                    userId,
+                )
+                line.copy(receivedQuantity = line.receivedQuantity.add(qty))
+            }
+
+        val fullyReceived = updatedLines.all { it.receivedQuantity >= it.quantity }
         return purchaseOrderRepository.save(
             po.copy(
-                status = PurchaseOrderStatus.RECEIVED,
-                receivedAt = LocalDateTime.now(ZoneOffset.UTC),
+                lines = updatedLines,
+                status = if (fullyReceived) PurchaseOrderStatus.RECEIVED else PurchaseOrderStatus.PARTIALLY_RECEIVED,
+                receivedAt = if (fullyReceived) LocalDateTime.now(ZoneOffset.UTC) else po.receivedAt,
             ),
         )
+    }
+
+    @Transactional
+    fun generateBill(
+        id: String,
+        request: GenerateBillRequest?,
+        organizationId: String,
+        createdBy: String,
+    ): Bill {
+        val po = getPurchaseOrder(id, organizationId)
+        if (po.status != PurchaseOrderStatus.PARTIALLY_RECEIVED && po.status != PurchaseOrderStatus.RECEIVED) {
+            throw BusinessRuleException("Purchase order must have received goods before billing")
+        }
+
+        val byId = po.lines.associateBy { it.id }
+        val requested =
+            if (request?.lines.isNullOrEmpty()) {
+                po.lines
+                    .associate { it.id to (it.receivedQuantity.subtract(it.billedQuantity) to null as BigDecimal?) }
+                    .filterValues { it.first.signum() > 0 }
+            } else {
+                request.lines!!.associate {
+                    it.lineId to ((it.quantity ?: throw BusinessRuleException("Quantity is required")) to it.unitCost)
+                }
+            }
+        requested.keys.forEach { if (it !in byId) throw BusinessRuleException("Unknown purchase order line '$it'") }
+        if (requested.isEmpty()) {
+            throw BusinessRuleException("Nothing left to bill on this purchase order")
+        }
+
+        val expenseAccountId = billExpenseAccountId(po, organizationId)
+        val billLines = mutableListOf<BillLineRequest>()
+        val updatedLines =
+            po.lines.map { line ->
+                val entry = requested[line.id] ?: return@map line
+                val (qty, overrideCost) = entry
+                if (qty.signum() <= 0) throw BusinessRuleException("Bill quantity must be positive")
+                val billable = line.receivedQuantity.subtract(line.billedQuantity)
+                if (qty > billable) {
+                    throw BusinessRuleException(
+                        "Cannot bill $qty of '${line.productSku}'; only $billable received and unbilled",
+                    )
+                }
+                val unitCost = overrideCost ?: line.unitCost
+                validatePriceWithinTolerance(line, unitCost)
+                billLines.add(
+                    BillLineRequest(
+                        accountId = expenseAccountId,
+                        amount = qty.multiply(unitCost),
+                        description = "${line.productSku} - ${line.productName}",
+                    ),
+                )
+                line.copy(billedQuantity = line.billedQuantity.add(qty))
+            }
+
+        val today = LocalDate.now(ZoneOffset.UTC)
+        val bill =
+            billService.createBill(
+                CreateBillRequest(
+                    vendorId = po.vendorId,
+                    date = today,
+                    dueDate = today.plusDays(DEFAULT_BILL_TERM_DAYS),
+                    referenceNumber = "PO-${po.poNumber}",
+                    lines = billLines,
+                ),
+                organizationId,
+                createdBy,
+            )
+        purchaseOrderRepository.save(po.copy(lines = updatedLines))
+        return bill
+    }
+
+    private fun billExpenseAccountId(
+        po: PurchaseOrder,
+        organizationId: String,
+    ): String {
+        val clearing = accountRepository.findByOrganizationIdAndCode(organizationId, INVENTORY_CLEARING_CODE)
+        if (clearing.isPresent && clearing.get().isActive) {
+            return clearing.get().id
+        }
+        val vendor = vendorService.getVendor(po.vendorId, organizationId)
+        return vendor.defaultExpenseAccountId
+            ?: throw BusinessRuleException(
+                "No inventory clearing account ($INVENTORY_CLEARING_CODE) configured and vendor has no default expense account",
+            )
+    }
+
+    private fun validatePriceWithinTolerance(
+        line: PurchaseOrderLine,
+        unitCost: BigDecimal,
+    ) {
+        if (line.unitCost.signum() <= 0) return
+        val variance =
+            unitCost.subtract(line.unitCost).abs().divide(line.unitCost, 6, RoundingMode.HALF_UP)
+        if (variance > PRICE_TOLERANCE) {
+            throw BusinessRuleException(
+                "Billed unit cost $unitCost for '${line.productSku}' exceeds PO cost ${line.unitCost} beyond tolerance",
+            )
+        }
     }
 
     @Transactional
@@ -210,5 +344,11 @@ class PurchaseOrderService(
             }
         }
         throw IllegalStateException("Failed to generate unique PO number")
+    }
+
+    private companion object {
+        const val INVENTORY_CLEARING_CODE = "2150"
+        const val DEFAULT_BILL_TERM_DAYS = 30L
+        val PRICE_TOLERANCE: BigDecimal = BigDecimal("0.05")
     }
 }

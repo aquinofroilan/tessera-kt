@@ -3,7 +3,9 @@ package com.aquinofroilan.tessera.controller
 import com.aquinofroilan.tessera.annotation.LogLevel
 import com.aquinofroilan.tessera.annotation.Loggable
 import com.aquinofroilan.tessera.dto.CreatePurchaseOrderRequest
+import com.aquinofroilan.tessera.dto.GenerateBillRequest
 import com.aquinofroilan.tessera.dto.PurchaseOrderResponse
+import com.aquinofroilan.tessera.dto.ReceivePurchaseOrderRequest
 import com.aquinofroilan.tessera.model.PurchaseOrderStatus
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.service.PurchaseOrderService
@@ -82,10 +84,23 @@ class PurchaseOrderController(
     @PreAuthorize("hasAuthority('procurement:receive')")
     fun receivePurchaseOrder(
         @PathVariable id: String,
+        @Valid @RequestBody(required = false) request: ReceivePurchaseOrderRequest?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
-        return ResponseEntity.ok(PurchaseOrderResponse.from(purchaseOrderService.receivePurchaseOrder(id, orgId, userId)))
+        return ResponseEntity.ok(PurchaseOrderResponse.from(purchaseOrderService.receivePurchaseOrder(id, request, orgId, userId)))
+    }
+
+    @PostMapping("/{id}/generate-bill")
+    @PreAuthorize("hasAuthority('procurement:receive')")
+    fun generateBill(
+        @PathVariable id: String,
+        @Valid @RequestBody(required = false) request: GenerateBillRequest?,
+    ): ResponseEntity<Any> {
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val createdBy = authContext.userId() ?: "api-key"
+        val bill = purchaseOrderService.generateBill(id, request, orgId, createdBy)
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("billId" to bill.id, "billNumber" to bill.billNumber))
     }
 
     @PostMapping("/{id}/close")

@@ -23,6 +23,7 @@ import java.util.UUID
 enum class PurchaseOrderStatus {
     DRAFT,
     APPROVED,
+    PARTIALLY_RECEIVED,
     RECEIVED,
     CLOSED,
     CANCELLED,
@@ -47,6 +48,10 @@ data class PurchaseOrderLine(
     val unitCost: BigDecimal,
     @Column(name = "line_total")
     val lineTotal: BigDecimal,
+    @Column(name = "received_quantity")
+    val receivedQuantity: BigDecimal = BigDecimal.ZERO,
+    @Column(name = "billed_quantity")
+    val billedQuantity: BigDecimal = BigDecimal.ZERO,
     val description: String? = null,
 )
 

@@ -35,6 +35,33 @@ data class CreatePurchaseOrderRequest(
     val lines: List<CreatePurchaseOrderLineRequest>,
 )
 
+data class ReceivePurchaseOrderLine(
+    @field:NotBlank(message = "Line ID is required")
+    val lineId: String,
+    @field:NotNull(message = "Quantity is required")
+    @field:Positive(message = "Quantity must be positive")
+    val quantity: BigDecimal?,
+)
+
+data class ReceivePurchaseOrderRequest(
+    @field:Valid
+    val lines: List<ReceivePurchaseOrderLine>? = null,
+)
+
+data class GenerateBillLine(
+    @field:NotBlank(message = "Line ID is required")
+    val lineId: String,
+    @field:NotNull(message = "Quantity is required")
+    @field:Positive(message = "Quantity must be positive")
+    val quantity: BigDecimal?,
+    val unitCost: BigDecimal? = null,
+)
+
+data class GenerateBillRequest(
+    @field:Valid
+    val lines: List<GenerateBillLine>? = null,
+)
+
 data class PurchaseOrderLineResponse(
     val id: String,
     val lineNumber: Int,
@@ -44,6 +71,8 @@ data class PurchaseOrderLineResponse(
     val quantity: BigDecimal,
     val unitCost: BigDecimal,
     val lineTotal: BigDecimal,
+    val receivedQuantity: BigDecimal,
+    val billedQuantity: BigDecimal,
     val description: String?,
 )
 
@@ -91,6 +120,8 @@ data class PurchaseOrderResponse(
                             quantity = line.quantity,
                             unitCost = line.unitCost,
                             lineTotal = line.lineTotal,
+                            receivedQuantity = line.receivedQuantity,
+                            billedQuantity = line.billedQuantity,
                             description = line.description,
                         )
                     },

@@ -3,6 +3,8 @@ package com.aquinofroilan.tessera.controller
 import com.aquinofroilan.tessera.annotation.LogLevel
 import com.aquinofroilan.tessera.annotation.Loggable
 import com.aquinofroilan.tessera.dto.CreateSalesOrderRequest
+import com.aquinofroilan.tessera.dto.FulfillSalesOrderRequest
+import com.aquinofroilan.tessera.dto.GenerateInvoiceRequest
 import com.aquinofroilan.tessera.dto.SalesOrderResponse
 import com.aquinofroilan.tessera.model.SalesOrderStatus
 import com.aquinofroilan.tessera.security.AuthenticationContext
@@ -82,10 +84,23 @@ class SalesOrderController(
     @PreAuthorize("hasAuthority('sales:fulfill')")
     fun fulfillSalesOrder(
         @PathVariable id: String,
+        @Valid @RequestBody(required = false) request: FulfillSalesOrderRequest?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: "api-key"
-        return ResponseEntity.ok(SalesOrderResponse.from(salesOrderService.fulfillSalesOrder(id, orgId, userId)))
+        return ResponseEntity.ok(SalesOrderResponse.from(salesOrderService.fulfillSalesOrder(id, request, orgId, userId)))
+    }
+
+    @PostMapping("/{id}/generate-invoice")
+    @PreAuthorize("hasAuthority('sales:fulfill')")
+    fun generateInvoice(
+        @PathVariable id: String,
+        @Valid @RequestBody(required = false) request: GenerateInvoiceRequest?,
+    ): ResponseEntity<Any> {
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val createdBy = authContext.userId() ?: "api-key"
+        val invoice = salesOrderService.generateInvoice(id, request, orgId, createdBy)
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("invoiceId" to invoice.id, "invoiceNumber" to invoice.invoiceNumber))
     }
 
     @PostMapping("/{id}/close")

@@ -1,9 +1,13 @@
 package com.aquinofroilan.tessera.service
 
+import com.aquinofroilan.tessera.dto.CreateInvoiceRequest
 import com.aquinofroilan.tessera.dto.CreateSalesOrderLineRequest
 import com.aquinofroilan.tessera.dto.CreateSalesOrderRequest
+import com.aquinofroilan.tessera.dto.FulfillSalesOrderLine
+import com.aquinofroilan.tessera.dto.FulfillSalesOrderRequest
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.model.Customer
+import com.aquinofroilan.tessera.model.Invoice
 import com.aquinofroilan.tessera.model.Product
 import com.aquinofroilan.tessera.model.SalesOrder
 import com.aquinofroilan.tessera.model.SalesOrderStatus
@@ -17,6 +21,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
@@ -32,6 +37,7 @@ class SalesOrderServiceTest {
     private lateinit var warehouseService: WarehouseService
     private lateinit var productService: ProductService
     private lateinit var stockMovementService: StockMovementService
+    private lateinit var invoiceService: InvoiceService
     private lateinit var service: SalesOrderService
 
     private val orgId = "org-1"
@@ -44,6 +50,7 @@ class SalesOrderServiceTest {
         warehouseService = mock(WarehouseService::class.java)
         productService = mock(ProductService::class.java)
         stockMovementService = mock(StockMovementService::class.java)
+        invoiceService = mock(InvoiceService::class.java)
         whenever(repository.countByOrganizationId(orgId)).thenReturn(0L)
         whenever(repository.save(any<SalesOrder>())).thenAnswer { it.arguments[0] }
         whenever(customerService.getCustomer("c-1", orgId)).thenReturn(Customer(id = "c-1", name = "Buyer", organizationId = orgId))
@@ -52,7 +59,15 @@ class SalesOrderServiceTest {
         whenever(productService.getProduct("p-1", orgId)).thenReturn(
             Product(id = "p-1", sku = "SKU-1", name = "Widget", listPrice = BigDecimal("9"), priceCurrency = "USD", organizationId = orgId),
         )
-        service = SalesOrderService(repository, customerService, warehouseService, productService, stockMovementService)
+        service =
+            SalesOrderService(
+                repository,
+                customerService,
+                warehouseService,
+                productService,
+                stockMovementService,
+                invoiceService,
+            )
     }
 
     private fun createRequest() =
@@ -78,7 +93,7 @@ class SalesOrderServiceTest {
         val approved = service.createSalesOrder(createRequest(), orgId, userId).copy(status = SalesOrderStatus.APPROVED)
         whenever(repository.findById(approved.id)).thenReturn(Optional.of(approved))
 
-        val fulfilled = service.fulfillSalesOrder(approved.id, orgId, userId)
+        val fulfilled = service.fulfillSalesOrder(approved.id, null, orgId, userId)
 
         assertThat(fulfilled.status).isEqualTo(SalesOrderStatus.FULFILLED)
         verify(stockMovementService, times(1)).createMovement(
@@ -93,8 +108,64 @@ class SalesOrderServiceTest {
         val draft = service.createSalesOrder(createRequest(), orgId, userId)
         whenever(repository.findById(draft.id)).thenReturn(Optional.of(draft))
 
-        assertThatThrownBy { service.fulfillSalesOrder(draft.id, orgId, userId) }
+        assertThatThrownBy { service.fulfillSalesOrder(draft.id, null, orgId, userId) }
             .isInstanceOf(BusinessRuleException::class.java)
         verify(stockMovementService, never()).createMovement(any(), any(), any())
+    }
+
+    @Test
+    fun `partial fulfill leaves the order PARTIALLY_FULFILLED`() {
+        val approved = service.createSalesOrder(createRequest(), orgId, userId).copy(status = SalesOrderStatus.APPROVED)
+        val lineId = approved.lines.first().id
+        whenever(repository.findById(approved.id)).thenReturn(Optional.of(approved))
+
+        val result =
+            service.fulfillSalesOrder(
+                approved.id,
+                FulfillSalesOrderRequest(listOf(FulfillSalesOrderLine(lineId, BigDecimal("1")))),
+                orgId,
+                userId,
+            )
+
+        assertThat(result.status).isEqualTo(SalesOrderStatus.PARTIALLY_FULFILLED)
+        assertThat(result.lines.first().fulfilledQuantity).isEqualByComparingTo("1")
+    }
+
+    @Test
+    fun `generateInvoice invoices fulfilled quantity to the customer revenue account`() {
+        whenever(customerService.getCustomer("c-1", orgId))
+            .thenReturn(Customer(id = "c-1", name = "Buyer", organizationId = orgId, defaultRevenueAccountId = "rev-4000"))
+        val fulfilled =
+            service
+                .createSalesOrder(createRequest(), orgId, userId)
+                .let { so ->
+                    so.copy(status = SalesOrderStatus.FULFILLED, lines = so.lines.map { it.copy(fulfilledQuantity = it.quantity) })
+                }
+        whenever(repository.findById(fulfilled.id)).thenReturn(Optional.of(fulfilled))
+        whenever(invoiceService.createInvoice(any(), eq(orgId), any())).thenReturn(mock(Invoice::class.java))
+
+        service.generateInvoice(fulfilled.id, null, orgId, userId)
+
+        val captor = argumentCaptor<CreateInvoiceRequest>()
+        verify(invoiceService).createInvoice(captor.capture(), eq(orgId), any())
+        val req = captor.firstValue
+        assertThat(req.lines).hasSize(1)
+        assertThat(req.lines.first().accountId).isEqualTo("rev-4000")
+        assertThat(req.lines.first().amount).isEqualByComparingTo("36")
+    }
+
+    @Test
+    fun `generateInvoice fails when customer has no default revenue account`() {
+        val fulfilled =
+            service
+                .createSalesOrder(createRequest(), orgId, userId)
+                .let { so ->
+                    so.copy(status = SalesOrderStatus.FULFILLED, lines = so.lines.map { it.copy(fulfilledQuantity = it.quantity) })
+                }
+        whenever(repository.findById(fulfilled.id)).thenReturn(Optional.of(fulfilled))
+
+        assertThatThrownBy { service.generateInvoice(fulfilled.id, null, orgId, userId) }
+            .isInstanceOf(BusinessRuleException::class.java)
+        verify(invoiceService, never()).createInvoice(any(), any(), any())
     }
 }
