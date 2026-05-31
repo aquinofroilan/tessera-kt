@@ -1,0 +1,256 @@
+package com.aquinofroilan.tessera.service
+
+import com.aquinofroilan.tessera.exception.BusinessRuleException
+import com.aquinofroilan.tessera.exception.ResourceNotFoundException
+import com.aquinofroilan.tessera.model.InventoryCostLayer
+import com.aquinofroilan.tessera.model.InventoryCostingMethod
+import com.aquinofroilan.tessera.model.InventoryWaSnapshot
+import com.aquinofroilan.tessera.model.StockMovement
+import com.aquinofroilan.tessera.model.StockMovementType
+import com.aquinofroilan.tessera.repository.InventoryCostLayerRepository
+import com.aquinofroilan.tessera.repository.InventoryWaSnapshotRepository
+import com.aquinofroilan.tessera.repository.OrganizationRepository
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
+import java.math.RoundingMode
+
+@Service
+class InventoryCostingService(
+    private val layerRepository: InventoryCostLayerRepository,
+    private val waSnapshotRepository: InventoryWaSnapshotRepository,
+    private val organizationRepository: OrganizationRepository,
+) {
+    @Transactional
+    fun apply(movement: StockMovement) {
+        when (costingMethodFor(movement.organizationId)) {
+            InventoryCostingMethod.FIFO -> applyFifo(movement)
+            InventoryCostingMethod.WEIGHTED_AVERAGE -> applyWeightedAverage(movement)
+        }
+    }
+
+    fun valuationCost(
+        organizationId: String,
+        productId: String,
+        warehouseId: String,
+    ): BigDecimal =
+        when (costingMethodFor(organizationId)) {
+            InventoryCostingMethod.FIFO ->
+                layerRepository
+                    .findByOrganizationIdAndProductIdAndWarehouseIdOrderByOccurredAtAsc(
+                        organizationId,
+                        productId,
+                        warehouseId,
+                    ).fold(BigDecimal.ZERO) { acc, layer -> acc + layer.remainingQuantity.multiply(layer.unitCost) }
+            InventoryCostingMethod.WEIGHTED_AVERAGE ->
+                waSnapshotRepository
+                    .findByOrganizationIdAndProductIdAndWarehouseId(organizationId, productId, warehouseId)
+                    .map { it.totalCost }
+                    .orElse(BigDecimal.ZERO)
+        }
+
+    fun costingMethodFor(organizationId: String): InventoryCostingMethod =
+        organizationRepository
+            .findById(organizationId)
+            .orElseThrow { ResourceNotFoundException("Organization not found") }
+            .inventoryCostingMethod
+
+    private fun applyFifo(movement: StockMovement) {
+        val q = movement.quantity
+        when (movement.type) {
+            StockMovementType.RECEIPT,
+            StockMovementType.OPENING_BALANCE,
+            -> addLayer(movement, q, movement.unitCost ?: BigDecimal.ZERO)
+            StockMovementType.ISSUE -> consumeFifo(movement, movement.warehouseId, q)
+            StockMovementType.ADJUSTMENT ->
+                if (q.signum() > 0) {
+                    addLayer(movement, q, movement.unitCost ?: currentAverageOrZero(movement))
+                } else {
+                    consumeFifo(movement, movement.warehouseId, q.abs())
+                }
+            StockMovementType.TRANSFER -> {
+                val consumed = consumeFifo(movement, movement.warehouseId, q)
+                val destId = movement.transferToWarehouseId
+                if (destId != null) {
+                    val avgCost =
+                        if (consumed.signum() > 0 && q.signum() > 0) {
+                            consumed.divide(q, 6, RoundingMode.HALF_UP)
+                        } else {
+                            BigDecimal.ZERO
+                        }
+                    layerRepository.save(
+                        InventoryCostLayer(
+                            organizationId = movement.organizationId,
+                            productId = movement.productId,
+                            warehouseId = destId,
+                            originalQuantity = q,
+                            remainingQuantity = q,
+                            unitCost = avgCost,
+                            sourceMovementId = movement.id,
+                            occurredAt = movement.occurredAt,
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    private fun addLayer(
+        movement: StockMovement,
+        quantity: BigDecimal,
+        unitCost: BigDecimal,
+    ) {
+        layerRepository.save(
+            InventoryCostLayer(
+                organizationId = movement.organizationId,
+                productId = movement.productId,
+                warehouseId = movement.warehouseId,
+                originalQuantity = quantity,
+                remainingQuantity = quantity,
+                unitCost = unitCost,
+                sourceMovementId = movement.id,
+                occurredAt = movement.occurredAt,
+            ),
+        )
+    }
+
+    private fun consumeFifo(
+        movement: StockMovement,
+        warehouseId: String,
+        quantity: BigDecimal,
+    ): BigDecimal {
+        var remaining = quantity
+        var totalCost = BigDecimal.ZERO
+        val layers =
+            layerRepository.findByOrganizationIdAndProductIdAndWarehouseIdOrderByOccurredAtAsc(
+                movement.organizationId,
+                movement.productId,
+                warehouseId,
+            )
+        for (layer in layers) {
+            if (remaining.signum() == 0) break
+            if (layer.remainingQuantity.signum() == 0) continue
+            val take = layer.remainingQuantity.min(remaining)
+            totalCost += take.multiply(layer.unitCost)
+            remaining -= take
+            layerRepository.save(layer.copy(remainingQuantity = layer.remainingQuantity - take))
+        }
+        if (remaining.signum() > 0) {
+            // Negative-stock policy is enforced upstream in StockMovementService.
+            // Reaching here means allowNegativeStock=true; emit a zero-cost layer so qty stays
+            // accurate but value isn't inflated.
+            return totalCost
+        }
+        return totalCost
+    }
+
+    private fun currentAverageOrZero(movement: StockMovement): BigDecimal {
+        val layers =
+            layerRepository.findByOrganizationIdAndProductIdAndWarehouseIdOrderByOccurredAtAsc(
+                movement.organizationId,
+                movement.productId,
+                movement.warehouseId,
+            )
+        val totalQty = layers.fold(BigDecimal.ZERO) { acc, l -> acc + l.remainingQuantity }
+        if (totalQty.signum() <= 0) return BigDecimal.ZERO
+        val totalCost = layers.fold(BigDecimal.ZERO) { acc, l -> acc + l.remainingQuantity.multiply(l.unitCost) }
+        return totalCost.divide(totalQty, 6, RoundingMode.HALF_UP)
+    }
+
+    private fun applyWeightedAverage(movement: StockMovement) {
+        val q = movement.quantity
+        when (movement.type) {
+            StockMovementType.RECEIPT,
+            StockMovementType.OPENING_BALANCE,
+            -> addToWa(movement, movement.warehouseId, q, movement.unitCost ?: BigDecimal.ZERO)
+            StockMovementType.ISSUE -> consumeWa(movement, movement.warehouseId, q)
+            StockMovementType.ADJUSTMENT ->
+                if (q.signum() > 0) {
+                    addToWa(movement, movement.warehouseId, q, movement.unitCost ?: avgWa(movement, movement.warehouseId))
+                } else {
+                    consumeWa(movement, movement.warehouseId, q.abs())
+                }
+            StockMovementType.TRANSFER -> {
+                val consumedCost = consumeWa(movement, movement.warehouseId, q)
+                val destId = movement.transferToWarehouseId
+                if (destId != null) {
+                    val unitCost =
+                        if (q.signum() > 0) consumedCost.divide(q, 6, RoundingMode.HALF_UP) else BigDecimal.ZERO
+                    addToWa(movement, destId, q, unitCost)
+                }
+            }
+        }
+    }
+
+    private fun addToWa(
+        movement: StockMovement,
+        warehouseId: String,
+        quantity: BigDecimal,
+        unitCost: BigDecimal,
+    ) {
+        val existing =
+            waSnapshotRepository.findByOrganizationIdAndProductIdAndWarehouseId(
+                movement.organizationId,
+                movement.productId,
+                warehouseId,
+            )
+        val newQty = existing.map { it.quantity }.orElse(BigDecimal.ZERO) + quantity
+        val newTotal = existing.map { it.totalCost }.orElse(BigDecimal.ZERO) + quantity.multiply(unitCost)
+        val snapshot =
+            existing
+                .map { it.copy(quantity = newQty, totalCost = newTotal) }
+                .orElseGet {
+                    InventoryWaSnapshot(
+                        organizationId = movement.organizationId,
+                        productId = movement.productId,
+                        warehouseId = warehouseId,
+                        quantity = newQty,
+                        totalCost = newTotal,
+                    )
+                }
+        waSnapshotRepository.save(snapshot)
+    }
+
+    private fun consumeWa(
+        movement: StockMovement,
+        warehouseId: String,
+        quantity: BigDecimal,
+    ): BigDecimal {
+        val existing =
+            waSnapshotRepository
+                .findByOrganizationIdAndProductIdAndWarehouseId(
+                    movement.organizationId,
+                    movement.productId,
+                    warehouseId,
+                ).orElse(null) ?: return BigDecimal.ZERO
+        val avgCost =
+            if (existing.quantity.signum() > 0) {
+                existing.totalCost.divide(existing.quantity, 6, RoundingMode.HALF_UP)
+            } else {
+                BigDecimal.ZERO
+            }
+        val consumedCost = quantity.multiply(avgCost)
+        val newQty = existing.quantity - quantity
+        val newTotal = (existing.totalCost - consumedCost).max(BigDecimal.ZERO)
+        waSnapshotRepository.save(existing.copy(quantity = newQty, totalCost = newTotal))
+        return consumedCost
+    }
+
+    private fun avgWa(
+        movement: StockMovement,
+        warehouseId: String,
+    ): BigDecimal {
+        val existing =
+            waSnapshotRepository
+                .findByOrganizationIdAndProductIdAndWarehouseId(
+                    movement.organizationId,
+                    movement.productId,
+                    warehouseId,
+                ).orElse(null) ?: return BigDecimal.ZERO
+        if (existing.quantity.signum() <= 0) return BigDecimal.ZERO
+        return existing.totalCost.divide(existing.quantity, 6, RoundingMode.HALF_UP)
+    }
+
+    @Suppress("unused")
+    private fun unreachable(): Nothing = throw BusinessRuleException("unreachable")
+}

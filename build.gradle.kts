@@ -10,9 +10,9 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "12.3.0"
 }
 
-group = "com.loom"
+group = "com.aquinofroilan"
 version = "0.9.0"
-description = "Synectix an ERP System"
+description = "Tessera an ERP System"
 
 java {
     toolchain {
