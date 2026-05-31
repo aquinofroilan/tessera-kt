@@ -91,6 +91,8 @@ class RoleSeeder(
                             Permissions.PROJECT_READ,
                             Permissions.PROJECT_WRITE,
                             Permissions.PROJECT_APPROVE,
+                            Permissions.CRM_READ,
+                            Permissions.CRM_WRITE,
                         ),
                 ),
                 Role(
@@ -149,6 +151,8 @@ class RoleSeeder(
                             Permissions.PROJECT_READ,
                             Permissions.PROJECT_WRITE,
                             Permissions.PROJECT_APPROVE,
+                            Permissions.CRM_READ,
+                            Permissions.CRM_WRITE,
                         ),
                 ),
                 Role(
@@ -184,6 +188,8 @@ class RoleSeeder(
                             Permissions.MFG_WRITE,
                             Permissions.PROJECT_READ,
                             Permissions.PROJECT_WRITE,
+                            Permissions.CRM_READ,
+                            Permissions.CRM_WRITE,
                         ),
                 ),
                 Role(
@@ -207,6 +213,7 @@ class RoleSeeder(
                             Permissions.HR_READ,
                             Permissions.MFG_READ,
                             Permissions.PROJECT_READ,
+                            Permissions.CRM_READ,
                         ),
                 ),
             )
