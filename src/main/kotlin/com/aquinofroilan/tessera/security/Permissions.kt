@@ -69,6 +69,10 @@ object Permissions {
     const val HR_WRITE = "hr:write"
     const val HR_APPROVE = "hr:approve"
 
+    const val MFG_READ = "mfg:read"
+    const val MFG_WRITE = "mfg:write"
+    const val MFG_APPROVE = "mfg:approve"
+
     val ALL_PERMISSIONS =
         listOf(
             SESSION_READ,
@@ -122,5 +126,8 @@ object Permissions {
             HR_READ,
             HR_WRITE,
             HR_APPROVE,
+            MFG_READ,
+            MFG_WRITE,
+            MFG_APPROVE,
         )
 }
