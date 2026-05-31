@@ -9,6 +9,7 @@ import com.loom.synectix.model.Organizations
 import com.loom.synectix.model.StockMovement
 import com.loom.synectix.model.StockMovementType
 import com.loom.synectix.repository.AccountRepository
+import com.loom.synectix.repository.JournalEntryRepository
 import com.loom.synectix.repository.OrganizationRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -30,6 +31,7 @@ class InventoryPostingServiceTest {
     private lateinit var accountRepository: AccountRepository
     private lateinit var currencyService: CurrencyService
     private lateinit var journalEntryService: JournalEntryService
+    private lateinit var journalEntryRepository: JournalEntryRepository
     private lateinit var service: InventoryPostingService
 
     private val orgId = "org-1"
@@ -40,11 +42,18 @@ class InventoryPostingServiceTest {
         accountRepository = mock(AccountRepository::class.java)
         currencyService = mock(CurrencyService::class.java)
         journalEntryService = mock(JournalEntryService::class.java)
+        journalEntryRepository = mock(JournalEntryRepository::class.java)
         whenever(currencyService.getCurrency(any())).thenReturn(Currency("USD", "US Dollar", "$", 2))
         whenever(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
             .thenReturn(mock(JournalEntry::class.java))
         service =
-            InventoryPostingService(organizationRepository, accountRepository, currencyService, journalEntryService)
+            InventoryPostingService(
+                organizationRepository,
+                accountRepository,
+                currencyService,
+                journalEntryService,
+                journalEntryRepository,
+            )
     }
 
     @Test
@@ -106,14 +115,25 @@ class InventoryPostingServiceTest {
     @Test
     fun `negative adjustment debits adjustment and credits inventory`() {
         stubOrg(enabled = true)
-        stubAccount("5100", "Inventory Adjustment", AccountType.EXPENSE)
+        stubAccount("5050", "Inventory Adjustment", AccountType.EXPENSE)
         stubAccount("1200", "Inventory", AccountType.ASSET)
 
         service.postMovement(movement(StockMovementType.ADJUSTMENT, BigDecimal("-4")), BigDecimal("12.00"))
 
         val lines = capturedLines()
-        assertThat(debitOf(lines, "5100")).isEqualByComparingTo("12.00")
+        assertThat(debitOf(lines, "5050")).isEqualByComparingTo("12.00")
         assertThat(creditOf(lines, "1200")).isEqualByComparingTo("12.00")
+    }
+
+    @Test
+    fun `does not post when an entry already exists for the movement`() {
+        stubOrg(enabled = true)
+        whenever(journalEntryRepository.existsByOrganizationIdAndSourceReference(eq(orgId), any()))
+            .thenReturn(true)
+
+        service.postMovement(movement(StockMovementType.RECEIPT, BigDecimal("10")), BigDecimal("50.00"))
+
+        verify(journalEntryService, never()).createSystemEntry(any(), any(), any(), any(), any(), any())
     }
 
     @Test

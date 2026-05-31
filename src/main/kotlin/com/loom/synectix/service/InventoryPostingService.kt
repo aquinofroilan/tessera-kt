@@ -7,6 +7,7 @@ import com.loom.synectix.model.JournalEntryLine
 import com.loom.synectix.model.StockMovement
 import com.loom.synectix.model.StockMovementType
 import com.loom.synectix.repository.AccountRepository
+import com.loom.synectix.repository.JournalEntryRepository
 import com.loom.synectix.repository.OrganizationRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,7 +24,11 @@ import java.math.RoundingMode
  * - 2150 Inventory Received Not Invoiced (liability, receipt offset)
  * - 3200 Opening Balance Equity (opening-balance offset)
  * - 5000 Cost of Goods Sold
- * - 5100 Inventory Adjustment
+ * - 5050 Inventory Adjustment
+ *
+ * Posting is idempotent per movement: each entry carries a deterministic
+ * `INVENTORY-<type>-<movementId>` source reference and is skipped if one
+ * already exists.
  */
 @Service
 class InventoryPostingService(
@@ -31,6 +36,7 @@ class InventoryPostingService(
     private val accountRepository: AccountRepository,
     private val currencyService: CurrencyService,
     private val journalEntryService: JournalEntryService,
+    private val journalEntryRepository: JournalEntryRepository,
 ) {
     @Transactional
     fun postMovement(
@@ -44,8 +50,6 @@ class InventoryPostingService(
         if (!organization.inventoryGlPostingEnabled) {
             return
         }
-        // Transfers move stock between warehouses within the same inventory asset
-        // account, so they have no net GL impact.
         if (movement.type == StockMovementType.TRANSFER) {
             return
         }
@@ -53,6 +57,11 @@ class InventoryPostingService(
         val decimals = currencyService.getCurrency(organization.baseCurrency).decimalPlaces
         val amount = cost.abs().setScale(decimals, RoundingMode.HALF_UP)
         if (amount.signum() == 0) {
+            return
+        }
+
+        val sourceReference = "INVENTORY-${movement.type}-${movement.id}"
+        if (journalEntryRepository.existsByOrganizationIdAndSourceReference(movement.organizationId, sourceReference)) {
             return
         }
 
@@ -84,7 +93,7 @@ class InventoryPostingService(
                         description = label,
                     ),
                 ),
-            sourceReference = "INVENTORY-${movement.type}-${movement.id}",
+            sourceReference = sourceReference,
             createdBy = movement.createdBy,
         )
     }
@@ -122,6 +131,6 @@ class InventoryPostingService(
         const val INVENTORY_CLEARING = "2150"
         const val OPENING_BALANCE_EQUITY = "3200"
         const val COGS = "5000"
-        const val INVENTORY_ADJUSTMENT = "5100"
+        const val INVENTORY_ADJUSTMENT = "5050"
     }
 }
