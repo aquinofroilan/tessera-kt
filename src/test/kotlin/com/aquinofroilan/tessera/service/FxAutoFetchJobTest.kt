@@ -5,6 +5,7 @@ import com.aquinofroilan.tessera.model.ExchangeRateSource
 import com.aquinofroilan.tessera.model.Organizations
 import com.aquinofroilan.tessera.repository.ExchangeRateRepository
 import com.aquinofroilan.tessera.repository.OrganizationRepository
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -33,7 +34,7 @@ class FxAutoFetchJobTest {
         organizationRepository = mock(OrganizationRepository::class.java)
         exchangeRateRepository = mock(ExchangeRateRepository::class.java)
         frankfurterClient = mock(FrankfurterClient::class.java)
-        job = FxAutoFetchJob(organizationRepository, exchangeRateRepository, frankfurterClient)
+        job = FxAutoFetchJob(organizationRepository, exchangeRateRepository, frankfurterClient, SimpleMeterRegistry())
     }
 
     @Test

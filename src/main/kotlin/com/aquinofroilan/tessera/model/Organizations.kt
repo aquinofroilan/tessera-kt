@@ -35,6 +35,8 @@ data class Organizations(
     @Column(name = "inventory_costing_method")
     @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
     val inventoryCostingMethod: InventoryCostingMethod = InventoryCostingMethod.WEIGHTED_AVERAGE,
+    @Column(name = "inventory_gl_posting_enabled")
+    val inventoryGlPostingEnabled: Boolean = false,
     @CreatedDate
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC),
