@@ -47,6 +47,9 @@ data class TimeEntry(
     val approvedBy: String? = null,
     @Column(name = "approved_at")
     val approvedAt: LocalDateTime? = null,
+    val invoiced: Boolean = false,
+    @Column(name = "invoice_id", columnDefinition = "uuid")
+    val invoiceId: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
     val organizationId: String,
     @CreatedDate
