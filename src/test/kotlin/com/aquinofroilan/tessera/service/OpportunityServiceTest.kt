@@ -1,0 +1,175 @@
+package com.aquinofroilan.tessera.service
+
+import com.aquinofroilan.tessera.dto.CloseOpportunityRequest
+import com.aquinofroilan.tessera.dto.CreateOpportunityRequest
+import com.aquinofroilan.tessera.exception.BusinessRuleException
+import com.aquinofroilan.tessera.model.Contact
+import com.aquinofroilan.tessera.model.Customer
+import com.aquinofroilan.tessera.model.Opportunity
+import com.aquinofroilan.tessera.model.OpportunityStatus
+import com.aquinofroilan.tessera.model.Organizations
+import com.aquinofroilan.tessera.model.PipelineStage
+import com.aquinofroilan.tessera.repository.OpportunityRepository
+import com.aquinofroilan.tessera.repository.OrganizationRepository
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
+import java.math.BigDecimal
+import java.util.Optional
+
+class OpportunityServiceTest {
+    private lateinit var repository: OpportunityRepository
+    private lateinit var customerService: CustomerService
+    private lateinit var contactService: ContactService
+    private lateinit var stageService: PipelineStageService
+    private lateinit var orgRepository: OrganizationRepository
+    private lateinit var service: OpportunityService
+
+    private val orgId = "org-1"
+    private val userId = "user-1"
+    private val customerId = "cust-1"
+    private val openStageId = "stage-open"
+    private val wonStageId = "stage-won"
+
+    @BeforeEach
+    fun setup() {
+        repository = mock(OpportunityRepository::class.java)
+        customerService = mock(CustomerService::class.java)
+        contactService = mock(ContactService::class.java)
+        stageService = mock(PipelineStageService::class.java)
+        orgRepository = mock(OrganizationRepository::class.java)
+        whenever(repository.save(any<Opportunity>())).thenAnswer { it.arguments[0] }
+        whenever(customerService.getCustomer(customerId, orgId)).thenReturn(
+            Customer(id = customerId, name = "Acme", organizationId = orgId, isActive = true),
+        )
+        whenever(stageService.getStage(openStageId, orgId)).thenReturn(stage(openStageId, "PROSPECT", isActive = true))
+        whenever(stageService.getStage(wonStageId, orgId)).thenReturn(stage(wonStageId, "WON", isActive = true, isWon = true))
+        whenever(orgRepository.findById(orgId)).thenReturn(
+            Optional.of(
+                Organizations(
+                    uuid = orgId,
+                    orgSlug = "org",
+                    name = "Org",
+                    legalName = "Org Inc.",
+                    tradeName = "Org",
+                    baseCurrency = "USD",
+                    fiscalYearStart = java.time.LocalDateTime.now(),
+                    timezone = "UTC",
+                ),
+            ),
+        )
+        service = OpportunityService(repository, customerService, contactService, stageService, orgRepository)
+    }
+
+    @Test
+    fun `create defaults currency to org base currency`() {
+        val opp =
+            service.createOpportunity(
+                CreateOpportunityRequest(
+                    name = "Deal",
+                    customerId = customerId,
+                    stageId = openStageId,
+                    amount = BigDecimal("1000"),
+                ),
+                orgId,
+                userId,
+            )
+        assertThat(opp.currency).isEqualTo("USD")
+        assertThat(opp.status).isEqualTo(OpportunityStatus.OPEN)
+    }
+
+    @Test
+    fun `create rejects terminal stage as starting stage`() {
+        assertThatThrownBy {
+            service.createOpportunity(
+                CreateOpportunityRequest(
+                    name = "Deal",
+                    customerId = customerId,
+                    stageId = wonStageId,
+                    amount = BigDecimal("1000"),
+                ),
+                orgId,
+                userId,
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
+    }
+
+    @Test
+    fun `create rejects a contact linked to a different customer`() {
+        whenever(contactService.getContact("contact-1", orgId)).thenReturn(
+            Contact(
+                organizationId = orgId,
+                customerId = "different-customer",
+                firstName = "A",
+                lastName = "B",
+                createdBy = userId,
+            ),
+        )
+        assertThatThrownBy {
+            service.createOpportunity(
+                CreateOpportunityRequest(
+                    name = "Deal",
+                    customerId = customerId,
+                    primaryContactId = "contact-1",
+                    stageId = openStageId,
+                    amount = BigDecimal("1000"),
+                ),
+                orgId,
+                userId,
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
+    }
+
+    @Test
+    fun `close requires a won or lost terminal stage`() {
+        val open = opportunity()
+        whenever(repository.findById("o1")).thenReturn(Optional.of(open))
+        // openStageId is not won/lost
+        assertThatThrownBy {
+            service.closeOpportunity("o1", CloseOpportunityRequest(stageId = openStageId), orgId, userId)
+        }.isInstanceOf(BusinessRuleException::class.java)
+    }
+
+    @Test
+    fun `close flips status to WON when stage is won`() {
+        val open = opportunity()
+        whenever(repository.findById("o1")).thenReturn(Optional.of(open))
+        val closed = service.closeOpportunity("o1", CloseOpportunityRequest(stageId = wonStageId), orgId, userId)
+        assertThat(closed.status).isEqualTo(OpportunityStatus.WON)
+        assertThat(closed.closedBy).isEqualTo(userId)
+    }
+
+    private fun opportunity() =
+        Opportunity(
+            id = "o1",
+            organizationId = orgId,
+            name = "Deal",
+            customerId = customerId,
+            stageId = openStageId,
+            amount = BigDecimal("1000"),
+            currency = "USD",
+            status = OpportunityStatus.OPEN,
+            createdBy = userId,
+        )
+
+    private fun stage(
+        id: String,
+        code: String,
+        isActive: Boolean,
+        isWon: Boolean = false,
+        isLost: Boolean = false,
+    ) = PipelineStage(
+        id = id,
+        organizationId = orgId,
+        code = code,
+        name = code,
+        sortOrder = 10,
+        isActive = isActive,
+        isWon = isWon,
+        isLost = isLost,
+    )
+}
