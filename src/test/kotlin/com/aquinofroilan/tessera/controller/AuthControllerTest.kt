@@ -20,6 +20,7 @@ import com.aquinofroilan.tessera.security.SessionContext
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import com.aquinofroilan.tessera.service.ApiKeyService
 import com.aquinofroilan.tessera.service.AuthService
+import com.aquinofroilan.tessera.service.LoginLinkService
 import com.aquinofroilan.tessera.util.TokenHasher
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.times
@@ -54,6 +55,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private lateinit var authService: AuthService
+
+    @MockitoBean
+    private lateinit var loginLinkService: LoginLinkService
 
     @MockitoBean
     private lateinit var sessionTokenRepository: SessionTokenRepository
