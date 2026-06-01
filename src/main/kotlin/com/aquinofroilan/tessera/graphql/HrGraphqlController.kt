@@ -15,6 +15,7 @@ import com.aquinofroilan.tessera.dto.CreateLeaveTypeRequest
 import com.aquinofroilan.tessera.dto.CreatePayrollRunRequest
 import com.aquinofroilan.tessera.dto.CreatePositionRequest
 import com.aquinofroilan.tessera.dto.RejectLeaveRequestRequest
+import com.aquinofroilan.tessera.dto.SetDepartmentParentRequest
 import com.aquinofroilan.tessera.dto.TerminateEmployeeRequest
 import com.aquinofroilan.tessera.dto.UpdateDepartmentRequest
 import com.aquinofroilan.tessera.dto.UpdateEmployeeRequest
@@ -92,6 +93,10 @@ class HrGraphqlController(
         @Argument id: String,
     ): Any = support.unwrap(departmentController.getDepartment(id))
 
+    @QueryMapping
+    @PreAuthorize("hasAuthority('hr:read')")
+    fun departmentOrgChart(): Any = support.unwrap(departmentController.getOrgChart())
+
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun createDepartment(
@@ -104,6 +109,16 @@ class HrGraphqlController(
         @Argument id: String,
         @Argument input: Any,
     ): Any = support.unwrap(departmentController.updateDepartment(id, support.toRequest<UpdateDepartmentRequest>(input)))
+
+    @MutationMapping
+    @PreAuthorize("hasAuthority('hr:write')")
+    fun setDepartmentParent(
+        @Argument id: String,
+        @Argument input: Any?,
+    ): Any {
+        val request = input?.let { support.toRequest<SetDepartmentParentRequest>(it) } ?: SetDepartmentParentRequest()
+        return support.unwrap(departmentController.setParent(id, request))
+    }
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")

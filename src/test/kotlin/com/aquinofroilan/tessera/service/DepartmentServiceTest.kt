@@ -76,4 +76,61 @@ class DepartmentServiceTest {
         assertThatThrownBy { service.deactivateDepartment("d1", orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
+
+    @Test
+    fun `create with a parent validates the parent belongs to the org`() {
+        whenever(repository.findById("p1")).thenReturn(Optional.empty())
+
+        assertThatThrownBy {
+            service.createDepartment(CreateDepartmentRequest(code = "ENG", name = "Eng", parentId = "p1"), orgId)
+        }.isInstanceOf(ResourceNotFoundException::class.java)
+    }
+
+    @Test
+    fun `setParent rejects self-parenting`() {
+        whenever(repository.findById("d1"))
+            .thenReturn(Optional.of(Department(id = "d1", code = "ENG", name = "Engineering", organizationId = orgId)))
+
+        assertThatThrownBy { service.setParent("d1", "d1", orgId) }
+            .isInstanceOf(BusinessRuleException::class.java)
+    }
+
+    @Test
+    fun `setParent rejects a move that would create a cycle`() {
+        val parent = Department(id = "d1", code = "ENG", name = "Engineering", organizationId = orgId)
+        val child = Department(id = "d2", code = "BE", name = "Backend", organizationId = orgId, parentId = "d1")
+        whenever(repository.findById("d1")).thenReturn(Optional.of(parent))
+        whenever(repository.findById("d2")).thenReturn(Optional.of(child))
+        whenever(repository.findByOrganizationId(orgId)).thenReturn(listOf(parent, child))
+
+        // Making d1 (an ancestor) a child of d2 (its descendant) is a cycle.
+        assertThatThrownBy { service.setParent("d1", "d2", orgId) }
+            .isInstanceOf(BusinessRuleException::class.java)
+    }
+
+    @Test
+    fun `setParent clears the parent when null`() {
+        whenever(repository.findById("d2"))
+            .thenReturn(Optional.of(Department(id = "d2", code = "BE", name = "Backend", organizationId = orgId, parentId = "d1")))
+
+        val updated = service.setParent("d2", null, orgId)
+
+        assertThat(updated.parentId).isNull()
+    }
+
+    @Test
+    fun `org chart nests children under their roots`() {
+        val root = Department(id = "d1", code = "ENG", name = "Engineering", organizationId = orgId)
+        val child = Department(id = "d2", code = "BE", name = "Backend", organizationId = orgId, parentId = "d1")
+        val grandchild = Department(id = "d3", code = "API", name = "API", organizationId = orgId, parentId = "d2")
+        whenever(repository.findByOrganizationId(orgId)).thenReturn(listOf(child, root, grandchild))
+
+        val chart = service.getOrgChart(orgId)
+
+        assertThat(chart).hasSize(1)
+        assertThat(chart[0].id).isEqualTo("d1")
+        assertThat(chart[0].children).hasSize(1)
+        assertThat(chart[0].children[0].id).isEqualTo("d2")
+        assertThat(chart[0].children[0].children[0].id).isEqualTo("d3")
+    }
 }

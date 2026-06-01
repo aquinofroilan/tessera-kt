@@ -38,6 +38,8 @@ data class Employee(
     val jobTitle: String? = null,
     @Column(name = "department_id", columnDefinition = "uuid")
     val departmentId: String? = null,
+    @Column(name = "user_id", columnDefinition = "uuid")
+    val userId: String? = null,
     @Column(name = "hire_date")
     val hireDate: LocalDate,
     @Enumerated(EnumType.STRING)

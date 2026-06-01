@@ -1,0 +1,12 @@
+extend type Query {
+  timeEntries(employeeId: String, projectId: String, status: String): JSON!
+  timeEntry(id: ID!): JSON!
+}
+
+extend type Mutation {
+  createTimeEntry(input: JSON!): JSON!
+  updateTimeEntry(id: ID!, input: JSON!): JSON!
+  submitTimeEntry(id: ID!): JSON!
+  approveTimeEntry(id: ID!): JSON!
+  rejectTimeEntry(id: ID!): JSON!
+}
