@@ -1,0 +1,64 @@
+package com.aquinofroilan.tessera.dto
+
+import com.aquinofroilan.tessera.model.Project
+import com.aquinofroilan.tessera.model.ProjectBillingType
+import com.aquinofroilan.tessera.model.ProjectStatus
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
+import java.time.LocalDate
+
+data class CreateProjectRequest(
+    @field:NotBlank(message = "Name is required")
+    val name: String,
+    val description: String? = null,
+    val customerId: String? = null,
+    val managerEmployeeId: String? = null,
+    @field:NotNull(message = "Start date is required")
+    val startDate: LocalDate?,
+    val endDate: LocalDate? = null,
+    val billingType: ProjectBillingType? = null,
+)
+
+data class UpdateProjectRequest(
+    val name: String? = null,
+    val description: String? = null,
+    val customerId: String? = null,
+    val managerEmployeeId: String? = null,
+    val endDate: LocalDate? = null,
+    val billingType: ProjectBillingType? = null,
+)
+
+data class ProjectResponse(
+    val id: String,
+    val projectNumber: String,
+    val name: String,
+    val description: String?,
+    val customerId: String?,
+    val managerEmployeeId: String?,
+    val startDate: String,
+    val endDate: String?,
+    val status: ProjectStatus,
+    val billingType: ProjectBillingType,
+    val organizationId: String,
+    val createdAt: String?,
+    val updatedAt: String?,
+) {
+    companion object {
+        fun from(project: Project) =
+            ProjectResponse(
+                id = project.id,
+                projectNumber = project.projectNumber,
+                name = project.name,
+                description = project.description,
+                customerId = project.customerId,
+                managerEmployeeId = project.managerEmployeeId,
+                startDate = project.startDate.toString(),
+                endDate = project.endDate?.toString(),
+                status = project.status,
+                billingType = project.billingType,
+                organizationId = project.organizationId,
+                createdAt = project.createdAt?.toString(),
+                updatedAt = project.updatedAt?.toString(),
+            )
+    }
+}
