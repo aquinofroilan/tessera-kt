@@ -104,6 +104,8 @@ class RoleSeederTest {
                         Permissions.HR_READ,
                         Permissions.HR_WRITE,
                         Permissions.HR_APPROVE,
+                        Permissions.ATTACHMENT_READ,
+                        Permissions.ATTACHMENT_WRITE,
                     ),
             )
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
@@ -308,6 +310,8 @@ class RoleSeederTest {
                         Permissions.HR_READ,
                         Permissions.HR_WRITE,
                         Permissions.HR_APPROVE,
+                        Permissions.ATTACHMENT_READ,
+                        Permissions.ATTACHMENT_WRITE,
                     ),
             )
         val admin =
@@ -361,6 +365,8 @@ class RoleSeederTest {
                         Permissions.HR_READ,
                         Permissions.HR_WRITE,
                         Permissions.HR_APPROVE,
+                        Permissions.ATTACHMENT_READ,
+                        Permissions.ATTACHMENT_WRITE,
                     ),
             )
         val member =
@@ -393,6 +399,8 @@ class RoleSeederTest {
                         Permissions.SALES_WRITE,
                         Permissions.HR_READ,
                         Permissions.HR_WRITE,
+                        Permissions.ATTACHMENT_READ,
+                        Permissions.ATTACHMENT_WRITE,
                     ),
             )
         val viewer =
@@ -415,6 +423,7 @@ class RoleSeederTest {
                         Permissions.PROCUREMENT_READ,
                         Permissions.SALES_READ,
                         Permissions.HR_READ,
+                        Permissions.ATTACHMENT_READ,
                     ),
             )
 
