@@ -107,6 +107,7 @@ class RoleSeederTest {
                         Permissions.PROJECT_READ,
                         Permissions.PROJECT_WRITE,
                         Permissions.PROJECT_APPROVE,
+                        Permissions.NOTIFICATION_WRITE,
                     ),
             )
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
@@ -314,6 +315,7 @@ class RoleSeederTest {
                         Permissions.PROJECT_READ,
                         Permissions.PROJECT_WRITE,
                         Permissions.PROJECT_APPROVE,
+                        Permissions.NOTIFICATION_WRITE,
                     ),
             )
         val admin =
@@ -370,6 +372,7 @@ class RoleSeederTest {
                         Permissions.PROJECT_READ,
                         Permissions.PROJECT_WRITE,
                         Permissions.PROJECT_APPROVE,
+                        Permissions.NOTIFICATION_WRITE,
                     ),
             )
         val member =

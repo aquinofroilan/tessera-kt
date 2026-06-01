@@ -88,6 +88,7 @@ class RoleSeeder(
                             Permissions.PROJECT_READ,
                             Permissions.PROJECT_WRITE,
                             Permissions.PROJECT_APPROVE,
+                            Permissions.NOTIFICATION_WRITE,
                         ),
                 ),
                 Role(
@@ -143,6 +144,7 @@ class RoleSeeder(
                             Permissions.PROJECT_READ,
                             Permissions.PROJECT_WRITE,
                             Permissions.PROJECT_APPROVE,
+                            Permissions.NOTIFICATION_WRITE,
                         ),
                 ),
                 Role(
