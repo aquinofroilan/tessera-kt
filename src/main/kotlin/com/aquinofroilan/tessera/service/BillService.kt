@@ -314,6 +314,7 @@ class BillService(
         request: RecordPaymentRequest,
         organizationId: String,
         createdBy: String,
+        cashAccountOverride: Account? = null,
     ): BillPayment {
         val bill = getBill(billId, organizationId)
 
@@ -333,7 +334,13 @@ class BillService(
         }
 
         val apAccount = getApAccount(organizationId)
-        val cashAccount = getCashAccount(organizationId)
+        val cashAccount =
+            cashAccountOverride?.also {
+                if (it.organizationId != organizationId) {
+                    throw BusinessRuleException("Cash account override is not in this organization")
+                }
+                if (!it.isActive) throw BusinessRuleException("Cash account override is inactive")
+            } ?: getCashAccount(organizationId)
 
         val paymentId = UUID.randomUUID().toString()
         val baseDecimals = currencyService.getCurrency(getBaseCurrency(organizationId)).decimalPlaces
