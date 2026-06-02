@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties("tessera.notifications.email")
 data class NotificationEmailProperties(
     val enabled: Boolean = true,
+    val html: Boolean = true,
     val from: String = "noreply@tessera.local",
     val senderName: String = "Tessera",
     val dispatcher: Dispatcher = Dispatcher(),

@@ -18,14 +18,14 @@ class NoOpEmailSender : EmailSender {
 
     override fun send(
         to: String,
-        subject: String,
-        textBody: String,
+        content: EmailContent,
     ): Boolean {
         log.info(
-            "Skipping notification email to {} (subject='{}') — no JavaMailSender bean. " +
+            "Skipping notification email to {} (subject='{}', html={}) — no JavaMailSender bean. " +
                 "Configure spring.mail.* to enable SMTP delivery.",
             to,
-            subject,
+            content.subject,
+            content.html != null,
         )
         return false
     }

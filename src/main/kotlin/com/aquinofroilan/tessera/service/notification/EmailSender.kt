@@ -17,7 +17,6 @@ interface EmailSender {
      */
     fun send(
         to: String,
-        subject: String,
-        textBody: String,
+        content: EmailContent,
     ): Boolean
 }

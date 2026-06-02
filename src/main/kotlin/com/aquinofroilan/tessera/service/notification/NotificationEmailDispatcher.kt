@@ -38,6 +38,7 @@ class NotificationEmailDispatcher(
     private val outboxRepository: NotificationEmailOutboxRepository,
     private val notificationRepository: NotificationRepository,
     private val emailSender: EmailSender,
+    private val renderer: NotificationEmailRenderer,
     private val properties: NotificationEmailProperties,
 ) {
     private val log = LoggerFactory.getLogger(NotificationEmailDispatcher::class.java)
@@ -73,7 +74,7 @@ class NotificationEmailDispatcher(
                 }
 
         try {
-            val delivered = emailSender.send(row.recipientEmail, notification.title, renderBody(notification))
+            val delivered = emailSender.send(row.recipientEmail, renderer.render(notification))
             if (delivered) {
                 outboxRepository.save(
                     row.copy(
@@ -117,14 +118,6 @@ class NotificationEmailDispatcher(
                 e.message,
             )
         }
-    }
-
-    private fun renderBody(notification: com.aquinofroilan.tessera.model.Notification): String {
-        val sb = StringBuilder()
-        notification.body?.let { sb.append(it).append("\n\n") }
-        notification.link?.let { sb.append("Open: ").append(it).append('\n') }
-        if (sb.isEmpty()) sb.append(notification.title)
-        return sb.toString().trimEnd()
     }
 
     companion object {
