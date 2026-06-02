@@ -121,6 +121,7 @@ class RoleSeederTest {
                         Permissions.NOTIFICATION_WRITE,
                         Permissions.CRM_READ,
                         Permissions.CRM_WRITE,
+                        Permissions.WORKFLOW_MANAGE,
                     ),
             )
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
@@ -342,6 +343,7 @@ class RoleSeederTest {
                         Permissions.NOTIFICATION_WRITE,
                         Permissions.CRM_READ,
                         Permissions.CRM_WRITE,
+                        Permissions.WORKFLOW_MANAGE,
                     ),
             )
         val admin =
@@ -412,6 +414,7 @@ class RoleSeederTest {
                         Permissions.NOTIFICATION_WRITE,
                         Permissions.CRM_READ,
                         Permissions.CRM_WRITE,
+                        Permissions.WORKFLOW_MANAGE,
                     ),
             )
         val member =
