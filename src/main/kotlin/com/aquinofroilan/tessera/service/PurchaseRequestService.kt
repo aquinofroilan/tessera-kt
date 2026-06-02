@@ -4,6 +4,9 @@ import com.aquinofroilan.tessera.dto.ConvertPurchaseRequestRequest
 import com.aquinofroilan.tessera.dto.CreatePurchaseOrderLineRequest
 import com.aquinofroilan.tessera.dto.CreatePurchaseOrderRequest
 import com.aquinofroilan.tessera.dto.CreatePurchaseRequestRequest
+import com.aquinofroilan.tessera.event.DomainEventPublisher
+import com.aquinofroilan.tessera.event.PurchaseRequestApprovedEvent
+import com.aquinofroilan.tessera.event.PurchaseRequestRejectedEvent
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import com.aquinofroilan.tessera.model.PurchaseOrder
@@ -25,6 +28,7 @@ class PurchaseRequestService(
     private val vendorService: VendorService,
     private val warehouseService: WarehouseService,
     private val purchaseOrderService: PurchaseOrderService,
+    private val domainEventPublisher: DomainEventPublisher,
 ) {
     @Transactional
     fun createPurchaseRequest(
@@ -123,7 +127,17 @@ class PurchaseRequestService(
         pr.status = PurchaseRequestStatus.APPROVED
         pr.decidedBy = decidedBy
         pr.decidedAt = LocalDateTime.now(ZoneOffset.UTC)
-        return purchaseRequestRepository.save(pr)
+        val approved = purchaseRequestRepository.save(pr)
+
+        domainEventPublisher.publish(
+            PurchaseRequestApprovedEvent(
+                organizationId = organizationId,
+                purchaseRequestId = approved.id,
+                prNumber = approved.prNumber,
+                requesterUserId = approved.requestedBy,
+            ),
+        )
+        return approved
     }
 
     @Transactional
@@ -141,7 +155,18 @@ class PurchaseRequestService(
         pr.decisionReason = reason
         pr.decidedBy = decidedBy
         pr.decidedAt = LocalDateTime.now(ZoneOffset.UTC)
-        return purchaseRequestRepository.save(pr)
+        val rejected = purchaseRequestRepository.save(pr)
+
+        domainEventPublisher.publish(
+            PurchaseRequestRejectedEvent(
+                organizationId = organizationId,
+                purchaseRequestId = rejected.id,
+                prNumber = rejected.prNumber,
+                requesterUserId = rejected.requestedBy,
+                reason = reason,
+            ),
+        )
+        return rejected
     }
 
     @Transactional
