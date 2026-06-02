@@ -61,6 +61,9 @@ class AuthControllerTest {
     private lateinit var loginLinkService: LoginLinkService
 
     @MockitoBean
+    private lateinit var authContext: com.aquinofroilan.tessera.security.AuthenticationContext
+
+    @MockitoBean
     private lateinit var sessionTokenRepository: SessionTokenRepository
 
     @MockitoBean
