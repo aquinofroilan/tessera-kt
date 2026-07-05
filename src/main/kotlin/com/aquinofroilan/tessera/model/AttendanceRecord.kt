@@ -23,29 +23,29 @@ enum class AttendanceStatus {
 @Entity
 @Table(name = "attendance_records")
 @EntityListeners(AuditingEntityListener::class)
-data class AttendanceRecord(
+class AttendanceRecord(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: String = UUID.randomUUID().toString(),
     @Column(name = "employee_id", columnDefinition = "uuid")
-    val employeeId: String,
+    var employeeId: String,
     @Column(name = "work_date")
-    val workDate: LocalDate,
+    var workDate: LocalDate,
     @Column(name = "clock_in")
-    val clockIn: LocalDateTime? = null,
+    var clockIn: LocalDateTime? = null,
     @Column(name = "clock_out")
-    val clockOut: LocalDateTime? = null,
+    var clockOut: LocalDateTime? = null,
     @Column(name = "worked_minutes")
-    val workedMinutes: Int? = null,
+    var workedMinutes: Int? = null,
     @Enumerated(EnumType.STRING)
-    val status: AttendanceStatus = AttendanceStatus.PRESENT,
-    val notes: String? = null,
+    var status: AttendanceStatus = AttendanceStatus.PRESENT,
+    var notes: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: String,
     @CreatedDate
     @Column(name = "created_at")
-    val createdAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     @Column(name = "updated_at")
-    val updatedAt: LocalDateTime? = null,
+    var updatedAt: LocalDateTime? = null,
 )

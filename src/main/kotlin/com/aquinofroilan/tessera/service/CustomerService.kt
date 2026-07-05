@@ -72,21 +72,19 @@ class CustomerService(
             throw BusinessRuleException("Customer name cannot be blank")
         }
 
-        val updated =
-            customer.copy(
-                name = request.name ?: customer.name,
-                contactName = request.contactName ?: customer.contactName,
-                contactEmail = request.contactEmail ?: customer.contactEmail,
-                contactPhone = request.contactPhone ?: customer.contactPhone,
-                paymentTermDays = request.paymentTermDays ?: customer.paymentTermDays,
-                defaultRevenueAccountId = request.defaultRevenueAccountId ?: customer.defaultRevenueAccountId,
-            )
-
+        customer.apply {
+            name = request.name ?: customer.name
+            contactName = request.contactName ?: customer.contactName
+            contactEmail = request.contactEmail ?: customer.contactEmail
+            contactPhone = request.contactPhone ?: customer.contactPhone
+            paymentTermDays = request.paymentTermDays ?: customer.paymentTermDays
+            defaultRevenueAccountId = request.defaultRevenueAccountId ?: customer.defaultRevenueAccountId
+        }
         return try {
-            customerRepository.save(updated)
+            customerRepository.save(customer)
         } catch (e: DuplicateKeyException) {
             throw BusinessRuleException(
-                "Customer '${updated.name}' already exists in this organization",
+                "Customer '${customer.name}' already exists in this organization",
                 e,
             )
         }
@@ -103,6 +101,7 @@ class CustomerService(
             throw BusinessRuleException("Customer is already inactive")
         }
 
-        return customerRepository.save(customer.copy(isActive = false))
+        customer.isActive = false
+        return customerRepository.save(customer)
     }
 }

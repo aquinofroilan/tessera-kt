@@ -200,7 +200,7 @@ class JournalEntryServiceTest {
                 name = "Old Revenue",
                 type = AccountType.REVENUE,
                 orgId = orgId,
-            ).copy(isActive = false)
+            ).apply { isActive = false }
         val cashAccount = createMockAccount(id = "acc-1", code = "1000", name = "Cash", type = AccountType.ASSET, orgId = orgId)
 
         `when`(accountRepository.findAllById(listOf("acc-1", "acc-2"))).thenReturn(listOf(cashAccount, inactiveAccount))

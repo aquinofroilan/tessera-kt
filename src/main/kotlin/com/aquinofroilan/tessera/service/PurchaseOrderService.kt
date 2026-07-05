@@ -135,13 +135,10 @@ class PurchaseOrderService(
         if (po.status != PurchaseOrderStatus.DRAFT) {
             throw BusinessRuleException("Only draft purchase orders can be approved")
         }
-        return purchaseOrderRepository.save(
-            po.copy(
-                status = PurchaseOrderStatus.APPROVED,
-                approvedAt = LocalDateTime.now(ZoneOffset.UTC),
-                approvedBy = approvedBy,
-            ),
-        )
+        po.status = PurchaseOrderStatus.APPROVED
+        po.approvedAt = LocalDateTime.now(ZoneOffset.UTC)
+        po.approvedBy = approvedBy
+        return purchaseOrderRepository.save(po)
     }
 
     @Transactional
@@ -190,17 +187,14 @@ class PurchaseOrderService(
                     organizationId,
                     userId,
                 )
-                line.copy(receivedQuantity = line.receivedQuantity.add(qty))
+                line.apply { receivedQuantity = line.receivedQuantity.add(qty) }
             }
 
         val fullyReceived = updatedLines.all { it.receivedQuantity >= it.quantity }
-        return purchaseOrderRepository.save(
-            po.copy(
-                lines = updatedLines,
-                status = if (fullyReceived) PurchaseOrderStatus.RECEIVED else PurchaseOrderStatus.PARTIALLY_RECEIVED,
-                receivedAt = if (fullyReceived) LocalDateTime.now(ZoneOffset.UTC) else po.receivedAt,
-            ),
-        )
+        po.lines = updatedLines
+        po.status = if (fullyReceived) PurchaseOrderStatus.RECEIVED else PurchaseOrderStatus.PARTIALLY_RECEIVED
+        po.receivedAt = if (fullyReceived) LocalDateTime.now(ZoneOffset.UTC) else po.receivedAt
+        return purchaseOrderRepository.save(po)
     }
 
     @Transactional
@@ -253,7 +247,7 @@ class PurchaseOrderService(
                         description = "${line.productSku} - ${line.productName}",
                     ),
                 )
-                line.copy(billedQuantity = line.billedQuantity.add(qty))
+                line.apply { billedQuantity = line.billedQuantity.add(qty) }
             }
 
         val today = LocalDate.now(ZoneOffset.UTC)
@@ -269,7 +263,8 @@ class PurchaseOrderService(
                 organizationId,
                 createdBy,
             )
-        purchaseOrderRepository.save(po.copy(lines = updatedLines))
+        po.lines = updatedLines
+        purchaseOrderRepository.save(po)
         return bill
     }
 
@@ -364,7 +359,8 @@ class PurchaseOrderService(
         if (po.status != PurchaseOrderStatus.RECEIVED) {
             throw BusinessRuleException("Only received purchase orders can be closed")
         }
-        return purchaseOrderRepository.save(po.copy(status = PurchaseOrderStatus.CLOSED))
+        po.status = PurchaseOrderStatus.CLOSED
+        return purchaseOrderRepository.save(po)
     }
 
     @Transactional
@@ -386,13 +382,10 @@ class PurchaseOrderService(
             stockMovementService.reverseByReference("PO-${po.poNumber}", organizationId, userId)
         }
 
-        return purchaseOrderRepository.save(
-            po.copy(
-                lines = if (received) po.lines.map { it.copy(receivedQuantity = BigDecimal.ZERO) } else po.lines,
-                status = PurchaseOrderStatus.CANCELLED,
-                cancelledAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        po.lines = if (received) po.lines.map { it.apply { receivedQuantity = BigDecimal.ZERO } } else po.lines
+        po.status = PurchaseOrderStatus.CANCELLED
+        po.cancelledAt = LocalDateTime.now(ZoneOffset.UTC)
+        return purchaseOrderRepository.save(po)
     }
 
     private fun saveWithRetry(

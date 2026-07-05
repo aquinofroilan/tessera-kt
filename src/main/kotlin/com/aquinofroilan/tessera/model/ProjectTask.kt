@@ -24,28 +24,28 @@ enum class TaskStatus {
 @Entity
 @Table(name = "project_tasks")
 @EntityListeners(AuditingEntityListener::class)
-data class ProjectTask(
+class ProjectTask(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: String = UUID.randomUUID().toString(),
     @Column(name = "project_id", columnDefinition = "uuid")
-    val projectId: String,
+    var projectId: String,
     @Column(name = "parent_task_id", columnDefinition = "uuid")
-    val parentTaskId: String? = null,
-    val name: String,
-    val description: String? = null,
+    var parentTaskId: String? = null,
+    var name: String,
+    var description: String? = null,
     @Column(name = "assignee_employee_id", columnDefinition = "uuid")
-    val assigneeEmployeeId: String? = null,
+    var assigneeEmployeeId: String? = null,
     @Column(name = "estimated_hours")
-    val estimatedHours: BigDecimal? = null,
+    var estimatedHours: BigDecimal? = null,
     @Enumerated(EnumType.STRING)
-    val status: TaskStatus = TaskStatus.TODO,
+    var status: TaskStatus = TaskStatus.TODO,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: String,
     @CreatedDate
     @Column(name = "created_at")
-    val createdAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     @Column(name = "updated_at")
-    val updatedAt: LocalDateTime? = null,
+    var updatedAt: LocalDateTime? = null,
 )

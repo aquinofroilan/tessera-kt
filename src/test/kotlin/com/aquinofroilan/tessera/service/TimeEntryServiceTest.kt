@@ -109,7 +109,7 @@ class TimeEntryServiceTest {
 
     @Test
     fun `get rejects cross-org access`() {
-        whenever(repository.findById("te-1")).thenReturn(Optional.of(entry().copy(organizationId = "other")))
+        whenever(repository.findById("te-1")).thenReturn(Optional.of(entry().apply { organizationId = "other" }))
         assertThatThrownBy { service.getTimeEntry("te-1", orgId) }
             .isInstanceOf(ResourceNotFoundException::class.java)
     }

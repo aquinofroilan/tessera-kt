@@ -119,15 +119,14 @@ class FiscalYearService(
 
         val updatedPeriods = fiscalYear.periods.toMutableList()
         updatedPeriods[periodIndex] =
-            period.copy(
-                status = FiscalPeriodStatus.CLOSED,
-                closedAt = LocalDateTime.now(ZoneOffset.UTC),
-                closedBy = closedBy,
-            )
+            period.apply {
+                status = FiscalPeriodStatus.CLOSED
+                closedAt = LocalDateTime.now(ZoneOffset.UTC)
+                this.closedBy = closedBy
+            }
 
-        return fiscalYearRepository.save(
-            fiscalYear.copy(periods = updatedPeriods),
-        )
+        fiscalYear.periods = updatedPeriods
+        return fiscalYearRepository.save(fiscalYear)
     }
 
     @Transactional
@@ -163,15 +162,14 @@ class FiscalYearService(
 
         val updatedPeriods = fiscalYear.periods.toMutableList()
         updatedPeriods[periodIndex] =
-            period.copy(
-                status = FiscalPeriodStatus.REOPENED,
-                reopenedAt = LocalDateTime.now(ZoneOffset.UTC),
-                reopenedBy = reopenedBy,
-            )
+            period.apply {
+                status = FiscalPeriodStatus.REOPENED
+                reopenedAt = LocalDateTime.now(ZoneOffset.UTC)
+                this.reopenedBy = reopenedBy
+            }
 
-        return fiscalYearRepository.save(
-            fiscalYear.copy(periods = updatedPeriods),
-        )
+        fiscalYear.periods = updatedPeriods
+        return fiscalYearRepository.save(fiscalYear)
     }
 
     @Transactional
@@ -193,14 +191,11 @@ class FiscalYearService(
 
         val closingEntry = createClosingEntry(fiscalYear, organizationId, closedBy)
 
-        return fiscalYearRepository.save(
-            fiscalYear.copy(
-                status = FiscalYearStatus.CLOSED,
-                closedAt = LocalDateTime.now(ZoneOffset.UTC),
-                closedBy = closedBy,
-                closingEntryId = closingEntry?.id,
-            ),
-        )
+        fiscalYear.status = FiscalYearStatus.CLOSED
+        fiscalYear.closedAt = LocalDateTime.now(ZoneOffset.UTC)
+        fiscalYear.closedBy = closedBy
+        fiscalYear.closingEntryId = closingEntry?.id
+        return fiscalYearRepository.save(fiscalYear)
     }
 
     fun findPeriodForDate(

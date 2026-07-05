@@ -227,14 +227,13 @@ class RoleSeeder(
                     current.isDefault != role.isDefault ||
                     current.permissions.toSet() != role.permissions.toSet()
                 ) {
-                    roleRepository.save(
-                        current.copy(
-                            description = role.description,
-                            level = role.level,
-                            isDefault = role.isDefault,
-                            permissions = role.permissions,
-                        ),
-                    )
+                    current.apply {
+                        description = role.description
+                        level = role.level
+                        isDefault = role.isDefault
+                        permissions = role.permissions
+                    }
+                    roleRepository.save(current)
                     log.info("Updated role: {}", role.name)
                     changed = true
                 }

@@ -293,7 +293,7 @@ class ProductServiceTest {
     @Test
     fun `updateProduct should perform partial update`() {
         val existing = createMockProduct()
-        val updated = existing.copy(name = "Updated Widget")
+        val updated = existing.apply { name = "Updated Widget" }
         `when`(productRepository.findById("prod-123")).thenReturn(Optional.of(existing))
         mockCurrency("USD")
         `when`(productRepository.save(any<Product>())).thenReturn(updated)
@@ -347,7 +347,7 @@ class ProductServiceTest {
         val existing = createMockProduct(priceCurrency = "USD")
         mockCurrency("EUR")
         `when`(productRepository.findById("prod-123")).thenReturn(Optional.of(existing))
-        val updated = existing.copy(priceCurrency = "EUR")
+        val updated = existing.apply { priceCurrency = "EUR" }
         `when`(productRepository.save(any<Product>())).thenReturn(updated)
 
         val request = UpdateProductRequest(priceCurrency = "EUR")
@@ -359,7 +359,7 @@ class ProductServiceTest {
     @Test
     fun `deleteProduct should set isActive to false (soft delete)`() {
         val existing = createMockProduct(isActive = true)
-        val deleted = existing.copy(isActive = false)
+        val deleted = createMockProduct(isActive = false)
         `when`(productRepository.findById("prod-123")).thenReturn(Optional.of(existing))
         `when`(productRepository.save(any<Product>())).thenReturn(deleted)
 

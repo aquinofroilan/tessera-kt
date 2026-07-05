@@ -142,14 +142,11 @@ class PayrollRunService(
                 sourceReference = "PAYROLL-ACCRUAL-${run.id}",
                 createdBy = approvedBy,
             )
-        return payrollRunRepository.save(
-            run.copy(
-                status = PayrollRunStatus.APPROVED,
-                accrualJournalEntryId = entry.id,
-                approvedAt = LocalDateTime.now(ZoneOffset.UTC),
-                approvedBy = approvedBy,
-            ),
-        )
+        run.status = PayrollRunStatus.APPROVED
+        run.accrualJournalEntryId = entry.id
+        run.approvedAt = LocalDateTime.now(ZoneOffset.UTC)
+        run.approvedBy = approvedBy
+        return payrollRunRepository.save(run)
     }
 
     @Transactional
@@ -177,13 +174,10 @@ class PayrollRunService(
                 sourceReference = "PAYROLL-PAYMENT-${run.id}",
                 createdBy = paidBy,
             )
-        return payrollRunRepository.save(
-            run.copy(
-                status = PayrollRunStatus.PAID,
-                paymentJournalEntryId = entry.id,
-                paidAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        run.status = PayrollRunStatus.PAID
+        run.paymentJournalEntryId = entry.id
+        run.paidAt = LocalDateTime.now(ZoneOffset.UTC)
+        return payrollRunRepository.save(run)
     }
 
     @Transactional
@@ -195,9 +189,9 @@ class PayrollRunService(
         if (run.status != PayrollRunStatus.DRAFT) {
             throw BusinessRuleException("Only draft payroll runs can be cancelled; approved runs have posted to the ledger")
         }
-        return payrollRunRepository.save(
-            run.copy(status = PayrollRunStatus.CANCELLED, cancelledAt = LocalDateTime.now(ZoneOffset.UTC)),
-        )
+        run.status = PayrollRunStatus.CANCELLED
+        run.cancelledAt = LocalDateTime.now(ZoneOffset.UTC)
+        return payrollRunRepository.save(run)
     }
 
     private fun account(

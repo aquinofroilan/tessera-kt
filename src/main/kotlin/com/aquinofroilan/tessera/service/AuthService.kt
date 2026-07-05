@@ -242,8 +242,8 @@ class AuthService(
         if (currentPassword == newPassword) {
             throw BusinessRuleException("New password must be different from current password")
         }
-        val updatedUser = user.copy(passwordHash = passwordEncoder.encode(newPassword) as String)
-        userRepository.save(updatedUser)
+        user.passwordHash = passwordEncoder.encode(newPassword) as String
+        userRepository.save(user)
 
         sessionTokenRepository.deleteByUserId(user.uuid)
         refreshTokenRepository.deleteByUserId(user.uuid)
@@ -303,8 +303,8 @@ class AuthService(
                 .findById(existing.userId)
                 .orElseThrow { BusinessRuleException("Invalid or expired reset token") }
 
-        val updatedUser = user.copy(passwordHash = passwordEncoder.encode(newPassword) as String)
-        userRepository.save(updatedUser)
+        user.passwordHash = passwordEncoder.encode(newPassword) as String
+        userRepository.save(user)
 
         passwordResetTokenRepository.deleteByUserId(user.uuid)
         sessionTokenRepository.deleteByUserId(user.uuid)

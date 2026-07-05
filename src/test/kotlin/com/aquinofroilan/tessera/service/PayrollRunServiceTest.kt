@@ -196,7 +196,7 @@ class PayrollRunServiceTest {
 
     @Test
     fun `pay posts wages payable debit and cash credit`() {
-        val approved = draftRun().copy(status = PayrollRunStatus.APPROVED)
+        val approved = draftRun().apply { status = PayrollRunStatus.APPROVED }
         whenever(repository.findById("run1")).thenReturn(Optional.of(approved))
         whenever(accountRepository.findByOrganizationIdAndCode(orgId, "2200")).thenReturn(Optional.of(account("2200")))
         whenever(accountRepository.findByOrganizationIdAndCode(orgId, "1000")).thenReturn(Optional.of(account("1000")))
@@ -215,7 +215,7 @@ class PayrollRunServiceTest {
 
     @Test
     fun `cannot cancel an approved run`() {
-        whenever(repository.findById("run1")).thenReturn(Optional.of(draftRun().copy(status = PayrollRunStatus.APPROVED)))
+        whenever(repository.findById("run1")).thenReturn(Optional.of(draftRun().apply { status = PayrollRunStatus.APPROVED }))
         assertThatThrownBy { service.cancelPayrollRun("run1", orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }

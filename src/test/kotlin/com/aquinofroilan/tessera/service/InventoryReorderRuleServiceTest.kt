@@ -107,7 +107,7 @@ class InventoryReorderRuleServiceTest {
     @Test
     fun `updateRule applies partial changes`() {
         val existing = rule()
-        val updated = existing.copy(reorderPoint = BigDecimal("20"))
+        val updated = existing.apply { reorderPoint = BigDecimal("20") }
         `when`(reorderRuleRepository.findById("rr-1")).thenReturn(Optional.of(existing))
         `when`(reorderRuleRepository.save(any<InventoryReorderRule>())).thenReturn(updated)
         val result =

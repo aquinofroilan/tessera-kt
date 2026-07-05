@@ -121,14 +121,13 @@ class TaxGroupService(
 
         val combinedRate = rates.fold(BigDecimal.ZERO) { sum, rate -> sum.add(rate.percentage) }
 
-        val updated =
-            taxGroup.copy(
-                name = request.name ?: taxGroup.name,
-                taxRateIds = newRateIds,
-                combinedRate = combinedRate,
-            )
+        taxGroup.apply {
+            name = request.name ?: taxGroup.name
+            taxRateIds = newRateIds
+            this.combinedRate = combinedRate
+        }
 
-        return taxGroupRepository.save(updated)
+        return taxGroupRepository.save(taxGroup)
     }
 
     @Transactional
@@ -142,7 +141,8 @@ class TaxGroupService(
             throw BusinessRuleException("Tax group is already inactive")
         }
 
-        return taxGroupRepository.save(taxGroup.copy(isActive = false))
+        taxGroup.isActive = false
+        return taxGroupRepository.save(taxGroup)
     }
 
     fun calculateTaxAmount(

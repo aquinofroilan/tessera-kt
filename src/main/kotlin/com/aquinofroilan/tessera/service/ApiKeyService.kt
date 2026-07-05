@@ -71,7 +71,8 @@ class ApiKeyService(
         if (!apiKey.isActive) {
             throw BusinessRuleException("API key is already revoked")
         }
-        apiKeyRepository.save(apiKey.copy(isActive = false))
+        apiKey.isActive = false
+        apiKeyRepository.save(apiKey)
     }
 
     @Transactional
@@ -83,7 +84,8 @@ class ApiKeyService(
         val expiresAt = apiKey.expiresAt
         if (expiresAt != null && !expiresAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) return null
 
-        apiKeyRepository.save(apiKey.copy(lastUsedAt = LocalDateTime.now(ZoneOffset.UTC)))
+        apiKey.lastUsedAt = LocalDateTime.now(ZoneOffset.UTC)
+        apiKeyRepository.save(apiKey)
 
         return apiKey
     }

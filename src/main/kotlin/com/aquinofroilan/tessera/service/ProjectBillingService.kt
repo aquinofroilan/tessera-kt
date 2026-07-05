@@ -74,7 +74,14 @@ class ProjectBillingService(
                 createdBy,
             )
 
-        timeEntryRepository.saveAll(billable.map { it.copy(invoiced = true, invoiceId = invoice.id) })
+        timeEntryRepository.saveAll(
+            billable.map {
+                it.apply {
+                    invoiced = true
+                    invoiceId = invoice.id
+                }
+            },
+        )
         return invoice
     }
 }

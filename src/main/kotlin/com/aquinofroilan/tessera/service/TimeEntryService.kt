@@ -92,16 +92,15 @@ class TimeEntryService(
         }
         request.hours?.let { if (it.signum() <= 0) throw BusinessRuleException("Hours must be positive") }
         request.taskId?.let { projectTaskService.getTask(entry.projectId, it, organizationId) }
-        return timeEntryRepository.save(
-            entry.copy(
-                taskId = request.taskId ?: entry.taskId,
-                entryDate = request.entryDate ?: entry.entryDate,
-                hours = request.hours ?: entry.hours,
-                billable = request.billable ?: entry.billable,
-                rate = request.rate ?: entry.rate,
-                notes = request.notes ?: entry.notes,
-            ),
-        )
+        entry.apply {
+            taskId = request.taskId ?: entry.taskId
+            entryDate = request.entryDate ?: entry.entryDate
+            hours = request.hours ?: entry.hours
+            billable = request.billable ?: entry.billable
+            rate = request.rate ?: entry.rate
+            notes = request.notes ?: entry.notes
+        }
+        return timeEntryRepository.save(entry)
     }
 
     @Transactional
@@ -113,7 +112,8 @@ class TimeEntryService(
         if (entry.status != TimeEntryStatus.DRAFT) {
             throw BusinessRuleException("Only draft time entries can be submitted")
         }
-        return timeEntryRepository.save(entry.copy(status = TimeEntryStatus.SUBMITTED))
+        entry.status = TimeEntryStatus.SUBMITTED
+        return timeEntryRepository.save(entry)
     }
 
     @Transactional
@@ -126,13 +126,10 @@ class TimeEntryService(
         if (entry.status != TimeEntryStatus.SUBMITTED) {
             throw BusinessRuleException("Only submitted time entries can be approved")
         }
-        return timeEntryRepository.save(
-            entry.copy(
-                status = TimeEntryStatus.APPROVED,
-                approvedBy = approvedBy,
-                approvedAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        entry.status = TimeEntryStatus.APPROVED
+        entry.approvedBy = approvedBy
+        entry.approvedAt = LocalDateTime.now(ZoneOffset.UTC)
+        return timeEntryRepository.save(entry)
     }
 
     @Transactional
@@ -145,12 +142,9 @@ class TimeEntryService(
         if (entry.status != TimeEntryStatus.SUBMITTED) {
             throw BusinessRuleException("Only submitted time entries can be rejected")
         }
-        return timeEntryRepository.save(
-            entry.copy(
-                status = TimeEntryStatus.REJECTED,
-                approvedBy = decidedBy,
-                approvedAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        entry.status = TimeEntryStatus.REJECTED
+        entry.approvedBy = decidedBy
+        entry.approvedAt = LocalDateTime.now(ZoneOffset.UTC)
+        return timeEntryRepository.save(entry)
     }
 }

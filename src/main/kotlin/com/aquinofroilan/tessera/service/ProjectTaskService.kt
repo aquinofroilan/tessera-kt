@@ -86,15 +86,14 @@ class ProjectTaskService(
     ): ProjectTask {
         val task = getTask(projectId, taskId, organizationId)
         request.assigneeEmployeeId?.let { employeeService.getEmployee(it, organizationId) }
-        return projectTaskRepository.save(
-            task.copy(
-                name = request.name?.trim() ?: task.name,
-                description = request.description ?: task.description,
-                assigneeEmployeeId = request.assigneeEmployeeId ?: task.assigneeEmployeeId,
-                estimatedHours = request.estimatedHours ?: task.estimatedHours,
-                status = request.status ?: task.status,
-            ),
-        )
+        task.apply {
+            name = request.name?.trim() ?: task.name
+            description = request.description ?: task.description
+            assigneeEmployeeId = request.assigneeEmployeeId ?: task.assigneeEmployeeId
+            estimatedHours = request.estimatedHours ?: task.estimatedHours
+            status = request.status ?: task.status
+        }
+        return projectTaskRepository.save(task)
     }
 
     /**
@@ -110,7 +109,8 @@ class ProjectTaskService(
     ): ProjectTask {
         val task = getTask(projectId, taskId, organizationId)
         if (parentTaskId == null) {
-            return projectTaskRepository.save(task.copy(parentTaskId = null))
+            task.parentTaskId = null
+            return projectTaskRepository.save(task)
         }
         if (parentTaskId == taskId) {
             throw BusinessRuleException("A task cannot be its own parent")
@@ -119,7 +119,8 @@ class ProjectTaskService(
         if (descendantIds(taskId, projectId, organizationId).contains(parentTaskId)) {
             throw BusinessRuleException("Cannot move a task under one of its own descendants")
         }
-        return projectTaskRepository.save(task.copy(parentTaskId = parentTaskId))
+        task.parentTaskId = parentTaskId
+        return projectTaskRepository.save(task)
     }
 
     private fun requireTaskInProject(

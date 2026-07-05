@@ -161,7 +161,7 @@ class WarehouseServiceTest {
     @Test
     fun `updateWarehouse should perform partial update`() {
         val existing = createMockWarehouse()
-        val updated = existing.copy(name = "Renamed Warehouse")
+        val updated = existing.apply { name = "Renamed Warehouse" }
         `when`(warehouseRepository.findById("wh-123")).thenReturn(Optional.of(existing))
         `when`(warehouseRepository.save(any<Warehouse>())).thenReturn(updated)
 
@@ -175,7 +175,7 @@ class WarehouseServiceTest {
     @Test
     fun `updateWarehouse should allow toggling allowNegativeStock`() {
         val existing = createMockWarehouse(allowNegativeStock = false)
-        val updated = existing.copy(allowNegativeStock = true)
+        val updated = existing.apply { allowNegativeStock = true }
         `when`(warehouseRepository.findById("wh-123")).thenReturn(Optional.of(existing))
         `when`(warehouseRepository.save(any<Warehouse>())).thenReturn(updated)
 
@@ -198,7 +198,7 @@ class WarehouseServiceTest {
     @Test
     fun `deleteWarehouse should set isActive to false (soft delete)`() {
         val existing = createMockWarehouse(isActive = true)
-        val deleted = existing.copy(isActive = false)
+        val deleted = createMockWarehouse(isActive = false)
         `when`(warehouseRepository.findById("wh-123")).thenReturn(Optional.of(existing))
         `when`(warehouseRepository.save(any<Warehouse>())).thenReturn(deleted)
 

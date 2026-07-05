@@ -35,23 +35,23 @@ enum class AccountType {
 @Entity
 @Table(name = "accounts")
 @EntityListeners(AuditingEntityListener::class)
-data class Account(
+class Account(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
-    val code: String,
-    val name: String,
-    val description: String? = null,
+    var id: String = UUID.randomUUID().toString(),
+    var code: String,
+    var name: String,
+    var description: String? = null,
     @Enumerated(EnumType.STRING)
-    val type: AccountType,
+    var type: AccountType,
     @Column(name = "parent_id", columnDefinition = "uuid")
-    val parentId: String? = null,
+    var parentId: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: String,
     @Column(name = "is_active")
-    val isActive: Boolean = true,
+    var isActive: Boolean = true,
     @Column(name = "is_system_account")
-    val isSystemAccount: Boolean = false,
+    var isSystemAccount: Boolean = false,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

@@ -76,7 +76,7 @@ class TaxRateServiceTest {
                 combinedRate = BigDecimal("8.00"),
                 organizationId = orgId,
             )
-        val updatedRate = rate.copy(percentage = BigDecimal("10.00"))
+        val updatedRate = createTaxRate(percentage = BigDecimal("10.00"))
 
         `when`(taxRateRepository.findById("tr-1")).thenReturn(Optional.of(rate))
         `when`(taxRateRepository.save(any<TaxRate>())).thenReturn(updatedRate)
@@ -102,7 +102,7 @@ class TaxRateServiceTest {
                 combinedRate = BigDecimal("12.00"),
                 organizationId = orgId,
             )
-        val updatedRate = rate.copy(percentage = BigDecimal("10.00"))
+        val updatedRate = createTaxRate(percentage = BigDecimal("10.00"))
 
         `when`(taxRateRepository.findById("tr-1")).thenReturn(Optional.of(rate))
         `when`(taxRateRepository.save(any<TaxRate>())).thenReturn(updatedRate)
@@ -161,12 +161,13 @@ class TaxRateServiceTest {
 
     private fun createTaxRate(
         id: String = "tr-1",
+        percentage: BigDecimal = BigDecimal("8.00"),
         orgId: String = this.orgId,
     ) = TaxRate(
         id = id,
         name = "State Sales Tax",
         code = "SST",
-        percentage = BigDecimal("8.00"),
+        percentage = percentage,
         authority = "State",
         organizationId = orgId,
     )

@@ -99,14 +99,10 @@ class LeaveRequestService(
             )
         }
 
-        val approved =
-            leaveRequestRepository.save(
-                req.copy(
-                    status = LeaveRequestStatus.APPROVED,
-                    decidedBy = decidedBy,
-                    decidedAt = LocalDateTime.now(ZoneOffset.UTC),
-                ),
-            )
+        req.status = LeaveRequestStatus.APPROVED
+        req.decidedBy = decidedBy
+        req.decidedAt = LocalDateTime.now(ZoneOffset.UTC)
+        val approved = leaveRequestRepository.save(req)
 
         // If the leave covers today, reflect it on the employee record.
         val today = LocalDate.now(ZoneOffset.UTC)
@@ -130,14 +126,11 @@ class LeaveRequestService(
         if (req.status != LeaveRequestStatus.PENDING) {
             throw BusinessRuleException("Only pending leave requests can be rejected")
         }
-        return leaveRequestRepository.save(
-            req.copy(
-                status = LeaveRequestStatus.REJECTED,
-                decisionReason = reason,
-                decidedBy = decidedBy,
-                decidedAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        req.status = LeaveRequestStatus.REJECTED
+        req.decisionReason = reason
+        req.decidedBy = decidedBy
+        req.decidedAt = LocalDateTime.now(ZoneOffset.UTC)
+        return leaveRequestRepository.save(req)
     }
 
     @Transactional
@@ -149,7 +142,8 @@ class LeaveRequestService(
         if (req.status != LeaveRequestStatus.PENDING && req.status != LeaveRequestStatus.APPROVED) {
             throw BusinessRuleException("Only pending or approved leave requests can be cancelled")
         }
-        return leaveRequestRepository.save(req.copy(status = LeaveRequestStatus.CANCELLED))
+        req.status = LeaveRequestStatus.CANCELLED
+        return leaveRequestRepository.save(req)
     }
 
     fun balance(

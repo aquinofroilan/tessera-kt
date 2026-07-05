@@ -24,36 +24,36 @@ enum class LeaveRequestStatus {
 @Entity
 @Table(name = "leave_requests")
 @EntityListeners(AuditingEntityListener::class)
-data class LeaveRequest(
+class LeaveRequest(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: String = UUID.randomUUID().toString(),
     @Column(name = "employee_id", columnDefinition = "uuid")
-    val employeeId: String,
+    var employeeId: String,
     @Column(name = "leave_type_id", columnDefinition = "uuid")
-    val leaveTypeId: String,
+    var leaveTypeId: String,
     @Column(name = "start_date")
-    val startDate: LocalDate,
+    var startDate: LocalDate,
     @Column(name = "end_date")
-    val endDate: LocalDate,
-    val days: Int,
-    val reason: String? = null,
+    var endDate: LocalDate,
+    var days: Int,
+    var reason: String? = null,
     @Enumerated(EnumType.STRING)
-    val status: LeaveRequestStatus = LeaveRequestStatus.PENDING,
+    var status: LeaveRequestStatus = LeaveRequestStatus.PENDING,
     @Column(name = "decision_reason")
-    val decisionReason: String? = null,
+    var decisionReason: String? = null,
     @Column(name = "decided_by", columnDefinition = "uuid")
-    val decidedBy: String? = null,
+    var decidedBy: String? = null,
     @Column(name = "decided_at")
-    val decidedAt: LocalDateTime? = null,
+    var decidedAt: LocalDateTime? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: String,
     @Column(name = "requested_by", columnDefinition = "uuid")
-    val requestedBy: String,
+    var requestedBy: String,
     @CreatedDate
     @Column(name = "created_at")
-    val createdAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     @Column(name = "updated_at")
-    val updatedAt: LocalDateTime? = null,
+    var updatedAt: LocalDateTime? = null,
 )

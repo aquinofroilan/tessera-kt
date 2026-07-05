@@ -106,10 +106,10 @@ class ExchangeRateService(
             )
         val toSave =
             if (existing.isPresent) {
-                existing.get().copy(
-                    rate = request.rate,
-                    source = ExchangeRateSource.MANUAL,
-                )
+                existing.get().apply {
+                    rate = request.rate
+                    source = ExchangeRateSource.MANUAL
+                }
             } else {
                 ExchangeRate(
                     organizationId = organizationId,

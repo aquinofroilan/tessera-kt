@@ -33,8 +33,12 @@ class AttendanceService(
         }
         val record =
             existing
-                .map { it.copy(clockIn = now, status = AttendanceStatus.PRESENT) }
-                .orElseGet {
+                .map {
+                    it.apply {
+                        clockIn = now
+                        status = AttendanceStatus.PRESENT
+                    }
+                }.orElseGet {
                     AttendanceRecord(
                         employeeId = employee.id,
                         workDate = today,
@@ -62,12 +66,9 @@ class AttendanceService(
         if (record.clockOut != null) {
             throw BusinessRuleException("Employee has already clocked out today")
         }
-        return attendanceRecordRepository.save(
-            record.copy(
-                clockOut = now,
-                workedMinutes = ChronoUnit.MINUTES.between(clockIn, now).toInt(),
-            ),
-        )
+        record.clockOut = now
+        record.workedMinutes = ChronoUnit.MINUTES.between(clockIn, now).toInt()
+        return attendanceRecordRepository.save(record)
     }
 
     /**
@@ -96,13 +97,13 @@ class AttendanceService(
         val record =
             existing
                 .map {
-                    it.copy(
-                        clockIn = request.clockIn,
-                        clockOut = request.clockOut,
-                        workedMinutes = workedMinutes,
-                        status = status,
-                        notes = request.notes,
-                    )
+                    it.apply {
+                        clockIn = request.clockIn
+                        clockOut = request.clockOut
+                        this.workedMinutes = workedMinutes
+                        this.status = status
+                        notes = request.notes
+                    }
                 }.orElseGet {
                     AttendanceRecord(
                         employeeId = employee.id,

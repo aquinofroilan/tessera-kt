@@ -83,16 +83,15 @@ class ProjectService(
         if (endDate != null && endDate.isBefore(project.startDate)) {
             throw BusinessRuleException("End date cannot be before the start date")
         }
-        return projectRepository.save(
-            project.copy(
-                name = request.name?.trim() ?: project.name,
-                description = request.description ?: project.description,
-                customerId = request.customerId ?: project.customerId,
-                managerEmployeeId = request.managerEmployeeId ?: project.managerEmployeeId,
-                endDate = endDate,
-                billingType = request.billingType ?: project.billingType,
-            ),
-        )
+        project.apply {
+            name = request.name?.trim() ?: project.name
+            description = request.description ?: project.description
+            customerId = request.customerId ?: project.customerId
+            managerEmployeeId = request.managerEmployeeId ?: project.managerEmployeeId
+            this.endDate = endDate
+            billingType = request.billingType ?: project.billingType
+        }
+        return projectRepository.save(project)
     }
 
     @Transactional
@@ -104,7 +103,8 @@ class ProjectService(
         if (project.status != ProjectStatus.PLANNED && project.status != ProjectStatus.ON_HOLD) {
             throw BusinessRuleException("Only planned or on-hold projects can be activated")
         }
-        return projectRepository.save(project.copy(status = ProjectStatus.ACTIVE))
+        project.status = ProjectStatus.ACTIVE
+        return projectRepository.save(project)
     }
 
     @Transactional
@@ -116,7 +116,8 @@ class ProjectService(
         if (project.status != ProjectStatus.ACTIVE) {
             throw BusinessRuleException("Only active projects can be put on hold")
         }
-        return projectRepository.save(project.copy(status = ProjectStatus.ON_HOLD))
+        project.status = ProjectStatus.ON_HOLD
+        return projectRepository.save(project)
     }
 
     @Transactional
@@ -128,7 +129,8 @@ class ProjectService(
         if (project.status != ProjectStatus.ACTIVE && project.status != ProjectStatus.ON_HOLD) {
             throw BusinessRuleException("Only active or on-hold projects can be closed")
         }
-        return projectRepository.save(project.copy(status = ProjectStatus.CLOSED))
+        project.status = ProjectStatus.CLOSED
+        return projectRepository.save(project)
     }
 
     @Transactional
@@ -140,7 +142,8 @@ class ProjectService(
         if (project.status == ProjectStatus.CLOSED || project.status == ProjectStatus.CANCELLED) {
             throw BusinessRuleException("Project is already ${project.status.name.lowercase()}")
         }
-        return projectRepository.save(project.copy(status = ProjectStatus.CANCELLED))
+        project.status = ProjectStatus.CANCELLED
+        return projectRepository.save(project)
     }
 
     private fun saveWithRetry(

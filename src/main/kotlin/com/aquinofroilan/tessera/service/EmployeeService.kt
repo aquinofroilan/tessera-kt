@@ -73,15 +73,14 @@ class EmployeeService(
     ): Employee {
         val employee = getEmployee(id, organizationId)
         request.userId?.let { requireUserUnlinked(it, organizationId, excludingEmployeeId = employee.id) }
-        return employeeRepository.save(
-            employee.copy(
-                firstName = request.firstName?.trim() ?: employee.firstName,
-                lastName = request.lastName?.trim() ?: employee.lastName,
-                email = request.email?.trim() ?: employee.email,
-                jobTitle = request.jobTitle?.trim() ?: employee.jobTitle,
-                userId = request.userId ?: employee.userId,
-            ),
-        )
+        employee.apply {
+            firstName = request.firstName?.trim() ?: employee.firstName
+            lastName = request.lastName?.trim() ?: employee.lastName
+            email = request.email?.trim() ?: employee.email
+            jobTitle = request.jobTitle?.trim() ?: employee.jobTitle
+            userId = request.userId ?: employee.userId
+        }
+        return employeeRepository.save(employee)
     }
 
     /** Resolves the employee record linked to the given login user, for self-service. */
@@ -104,7 +103,8 @@ class EmployeeService(
             throw BusinessRuleException("Cannot reassign a terminated employee")
         }
         departmentId?.let { requireActiveDepartment(it, organizationId) }
-        return employeeRepository.save(employee.copy(departmentId = departmentId))
+        employee.departmentId = departmentId
+        return employeeRepository.save(employee)
     }
 
     @Transactional
@@ -116,7 +116,8 @@ class EmployeeService(
         if (employee.status != EmploymentStatus.ACTIVE) {
             throw BusinessRuleException("Only active employees can be placed on leave")
         }
-        return employeeRepository.save(employee.copy(status = EmploymentStatus.ON_LEAVE))
+        employee.status = EmploymentStatus.ON_LEAVE
+        return employeeRepository.save(employee)
     }
 
     @Transactional
@@ -128,7 +129,8 @@ class EmployeeService(
         if (employee.status != EmploymentStatus.ON_LEAVE) {
             throw BusinessRuleException("Only employees on leave can return")
         }
-        return employeeRepository.save(employee.copy(status = EmploymentStatus.ACTIVE))
+        employee.status = EmploymentStatus.ACTIVE
+        return employeeRepository.save(employee)
     }
 
     @Transactional
@@ -144,9 +146,9 @@ class EmployeeService(
         if (terminationDate.isBefore(employee.hireDate)) {
             throw BusinessRuleException("Termination date cannot be before the hire date")
         }
-        return employeeRepository.save(
-            employee.copy(status = EmploymentStatus.TERMINATED, terminationDate = terminationDate),
-        )
+        employee.status = EmploymentStatus.TERMINATED
+        employee.terminationDate = terminationDate
+        return employeeRepository.save(employee)
     }
 
     private fun requireUserUnlinked(

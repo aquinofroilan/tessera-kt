@@ -17,32 +17,32 @@ import java.util.UUID
 @Entity
 @Table(name = "api_keys")
 @EntityListeners(AuditingEntityListener::class)
-data class ApiKey(
+class ApiKey(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
-    val name: String,
+    var id: String = UUID.randomUUID().toString(),
+    var name: String,
     @Column(name = "key_hash")
-    val keyHash: String,
+    var keyHash: String,
     @Column(name = "key_prefix")
-    val keyPrefix: String,
+    var keyPrefix: String,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: String,
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
         name = "api_key_permissions",
         joinColumns = [JoinColumn(name = "api_key_id")],
     )
     @Column(name = "permission")
-    val permissions: List<String>,
+    var permissions: List<String>,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    var createdBy: String,
     @Column(name = "is_active")
-    val isActive: Boolean = true,
+    var isActive: Boolean = true,
     @Column(name = "last_used_at")
-    val lastUsedAt: LocalDateTime? = null,
+    var lastUsedAt: LocalDateTime? = null,
     @Column(name = "expires_at")
-    val expiresAt: LocalDateTime? = null,
+    var expiresAt: LocalDateTime? = null,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

@@ -257,7 +257,7 @@ class JournalEntryControllerTest {
 
     @Test
     fun `POST journal-entries id post should return 200`() {
-        val entry = createMockJournalEntry().copy(status = JournalEntryStatus.POSTED)
+        val entry = createMockJournalEntry().apply { status = JournalEntryStatus.POSTED }
         `when`(journalEntryService.postJournalEntry(any(), any())).thenReturn(entry)
 
         mockMvc
@@ -269,7 +269,7 @@ class JournalEntryControllerTest {
 
     @Test
     fun `POST journal-entries id void should return 200`() {
-        val entry = createMockJournalEntry().copy(status = JournalEntryStatus.VOIDED)
+        val entry = createMockJournalEntry().apply { status = JournalEntryStatus.VOIDED }
         `when`(journalEntryService.voidJournalEntry(any(), any(), any())).thenReturn(entry)
 
         mockMvc

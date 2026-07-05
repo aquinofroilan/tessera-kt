@@ -71,12 +71,11 @@ class InventoryReorderRuleService(
         organizationId: String,
     ): InventoryReorderRule {
         val existing = getRule(ruleId, organizationId)
-        val updated =
-            existing.copy(
-                reorderPoint = request.reorderPoint ?: existing.reorderPoint,
-                safetyStock = request.safetyStock ?: existing.safetyStock,
-            )
-        return reorderRuleRepository.save(updated)
+        existing.apply {
+            reorderPoint = request.reorderPoint ?: existing.reorderPoint
+            safetyStock = request.safetyStock ?: existing.safetyStock
+        }
+        return reorderRuleRepository.save(existing)
     }
 
     @Transactional

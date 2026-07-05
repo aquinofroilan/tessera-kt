@@ -10,21 +10,21 @@ import java.util.UUID
 
 @Entity
 @Table(name = "session_tokens")
-data class SessionToken(
+class SessionToken(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
-    val token: String,
+    var id: String = UUID.randomUUID().toString(),
+    var token: String,
     @Column(name = "user_id", columnDefinition = "uuid")
-    val userId: String,
+    var userId: String,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String? = null,
+    var organizationId: String? = null,
     @Column(name = "expiry_at")
-    val expiryAt: LocalDateTime,
+    var expiryAt: LocalDateTime,
     @Column(name = "ip_address")
-    val ipAddress: String? = null,
+    var ipAddress: String? = null,
     @Column(name = "user_agent")
-    val userAgent: String? = null,
+    var userAgent: String? = null,
     @Column(name = "created_at")
-    val createdAt: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC),
+    var createdAt: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC),
 )

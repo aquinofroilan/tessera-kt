@@ -66,12 +66,11 @@ class DepartmentService(
         organizationId: String,
     ): Department {
         val department = getDepartment(id, organizationId)
-        return departmentRepository.save(
-            department.copy(
-                name = request.name?.trim() ?: department.name,
-                description = request.description ?: department.description,
-            ),
-        )
+        department.apply {
+            name = request.name?.trim() ?: department.name
+            description = request.description ?: department.description
+        }
+        return departmentRepository.save(department)
     }
 
     @Transactional
@@ -83,7 +82,8 @@ class DepartmentService(
         if (!department.isActive) {
             throw BusinessRuleException("Department is already inactive")
         }
-        return departmentRepository.save(department.copy(isActive = false))
+        department.isActive = false
+        return departmentRepository.save(department)
     }
 
     /**
@@ -99,7 +99,8 @@ class DepartmentService(
     ): Department {
         val department = getDepartment(id, organizationId)
         if (parentId == null) {
-            return departmentRepository.save(department.copy(parentId = null))
+            department.parentId = null
+            return departmentRepository.save(department)
         }
         if (parentId == id) {
             throw BusinessRuleException("A department cannot be its own parent")
@@ -108,7 +109,8 @@ class DepartmentService(
         if (descendantIds(id, organizationId).contains(parentId)) {
             throw BusinessRuleException("Cannot move a department under one of its own descendants")
         }
-        return departmentRepository.save(department.copy(parentId = parentId))
+        department.parentId = parentId
+        return departmentRepository.save(department)
     }
 
     /**

@@ -119,8 +119,12 @@ class FxAutoFetchJob(
         }
         val toSave =
             existing
-                .map { it.copy(rate = rate, source = ExchangeRateSource.AUTO) }
-                .orElse(
+                .map {
+                    it.apply {
+                        this.rate = rate
+                        source = ExchangeRateSource.AUTO
+                    }
+                }.orElse(
                     ExchangeRate(
                         organizationId = organizationId,
                         fromCurrency = fromCurrency,

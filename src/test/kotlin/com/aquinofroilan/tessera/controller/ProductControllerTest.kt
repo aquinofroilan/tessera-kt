@@ -287,7 +287,7 @@ class ProductControllerTest {
 
     @Test
     fun `PATCH products should return 200 when updated`() {
-        val updated = createMockProduct().copy(name = "Updated Widget")
+        val updated = createMockProduct().apply { name = "Updated Widget" }
         `when`(productService.updateProduct(any(), any(), any())).thenReturn(updated)
 
         mockMvc
@@ -302,7 +302,7 @@ class ProductControllerTest {
 
     @Test
     fun `PATCH products should support partial updates`() {
-        val updated = createMockProduct().copy(listPrice = BigDecimal("149.99"))
+        val updated = createMockProduct().apply { listPrice = BigDecimal("149.99") }
         `when`(productService.updateProduct(any(), any(), any())).thenReturn(updated)
 
         mockMvc
@@ -316,7 +316,7 @@ class ProductControllerTest {
 
     @Test
     fun `DELETE products should return 200 when soft deleted`() {
-        val deleted = createMockProduct().copy(isActive = false)
+        val deleted = createMockProduct().apply { isActive = false }
         `when`(productService.deleteProduct(any(), any())).thenReturn(deleted)
 
         mockMvc

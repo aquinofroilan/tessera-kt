@@ -38,46 +38,46 @@ enum class PaymentMethod {
 
 @Entity
 @Table(name = "bill_lines")
-data class BillLine(
+class BillLine(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: String = UUID.randomUUID().toString(),
     @Column(name = "line_number")
-    val lineNumber: Int = 0,
+    var lineNumber: Int = 0,
     @Column(name = "account_id", columnDefinition = "uuid")
-    val accountId: String,
+    var accountId: String,
     @Column(name = "account_code")
-    val accountCode: String,
+    var accountCode: String,
     @Column(name = "account_name")
-    val accountName: String,
-    val amount: BigDecimal,
-    val description: String? = null,
+    var accountName: String,
+    var amount: BigDecimal,
+    var description: String? = null,
 )
 
 @Entity
 @Table(name = "bills")
 @EntityListeners(AuditingEntityListener::class)
-data class Bill(
+class Bill(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: String = UUID.randomUUID().toString(),
     @Column(name = "bill_number")
-    val billNumber: String,
+    var billNumber: String,
     @Column(name = "vendor_id", columnDefinition = "uuid")
-    val vendorId: String,
+    var vendorId: String,
     @Column(name = "vendor_name")
-    val vendorName: String,
-    val date: LocalDate,
+    var vendorName: String,
+    var date: LocalDate,
     @Column(name = "due_date")
-    val dueDate: LocalDate,
+    var dueDate: LocalDate,
     @Column(name = "reference_number")
-    val referenceNumber: String? = null,
+    var referenceNumber: String? = null,
     @Column(name = "tax_group_id", columnDefinition = "uuid")
-    val taxGroupId: String? = null,
+    var taxGroupId: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: String,
     @Enumerated(EnumType.STRING)
-    val status: BillStatus = BillStatus.DRAFT,
+    var status: BillStatus = BillStatus.DRAFT,
     @OneToMany(
         cascade = [CascadeType.ALL],
         orphanRemoval = true,
@@ -85,39 +85,39 @@ data class Bill(
     )
     @JoinColumn(name = "bill_id")
     @OrderBy("lineNumber ASC")
-    val lines: List<BillLine>,
+    var lines: List<BillLine>,
     @Column(name = "total_amount")
-    val totalAmount: BigDecimal,
+    var totalAmount: BigDecimal,
     @Column(name = "tax_amount")
-    val taxAmount: BigDecimal = BigDecimal.ZERO,
+    var taxAmount: BigDecimal = BigDecimal.ZERO,
     @Column(name = "amount_paid")
-    val amountPaid: BigDecimal = BigDecimal.ZERO,
+    var amountPaid: BigDecimal = BigDecimal.ZERO,
     @Column(name = "currency_code", columnDefinition = "char(3)")
-    val currencyCode: String = "USD",
+    var currencyCode: String = "USD",
     @Column(name = "exchange_rate")
-    val exchangeRate: BigDecimal = BigDecimal.ONE,
+    var exchangeRate: BigDecimal = BigDecimal.ONE,
     @Column(name = "base_currency_amount")
-    val baseCurrencyAmount: BigDecimal = totalAmount,
+    var baseCurrencyAmount: BigDecimal = totalAmount,
     @Column(name = "base_currency_tax_amount")
-    val baseCurrencyTaxAmount: BigDecimal = taxAmount,
+    var baseCurrencyTaxAmount: BigDecimal = taxAmount,
     @Column(name = "base_currency_amount_paid")
-    val baseCurrencyAmountPaid: BigDecimal = amountPaid,
+    var baseCurrencyAmountPaid: BigDecimal = amountPaid,
     @Column(name = "journal_entry_id", columnDefinition = "uuid")
-    val journalEntryId: String? = null,
+    var journalEntryId: String? = null,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    var createdBy: String,
     @Column(name = "approved_at")
-    val approvedAt: LocalDateTime? = null,
+    var approvedAt: LocalDateTime? = null,
     @Column(name = "approved_by", columnDefinition = "uuid")
-    val approvedBy: String? = null,
+    var approvedBy: String? = null,
     @Column(name = "paid_at")
-    val paidAt: LocalDateTime? = null,
+    var paidAt: LocalDateTime? = null,
     @Column(name = "voided_at")
-    val voidedAt: LocalDateTime? = null,
+    var voidedAt: LocalDateTime? = null,
     @Column(name = "voided_by", columnDefinition = "uuid")
-    val voidedBy: String? = null,
+    var voidedBy: String? = null,
     @Column(name = "void_reason")
-    val voidReason: String? = null,
+    var voidReason: String? = null,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

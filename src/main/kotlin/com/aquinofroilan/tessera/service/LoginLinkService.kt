@@ -98,7 +98,10 @@ class LoginLinkService(
             throw AuthenticationException("User account is inactive")
         }
 
-        loginLinkTokenRepository.save(record.copy(consumedAt = now, ipAddress = ipAddress, userAgent = userAgent))
+        record.consumedAt = now
+        record.ipAddress = ipAddress
+        record.userAgent = userAgent
+        loginLinkTokenRepository.save(record)
 
         val accessTokenStr = tokenHasher.generate(32)
         val accessExpiryAt = LocalDateTime.now(ZoneOffset.UTC).plus(tokenValidityMs, ChronoUnit.MILLIS)

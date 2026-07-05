@@ -67,13 +67,12 @@ class PositionService(
     ): Position {
         val position = getPosition(id, organizationId)
         request.departmentId?.let { departmentService.getDepartment(it, organizationId) }
-        return positionRepository.save(
-            position.copy(
-                title = request.title?.trim() ?: position.title,
-                departmentId = request.departmentId ?: position.departmentId,
-                payGrade = request.payGrade?.trim() ?: position.payGrade,
-            ),
-        )
+        position.apply {
+            title = request.title?.trim() ?: position.title
+            departmentId = request.departmentId ?: position.departmentId
+            payGrade = request.payGrade?.trim() ?: position.payGrade
+        }
+        return positionRepository.save(position)
     }
 
     @Transactional
@@ -85,6 +84,7 @@ class PositionService(
         if (!position.isActive) {
             throw BusinessRuleException("Position is already inactive")
         }
-        return positionRepository.save(position.copy(isActive = false))
+        position.isActive = false
+        return positionRepository.save(position)
     }
 }

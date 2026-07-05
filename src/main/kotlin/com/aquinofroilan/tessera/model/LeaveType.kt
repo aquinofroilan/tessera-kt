@@ -14,23 +14,23 @@ import java.util.UUID
 @Entity
 @Table(name = "leave_types")
 @EntityListeners(AuditingEntityListener::class)
-data class LeaveType(
+class LeaveType(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
-    val code: String,
-    val name: String,
-    val paid: Boolean = true,
+    var id: String = UUID.randomUUID().toString(),
+    var code: String,
+    var name: String,
+    var paid: Boolean = true,
     @Column(name = "default_annual_days")
-    val defaultAnnualDays: Int = 0,
+    var defaultAnnualDays: Int = 0,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: String,
     @Column(name = "is_active")
-    val isActive: Boolean = true,
+    var isActive: Boolean = true,
     @CreatedDate
     @Column(name = "created_at")
-    val createdAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     @Column(name = "updated_at")
-    val updatedAt: LocalDateTime? = null,
+    var updatedAt: LocalDateTime? = null,
 )

@@ -128,13 +128,10 @@ class SalesOrderService(
         if (so.status != SalesOrderStatus.DRAFT) {
             throw BusinessRuleException("Only draft sales orders can be approved")
         }
-        return salesOrderRepository.save(
-            so.copy(
-                status = SalesOrderStatus.APPROVED,
-                approvedAt = LocalDateTime.now(ZoneOffset.UTC),
-                approvedBy = approvedBy,
-            ),
-        )
+        so.status = SalesOrderStatus.APPROVED
+        so.approvedAt = LocalDateTime.now(ZoneOffset.UTC)
+        so.approvedBy = approvedBy
+        return salesOrderRepository.save(so)
     }
 
     @Transactional
@@ -182,17 +179,14 @@ class SalesOrderService(
                     organizationId,
                     userId,
                 )
-                line.copy(fulfilledQuantity = line.fulfilledQuantity.add(qty))
+                line.apply { fulfilledQuantity = line.fulfilledQuantity.add(qty) }
             }
 
         val fullyFulfilled = updatedLines.all { it.fulfilledQuantity >= it.quantity }
-        return salesOrderRepository.save(
-            so.copy(
-                lines = updatedLines,
-                status = if (fullyFulfilled) SalesOrderStatus.FULFILLED else SalesOrderStatus.PARTIALLY_FULFILLED,
-                fulfilledAt = if (fullyFulfilled) LocalDateTime.now(ZoneOffset.UTC) else so.fulfilledAt,
-            ),
-        )
+        so.lines = updatedLines
+        so.status = if (fullyFulfilled) SalesOrderStatus.FULFILLED else SalesOrderStatus.PARTIALLY_FULFILLED
+        so.fulfilledAt = if (fullyFulfilled) LocalDateTime.now(ZoneOffset.UTC) else so.fulfilledAt
+        return salesOrderRepository.save(so)
     }
 
     @Transactional
@@ -247,7 +241,7 @@ class SalesOrderService(
                         description = "${line.productSku} - ${line.productName}",
                     ),
                 )
-                line.copy(invoicedQuantity = line.invoicedQuantity.add(qty))
+                line.apply { invoicedQuantity = line.invoicedQuantity.add(qty) }
             }
 
         val today = LocalDate.now(ZoneOffset.UTC)
@@ -263,7 +257,8 @@ class SalesOrderService(
                 organizationId,
                 createdBy,
             )
-        salesOrderRepository.save(so.copy(lines = updatedLines))
+        so.lines = updatedLines
+        salesOrderRepository.save(so)
         return invoice
     }
 
@@ -276,7 +271,8 @@ class SalesOrderService(
         if (so.status != SalesOrderStatus.FULFILLED) {
             throw BusinessRuleException("Only fulfilled sales orders can be closed")
         }
-        return salesOrderRepository.save(so.copy(status = SalesOrderStatus.CLOSED))
+        so.status = SalesOrderStatus.CLOSED
+        return salesOrderRepository.save(so)
     }
 
     @Transactional
@@ -298,13 +294,10 @@ class SalesOrderService(
             stockMovementService.reverseByReference("SO-${so.soNumber}", organizationId, userId)
         }
 
-        return salesOrderRepository.save(
-            so.copy(
-                lines = if (fulfilled) so.lines.map { it.copy(fulfilledQuantity = BigDecimal.ZERO) } else so.lines,
-                status = SalesOrderStatus.CANCELLED,
-                cancelledAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        so.lines = if (fulfilled) so.lines.map { it.apply { fulfilledQuantity = BigDecimal.ZERO } } else so.lines
+        so.status = SalesOrderStatus.CANCELLED
+        so.cancelledAt = LocalDateTime.now(ZoneOffset.UTC)
+        return salesOrderRepository.save(so)
     }
 
     private fun saveWithRetry(

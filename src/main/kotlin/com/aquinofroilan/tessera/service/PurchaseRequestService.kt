@@ -106,7 +106,8 @@ class PurchaseRequestService(
         if (pr.status != PurchaseRequestStatus.DRAFT) {
             throw BusinessRuleException("Only draft purchase requests can be submitted")
         }
-        return purchaseRequestRepository.save(pr.copy(status = PurchaseRequestStatus.SUBMITTED))
+        pr.status = PurchaseRequestStatus.SUBMITTED
+        return purchaseRequestRepository.save(pr)
     }
 
     @Transactional
@@ -119,13 +120,10 @@ class PurchaseRequestService(
         if (pr.status != PurchaseRequestStatus.SUBMITTED) {
             throw BusinessRuleException("Only submitted purchase requests can be approved")
         }
-        return purchaseRequestRepository.save(
-            pr.copy(
-                status = PurchaseRequestStatus.APPROVED,
-                decidedBy = decidedBy,
-                decidedAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        pr.status = PurchaseRequestStatus.APPROVED
+        pr.decidedBy = decidedBy
+        pr.decidedAt = LocalDateTime.now(ZoneOffset.UTC)
+        return purchaseRequestRepository.save(pr)
     }
 
     @Transactional
@@ -139,14 +137,11 @@ class PurchaseRequestService(
         if (pr.status != PurchaseRequestStatus.SUBMITTED) {
             throw BusinessRuleException("Only submitted purchase requests can be rejected")
         }
-        return purchaseRequestRepository.save(
-            pr.copy(
-                status = PurchaseRequestStatus.REJECTED,
-                decisionReason = reason,
-                decidedBy = decidedBy,
-                decidedAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        pr.status = PurchaseRequestStatus.REJECTED
+        pr.decisionReason = reason
+        pr.decidedBy = decidedBy
+        pr.decidedAt = LocalDateTime.now(ZoneOffset.UTC)
+        return purchaseRequestRepository.save(pr)
     }
 
     @Transactional
@@ -161,7 +156,8 @@ class PurchaseRequestService(
         if (pr.status == PurchaseRequestStatus.CANCELLED || pr.status == PurchaseRequestStatus.REJECTED) {
             throw BusinessRuleException("Purchase request is already ${pr.status.name.lowercase()}")
         }
-        return purchaseRequestRepository.save(pr.copy(status = PurchaseRequestStatus.CANCELLED))
+        pr.status = PurchaseRequestStatus.CANCELLED
+        return purchaseRequestRepository.save(pr)
     }
 
     /**
@@ -217,12 +213,9 @@ class PurchaseRequestService(
                 createdBy,
             )
 
-        purchaseRequestRepository.save(
-            pr.copy(
-                status = PurchaseRequestStatus.CONVERTED,
-                convertedPurchaseOrderId = po.id,
-            ),
-        )
+        pr.status = PurchaseRequestStatus.CONVERTED
+        pr.convertedPurchaseOrderId = po.id
+        purchaseRequestRepository.save(pr)
         return po
     }
 

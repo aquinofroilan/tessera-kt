@@ -19,25 +19,25 @@ import java.util.UUID
 @Entity
 @Table(name = "tax_groups")
 @EntityListeners(AuditingEntityListener::class)
-data class TaxGroup(
+class TaxGroup(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
-    val name: String,
-    val code: String,
+    var id: String = UUID.randomUUID().toString(),
+    var name: String,
+    var code: String,
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
         name = "tax_group_rates",
         joinColumns = [JoinColumn(name = "tax_group_id")],
     )
     @Column(name = "tax_rate_id", columnDefinition = "uuid")
-    val taxRateIds: List<String>,
+    var taxRateIds: List<String>,
     @Column(name = "combined_rate")
-    val combinedRate: BigDecimal,
+    var combinedRate: BigDecimal,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: String,
     @Column(name = "is_active")
-    val isActive: Boolean = true,
+    var isActive: Boolean = true,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

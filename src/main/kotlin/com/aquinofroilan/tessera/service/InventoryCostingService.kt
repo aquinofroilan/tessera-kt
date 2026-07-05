@@ -141,7 +141,8 @@ class InventoryCostingService(
             val take = layer.remainingQuantity.min(remaining)
             totalCost += take.multiply(layer.unitCost)
             remaining -= take
-            layerRepository.save(layer.copy(remainingQuantity = layer.remainingQuantity - take))
+            layer.remainingQuantity = layer.remainingQuantity - take
+            layerRepository.save(layer)
         }
         if (remaining.signum() > 0) {
             // Negative-stock policy is enforced upstream in StockMovementService.
@@ -207,8 +208,12 @@ class InventoryCostingService(
         val newTotal = existing.map { it.totalCost }.orElse(BigDecimal.ZERO) + quantity.multiply(unitCost)
         val snapshot =
             existing
-                .map { it.copy(quantity = newQty, totalCost = newTotal) }
-                .orElseGet {
+                .map {
+                    it.apply {
+                        this.quantity = newQty
+                        this.totalCost = newTotal
+                    }
+                }.orElseGet {
                     InventoryWaSnapshot(
                         organizationId = movement.organizationId,
                         productId = movement.productId,
@@ -242,7 +247,9 @@ class InventoryCostingService(
         val consumedCost = quantity.multiply(avgCost)
         val newQty = existing.quantity - quantity
         val newTotal = (existing.totalCost - consumedCost).max(BigDecimal.ZERO)
-        waSnapshotRepository.save(existing.copy(quantity = newQty, totalCost = newTotal))
+        existing.quantity = newQty
+        existing.totalCost = newTotal
+        waSnapshotRepository.save(existing)
         return consumedCost
     }
 

@@ -140,7 +140,7 @@ class LeaveRequestServiceTest {
     fun `balance reports entitlement minus approved used days`() {
         whenever(
             repository.findByOrganizationIdAndEmployeeIdAndLeaveTypeIdAndStatus(orgId, empId, typeId, LeaveRequestStatus.APPROVED),
-        ).thenReturn(listOf(pending(4).copy(status = LeaveRequestStatus.APPROVED)))
+        ).thenReturn(listOf(pending(4).apply { status = LeaveRequestStatus.APPROVED }))
 
         val balance = service.balance(empId, typeId, 2020, orgId)
 

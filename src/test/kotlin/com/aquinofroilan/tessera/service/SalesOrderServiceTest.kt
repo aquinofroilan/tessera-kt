@@ -90,7 +90,7 @@ class SalesOrderServiceTest {
 
     @Test
     fun `fulfill posts an ISSUE stock movement per line and marks FULFILLED`() {
-        val approved = service.createSalesOrder(createRequest(), orgId, userId).copy(status = SalesOrderStatus.APPROVED)
+        val approved = service.createSalesOrder(createRequest(), orgId, userId).apply { status = SalesOrderStatus.APPROVED }
         whenever(repository.findById(approved.id)).thenReturn(Optional.of(approved))
 
         val fulfilled = service.fulfillSalesOrder(approved.id, null, orgId, userId)
@@ -115,7 +115,7 @@ class SalesOrderServiceTest {
 
     @Test
     fun `partial fulfill leaves the order PARTIALLY_FULFILLED`() {
-        val approved = service.createSalesOrder(createRequest(), orgId, userId).copy(status = SalesOrderStatus.APPROVED)
+        val approved = service.createSalesOrder(createRequest(), orgId, userId).apply { status = SalesOrderStatus.APPROVED }
         val lineId = approved.lines.first().id
         whenever(repository.findById(approved.id)).thenReturn(Optional.of(approved))
 
@@ -139,7 +139,10 @@ class SalesOrderServiceTest {
             service
                 .createSalesOrder(createRequest(), orgId, userId)
                 .let { so ->
-                    so.copy(status = SalesOrderStatus.FULFILLED, lines = so.lines.map { it.copy(fulfilledQuantity = it.quantity) })
+                    so.apply {
+                        status = SalesOrderStatus.FULFILLED
+                        lines = lines.map { line -> line.apply { fulfilledQuantity = quantity } }
+                    }
                 }
         whenever(repository.findById(fulfilled.id)).thenReturn(Optional.of(fulfilled))
         whenever(invoiceService.createInvoice(any(), eq(orgId), any())).thenReturn(mock(Invoice::class.java))
@@ -160,7 +163,10 @@ class SalesOrderServiceTest {
             service
                 .createSalesOrder(createRequest(), orgId, userId)
                 .let { so ->
-                    so.copy(status = SalesOrderStatus.FULFILLED, lines = so.lines.map { it.copy(fulfilledQuantity = it.quantity) })
+                    so.apply {
+                        status = SalesOrderStatus.FULFILLED
+                        lines = lines.map { line -> line.apply { fulfilledQuantity = quantity } }
+                    }
                 }
         whenever(repository.findById(fulfilled.id)).thenReturn(Optional.of(fulfilled))
 

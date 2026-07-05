@@ -25,23 +25,23 @@ enum class RoleLevel {
 @Entity
 @Table(name = "roles")
 @EntityListeners(AuditingEntityListener::class)
-data class Role(
+class Role(
     @Id
     @Column(name = "uuid", columnDefinition = "uuid")
-    val uuid: String = UUID.randomUUID().toString(),
-    val name: String,
-    val description: String,
+    var uuid: String = UUID.randomUUID().toString(),
+    var name: String,
+    var description: String,
     @Enumerated(EnumType.STRING)
-    val level: RoleLevel,
+    var level: RoleLevel,
     @Column(name = "is_default")
-    val isDefault: Boolean = false,
+    var isDefault: Boolean = false,
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
         name = "role_permissions",
         joinColumns = [JoinColumn(name = "role_id")],
     )
     @Column(name = "permission")
-    val permissions: List<String> = emptyList(),
+    var permissions: List<String> = emptyList(),
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

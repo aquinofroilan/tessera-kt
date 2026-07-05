@@ -336,7 +336,7 @@ class AuthServiceTest {
     @Test
     fun `login should throw exception when user account is inactive`() {
         val request = LoginRequest(username = "testuser", password = "password123")
-        val inactiveUser = createMockUser().copy(isActive = false)
+        val inactiveUser = createMockUser().apply { isActive = false }
 
         `when`(userRepository.findByUsername(request.username)).thenReturn(Optional.of(inactiveUser))
 
@@ -417,7 +417,7 @@ class AuthServiceTest {
     fun `refresh should throw exception when user is inactive`() {
         val refreshTokenStr = "valid-refresh-token"
         val refreshTokenHash = "hashed-$refreshTokenStr"
-        val inactiveUser = createMockUser().copy(isActive = false)
+        val inactiveUser = createMockUser().apply { isActive = false }
         val existingRefreshToken =
             RefreshToken(
                 tokenHash = refreshTokenHash,
@@ -599,7 +599,7 @@ class AuthServiceTest {
 
     @Test
     fun `forgotPassword should return null for inactive user`() {
-        val inactiveUser = createMockUser().copy(isActive = false)
+        val inactiveUser = createMockUser().apply { isActive = false }
         `when`(userRepository.findByEmail(inactiveUser.email)).thenReturn(Optional.of(inactiveUser))
 
         val result = authService.forgotPassword(inactiveUser.email)
@@ -683,14 +683,14 @@ class AuthServiceTest {
     @Test
     fun `switchOrganization should return new token pair scoped to target org`() {
         val user =
-            createMockUser().copy(
+            createMockUser().apply {
                 roleAssignments =
                     listOf(
                         RoleAssignment("OWNER", "org-123"),
                         RoleAssignment("MEMBER", "org-456"),
-                    ),
-            )
-        val targetOrg = createMockOrganization().copy(uuid = "org-456")
+                    )
+            }
+        val targetOrg = createMockOrganization().apply { uuid = "org-456" }
 
         `when`(organizationRepository.findById("org-456")).thenReturn(Optional.of(targetOrg))
         `when`(sessionTokenRepository.save(any<SessionToken>())).thenAnswer { it.arguments[0] }
@@ -722,13 +722,13 @@ class AuthServiceTest {
     @Test
     fun `switchOrganization should throw when org not found`() {
         val user =
-            createMockUser().copy(
+            createMockUser().apply {
                 roleAssignments =
                     listOf(
                         RoleAssignment("MEMBER", "org-123"),
                         RoleAssignment("MEMBER", "org-missing"),
-                    ),
-            )
+                    )
+            }
 
         `when`(organizationRepository.findById("org-missing")).thenReturn(Optional.empty())
 
@@ -742,14 +742,18 @@ class AuthServiceTest {
     @Test
     fun `switchOrganization should throw when org is inactive`() {
         val user =
-            createMockUser().copy(
+            createMockUser().apply {
                 roleAssignments =
                     listOf(
                         RoleAssignment("MEMBER", "org-123"),
                         RoleAssignment("MEMBER", "org-inactive"),
-                    ),
-            )
-        val inactiveOrg = createMockOrganization().copy(uuid = "org-inactive", isActive = false)
+                    )
+            }
+        val inactiveOrg =
+            createMockOrganization().apply {
+                uuid = "org-inactive"
+                isActive = false
+            }
 
         `when`(organizationRepository.findById("org-inactive")).thenReturn(Optional.of(inactiveOrg))
 
@@ -763,15 +767,25 @@ class AuthServiceTest {
     @Test
     fun `listUserOrganizations should return orgs with current indicator`() {
         val user =
-            createMockUser().copy(
+            createMockUser().apply {
                 roleAssignments =
                     listOf(
                         RoleAssignment("OWNER", "org-123"),
                         RoleAssignment("MEMBER", "org-456"),
-                    ),
-            )
-        val org1 = createMockOrganization().copy(uuid = "org-123", name = "Org One", orgSlug = "org-one")
-        val org2 = createMockOrganization().copy(uuid = "org-456", name = "Org Two", orgSlug = "org-two")
+                    )
+            }
+        val org1 =
+            createMockOrganization().apply {
+                uuid = "org-123"
+                name = "Org One"
+                orgSlug = "org-one"
+            }
+        val org2 =
+            createMockOrganization().apply {
+                uuid = "org-456"
+                name = "Org Two"
+                orgSlug = "org-two"
+            }
 
         `when`(organizationRepository.findAllById(listOf("org-123", "org-456"))).thenReturn(listOf(org1, org2))
 
@@ -790,15 +804,19 @@ class AuthServiceTest {
     @Test
     fun `listUserOrganizations should include inactive orgs with isActive false`() {
         val user =
-            createMockUser().copy(
+            createMockUser().apply {
                 roleAssignments =
                     listOf(
                         RoleAssignment("OWNER", "org-123"),
                         RoleAssignment("MEMBER", "org-inactive"),
-                    ),
-            )
-        val activeOrg = createMockOrganization().copy(uuid = "org-123")
-        val inactiveOrg = createMockOrganization().copy(uuid = "org-inactive", isActive = false)
+                    )
+            }
+        val activeOrg = createMockOrganization().apply { uuid = "org-123" }
+        val inactiveOrg =
+            createMockOrganization().apply {
+                uuid = "org-inactive"
+                isActive = false
+            }
 
         `when`(organizationRepository.findAllById(listOf("org-123", "org-inactive"))).thenReturn(listOf(activeOrg, inactiveOrg))
 

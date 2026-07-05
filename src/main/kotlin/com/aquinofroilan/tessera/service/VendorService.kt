@@ -72,21 +72,19 @@ class VendorService(
             throw BusinessRuleException("Vendor name cannot be blank")
         }
 
-        val updated =
-            vendor.copy(
-                name = request.name ?: vendor.name,
-                contactName = request.contactName ?: vendor.contactName,
-                contactEmail = request.contactEmail ?: vendor.contactEmail,
-                contactPhone = request.contactPhone ?: vendor.contactPhone,
-                paymentTermDays = request.paymentTermDays ?: vendor.paymentTermDays,
-                defaultExpenseAccountId = request.defaultExpenseAccountId ?: vendor.defaultExpenseAccountId,
-            )
-
+        vendor.apply {
+            name = request.name ?: vendor.name
+            contactName = request.contactName ?: vendor.contactName
+            contactEmail = request.contactEmail ?: vendor.contactEmail
+            contactPhone = request.contactPhone ?: vendor.contactPhone
+            paymentTermDays = request.paymentTermDays ?: vendor.paymentTermDays
+            defaultExpenseAccountId = request.defaultExpenseAccountId ?: vendor.defaultExpenseAccountId
+        }
         return try {
-            vendorRepository.save(updated)
+            vendorRepository.save(vendor)
         } catch (e: DuplicateKeyException) {
             throw BusinessRuleException(
-                "Vendor '${updated.name}' already exists in this organization",
+                "Vendor '${vendor.name}' already exists in this organization",
                 e,
             )
         }
@@ -103,6 +101,7 @@ class VendorService(
             throw BusinessRuleException("Vendor is already inactive")
         }
 
-        return vendorRepository.save(vendor.copy(isActive = false))
+        vendor.isActive = false
+        return vendorRepository.save(vendor)
     }
 }

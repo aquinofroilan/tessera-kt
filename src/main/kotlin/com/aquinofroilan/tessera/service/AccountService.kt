@@ -79,12 +79,11 @@ class AccountService(
             throw BusinessRuleException("Account name must not be blank")
         }
 
-        val updated =
-            account.copy(
-                name = request.name ?: account.name,
-                description = request.description ?: account.description,
-            )
-        return accountRepository.save(updated)
+        account.apply {
+            name = request.name ?: account.name
+            description = request.description ?: account.description
+        }
+        return accountRepository.save(account)
     }
 
     fun getAccount(
@@ -132,7 +131,8 @@ class AccountService(
         if (accountRepository.existsByOrganizationIdAndParentIdAndIsActive(organizationId, accountId, true)) {
             throw BusinessRuleException("Cannot delete account with child accounts")
         }
-        accountRepository.save(account.copy(isActive = false))
+        account.isActive = false
+        accountRepository.save(account)
     }
 
     @Transactional

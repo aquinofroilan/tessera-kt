@@ -252,14 +252,11 @@ class InvoiceService(
             )
 
         val now = LocalDateTime.now(ZoneOffset.UTC)
-        return invoiceRepository.save(
-            invoice.copy(
-                status = InvoiceStatus.APPROVED,
-                journalEntryId = journalEntry.id,
-                approvedAt = now,
-                approvedBy = approvedBy,
-            ),
-        )
+        invoice.status = InvoiceStatus.APPROVED
+        invoice.journalEntryId = journalEntry.id
+        invoice.approvedAt = now
+        invoice.approvedBy = approvedBy
+        return invoiceRepository.save(invoice)
     }
 
     @Transactional
@@ -278,14 +275,11 @@ class InvoiceService(
         val now = LocalDateTime.now(ZoneOffset.UTC)
 
         if (invoice.status == InvoiceStatus.DRAFT) {
-            return invoiceRepository.save(
-                invoice.copy(
-                    status = InvoiceStatus.VOID,
-                    voidedAt = now,
-                    voidedBy = voidedBy,
-                    voidReason = reason,
-                ),
-            )
+            invoice.status = InvoiceStatus.VOID
+            invoice.voidedAt = now
+            invoice.voidedBy = voidedBy
+            invoice.voidReason = reason
+            return invoiceRepository.save(invoice)
         }
 
         if (invoice.amountReceived.compareTo(BigDecimal.ZERO) != 0) {
@@ -301,14 +295,11 @@ class InvoiceService(
             )
         }
 
-        return invoiceRepository.save(
-            invoice.copy(
-                status = InvoiceStatus.VOID,
-                voidedAt = now,
-                voidedBy = voidedBy,
-                voidReason = reason,
-            ),
-        )
+        invoice.status = InvoiceStatus.VOID
+        invoice.voidedAt = now
+        invoice.voidedBy = voidedBy
+        invoice.voidReason = reason
+        return invoiceRepository.save(invoice)
     }
 
     @Transactional
@@ -397,14 +388,11 @@ class InvoiceService(
         val newBaseAmountReceived = invoice.baseCurrencyAmountReceived.add(receiptBaseAmount)
         val newStatus = if (fullyPaid) InvoiceStatus.PAID else InvoiceStatus.PARTIALLY_PAID
 
-        invoiceRepository.save(
-            invoice.copy(
-                amountReceived = newAmountReceived,
-                baseCurrencyAmountReceived = newBaseAmountReceived,
-                status = newStatus,
-                paidAt = if (fullyPaid) LocalDateTime.now(ZoneOffset.UTC) else null,
-            ),
-        )
+        invoice.amountReceived = newAmountReceived
+        invoice.baseCurrencyAmountReceived = newBaseAmountReceived
+        invoice.status = newStatus
+        invoice.paidAt = if (fullyPaid) LocalDateTime.now(ZoneOffset.UTC) else null
+        invoiceRepository.save(invoice)
 
         return receipt
     }
@@ -508,7 +496,7 @@ class InvoiceService(
             val line = mutable[i]
             val applied =
                 if (remaining.signum() < 0) remaining.max(line.credit.negate()) else remaining
-            mutable[i] = line.copy(credit = line.credit.add(applied))
+            mutable[i] = line.apply { credit = line.credit.add(applied) }
             remaining = remaining.subtract(applied)
         }
         return mutable

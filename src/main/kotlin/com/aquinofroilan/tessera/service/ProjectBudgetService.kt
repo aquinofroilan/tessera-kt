@@ -36,8 +36,12 @@ class ProjectBudgetService(
             projectBudgetRepository.findByOrganizationIdAndProjectIdAndCategory(organizationId, projectId, category)
         val budget =
             existing
-                .map { it.copy(budgetAmount = amount, currency = request.currency ?: it.currency) }
-                .orElseGet {
+                .map {
+                    it.apply {
+                        budgetAmount = amount
+                        currency = request.currency ?: it.currency
+                    }
+                }.orElseGet {
                     ProjectBudget(
                         projectId = projectId,
                         category = category,

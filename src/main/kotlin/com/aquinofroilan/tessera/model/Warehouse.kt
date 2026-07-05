@@ -14,23 +14,23 @@ import java.util.UUID
 @Entity
 @Table(name = "warehouses")
 @EntityListeners(AuditingEntityListener::class)
-data class Warehouse(
+class Warehouse(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
-    val code: String,
-    val name: String,
-    val description: String? = null,
+    var id: String = UUID.randomUUID().toString(),
+    var code: String,
+    var name: String,
+    var description: String? = null,
     @Column(name = "address_line")
-    val addressLine: String? = null,
-    val city: String? = null,
-    val country: String? = null,
+    var addressLine: String? = null,
+    var city: String? = null,
+    var country: String? = null,
     @Column(name = "allow_negative_stock")
-    val allowNegativeStock: Boolean = false,
+    var allowNegativeStock: Boolean = false,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: String,
     @Column(name = "is_active")
-    val isActive: Boolean = true,
+    var isActive: Boolean = true,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

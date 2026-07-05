@@ -31,75 +31,75 @@ enum class SalesOrderStatus {
 
 @Entity
 @Table(name = "sales_order_lines")
-data class SalesOrderLine(
+class SalesOrderLine(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: String = UUID.randomUUID().toString(),
     @Column(name = "line_number")
-    val lineNumber: Int = 0,
+    var lineNumber: Int = 0,
     @Column(name = "product_id", columnDefinition = "uuid")
-    val productId: String,
+    var productId: String,
     @Column(name = "product_sku")
-    val productSku: String,
+    var productSku: String,
     @Column(name = "product_name")
-    val productName: String,
-    val quantity: BigDecimal,
+    var productName: String,
+    var quantity: BigDecimal,
     @Column(name = "unit_price")
-    val unitPrice: BigDecimal,
+    var unitPrice: BigDecimal,
     @Column(name = "line_total")
-    val lineTotal: BigDecimal,
+    var lineTotal: BigDecimal,
     @Column(name = "fulfilled_quantity")
-    val fulfilledQuantity: BigDecimal = BigDecimal.ZERO,
+    var fulfilledQuantity: BigDecimal = BigDecimal.ZERO,
     @Column(name = "invoiced_quantity")
-    val invoicedQuantity: BigDecimal = BigDecimal.ZERO,
-    val description: String? = null,
+    var invoicedQuantity: BigDecimal = BigDecimal.ZERO,
+    var description: String? = null,
 )
 
 @Entity
 @Table(name = "sales_orders")
 @EntityListeners(AuditingEntityListener::class)
-data class SalesOrder(
+class SalesOrder(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: String = UUID.randomUUID().toString(),
     @Column(name = "so_number")
-    val soNumber: String,
+    var soNumber: String,
     @Column(name = "customer_id", columnDefinition = "uuid")
-    val customerId: String,
+    var customerId: String,
     @Column(name = "customer_name")
-    val customerName: String,
+    var customerName: String,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
-    val warehouseId: String,
+    var warehouseId: String,
     @Column(name = "order_date")
-    val orderDate: LocalDate,
+    var orderDate: LocalDate,
     @Column(name = "expected_date")
-    val expectedDate: LocalDate? = null,
+    var expectedDate: LocalDate? = null,
     @Column(name = "reference_number")
-    val referenceNumber: String? = null,
+    var referenceNumber: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: String,
     @Enumerated(EnumType.STRING)
-    val status: SalesOrderStatus = SalesOrderStatus.DRAFT,
+    var status: SalesOrderStatus = SalesOrderStatus.DRAFT,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "sales_order_id")
     @OrderBy("lineNumber ASC")
-    val lines: List<SalesOrderLine>,
+    var lines: List<SalesOrderLine>,
     @Column(name = "total_amount")
-    val totalAmount: BigDecimal,
+    var totalAmount: BigDecimal,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    var createdBy: String,
     @Column(name = "approved_at")
-    val approvedAt: LocalDateTime? = null,
+    var approvedAt: LocalDateTime? = null,
     @Column(name = "approved_by", columnDefinition = "uuid")
-    val approvedBy: String? = null,
+    var approvedBy: String? = null,
     @Column(name = "fulfilled_at")
-    val fulfilledAt: LocalDateTime? = null,
+    var fulfilledAt: LocalDateTime? = null,
     @Column(name = "cancelled_at")
-    val cancelledAt: LocalDateTime? = null,
+    var cancelledAt: LocalDateTime? = null,
     @CreatedDate
     @Column(name = "created_at")
-    val createdAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     @Column(name = "updated_at")
-    val updatedAt: LocalDateTime? = null,
+    var updatedAt: LocalDateTime? = null,
 )

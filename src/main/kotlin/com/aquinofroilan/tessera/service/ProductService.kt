@@ -98,18 +98,17 @@ class ProductService(
         val newName =
             request.name?.let { requireNonBlankTrimmed(it, "Product name") } ?: existing.name
 
-        val updated =
-            existing.copy(
-                name = newName,
-                description = request.description ?: existing.description,
-                category = request.category ?: existing.category,
-                imageUrl = request.imageUrl ?: existing.imageUrl,
-                listPrice = request.listPrice ?: existing.listPrice,
-                priceCurrency = newCurrency,
-                taxGroupId = request.taxGroupId ?: existing.taxGroupId,
-            )
+        existing.apply {
+            name = newName
+            description = request.description ?: existing.description
+            category = request.category ?: existing.category
+            imageUrl = request.imageUrl ?: existing.imageUrl
+            listPrice = request.listPrice ?: existing.listPrice
+            priceCurrency = newCurrency
+            taxGroupId = request.taxGroupId ?: existing.taxGroupId
+        }
 
-        return productRepository.save(updated)
+        return productRepository.save(existing)
     }
 
     private fun requireNonBlankTrimmed(
@@ -134,7 +133,8 @@ class ProductService(
         }
         // TODO: when #41/#10/#9 land, block hard delete (or even soft delete) if product
         // is referenced by stock movements, sales lines, or purchase lines.
-        return productRepository.save(product.copy(isActive = false))
+        product.isActive = false
+        return productRepository.save(product)
     }
 
     private fun validateTaxGroup(

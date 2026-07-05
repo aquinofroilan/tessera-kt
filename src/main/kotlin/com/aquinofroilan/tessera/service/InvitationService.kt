@@ -62,7 +62,8 @@ class InvitationService(
             if (pendingInvitation.expiryAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
                 throw BusinessRuleException("An invitation has already been sent to this email")
             }
-            invitationRepository.save(pendingInvitation.copy(status = InvitationStatus.EXPIRED))
+            pendingInvitation.status = InvitationStatus.EXPIRED
+            invitationRepository.save(pendingInvitation)
         }
 
         val rawToken = tokenHasher.generate(32)
@@ -137,16 +138,13 @@ class InvitationService(
             if (alreadyHasRole) {
                 return user
             }
-            val updatedUser =
-                user.copy(
-                    roleAssignments =
-                        user.roleAssignments +
-                            RoleAssignment(
-                                role = accepted.role,
-                                organizationId = accepted.organizationId,
-                            ),
+            user.roleAssignments =
+                user.roleAssignments +
+                RoleAssignment(
+                    role = accepted.role,
+                    organizationId = accepted.organizationId,
                 )
-            return userRepository.save(updatedUser)
+            return userRepository.save(user)
         }
 
         if (request.username.isNullOrBlank() ||
@@ -203,7 +201,8 @@ class InvitationService(
         if (invitation.status != InvitationStatus.PENDING) {
             throw BusinessRuleException("Invitation is not pending")
         }
-        invitationRepository.save(invitation.copy(status = InvitationStatus.REVOKED))
+        invitation.status = InvitationStatus.REVOKED
+        invitationRepository.save(invitation)
     }
 
     fun listInvitations(organizationId: String): List<Invitation> =

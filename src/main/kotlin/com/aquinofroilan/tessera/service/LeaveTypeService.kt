@@ -64,13 +64,12 @@ class LeaveTypeService(
         organizationId: String,
     ): LeaveType {
         val leaveType = getLeaveType(id, organizationId)
-        return leaveTypeRepository.save(
-            leaveType.copy(
-                name = request.name?.trim() ?: leaveType.name,
-                paid = request.paid ?: leaveType.paid,
-                defaultAnnualDays = request.defaultAnnualDays ?: leaveType.defaultAnnualDays,
-            ),
-        )
+        leaveType.apply {
+            name = request.name?.trim() ?: leaveType.name
+            paid = request.paid ?: leaveType.paid
+            defaultAnnualDays = request.defaultAnnualDays ?: leaveType.defaultAnnualDays
+        }
+        return leaveTypeRepository.save(leaveType)
     }
 
     @Transactional
@@ -82,6 +81,7 @@ class LeaveTypeService(
         if (!leaveType.isActive) {
             throw BusinessRuleException("Leave type is already inactive")
         }
-        return leaveTypeRepository.save(leaveType.copy(isActive = false))
+        leaveType.isActive = false
+        return leaveTypeRepository.save(leaveType)
     }
 }

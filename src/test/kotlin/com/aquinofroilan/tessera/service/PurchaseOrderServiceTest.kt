@@ -112,7 +112,7 @@ class PurchaseOrderServiceTest {
 
     @Test
     fun `receive posts a RECEIPT stock movement per line and marks RECEIVED`() {
-        val approved = service.createPurchaseOrder(createRequest(), orgId, userId).copy(status = PurchaseOrderStatus.APPROVED)
+        val approved = service.createPurchaseOrder(createRequest(), orgId, userId).apply { status = PurchaseOrderStatus.APPROVED }
         whenever(repository.findById(approved.id)).thenReturn(java.util.Optional.of(approved))
 
         val received = service.receivePurchaseOrder(approved.id, null, orgId, userId)
@@ -137,7 +137,7 @@ class PurchaseOrderServiceTest {
 
     @Test
     fun `partial receive leaves the order PARTIALLY_RECEIVED`() {
-        val approved = service.createPurchaseOrder(createRequest(), orgId, userId).copy(status = PurchaseOrderStatus.APPROVED)
+        val approved = service.createPurchaseOrder(createRequest(), orgId, userId).apply { status = PurchaseOrderStatus.APPROVED }
         val lineId = approved.lines.first().id
         whenever(repository.findById(approved.id)).thenReturn(Optional.of(approved))
 
@@ -155,7 +155,7 @@ class PurchaseOrderServiceTest {
 
     @Test
     fun `receiving more than ordered is rejected`() {
-        val approved = service.createPurchaseOrder(createRequest(), orgId, userId).copy(status = PurchaseOrderStatus.APPROVED)
+        val approved = service.createPurchaseOrder(createRequest(), orgId, userId).apply { status = PurchaseOrderStatus.APPROVED }
         val lineId = approved.lines.first().id
         whenever(repository.findById(approved.id)).thenReturn(Optional.of(approved))
 
@@ -175,7 +175,10 @@ class PurchaseOrderServiceTest {
             service
                 .createPurchaseOrder(createRequest(), orgId, userId)
                 .let { po ->
-                    po.copy(status = PurchaseOrderStatus.RECEIVED, lines = po.lines.map { it.copy(receivedQuantity = it.quantity) })
+                    po.apply {
+                        status = PurchaseOrderStatus.RECEIVED
+                        lines = lines.map { line -> line.apply { receivedQuantity = quantity } }
+                    }
                 }
         whenever(repository.findById(received.id)).thenReturn(Optional.of(received))
         whenever(accountRepository.findByOrganizationIdAndCode(orgId, "2150"))
@@ -208,7 +211,10 @@ class PurchaseOrderServiceTest {
             service
                 .createPurchaseOrder(createRequest(), orgId, userId)
                 .let { po ->
-                    po.copy(status = PurchaseOrderStatus.RECEIVED, lines = po.lines.map { it.copy(receivedQuantity = it.quantity) })
+                    po.apply {
+                        status = PurchaseOrderStatus.RECEIVED
+                        lines = lines.map { line -> line.apply { receivedQuantity = quantity } }
+                    }
                 }
         val lineId = received.lines.first().id
         whenever(repository.findById(received.id)).thenReturn(Optional.of(received))
@@ -243,7 +249,10 @@ class PurchaseOrderServiceTest {
             service
                 .createPurchaseOrder(createRequest(), orgId, userId)
                 .let { po ->
-                    po.copy(status = PurchaseOrderStatus.RECEIVED, lines = po.lines.map { it.copy(receivedQuantity = it.quantity) })
+                    po.apply {
+                        status = PurchaseOrderStatus.RECEIVED
+                        lines = lines.map { line -> line.apply { receivedQuantity = quantity } }
+                    }
                 }
         whenever(repository.findById(received.id)).thenReturn(Optional.of(received))
 
@@ -259,10 +268,16 @@ class PurchaseOrderServiceTest {
             service
                 .createPurchaseOrder(createRequest(), orgId, userId)
                 .let { po ->
-                    po.copy(
-                        status = PurchaseOrderStatus.RECEIVED,
-                        lines = po.lines.map { it.copy(receivedQuantity = it.quantity, billedQuantity = it.quantity) },
-                    )
+                    po.apply {
+                        status = PurchaseOrderStatus.RECEIVED
+                        lines =
+                            lines.map { line ->
+                                line.apply {
+                                    receivedQuantity = quantity
+                                    billedQuantity = quantity
+                                }
+                            }
+                    }
                 }
         whenever(repository.findById(billed.id)).thenReturn(Optional.of(billed))
 
@@ -277,7 +292,10 @@ class PurchaseOrderServiceTest {
             service
                 .createPurchaseOrder(createRequest(), orgId, userId)
                 .let { po ->
-                    po.copy(status = PurchaseOrderStatus.RECEIVED, lines = po.lines.map { it.copy(receivedQuantity = it.quantity) })
+                    po.apply {
+                        status = PurchaseOrderStatus.RECEIVED
+                        lines = lines.map { line -> line.apply { receivedQuantity = quantity } }
+                    }
                 }
         val lineId = received.lines.first().id
         whenever(repository.findById(received.id)).thenReturn(Optional.of(received))

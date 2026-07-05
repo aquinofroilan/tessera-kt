@@ -233,7 +233,7 @@ class WarehouseControllerTest {
 
     @Test
     fun `PATCH warehouses should return 200 when updated`() {
-        val updated = createMockWarehouse().copy(name = "Renamed")
+        val updated = createMockWarehouse().apply { name = "Renamed" }
         `when`(warehouseService.updateWarehouse(any(), any(), any())).thenReturn(updated)
 
         mockMvc
@@ -247,7 +247,7 @@ class WarehouseControllerTest {
 
     @Test
     fun `DELETE warehouses should return 200 when soft deleted`() {
-        `when`(warehouseService.deleteWarehouse(any(), any())).thenReturn(createMockWarehouse().copy(isActive = false))
+        `when`(warehouseService.deleteWarehouse(any(), any())).thenReturn(createMockWarehouse().apply { isActive = false })
 
         mockMvc
             .perform(delete("/inventory/warehouses/wh-123"))

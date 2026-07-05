@@ -57,8 +57,10 @@ class PurchaseRequestServiceTest {
         service = PurchaseRequestService(repository, productService, vendorService, warehouseService, purchaseOrderService)
     }
 
-    private fun lineReq(estimatedUnitCost: BigDecimal? = BigDecimal("5")) =
-        CreatePurchaseRequestLineRequest(productId = "p-1", quantity = BigDecimal("3"), estimatedUnitCost = estimatedUnitCost)
+    private fun lineReq(
+        quantity: BigDecimal = BigDecimal("3"),
+        estimatedUnitCost: BigDecimal? = BigDecimal("5"),
+    ) = CreatePurchaseRequestLineRequest(productId = "p-1", quantity = quantity, estimatedUnitCost = estimatedUnitCost)
 
     private fun approvedRequest(
         lines: List<PurchaseRequestLine> =
@@ -105,7 +107,7 @@ class PurchaseRequestServiceTest {
     fun `create rejects a non-positive quantity`() {
         assertThatThrownBy {
             service.createPurchaseRequest(
-                CreatePurchaseRequestRequest(lines = listOf(lineReq().copy(quantity = BigDecimal.ZERO))),
+                CreatePurchaseRequestRequest(lines = listOf(lineReq(quantity = BigDecimal.ZERO))),
                 orgId,
                 userId,
             )
@@ -115,7 +117,7 @@ class PurchaseRequestServiceTest {
     @Test
     fun `submit moves a draft to submitted`() {
         whenever(repository.findById("pr-1"))
-            .thenReturn(Optional.of(approvedRequest().copy(status = PurchaseRequestStatus.DRAFT)))
+            .thenReturn(Optional.of(approvedRequest().apply { status = PurchaseRequestStatus.DRAFT }))
 
         assertThat(service.submitPurchaseRequest("pr-1", orgId).status).isEqualTo(PurchaseRequestStatus.SUBMITTED)
     }
@@ -131,7 +133,7 @@ class PurchaseRequestServiceTest {
     @Test
     fun `cancel rejects a converted request`() {
         whenever(repository.findById("pr-1"))
-            .thenReturn(Optional.of(approvedRequest().copy(status = PurchaseRequestStatus.CONVERTED)))
+            .thenReturn(Optional.of(approvedRequest().apply { status = PurchaseRequestStatus.CONVERTED }))
 
         assertThatThrownBy { service.cancelPurchaseRequest("pr-1", orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
@@ -140,7 +142,7 @@ class PurchaseRequestServiceTest {
     @Test
     fun `convert requires an approved request`() {
         whenever(repository.findById("pr-1"))
-            .thenReturn(Optional.of(approvedRequest().copy(status = PurchaseRequestStatus.SUBMITTED)))
+            .thenReturn(Optional.of(approvedRequest().apply { status = PurchaseRequestStatus.SUBMITTED }))
 
         assertThatThrownBy { service.convertToPurchaseOrder("pr-1", ConvertPurchaseRequestRequest(), orgId, userId) }
             .isInstanceOf(BusinessRuleException::class.java)
@@ -247,7 +249,7 @@ class PurchaseRequestServiceTest {
     @Test
     fun `get rejects cross-org access`() {
         whenever(repository.findById("pr-1"))
-            .thenReturn(Optional.of(approvedRequest().copy(organizationId = "other")))
+            .thenReturn(Optional.of(approvedRequest().apply { organizationId = "other" }))
 
         assertThatThrownBy { service.getPurchaseRequest("pr-1", orgId) }
             .isInstanceOf(ResourceNotFoundException::class.java)

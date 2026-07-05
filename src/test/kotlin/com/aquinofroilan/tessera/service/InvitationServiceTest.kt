@@ -186,7 +186,7 @@ class InvitationServiceTest {
     @Test
     fun `validateInvitation should return existingUser true when email registered`() {
         val invitation = createMockInvitation()
-        val existingUser = createMockUser().copy(email = invitation.email)
+        val existingUser = createMockUser().apply { email = invitation.email }
 
         `when`(invitationRepository.findByTokenHash("hashed-valid-token")).thenReturn(Optional.of(invitation))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.of(existingUser))
@@ -215,7 +215,7 @@ class InvitationServiceTest {
                 lastName = "User",
             )
         val invitation = createMockInvitation()
-        val accepted = invitation.copy(status = InvitationStatus.ACCEPTED)
+        val accepted = invitation.apply { status = InvitationStatus.ACCEPTED }
 
         `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
         `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(accepted))
@@ -240,7 +240,7 @@ class InvitationServiceTest {
     fun `acceptInvitation should add role to existing user with only token`() {
         val request = AcceptInvitationRequest(token = "raw-token")
         val invitation = createMockInvitation(role = "ADMIN")
-        val accepted = invitation.copy(status = InvitationStatus.ACCEPTED)
+        val accepted = invitation.apply { status = InvitationStatus.ACCEPTED }
         val existingUser =
             User(
                 uuid = "existing-user",
@@ -289,7 +289,7 @@ class InvitationServiceTest {
         val invitation = createMockInvitation()
 
         `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
-        `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(invitation.copy(status = InvitationStatus.ACCEPTED)))
+        `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(invitation.apply { status = InvitationStatus.ACCEPTED }))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
 
         val exception = assertThrows<BusinessRuleException> { invitationService.acceptInvitation(request) }
@@ -309,7 +309,7 @@ class InvitationServiceTest {
         val invitation = createMockInvitation()
 
         `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
-        `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(invitation.copy(status = InvitationStatus.ACCEPTED)))
+        `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(invitation.apply { status = InvitationStatus.ACCEPTED }))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
         `when`(passwordEncoder.encode("SecurePass123!")).thenReturn("encodedPassword")
         `when`(userRepository.save(any<User>()))

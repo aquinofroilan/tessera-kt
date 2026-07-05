@@ -133,9 +133,10 @@ class StockMovementService(
                 organizationId,
                 userId,
             )
-        val marked = compensating.copy(reversalOfMovementId = original.id)
-        val saved = stockMovementRepository.save(marked)
-        stockMovementRepository.save(original.copy(reversed = true))
+        compensating.reversalOfMovementId = original.id
+        val saved = stockMovementRepository.save(compensating)
+        original.reversed = true
+        stockMovementRepository.save(original)
         return saved
     }
 

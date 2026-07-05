@@ -167,12 +167,9 @@ class JournalEntryService(
 
         validateFiscalPeriodOpen(organizationId, entry.date)
 
-        return journalEntryRepository.save(
-            entry.copy(
-                status = JournalEntryStatus.POSTED,
-                postedAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        entry.status = JournalEntryStatus.POSTED
+        entry.postedAt = LocalDateTime.now(ZoneOffset.UTC)
+        return journalEntryRepository.save(entry)
     }
 
     @Transactional
@@ -190,18 +187,19 @@ class JournalEntryService(
         validateFiscalPeriodOpen(organizationId, reversalDate)
 
         val now = LocalDateTime.now(ZoneOffset.UTC)
-        val voidedEntry =
-            journalEntryRepository.save(
-                entry.copy(
-                    status = JournalEntryStatus.VOIDED,
-                    voidedAt = now,
-                    voidReason = reason,
-                ),
-            )
+        entry.status = JournalEntryStatus.VOIDED
+        entry.voidedAt = now
+        entry.voidReason = reason
+        val voidedEntry = journalEntryRepository.save(entry)
 
         val reversedLines =
             entry.lines.map { line ->
-                line.copy(debit = line.credit, credit = line.debit)
+                val originalDebit = line.debit
+                val originalCredit = line.credit
+                line.apply {
+                    debit = originalCredit
+                    credit = originalDebit
+                }
             }
 
         entryNumberGenerator.saveWithRetry(organizationId) { reversingNumber ->

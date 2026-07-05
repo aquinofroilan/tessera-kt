@@ -251,14 +251,11 @@ class BillService(
             )
 
         val now = LocalDateTime.now(ZoneOffset.UTC)
-        return billRepository.save(
-            bill.copy(
-                status = BillStatus.APPROVED,
-                journalEntryId = journalEntry.id,
-                approvedAt = now,
-                approvedBy = approvedBy,
-            ),
-        )
+        bill.status = BillStatus.APPROVED
+        bill.journalEntryId = journalEntry.id
+        bill.approvedAt = now
+        bill.approvedBy = approvedBy
+        return billRepository.save(bill)
     }
 
     @Transactional
@@ -276,14 +273,11 @@ class BillService(
         val now = LocalDateTime.now(ZoneOffset.UTC)
 
         if (bill.status == BillStatus.DRAFT) {
-            return billRepository.save(
-                bill.copy(
-                    status = BillStatus.VOID,
-                    voidedAt = now,
-                    voidedBy = voidedBy,
-                    voidReason = reason,
-                ),
-            )
+            bill.status = BillStatus.VOID
+            bill.voidedAt = now
+            bill.voidedBy = voidedBy
+            bill.voidReason = reason
+            return billRepository.save(bill)
         }
         if (bill.amountPaid.compareTo(BigDecimal.ZERO) != 0) {
             throw BusinessRuleException("Cannot void a bill with recorded payments")
@@ -298,14 +292,11 @@ class BillService(
             )
         }
 
-        return billRepository.save(
-            bill.copy(
-                status = BillStatus.VOID,
-                voidedAt = now,
-                voidedBy = voidedBy,
-                voidReason = reason,
-            ),
-        )
+        bill.status = BillStatus.VOID
+        bill.voidedAt = now
+        bill.voidedBy = voidedBy
+        bill.voidReason = reason
+        return billRepository.save(bill)
     }
 
     @Transactional
@@ -394,14 +385,11 @@ class BillService(
         val newBaseAmountPaid = bill.baseCurrencyAmountPaid.add(paymentBaseAmount)
         val newStatus = if (fullyPaid) BillStatus.PAID else BillStatus.PARTIALLY_PAID
 
-        billRepository.save(
-            bill.copy(
-                amountPaid = newAmountPaid,
-                baseCurrencyAmountPaid = newBaseAmountPaid,
-                status = newStatus,
-                paidAt = if (fullyPaid) LocalDateTime.now(ZoneOffset.UTC) else null,
-            ),
-        )
+        bill.amountPaid = newAmountPaid
+        bill.baseCurrencyAmountPaid = newBaseAmountPaid
+        bill.status = newStatus
+        bill.paidAt = if (fullyPaid) LocalDateTime.now(ZoneOffset.UTC) else null
+        billRepository.save(bill)
 
         return payment
     }
@@ -546,7 +534,7 @@ class BillService(
             val line = mutable[i]
             val applied =
                 if (remaining.signum() < 0) remaining.max(line.debit.negate()) else remaining
-            mutable[i] = line.copy(debit = line.debit.add(applied))
+            mutable[i] = line.apply { debit = line.debit.add(applied) }
             remaining = remaining.subtract(applied)
         }
         return mutable

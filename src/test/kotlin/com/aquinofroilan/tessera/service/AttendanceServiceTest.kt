@@ -141,7 +141,14 @@ class AttendanceServiceTest {
     @Test
     fun `get rejects cross-org access`() {
         whenever(repository.findById("a1"))
-            .thenReturn(Optional.of(record(clockIn = null).copy(id = "a1", organizationId = "other")))
+            .thenReturn(
+                Optional.of(
+                    record(clockIn = null).apply {
+                        id = "a1"
+                        organizationId = "other"
+                    },
+                ),
+            )
 
         assertThatThrownBy { service.getAttendance("a1", orgId) }
             .isInstanceOf(ResourceNotFoundException::class.java)

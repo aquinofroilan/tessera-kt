@@ -213,7 +213,7 @@ class AccountControllerTest {
 
     @Test
     fun `PUT accounts should return 200 when updated`() {
-        val account = createMockAccount().copy(name = "Updated Cash")
+        val account = createMockAccount().apply { name = "Updated Cash" }
         `when`(accountService.updateAccount(any(), any(), any())).thenReturn(account)
 
         mockMvc

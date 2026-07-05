@@ -107,7 +107,7 @@ class ProjectServiceTest {
 
     @Test
     fun `get rejects cross-org access`() {
-        whenever(repository.findById("p-1")).thenReturn(Optional.of(project().copy(organizationId = "other")))
+        whenever(repository.findById("p-1")).thenReturn(Optional.of(project().apply { organizationId = "other" }))
         assertThatThrownBy { service.getProject("p-1", orgId) }.isInstanceOf(ResourceNotFoundException::class.java)
     }
 }
