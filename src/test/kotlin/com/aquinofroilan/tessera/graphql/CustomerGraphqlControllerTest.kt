@@ -46,18 +46,18 @@ class CustomerGraphqlControllerTest {
                 ),
             )
         SecurityContextHolder.getContext().authentication = authentication
-        `when`(authenticationContext.organizationId()).thenReturn("org-123")
+        `when`(authenticationContext.organizationId()).thenReturn(java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"))
     }
 
     @Test
     fun `customers query should return mapped results`() {
-        `when`(customerService.listCustomers("org-123"))
+        `when`(customerService.listCustomers(java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216")))
             .thenReturn(
                 listOf(
                     Customer(
-                        id = "cust-1",
+                        id = java.util.UUID.fromString("59904136-ac5d-0a41-c3a4-ddcac83b81cd"),
                         name = "Acme",
-                        organizationId = "org-123",
+                        organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
                     ),
                 ),
             )
@@ -76,18 +76,18 @@ class CustomerGraphqlControllerTest {
             ).execute()
             .path("customers[0].id")
             .entity(String::class.java)
-            .isEqualTo("cust-1")
+            .isEqualTo("59904136-ac5d-0a41-c3a4-ddcac83b81cd")
     }
 
     @Test
     fun `createCustomer mutation should map input and return created customer`() {
-        `when`(customerService.createCustomer(CreateCustomerRequest(name = "Acme", paymentTermDays = 15), "org-123"))
+        `when`(customerService.createCustomer(CreateCustomerRequest(name = "Acme", paymentTermDays = 15), java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216")))
             .thenReturn(
                 Customer(
-                    id = "cust-2",
+                    id = java.util.UUID.fromString("e9463b75-4c1b-05e7-a5e1-26e705fb5fcb"),
                     name = "Acme",
                     paymentTermDays = 15,
-                    organizationId = "org-123",
+                    organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
                 ),
             )
 
@@ -106,7 +106,7 @@ class CustomerGraphqlControllerTest {
             .execute()
             .path("createCustomer.id")
             .entity(String::class.java)
-            .isEqualTo("cust-2")
+            .isEqualTo("e9463b75-4c1b-05e7-a5e1-26e705fb5fcb")
     }
 
     @Test

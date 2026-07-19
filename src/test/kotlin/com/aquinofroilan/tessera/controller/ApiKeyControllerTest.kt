@@ -77,14 +77,14 @@ class ApiKeyControllerTest {
 
     private val testUser =
         User(
-            uuid = "user-123",
+            uuid = java.util.UUID.fromString("bc17c97c-3d89-7d43-b7e0-7ca0266eafa8"),
             username = "testuser",
             email = "test@example.com",
             firstName = "Test",
             lastName = "User",
             passwordHash = "encoded",
-            organizationId = "org-123",
-            roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
+            organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
+            roleAssignments = listOf(RoleAssignment("OWNER", java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"))),
         )
 
     @BeforeEach
@@ -96,7 +96,7 @@ class ApiKeyControllerTest {
         val roleAuthorities = testUser.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
         val permissionAuthorities = permissions.map { SimpleGrantedAuthority(it) }
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
-        authentication.details = SessionContext(sessionId = "session-123", organizationId = "org-123")
+        authentication.details = SessionContext(sessionId = java.util.UUID.fromString("79c5ca4c-8e48-a8f8-6ffc-5b3271a250aa"), organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"))
         SecurityContextHolder.getContext().authentication = authentication
     }
 
@@ -104,13 +104,13 @@ class ApiKeyControllerTest {
     fun `POST api-keys should return 201 with raw key`() {
         val apiKey =
             ApiKey(
-                id = "key-123",
+                id = java.util.UUID.fromString("6d6d8207-0d68-6a75-5790-f005e3854538"),
                 name = "Test Key",
                 keyHash = "hashed",
                 keyPrefix = "abc12345",
-                organizationId = "org-123",
+                organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
                 permissions = listOf("session:read"),
-                createdBy = "user-123",
+                createdBy = java.util.UUID.fromString("bc17c97c-3d89-7d43-b7e0-7ca0266eafa8"),
             )
         `when`(apiKeyService.createApiKey(any(), any(), any(), any(), any(), anyOrNull()))
             .thenReturn(apiKey to "raw-key-value")
@@ -155,16 +155,16 @@ class ApiKeyControllerTest {
         val keys =
             listOf(
                 ApiKey(
-                    id = "key-1",
+                    id = java.util.UUID.fromString("21af6b8b-5e22-4483-5679-bbdbe0ab03a6"),
                     name = "Key One",
                     keyHash = "h1",
                     keyPrefix = "prefix01",
-                    organizationId = "org-123",
+                    organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
                     permissions = listOf("session:read"),
-                    createdBy = "user-123",
+                    createdBy = java.util.UUID.fromString("bc17c97c-3d89-7d43-b7e0-7ca0266eafa8"),
                 ),
             )
-        `when`(apiKeyService.listApiKeys("org-123")).thenReturn(keys)
+        `when`(apiKeyService.listApiKeys(java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"))).thenReturn(keys)
 
         mockMvc
             .perform(get("/auth/api-keys"))

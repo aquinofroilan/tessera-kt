@@ -97,34 +97,34 @@ class WarehouseControllerTest {
 
     private val testUser =
         User(
-            uuid = "user-123",
+            uuid = java.util.UUID.fromString("bc17c97c-3d89-7d43-b7e0-7ca0266eafa8"),
             username = "testuser",
             email = "test@example.com",
             firstName = "Test",
             lastName = "User",
             passwordHash = "encoded",
-            organizationId = "org-123",
-            roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
+            organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
+            roleAssignments = listOf(RoleAssignment("OWNER", java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"))),
         )
 
     @BeforeEach
     fun setup() {
         setupAuthWithPermissions("inventory:read", "inventory:write")
-        `when`(authenticationContext.organizationId()).thenReturn("org-123")
-        `when`(authenticationContext.userId()).thenReturn("user-123")
+        `when`(authenticationContext.organizationId()).thenReturn(java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"))
+        `when`(authenticationContext.userId()).thenReturn(java.util.UUID.fromString("bc17c97c-3d89-7d43-b7e0-7ca0266eafa8"))
     }
 
     private fun setupAuthWithPermissions(vararg permissions: String) {
         val roleAuthorities = testUser.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
         val permissionAuthorities = permissions.map { SimpleGrantedAuthority(it) }
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
-        authentication.details = SessionContext(sessionId = "session-123", organizationId = "org-123")
+        authentication.details = SessionContext(sessionId = java.util.UUID.fromString("79c5ca4c-8e48-a8f8-6ffc-5b3271a250aa"), organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"))
         SecurityContextHolder.getContext().authentication = authentication
     }
 
     private fun createMockWarehouse() =
         Warehouse(
-            id = "wh-123",
+            id = java.util.UUID.fromString("7e061540-240c-d66d-4293-05c236c66fc0"),
             code = "MAIN",
             name = "Main Warehouse",
             description = "Primary",
@@ -132,7 +132,7 @@ class WarehouseControllerTest {
             city = "Springfield",
             country = "US",
             allowNegativeStock = false,
-            organizationId = "org-123",
+            organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
             isActive = true,
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now(),
@@ -217,7 +217,7 @@ class WarehouseControllerTest {
         mockMvc
             .perform(get("/inventory/warehouses/wh-123"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value("wh-123"))
+            .andExpect(jsonPath("$.id").value("7e061540-240c-d66d-4293-05c236c66fc0"))
             .andExpect(jsonPath("$.code").value("MAIN"))
     }
 
