@@ -36,9 +36,9 @@ class InventoryCostingService(
         }
 
     fun valuationCost(
-        organizationId: String,
-        productId: String,
-        warehouseId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
     ): BigDecimal =
         when (costingMethodFor(organizationId)) {
             InventoryCostingMethod.FIFO ->
@@ -55,7 +55,7 @@ class InventoryCostingService(
                     .orElse(BigDecimal.ZERO)
         }
 
-    fun costingMethodFor(organizationId: String): InventoryCostingMethod =
+    fun costingMethodFor(organizationId: java.util.UUID): InventoryCostingMethod =
         organizationRepository
             .findById(organizationId)
             .orElseThrow { ResourceNotFoundException("Organization not found") }
@@ -124,7 +124,7 @@ class InventoryCostingService(
 
     private fun consumeFifo(
         movement: StockMovement,
-        warehouseId: String,
+        warehouseId: java.util.UUID,
         quantity: BigDecimal,
     ): BigDecimal {
         var remaining = quantity
@@ -194,7 +194,7 @@ class InventoryCostingService(
 
     private fun addToWa(
         movement: StockMovement,
-        warehouseId: String,
+        warehouseId: java.util.UUID,
         quantity: BigDecimal,
         unitCost: BigDecimal,
     ): BigDecimal {
@@ -228,7 +228,7 @@ class InventoryCostingService(
 
     private fun consumeWa(
         movement: StockMovement,
-        warehouseId: String,
+        warehouseId: java.util.UUID,
         quantity: BigDecimal,
     ): BigDecimal {
         val existing =
@@ -255,7 +255,7 @@ class InventoryCostingService(
 
     private fun avgWa(
         movement: StockMovement,
-        warehouseId: String,
+        warehouseId: java.util.UUID,
     ): BigDecimal {
         val existing =
             waSnapshotRepository

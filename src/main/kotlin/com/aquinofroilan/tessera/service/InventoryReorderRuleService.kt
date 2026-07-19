@@ -23,7 +23,7 @@ class InventoryReorderRuleService(
     @Transactional
     fun createRule(
         request: CreateReorderRuleRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): InventoryReorderRule {
         val reorderPoint = request.reorderPoint ?: throw BusinessRuleException("Reorder point is required")
         val rule =
@@ -45,14 +45,14 @@ class InventoryReorderRuleService(
         }
     }
 
-    fun listRules(organizationId: String): List<InventoryReorderRule> =
+    fun listRules(organizationId: java.util.UUID): List<InventoryReorderRule> =
         reorderRuleRepository.findByOrganizationId(organizationId).sortedWith(
             compareBy({ it.productId }, { it.warehouseId }),
         )
 
     fun getRule(
-        ruleId: String,
-        organizationId: String,
+        ruleId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): InventoryReorderRule {
         val rule =
             reorderRuleRepository.findById(ruleId).orElseThrow {
@@ -66,9 +66,9 @@ class InventoryReorderRuleService(
 
     @Transactional
     fun updateRule(
-        ruleId: String,
+        ruleId: java.util.UUID,
         request: UpdateReorderRuleRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): InventoryReorderRule {
         val existing = getRule(ruleId, organizationId)
         existing.apply {
@@ -80,14 +80,14 @@ class InventoryReorderRuleService(
 
     @Transactional
     fun deleteRule(
-        ruleId: String,
-        organizationId: String,
+        ruleId: java.util.UUID,
+        organizationId: java.util.UUID,
     ) {
         val existing = getRule(ruleId, organizationId)
         reorderRuleRepository.delete(existing)
     }
 
-    fun lowStockReport(organizationId: String): LowStockReportResponse {
+    fun lowStockReport(organizationId: java.util.UUID): LowStockReportResponse {
         val rules = reorderRuleRepository.findByOrganizationId(organizationId)
         val onHand: Map<OnHandKey, BigDecimal> =
             stockMovementRepository.onHandByProductWarehouse(organizationId)

@@ -8,9 +8,9 @@ import java.time.LocalDate
 
 data class CreateLeaveRequestRequest(
     @field:NotBlank(message = "Employee ID is required")
-    val employeeId: String,
+    val employeeId: java.util.UUID,
     @field:NotBlank(message = "Leave type ID is required")
-    val leaveTypeId: String,
+    val leaveTypeId: java.util.UUID,
     @field:NotNull(message = "Start date is required")
     val startDate: LocalDate?,
     @field:NotNull(message = "End date is required")
@@ -23,19 +23,19 @@ data class RejectLeaveRequestRequest(
 )
 
 data class LeaveRequestResponse(
-    val id: String,
-    val employeeId: String,
-    val leaveTypeId: String,
+    val id: java.util.UUID,
+    val employeeId: java.util.UUID,
+    val leaveTypeId: java.util.UUID,
     val startDate: String,
     val endDate: String,
     val days: Int,
     val reason: String?,
     val status: LeaveRequestStatus,
     val decisionReason: String?,
-    val decidedBy: String?,
+    val decidedBy: java.util.UUID?,
     val decidedAt: String?,
-    val organizationId: String,
-    val requestedBy: String,
+    val organizationId: java.util.UUID,
+    val requestedBy: java.util.UUID,
     val createdAt: String?,
     val updatedAt: String?,
 ) {
@@ -62,8 +62,8 @@ data class LeaveRequestResponse(
 }
 
 data class LeaveBalanceResponse(
-    val employeeId: String,
-    val leaveTypeId: String,
+    val employeeId: java.util.UUID,
+    val leaveTypeId: java.util.UUID,
     val year: Int,
     val entitlementDays: Int,
     val usedDays: Int,

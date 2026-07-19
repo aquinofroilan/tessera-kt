@@ -7,32 +7,32 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface BillOfMaterialsRepository : JpaRepository<BillOfMaterials, String> {
-    fun findByOrganizationId(organizationId: String): List<BillOfMaterials>
+interface BillOfMaterialsRepository : JpaRepository<BillOfMaterials, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<BillOfMaterials>
 
     fun findByOrganizationIdAndStatus(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: BomStatus,
     ): List<BillOfMaterials>
 
     fun findByOrganizationIdAndProductId(
-        organizationId: String,
-        productId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
     ): List<BillOfMaterials>
 
     fun findByOrganizationIdAndProductIdAndStatus(
-        organizationId: String,
-        productId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
         status: BomStatus,
     ): List<BillOfMaterials>
 
     fun findByOrganizationIdAndProductIdAndIsDefaultTrue(
-        organizationId: String,
-        productId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
     ): Optional<BillOfMaterials>
 
     fun findByOrganizationIdAndCode(
-        organizationId: String,
+        organizationId: java.util.UUID,
         code: String,
     ): Optional<BillOfMaterials>
 }

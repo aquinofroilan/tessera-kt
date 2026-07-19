@@ -8,7 +8,7 @@ import java.time.LocalDate
 
 data class JournalEntryLineRequest(
     @field:NotBlank(message = "Account ID is required")
-    val accountId: String,
+    val accountId: java.util.UUID,
     val debit: BigDecimal = BigDecimal.ZERO,
     val credit: BigDecimal = BigDecimal.ZERO,
     val description: String? = null,
@@ -30,7 +30,7 @@ data class VoidJournalEntryRequest(
 )
 
 data class JournalEntryLineResponse(
-    val accountId: String,
+    val accountId: java.util.UUID,
     val accountCode: String,
     val accountName: String,
     val debit: BigDecimal,
@@ -39,16 +39,16 @@ data class JournalEntryLineResponse(
 )
 
 data class JournalEntryResponse(
-    val id: String,
+    val id: java.util.UUID,
     val entryNumber: String,
     val date: String,
     val description: String,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val status: String,
     val source: String,
     val sourceReference: String?,
     val lines: List<JournalEntryLineResponse>,
-    val createdBy: String,
+    val createdBy: java.util.UUID,
     val postedAt: String?,
     val voidedAt: String?,
     val voidReason: String?,
@@ -57,7 +57,7 @@ data class JournalEntryResponse(
 )
 
 data class AccountBalanceResponse(
-    val accountId: String,
+    val accountId: java.util.UUID,
     val accountCode: String,
     val accountName: String,
     val accountType: String,

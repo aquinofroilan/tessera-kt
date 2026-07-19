@@ -41,11 +41,11 @@ enum class PaymentMethod {
 class BillLine(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "line_number")
     var lineNumber: Int = 0,
     @Column(name = "account_id", columnDefinition = "uuid")
-    var accountId: String,
+    var accountId: java.util.UUID,
     @Column(name = "account_code")
     var accountCode: String,
     @Column(name = "account_name")
@@ -60,11 +60,11 @@ class BillLine(
 class Bill(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "bill_number")
     var billNumber: String,
     @Column(name = "vendor_id", columnDefinition = "uuid")
-    var vendorId: String,
+    var vendorId: java.util.UUID,
     @Column(name = "vendor_name")
     var vendorName: String,
     var date: LocalDate,
@@ -73,9 +73,9 @@ class Bill(
     @Column(name = "reference_number")
     var referenceNumber: String? = null,
     @Column(name = "tax_group_id", columnDefinition = "uuid")
-    var taxGroupId: String? = null,
+    var taxGroupId: java.util.UUID? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Enumerated(EnumType.STRING)
     var status: BillStatus = BillStatus.DRAFT,
     @OneToMany(
@@ -103,19 +103,19 @@ class Bill(
     @Column(name = "base_currency_amount_paid")
     var baseCurrencyAmountPaid: BigDecimal = amountPaid,
     @Column(name = "journal_entry_id", columnDefinition = "uuid")
-    var journalEntryId: String? = null,
+    var journalEntryId: java.util.UUID? = null,
     @Column(name = "created_by", columnDefinition = "uuid")
-    var createdBy: String,
+    var createdBy: java.util.UUID,
     @Column(name = "approved_at")
     var approvedAt: LocalDateTime? = null,
     @Column(name = "approved_by", columnDefinition = "uuid")
-    var approvedBy: String? = null,
+    var approvedBy: java.util.UUID? = null,
     @Column(name = "paid_at")
     var paidAt: LocalDateTime? = null,
     @Column(name = "voided_at")
     var voidedAt: LocalDateTime? = null,
     @Column(name = "voided_by", columnDefinition = "uuid")
-    var voidedBy: String? = null,
+    var voidedBy: java.util.UUID? = null,
     @Column(name = "void_reason")
     var voidReason: String? = null,
     @CreatedDate

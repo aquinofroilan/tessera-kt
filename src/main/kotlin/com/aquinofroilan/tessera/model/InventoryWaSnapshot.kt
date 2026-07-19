@@ -17,13 +17,13 @@ import java.util.UUID
 class InventoryWaSnapshot(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "product_id", columnDefinition = "uuid")
-    var productId: String,
+    var productId: java.util.UUID,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
-    var warehouseId: String,
+    var warehouseId: java.util.UUID,
     var quantity: BigDecimal,
     @Column(name = "total_cost")
     var totalCost: BigDecimal,

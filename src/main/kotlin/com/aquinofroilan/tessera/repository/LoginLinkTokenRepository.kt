@@ -6,8 +6,8 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface LoginLinkTokenRepository : JpaRepository<LoginLinkToken, String> {
+interface LoginLinkTokenRepository : JpaRepository<LoginLinkToken, java.util.UUID> {
     fun findByTokenHash(tokenHash: String): Optional<LoginLinkToken>
 
-    fun deleteByUserId(userId: String): Int
+    fun deleteByUserId(userId: java.util.UUID): Int
 }

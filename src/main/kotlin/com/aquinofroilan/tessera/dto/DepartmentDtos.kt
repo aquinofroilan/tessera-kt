@@ -11,7 +11,7 @@ data class CreateDepartmentRequest(
     @field:NotBlank(message = "Name is required")
     val name: String,
     val description: String? = null,
-    val parentId: String? = null,
+    val parentId: java.util.UUID? = null,
 )
 
 data class UpdateDepartmentRequest(
@@ -24,16 +24,16 @@ data class UpdateDepartmentRequest(
  * promotes the department to a root.
  */
 data class SetDepartmentParentRequest(
-    val parentId: String? = null,
+    val parentId: java.util.UUID? = null,
 )
 
 data class DepartmentResponse(
-    val id: String,
+    val id: java.util.UUID,
     val code: String,
     val name: String,
     val description: String?,
-    val parentId: String?,
-    val organizationId: String,
+    val parentId: java.util.UUID?,
+    val organizationId: java.util.UUID,
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,
@@ -58,7 +58,7 @@ data class DepartmentResponse(
  * A node in the department org chart: the department plus its nested children.
  */
 data class DepartmentTreeNode(
-    val id: String,
+    val id: java.util.UUID,
     val code: String,
     val name: String,
     val isActive: Boolean,

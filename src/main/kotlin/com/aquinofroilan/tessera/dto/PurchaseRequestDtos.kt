@@ -12,7 +12,7 @@ import java.time.LocalDate
 
 data class CreatePurchaseRequestLineRequest(
     @field:NotBlank(message = "Product ID is required")
-    val productId: String,
+    val productId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
     val quantity: BigDecimal?,
@@ -21,8 +21,8 @@ data class CreatePurchaseRequestLineRequest(
 )
 
 data class CreatePurchaseRequestRequest(
-    val suggestedVendorId: String? = null,
-    val warehouseId: String? = null,
+    val suggestedVendorId: java.util.UUID? = null,
+    val warehouseId: java.util.UUID? = null,
     val justification: String? = null,
     @field:NotEmpty(message = "At least one line item is required")
     @field:Valid
@@ -39,14 +39,14 @@ data class RejectPurchaseRequestRequest(
  */
 data class ConvertPurchaseRequestLineCost(
     @field:NotBlank(message = "Line ID is required")
-    val lineId: String,
+    val lineId: java.util.UUID,
     @field:NotNull(message = "Unit cost is required")
     val unitCost: BigDecimal?,
 )
 
 data class ConvertPurchaseRequestRequest(
-    val vendorId: String? = null,
-    val warehouseId: String? = null,
+    val vendorId: java.util.UUID? = null,
+    val warehouseId: java.util.UUID? = null,
     val orderDate: LocalDate? = null,
     val expectedDate: LocalDate? = null,
     @field:Valid
@@ -54,9 +54,9 @@ data class ConvertPurchaseRequestRequest(
 )
 
 data class PurchaseRequestLineResponse(
-    val id: String,
+    val id: java.util.UUID,
     val lineNumber: Int,
-    val productId: String,
+    val productId: java.util.UUID,
     val productSku: String,
     val productName: String,
     val quantity: BigDecimal,
@@ -65,19 +65,19 @@ data class PurchaseRequestLineResponse(
 )
 
 data class PurchaseRequestResponse(
-    val id: String,
+    val id: java.util.UUID,
     val prNumber: String,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val status: PurchaseRequestStatus,
-    val suggestedVendorId: String?,
-    val warehouseId: String?,
+    val suggestedVendorId: java.util.UUID?,
+    val warehouseId: java.util.UUID?,
     val justification: String?,
     val lines: List<PurchaseRequestLineResponse>,
-    val requestedBy: String,
-    val decidedBy: String?,
+    val requestedBy: java.util.UUID,
+    val decidedBy: java.util.UUID?,
     val decidedAt: String?,
     val decisionReason: String?,
-    val convertedPurchaseOrderId: String?,
+    val convertedPurchaseOrderId: java.util.UUID?,
     val createdAt: String?,
     val updatedAt: String?,
 ) {

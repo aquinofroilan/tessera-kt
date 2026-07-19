@@ -39,7 +39,7 @@ class InvitationService(
     fun invite(
         request: CreateInvitationRequest,
         inviter: User,
-        activeOrgId: String,
+        activeOrgId: java.util.UUID,
     ): String {
         val normalizedEmail = request.email.lowercase(Locale.ROOT)
 
@@ -147,10 +147,10 @@ class InvitationService(
             return userRepository.save(user)
         }
 
-        if (request.username.isNullOrBlank() ||
-            request.password.isNullOrBlank() ||
-            request.firstName.isNullOrBlank() ||
-            request.lastName.isNullOrBlank()
+        if (request.username == null ||
+            request.password == null ||
+            request.firstName == null ||
+            request.lastName == null
         ) {
             throw BusinessRuleException("Username, password, first name, and last name are required for new users")
         }
@@ -188,8 +188,8 @@ class InvitationService(
 
     @Transactional
     fun revokeInvitation(
-        invitationId: String,
-        activeOrgId: String,
+        invitationId: java.util.UUID,
+        activeOrgId: java.util.UUID,
     ) {
         val invitation =
             invitationRepository.findById(invitationId).orElseThrow {
@@ -205,7 +205,7 @@ class InvitationService(
         invitationRepository.save(invitation)
     }
 
-    fun listInvitations(organizationId: String): List<Invitation> =
+    fun listInvitations(organizationId: java.util.UUID): List<Invitation> =
         invitationRepository.findByOrganizationIdAndStatusAndExpiryAtAfter(
             organizationId,
             InvitationStatus.PENDING,

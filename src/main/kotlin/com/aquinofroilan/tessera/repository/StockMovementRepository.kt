@@ -6,10 +6,10 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface StockMovementRepository :
-    JpaRepository<StockMovement, String>,
+    JpaRepository<StockMovement, java.util.UUID>,
     StockMovementQueries {
     fun findByOrganizationIdAndReference(
-        organizationId: String,
+        organizationId: java.util.UUID,
         reference: String,
     ): List<StockMovement>
 }

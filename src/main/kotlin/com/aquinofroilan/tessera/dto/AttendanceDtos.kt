@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 
 data class ClockRequest(
     @field:NotBlank(message = "Employee ID is required")
-    val employeeId: String,
+    val employeeId: java.util.UUID,
 )
 
 /**
@@ -18,7 +18,7 @@ data class ClockRequest(
  */
 data class RecordAttendanceRequest(
     @field:NotBlank(message = "Employee ID is required")
-    val employeeId: String,
+    val employeeId: java.util.UUID,
     @field:NotNull(message = "Work date is required")
     val workDate: LocalDate?,
     val clockIn: LocalDateTime? = null,
@@ -28,15 +28,15 @@ data class RecordAttendanceRequest(
 )
 
 data class AttendanceResponse(
-    val id: String,
-    val employeeId: String,
+    val id: java.util.UUID,
+    val employeeId: java.util.UUID,
     val workDate: String,
     val clockIn: String?,
     val clockOut: String?,
     val workedMinutes: Int?,
     val status: AttendanceStatus,
     val notes: String?,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val createdAt: String?,
     val updatedAt: String?,
 ) {

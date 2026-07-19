@@ -14,12 +14,12 @@ data class SetProjectBudgetRequest(
 )
 
 data class ProjectBudgetResponse(
-    val id: String,
-    val projectId: String,
+    val id: java.util.UUID,
+    val projectId: java.util.UUID,
     val category: ProjectCostCategory,
     val budgetAmount: BigDecimal,
     val currency: String?,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val createdAt: String?,
     val updatedAt: String?,
 ) {
@@ -46,7 +46,7 @@ data class BudgetVarianceLine(
 )
 
 data class ProjectBudgetVsActualResponse(
-    val projectId: String,
+    val projectId: java.util.UUID,
     val lines: List<BudgetVarianceLine>,
     val totalBudgeted: BigDecimal,
     val totalActual: BigDecimal,

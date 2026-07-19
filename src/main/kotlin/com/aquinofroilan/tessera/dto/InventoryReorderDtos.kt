@@ -7,9 +7,9 @@ import java.math.BigDecimal
 
 data class CreateReorderRuleRequest(
     @field:NotBlank(message = "Product ID is required")
-    val productId: String,
+    val productId: java.util.UUID,
     @field:NotBlank(message = "Warehouse ID is required")
-    val warehouseId: String,
+    val warehouseId: java.util.UUID,
     @field:NotNull(message = "Reorder point is required")
     @field:DecimalMin(value = "0.0", message = "Reorder point must be zero or positive")
     val reorderPoint: BigDecimal?,
@@ -25,19 +25,19 @@ data class UpdateReorderRuleRequest(
 )
 
 data class ReorderRuleResponse(
-    val id: String,
-    val productId: String,
-    val warehouseId: String,
+    val id: java.util.UUID,
+    val productId: java.util.UUID,
+    val warehouseId: java.util.UUID,
     val reorderPoint: BigDecimal,
     val safetyStock: BigDecimal,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val createdAt: String?,
     val updatedAt: String?,
 )
 
 data class LowStockLineResponse(
-    val productId: String,
-    val warehouseId: String,
+    val productId: java.util.UUID,
+    val warehouseId: java.util.UUID,
     val onHand: BigDecimal,
     val reorderPoint: BigDecimal,
     val safetyStock: BigDecimal,

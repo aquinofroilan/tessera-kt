@@ -21,8 +21,8 @@ class AttendanceService(
 ) {
     @Transactional
     fun clockIn(
-        employeeId: String,
-        organizationId: String,
+        employeeId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): AttendanceRecord {
         val employee = activeEmployee(employeeId, organizationId)
         val today = LocalDate.now(ZoneOffset.UTC)
@@ -52,8 +52,8 @@ class AttendanceService(
 
     @Transactional
     fun clockOut(
-        employeeId: String,
-        organizationId: String,
+        employeeId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): AttendanceRecord {
         val employee = activeEmployee(employeeId, organizationId)
         val today = LocalDate.now(ZoneOffset.UTC)
@@ -78,7 +78,7 @@ class AttendanceService(
     @Transactional
     fun recordAttendance(
         request: RecordAttendanceRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): AttendanceRecord {
         val workDate = request.workDate ?: throw BusinessRuleException("Work date is required")
         val employee = employeeService.getEmployee(request.employeeId, organizationId)
@@ -120,8 +120,8 @@ class AttendanceService(
     }
 
     fun getAttendance(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): AttendanceRecord {
         val record =
             attendanceRecordRepository.findById(id).orElseThrow {
@@ -138,8 +138,8 @@ class AttendanceService(
      * by employee and/or an inclusive [from]..[to] date range.
      */
     fun listTimesheet(
-        organizationId: String,
-        employeeId: String? = null,
+        organizationId: java.util.UUID,
+        employeeId: java.util.UUID? = null,
         from: LocalDate? = null,
         to: LocalDate? = null,
     ): List<AttendanceRecord> {
@@ -156,8 +156,8 @@ class AttendanceService(
     }
 
     private fun activeEmployee(
-        employeeId: String,
-        organizationId: String,
+        employeeId: java.util.UUID,
+        organizationId: java.util.UUID,
     ) = employeeService.getEmployee(employeeId, organizationId).also {
         if (it.status == EmploymentStatus.TERMINATED) {
             throw BusinessRuleException("Cannot record attendance for a terminated employee")

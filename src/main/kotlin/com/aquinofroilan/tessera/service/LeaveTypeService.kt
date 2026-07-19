@@ -16,7 +16,7 @@ class LeaveTypeService(
     @Transactional
     fun createLeaveType(
         request: CreateLeaveTypeRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): LeaveType {
         val code = request.code.trim()
         if (leaveTypeRepository.findByOrganizationIdAndCode(organizationId, code).isPresent) {
@@ -34,8 +34,8 @@ class LeaveTypeService(
     }
 
     fun getLeaveType(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): LeaveType {
         val leaveType =
             leaveTypeRepository.findById(id).orElseThrow {
@@ -48,7 +48,7 @@ class LeaveTypeService(
     }
 
     fun listLeaveTypes(
-        organizationId: String,
+        organizationId: java.util.UUID,
         activeOnly: Boolean = false,
     ): List<LeaveType> =
         if (activeOnly) {
@@ -59,9 +59,9 @@ class LeaveTypeService(
 
     @Transactional
     fun updateLeaveType(
-        id: String,
+        id: java.util.UUID,
         request: UpdateLeaveTypeRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): LeaveType {
         val leaveType = getLeaveType(id, organizationId)
         leaveType.apply {
@@ -74,8 +74,8 @@ class LeaveTypeService(
 
     @Transactional
     fun deactivateLeaveType(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): LeaveType {
         val leaveType = getLeaveType(id, organizationId)
         if (!leaveType.isActive) {

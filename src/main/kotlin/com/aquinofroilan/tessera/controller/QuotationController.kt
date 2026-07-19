@@ -36,7 +36,7 @@ class QuotationController(
         @Valid @RequestBody request: CreateQuotationRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val createdBy = authContext.userId() ?: "api-key"
+        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val created = quotationService.createQuotation(request, orgId, createdBy)
         return ResponseEntity.status(HttpStatus.CREATED).body(QuotationResponse.from(created))
     }
@@ -45,7 +45,7 @@ class QuotationController(
     @PreAuthorize("hasAuthority('sales:read')")
     fun listQuotations(
         @RequestParam(required = false) status: String?,
-        @RequestParam(required = false) customerId: String?,
+        @RequestParam(required = false) customerId: java.util.UUID?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val quoteStatus =
@@ -66,7 +66,7 @@ class QuotationController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('sales:read')")
     fun getQuotation(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(QuotationResponse.from(quotationService.getQuotation(id, orgId)))
@@ -75,7 +75,7 @@ class QuotationController(
     @PostMapping("/{id}/send")
     @PreAuthorize("hasAuthority('sales:write')")
     fun sendQuotation(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(QuotationResponse.from(quotationService.sendQuotation(id, orgId)))
@@ -84,7 +84,7 @@ class QuotationController(
     @PostMapping("/{id}/accept")
     @PreAuthorize("hasAuthority('sales:write')")
     fun acceptQuotation(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(QuotationResponse.from(quotationService.acceptQuotation(id, orgId)))
@@ -93,7 +93,7 @@ class QuotationController(
     @PostMapping("/{id}/reject")
     @PreAuthorize("hasAuthority('sales:write')")
     fun rejectQuotation(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @RequestBody(required = false) request: RejectQuotationRequest?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -103,7 +103,7 @@ class QuotationController(
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('sales:write')")
     fun cancelQuotation(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(QuotationResponse.from(quotationService.cancelQuotation(id, orgId)))
@@ -112,11 +112,11 @@ class QuotationController(
     @PostMapping("/{id}/convert")
     @PreAuthorize("hasAuthority('sales:write')")
     fun convertQuotation(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody(required = false) request: ConvertQuotationRequest?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val createdBy = authContext.userId() ?: "api-key"
+        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val salesOrder = quotationService.convertToSalesOrder(id, request ?: ConvertQuotationRequest(), orgId, createdBy)
         return ResponseEntity.status(HttpStatus.CREATED).body(SalesOrderResponse.from(salesOrder))
     }

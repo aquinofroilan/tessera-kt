@@ -8,25 +8,25 @@ import java.time.LocalDateTime
 import java.util.Optional
 
 @Repository
-interface InvitationRepository : JpaRepository<Invitation, String> {
+interface InvitationRepository : JpaRepository<Invitation, java.util.UUID> {
     fun findByTokenHash(tokenHash: String): Optional<Invitation>
 
     fun findByOrganizationIdAndStatusAndExpiryAtAfter(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: InvitationStatus,
         expiryAt: LocalDateTime,
     ): List<Invitation>
 
     fun findByEmailAndOrganizationIdAndStatusAndExpiryAtAfter(
         email: String,
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: InvitationStatus,
         expiryAt: LocalDateTime,
     ): Optional<Invitation>
 
     fun findByEmailAndOrganizationIdAndStatus(
         email: String,
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: InvitationStatus,
     ): Optional<Invitation>
 }

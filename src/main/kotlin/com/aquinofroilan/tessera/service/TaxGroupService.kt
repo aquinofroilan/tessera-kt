@@ -28,7 +28,7 @@ class TaxGroupService(
     @Transactional
     fun createTaxGroup(
         request: CreateTaxGroupRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): TaxGroup {
         if (request.taxRateIds.isEmpty()) {
             throw BusinessRuleException("At least one tax rate is required")
@@ -57,8 +57,8 @@ class TaxGroupService(
     }
 
     fun getTaxGroup(
-        taxGroupId: String,
-        organizationId: String,
+        taxGroupId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): TaxGroup {
         val taxGroup =
             taxGroupRepository.findById(taxGroupId).orElseThrow {
@@ -71,8 +71,8 @@ class TaxGroupService(
     }
 
     fun getTaxGroupWithRates(
-        taxGroupId: String,
-        organizationId: String,
+        taxGroupId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Pair<TaxGroup, List<TaxRate>> {
         val taxGroup = getTaxGroup(taxGroupId, organizationId)
         val ratesById = taxRateRepository.findAllById(taxGroup.taxRateIds).associateBy { it.id }
@@ -89,7 +89,7 @@ class TaxGroupService(
     }
 
     fun listTaxGroups(
-        organizationId: String,
+        organizationId: java.util.UUID,
         activeOnly: Boolean = false,
     ): List<TaxGroup> =
         if (activeOnly) {
@@ -100,9 +100,9 @@ class TaxGroupService(
 
     @Transactional
     fun updateTaxGroup(
-        taxGroupId: String,
+        taxGroupId: java.util.UUID,
         request: UpdateTaxGroupRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): TaxGroup {
         val taxGroup = getTaxGroup(taxGroupId, organizationId)
 
@@ -132,8 +132,8 @@ class TaxGroupService(
 
     @Transactional
     fun deleteTaxGroup(
-        taxGroupId: String,
-        organizationId: String,
+        taxGroupId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): TaxGroup {
         val taxGroup = getTaxGroup(taxGroupId, organizationId)
 
@@ -146,8 +146,8 @@ class TaxGroupService(
     }
 
     fun calculateTaxAmount(
-        taxGroupId: String?,
-        organizationId: String,
+        taxGroupId: java.util.UUID?,
+        organizationId: java.util.UUID,
         baseAmount: BigDecimal,
     ): BigDecimal {
         if (taxGroupId == null) return BigDecimal.ZERO
@@ -162,10 +162,10 @@ class TaxGroupService(
             .divide(BigDecimal("100"), 2, RoundingMode.HALF_UP)
     }
 
-    fun loadRatesByIds(ids: List<String>): List<TaxRate> = taxRateRepository.findAllById(ids)
+    fun loadRatesByIds(ids: List<java.util.UUID>): List<TaxRate> = taxRateRepository.findAllById(ids)
 
     fun getTaxSummary(
-        organizationId: String,
+        organizationId: java.util.UUID,
         startDate: LocalDate,
         endDate: LocalDate,
     ): TaxSummaryResponse {
@@ -203,8 +203,8 @@ class TaxGroupService(
     }
 
     private fun validateAndLoadRates(
-        taxRateIds: List<String>,
-        organizationId: String,
+        taxRateIds: List<java.util.UUID>,
+        organizationId: java.util.UUID,
     ): List<TaxRate> {
         val rates = taxRateRepository.findAllById(taxRateIds)
         val foundIds = rates.map { it.id }.toSet()

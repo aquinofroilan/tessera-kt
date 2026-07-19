@@ -10,10 +10,10 @@ import java.time.LocalDate
 
 data class CreateTimeEntryRequest(
     @field:NotBlank(message = "Employee ID is required")
-    val employeeId: String,
+    val employeeId: java.util.UUID,
     @field:NotBlank(message = "Project ID is required")
-    val projectId: String,
-    val taskId: String? = null,
+    val projectId: java.util.UUID,
+    val taskId: java.util.UUID? = null,
     @field:NotNull(message = "Entry date is required")
     val entryDate: LocalDate?,
     @field:NotNull(message = "Hours are required")
@@ -25,7 +25,7 @@ data class CreateTimeEntryRequest(
 )
 
 data class UpdateTimeEntryRequest(
-    val taskId: String? = null,
+    val taskId: java.util.UUID? = null,
     val entryDate: LocalDate? = null,
     @field:Positive(message = "Hours must be positive")
     val hours: BigDecimal? = null,
@@ -35,19 +35,19 @@ data class UpdateTimeEntryRequest(
 )
 
 data class TimeEntryResponse(
-    val id: String,
-    val employeeId: String,
-    val projectId: String,
-    val taskId: String?,
+    val id: java.util.UUID,
+    val employeeId: java.util.UUID,
+    val projectId: java.util.UUID,
+    val taskId: java.util.UUID?,
     val entryDate: String,
     val hours: BigDecimal,
     val billable: Boolean,
     val rate: BigDecimal?,
     val status: TimeEntryStatus,
     val notes: String?,
-    val approvedBy: String?,
+    val approvedBy: java.util.UUID?,
     val approvedAt: String?,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val createdAt: String?,
     val updatedAt: String?,
 ) {

@@ -20,7 +20,7 @@ class TaxRateService(
     @Transactional
     fun createTaxRate(
         request: CreateTaxRateRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): TaxRate {
         val taxRate =
             TaxRate(
@@ -42,8 +42,8 @@ class TaxRateService(
     }
 
     fun getTaxRate(
-        taxRateId: String,
-        organizationId: String,
+        taxRateId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): TaxRate {
         val taxRate =
             taxRateRepository.findById(taxRateId).orElseThrow {
@@ -56,7 +56,7 @@ class TaxRateService(
     }
 
     fun listTaxRates(
-        organizationId: String,
+        organizationId: java.util.UUID,
         activeOnly: Boolean = false,
     ): List<TaxRate> =
         if (activeOnly) {
@@ -67,9 +67,9 @@ class TaxRateService(
 
     @Transactional
     fun updateTaxRate(
-        taxRateId: String,
+        taxRateId: java.util.UUID,
         request: UpdateTaxRateRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): TaxRate {
         val taxRate = getTaxRate(taxRateId, organizationId)
         val previousPercentage = taxRate.percentage
@@ -105,8 +105,8 @@ class TaxRateService(
 
     @Transactional
     fun deleteTaxRate(
-        taxRateId: String,
-        organizationId: String,
+        taxRateId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): TaxRate {
         val taxRate = getTaxRate(taxRateId, organizationId)
 
@@ -127,8 +127,8 @@ class TaxRateService(
     }
 
     private fun cascadeCombinedRate(
-        taxRateId: String,
-        organizationId: String,
+        taxRateId: java.util.UUID,
+        organizationId: java.util.UUID,
     ) {
         val groups = taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(organizationId, taxRateId)
         if (groups.isEmpty()) return

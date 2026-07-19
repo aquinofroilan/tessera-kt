@@ -30,8 +30,8 @@ class QuotationService(
     @Transactional
     fun createQuotation(
         request: CreateQuotationRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): Quotation {
         val customer = customerService.getCustomer(request.customerId, organizationId)
         if (!customer.isActive) {
@@ -90,8 +90,8 @@ class QuotationService(
     }
 
     fun getQuotation(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Quotation {
         val quote =
             quotationRepository.findById(id).orElseThrow {
@@ -104,9 +104,9 @@ class QuotationService(
     }
 
     fun listQuotations(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: QuotationStatus? = null,
-        customerId: String? = null,
+        customerId: java.util.UUID? = null,
     ): List<Quotation> =
         when {
             status != null && customerId != null ->
@@ -118,8 +118,8 @@ class QuotationService(
 
     @Transactional
     fun sendQuotation(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Quotation {
         val quote = getQuotation(id, organizationId)
         if (quote.status != QuotationStatus.DRAFT) {
@@ -132,8 +132,8 @@ class QuotationService(
 
     @Transactional
     fun acceptQuotation(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Quotation {
         val quote = getQuotation(id, organizationId)
         if (quote.status != QuotationStatus.SENT) {
@@ -147,9 +147,9 @@ class QuotationService(
 
     @Transactional
     fun rejectQuotation(
-        id: String,
+        id: java.util.UUID,
         reason: String?,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Quotation {
         val quote = getQuotation(id, organizationId)
         if (quote.status != QuotationStatus.SENT) {
@@ -166,8 +166,8 @@ class QuotationService(
 
     @Transactional
     fun cancelQuotation(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Quotation {
         val quote = getQuotation(id, organizationId)
         if (quote.status == QuotationStatus.CONVERTED) {
@@ -186,10 +186,10 @@ class QuotationService(
      */
     @Transactional
     fun convertToSalesOrder(
-        id: String,
+        id: java.util.UUID,
         request: ConvertQuotationRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): SalesOrder {
         val quote = getQuotation(id, organizationId)
         if (quote.status != QuotationStatus.ACCEPTED) {
@@ -240,7 +240,7 @@ class QuotationService(
     }
 
     private fun saveWithRetry(
-        organizationId: String,
+        organizationId: java.util.UUID,
         maxRetries: Int = 3,
         build: (String) -> Quotation,
     ): Quotation {

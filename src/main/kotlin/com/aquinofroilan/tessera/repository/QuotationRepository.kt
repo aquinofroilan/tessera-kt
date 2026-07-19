@@ -6,24 +6,24 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface QuotationRepository : JpaRepository<Quotation, String> {
-    fun findByOrganizationId(organizationId: String): List<Quotation>
+interface QuotationRepository : JpaRepository<Quotation, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<Quotation>
 
     fun findByOrganizationIdAndStatus(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: QuotationStatus,
     ): List<Quotation>
 
     fun findByOrganizationIdAndCustomerId(
-        organizationId: String,
-        customerId: String,
+        organizationId: java.util.UUID,
+        customerId: java.util.UUID,
     ): List<Quotation>
 
     fun findByOrganizationIdAndStatusAndCustomerId(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: QuotationStatus,
-        customerId: String,
+        customerId: java.util.UUID,
     ): List<Quotation>
 
-    fun countByOrganizationId(organizationId: String): Long
+    fun countByOrganizationId(organizationId: java.util.UUID): Long
 }

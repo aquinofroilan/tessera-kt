@@ -41,8 +41,8 @@ class PurchaseOrderService(
     @Transactional
     fun createPurchaseOrder(
         request: CreatePurchaseOrderRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): PurchaseOrder {
         val vendor = vendorService.getVendor(request.vendorId, organizationId)
         if (!vendor.isActive) {
@@ -99,8 +99,8 @@ class PurchaseOrderService(
     }
 
     fun getPurchaseOrder(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): PurchaseOrder {
         val po =
             purchaseOrderRepository.findById(id).orElseThrow {
@@ -113,9 +113,9 @@ class PurchaseOrderService(
     }
 
     fun listPurchaseOrders(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: PurchaseOrderStatus? = null,
-        vendorId: String? = null,
+        vendorId: java.util.UUID? = null,
     ): List<PurchaseOrder> =
         when {
             status != null && vendorId != null ->
@@ -127,9 +127,9 @@ class PurchaseOrderService(
 
     @Transactional
     fun approvePurchaseOrder(
-        id: String,
-        organizationId: String,
-        approvedBy: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        approvedBy: java.util.UUID,
     ): PurchaseOrder {
         val po = getPurchaseOrder(id, organizationId)
         if (po.status != PurchaseOrderStatus.DRAFT) {
@@ -143,10 +143,10 @@ class PurchaseOrderService(
 
     @Transactional
     fun receivePurchaseOrder(
-        id: String,
+        id: java.util.UUID,
         request: ReceivePurchaseOrderRequest?,
-        organizationId: String,
-        userId: String,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): PurchaseOrder {
         val po = getPurchaseOrder(id, organizationId)
         if (po.status != PurchaseOrderStatus.APPROVED && po.status != PurchaseOrderStatus.PARTIALLY_RECEIVED) {
@@ -199,10 +199,10 @@ class PurchaseOrderService(
 
     @Transactional
     fun generateBill(
-        id: String,
+        id: java.util.UUID,
         request: GenerateBillRequest?,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): Bill {
         val po = getPurchaseOrder(id, organizationId)
         if (po.status != PurchaseOrderStatus.PARTIALLY_RECEIVED && po.status != PurchaseOrderStatus.RECEIVED) {
@@ -274,9 +274,9 @@ class PurchaseOrderService(
      * unit-cost variances beyond tolerance.
      */
     fun previewBillMatch(
-        id: String,
+        id: java.util.UUID,
         request: BillMatchRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): BillMatchResult {
         val po = getPurchaseOrder(id, organizationId)
         val byId = po.lines.associateBy { it.id }
@@ -325,8 +325,8 @@ class PurchaseOrderService(
 
     private fun billExpenseAccountId(
         po: PurchaseOrder,
-        organizationId: String,
-    ): String {
+        organizationId: java.util.UUID,
+    ): java.util.UUID {
         val clearing = accountRepository.findByOrganizationIdAndCode(organizationId, INVENTORY_CLEARING_CODE)
         if (clearing.isPresent && clearing.get().isActive) {
             return clearing.get().id
@@ -352,8 +352,8 @@ class PurchaseOrderService(
 
     @Transactional
     fun closePurchaseOrder(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): PurchaseOrder {
         val po = getPurchaseOrder(id, organizationId)
         if (po.status != PurchaseOrderStatus.RECEIVED) {
@@ -365,9 +365,9 @@ class PurchaseOrderService(
 
     @Transactional
     fun cancelPurchaseOrder(
-        id: String,
-        organizationId: String,
-        userId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): PurchaseOrder {
         val po = getPurchaseOrder(id, organizationId)
         if (po.status == PurchaseOrderStatus.CANCELLED || po.status == PurchaseOrderStatus.CLOSED) {
@@ -389,7 +389,7 @@ class PurchaseOrderService(
     }
 
     private fun saveWithRetry(
-        organizationId: String,
+        organizationId: java.util.UUID,
         maxRetries: Int = 3,
         build: (String) -> PurchaseOrder,
     ): PurchaseOrder {

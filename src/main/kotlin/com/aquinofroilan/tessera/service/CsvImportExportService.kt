@@ -30,7 +30,7 @@ class CsvImportExportService(
     private val vendorHeaders =
         listOf("name", "contactName", "contactEmail", "contactPhone", "paymentTermDays")
 
-    fun exportProducts(organizationId: String): ByteArray {
+    fun exportProducts(organizationId: java.util.UUID): ByteArray {
         val rows =
             productService
                 .listProducts(organizationId)
@@ -49,7 +49,7 @@ class CsvImportExportService(
         return CsvCodec.encode(productHeaders, rows).toByteArray()
     }
 
-    fun exportCustomers(organizationId: String): ByteArray {
+    fun exportCustomers(organizationId: java.util.UUID): ByteArray {
         val rows =
             customerService
                 .listCustomers(organizationId)
@@ -66,7 +66,7 @@ class CsvImportExportService(
         return CsvCodec.encode(customerHeaders, rows).toByteArray()
     }
 
-    fun exportVendors(organizationId: String): ByteArray {
+    fun exportVendors(organizationId: java.util.UUID): ByteArray {
         val rows =
             vendorService
                 .listVendors(organizationId)
@@ -84,7 +84,7 @@ class CsvImportExportService(
 
     fun importProducts(
         bytes: ByteArray,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): CsvImportResult {
         val parsed = CsvCodec.decode(String(bytes))
         val errors = mutableListOf<CsvImportRowError>()
@@ -105,7 +105,7 @@ class CsvImportExportService(
                         imageUrl = row["imageUrl"]?.ifBlank { null },
                         listPrice = listPrice,
                         priceCurrency = row["priceCurrency"]?.ifBlank { null },
-                        taxGroupId = row["taxGroupId"]?.ifBlank { null },
+                        taxGroupId = row["taxGroupId"]?.takeIf { it.isNotBlank() }?.let { java.util.UUID.fromString(it) },
                     ),
                     organizationId,
                 )
@@ -119,7 +119,7 @@ class CsvImportExportService(
 
     fun importCustomers(
         bytes: ByteArray,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): CsvImportResult {
         val parsed = CsvCodec.decode(String(bytes))
         val errors = mutableListOf<CsvImportRowError>()
@@ -134,7 +134,7 @@ class CsvImportExportService(
                         contactEmail = row["contactEmail"]?.ifBlank { null },
                         contactPhone = row["contactPhone"]?.ifBlank { null },
                         paymentTermDays = row["paymentTermDays"]?.toIntOrNull() ?: 30,
-                        defaultRevenueAccountId = row["defaultRevenueAccountId"]?.ifBlank { null },
+                        defaultRevenueAccountId = row["defaultRevenueAccountId"]?.takeIf { it.isNotBlank() }?.let { java.util.UUID.fromString(it) },
                     ),
                     organizationId,
                 )

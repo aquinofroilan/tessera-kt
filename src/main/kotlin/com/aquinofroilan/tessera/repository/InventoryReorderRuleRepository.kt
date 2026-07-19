@@ -6,12 +6,12 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface InventoryReorderRuleRepository : JpaRepository<InventoryReorderRule, String> {
-    fun findByOrganizationId(organizationId: String): List<InventoryReorderRule>
+interface InventoryReorderRuleRepository : JpaRepository<InventoryReorderRule, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<InventoryReorderRule>
 
     fun findByOrganizationIdAndProductIdAndWarehouseId(
-        organizationId: String,
-        productId: String,
-        warehouseId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
     ): Optional<InventoryReorderRule>
 }

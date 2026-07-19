@@ -12,7 +12,7 @@ import java.time.LocalDate
 
 data class CreateQuotationLineRequest(
     @field:NotBlank(message = "Product ID is required")
-    val productId: String,
+    val productId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
     val quantity: BigDecimal?,
@@ -23,8 +23,8 @@ data class CreateQuotationLineRequest(
 
 data class CreateQuotationRequest(
     @field:NotBlank(message = "Customer ID is required")
-    val customerId: String,
-    val warehouseId: String? = null,
+    val customerId: java.util.UUID,
+    val warehouseId: java.util.UUID? = null,
     @field:NotNull(message = "Quote date is required")
     val quoteDate: LocalDate?,
     val validUntil: LocalDate? = null,
@@ -44,15 +44,15 @@ data class RejectQuotationRequest(
  * warehouse / today.
  */
 data class ConvertQuotationRequest(
-    val warehouseId: String? = null,
+    val warehouseId: java.util.UUID? = null,
     val orderDate: LocalDate? = null,
     val expectedDate: LocalDate? = null,
 )
 
 data class QuotationLineResponse(
-    val id: String,
+    val id: java.util.UUID,
     val lineNumber: Int,
-    val productId: String,
+    val productId: java.util.UUID,
     val productSku: String,
     val productName: String,
     val quantity: BigDecimal,
@@ -62,23 +62,23 @@ data class QuotationLineResponse(
 )
 
 data class QuotationResponse(
-    val id: String,
+    val id: java.util.UUID,
     val quoteNumber: String,
-    val customerId: String,
+    val customerId: java.util.UUID,
     val customerName: String,
-    val warehouseId: String?,
+    val warehouseId: java.util.UUID?,
     val quoteDate: String,
     val validUntil: String?,
     val referenceNumber: String?,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val status: QuotationStatus,
     val lines: List<QuotationLineResponse>,
     val totalAmount: BigDecimal,
-    val createdBy: String,
+    val createdBy: java.util.UUID,
     val sentAt: String?,
     val decidedAt: String?,
     val decisionReason: String?,
-    val convertedSalesOrderId: String?,
+    val convertedSalesOrderId: java.util.UUID?,
     val createdAt: String?,
     val updatedAt: String?,
 ) {

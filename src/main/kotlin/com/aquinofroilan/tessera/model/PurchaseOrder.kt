@@ -34,11 +34,11 @@ enum class PurchaseOrderStatus {
 class PurchaseOrderLine(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "line_number")
     var lineNumber: Int = 0,
     @Column(name = "product_id", columnDefinition = "uuid")
-    var productId: String,
+    var productId: java.util.UUID,
     @Column(name = "product_sku")
     var productSku: String,
     @Column(name = "product_name")
@@ -61,15 +61,15 @@ class PurchaseOrderLine(
 class PurchaseOrder(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "po_number")
     var poNumber: String,
     @Column(name = "vendor_id", columnDefinition = "uuid")
-    var vendorId: String,
+    var vendorId: java.util.UUID,
     @Column(name = "vendor_name")
     var vendorName: String,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
-    var warehouseId: String,
+    var warehouseId: java.util.UUID,
     @Column(name = "order_date")
     var orderDate: LocalDate,
     @Column(name = "expected_date")
@@ -77,7 +77,7 @@ class PurchaseOrder(
     @Column(name = "reference_number")
     var referenceNumber: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Enumerated(EnumType.STRING)
     var status: PurchaseOrderStatus = PurchaseOrderStatus.DRAFT,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
@@ -87,11 +87,11 @@ class PurchaseOrder(
     @Column(name = "total_amount")
     var totalAmount: BigDecimal,
     @Column(name = "created_by", columnDefinition = "uuid")
-    var createdBy: String,
+    var createdBy: java.util.UUID,
     @Column(name = "approved_at")
     var approvedAt: LocalDateTime? = null,
     @Column(name = "approved_by", columnDefinition = "uuid")
-    var approvedBy: String? = null,
+    var approvedBy: java.util.UUID? = null,
     @Column(name = "received_at")
     var receivedAt: LocalDateTime? = null,
     @Column(name = "cancelled_at")

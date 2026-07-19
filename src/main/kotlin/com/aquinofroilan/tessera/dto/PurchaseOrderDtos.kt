@@ -12,7 +12,7 @@ import java.time.LocalDate
 
 data class CreatePurchaseOrderLineRequest(
     @field:NotBlank(message = "Product ID is required")
-    val productId: String,
+    val productId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
     val quantity: BigDecimal?,
@@ -23,9 +23,9 @@ data class CreatePurchaseOrderLineRequest(
 
 data class CreatePurchaseOrderRequest(
     @field:NotBlank(message = "Vendor ID is required")
-    val vendorId: String,
+    val vendorId: java.util.UUID,
     @field:NotBlank(message = "Warehouse ID is required")
-    val warehouseId: String,
+    val warehouseId: java.util.UUID,
     @field:NotNull(message = "Order date is required")
     val orderDate: LocalDate?,
     val expectedDate: LocalDate? = null,
@@ -37,7 +37,7 @@ data class CreatePurchaseOrderRequest(
 
 data class ReceivePurchaseOrderLine(
     @field:NotBlank(message = "Line ID is required")
-    val lineId: String,
+    val lineId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
     val quantity: BigDecimal?,
@@ -50,7 +50,7 @@ data class ReceivePurchaseOrderRequest(
 
 data class GenerateBillLine(
     @field:NotBlank(message = "Line ID is required")
-    val lineId: String,
+    val lineId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
     val quantity: BigDecimal?,
@@ -70,7 +70,7 @@ enum class MatchStatus {
 
 data class BillMatchLineRequest(
     @field:NotBlank(message = "Line ID is required")
-    val lineId: String,
+    val lineId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
     val quantity: BigDecimal?,
@@ -85,7 +85,7 @@ data class BillMatchRequest(
 )
 
 data class BillMatchLineResult(
-    val lineId: String,
+    val lineId: java.util.UUID,
     val productSku: String,
     val orderedQuantity: BigDecimal,
     val receivedQuantity: BigDecimal,
@@ -98,16 +98,16 @@ data class BillMatchLineResult(
 )
 
 data class BillMatchResult(
-    val purchaseOrderId: String,
+    val purchaseOrderId: java.util.UUID,
     val poNumber: String,
     val matched: Boolean,
     val lines: List<BillMatchLineResult>,
 )
 
 data class PurchaseOrderLineResponse(
-    val id: String,
+    val id: java.util.UUID,
     val lineNumber: Int,
-    val productId: String,
+    val productId: java.util.UUID,
     val productSku: String,
     val productName: String,
     val quantity: BigDecimal,
@@ -119,19 +119,19 @@ data class PurchaseOrderLineResponse(
 )
 
 data class PurchaseOrderResponse(
-    val id: String,
+    val id: java.util.UUID,
     val poNumber: String,
-    val vendorId: String,
+    val vendorId: java.util.UUID,
     val vendorName: String,
-    val warehouseId: String,
+    val warehouseId: java.util.UUID,
     val orderDate: String,
     val expectedDate: String?,
     val referenceNumber: String?,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val status: PurchaseOrderStatus,
     val lines: List<PurchaseOrderLineResponse>,
     val totalAmount: BigDecimal,
-    val createdBy: String,
+    val createdBy: java.util.UUID,
     val approvedAt: String?,
     val receivedAt: String?,
     val cancelledAt: String?,

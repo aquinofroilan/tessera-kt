@@ -21,19 +21,19 @@ class ProjectBudgetGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('projects:read')")
     fun projectBudgets(
-        @Argument projectId: String,
+        @Argument projectId: java.util.UUID,
     ): Any = support.unwrap(projectBudgetController.listBudgets(projectId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('projects:read')")
     fun projectBudgetVsActual(
-        @Argument projectId: String,
+        @Argument projectId: java.util.UUID,
     ): Any = support.unwrap(projectBudgetController.budgetVsActual(projectId))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun setProjectBudget(
-        @Argument projectId: String,
+        @Argument projectId: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(projectBudgetController.setBudget(projectId, support.toRequest<SetProjectBudgetRequest>(input)))
 }

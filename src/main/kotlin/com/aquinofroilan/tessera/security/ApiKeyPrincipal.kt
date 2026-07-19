@@ -1,7 +1,7 @@
 package com.aquinofroilan.tessera.security
 
 data class ApiKeyPrincipal(
-    val apiKeyId: String,
+    val apiKeyId: java.util.UUID,
     val apiKeyName: String,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
 )

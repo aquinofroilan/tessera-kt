@@ -9,34 +9,34 @@ data class CreateProjectTaskRequest(
     @field:NotBlank(message = "Name is required")
     val name: String,
     val description: String? = null,
-    val parentTaskId: String? = null,
-    val assigneeEmployeeId: String? = null,
+    val parentTaskId: java.util.UUID? = null,
+    val assigneeEmployeeId: java.util.UUID? = null,
     val estimatedHours: BigDecimal? = null,
 )
 
 data class UpdateProjectTaskRequest(
     val name: String? = null,
     val description: String? = null,
-    val assigneeEmployeeId: String? = null,
+    val assigneeEmployeeId: java.util.UUID? = null,
     val estimatedHours: BigDecimal? = null,
     val status: TaskStatus? = null,
 )
 
 /** Sets or clears a task's parent within the same project. */
 data class SetTaskParentRequest(
-    val parentTaskId: String? = null,
+    val parentTaskId: java.util.UUID? = null,
 )
 
 data class ProjectTaskResponse(
-    val id: String,
-    val projectId: String,
-    val parentTaskId: String?,
+    val id: java.util.UUID,
+    val projectId: java.util.UUID,
+    val parentTaskId: java.util.UUID?,
     val name: String,
     val description: String?,
-    val assigneeEmployeeId: String?,
+    val assigneeEmployeeId: java.util.UUID?,
     val estimatedHours: BigDecimal?,
     val status: TaskStatus,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val createdAt: String?,
     val updatedAt: String?,
 ) {
@@ -60,10 +60,10 @@ data class ProjectTaskResponse(
 
 /** A node in the project work-breakdown tree: the task plus its nested children. */
 data class ProjectTaskTreeNode(
-    val id: String,
+    val id: java.util.UUID,
     val name: String,
     val status: TaskStatus,
-    val assigneeEmployeeId: String?,
+    val assigneeEmployeeId: java.util.UUID?,
     val children: List<ProjectTaskTreeNode>,
 ) {
     companion object {

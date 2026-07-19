@@ -17,7 +17,7 @@ import java.util.UUID
 class Organizations(
     @Id
     @Column(name = "uuid", columnDefinition = "uuid")
-    var uuid: String = UUID.randomUUID().toString(),
+    var uuid: java.util.UUID = UUID.randomUUID(),
     @Column(name = "org_slug")
     var orgSlug: String,
     var name: String,

@@ -35,7 +35,7 @@ class FiscalYearService(
     @Transactional
     fun createFiscalYear(
         request: CreateFiscalYearRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): FiscalYear {
         if (!request.startDate.isBefore(request.endDate)) {
             throw BusinessRuleException("Start date must be before end date")
@@ -80,18 +80,18 @@ class FiscalYearService(
     }
 
     fun getFiscalYear(
-        fiscalYearId: String,
-        organizationId: String,
+        fiscalYearId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): FiscalYear = findFiscalYear(fiscalYearId, organizationId)
 
-    fun listFiscalYears(organizationId: String): List<FiscalYear> = fiscalYearRepository.findByOrganizationId(organizationId)
+    fun listFiscalYears(organizationId: java.util.UUID): List<FiscalYear> = fiscalYearRepository.findByOrganizationId(organizationId)
 
     @Transactional
     fun closePeriod(
-        fiscalYearId: String,
-        periodId: String,
-        organizationId: String,
-        closedBy: String,
+        fiscalYearId: java.util.UUID,
+        periodId: java.util.UUID,
+        organizationId: java.util.UUID,
+        closedBy: java.util.UUID,
     ): FiscalYear {
         val fiscalYear = findFiscalYear(fiscalYearId, organizationId)
 
@@ -131,10 +131,10 @@ class FiscalYearService(
 
     @Transactional
     fun reopenPeriod(
-        fiscalYearId: String,
-        periodId: String,
-        organizationId: String,
-        reopenedBy: String,
+        fiscalYearId: java.util.UUID,
+        periodId: java.util.UUID,
+        organizationId: java.util.UUID,
+        reopenedBy: java.util.UUID,
     ): FiscalYear {
         val fiscalYear = findFiscalYear(fiscalYearId, organizationId)
 
@@ -174,9 +174,9 @@ class FiscalYearService(
 
     @Transactional
     fun closeYear(
-        fiscalYearId: String,
-        organizationId: String,
-        closedBy: String,
+        fiscalYearId: java.util.UUID,
+        organizationId: java.util.UUID,
+        closedBy: java.util.UUID,
     ): FiscalYear {
         val fiscalYear = findFiscalYear(fiscalYearId, organizationId)
 
@@ -199,7 +199,7 @@ class FiscalYearService(
     }
 
     fun findPeriodForDate(
-        organizationId: String,
+        organizationId: java.util.UUID,
         date: LocalDate,
     ): PeriodLookupResult {
         val allFiscalYears = fiscalYearRepository.findByOrganizationId(organizationId)
@@ -216,7 +216,7 @@ class FiscalYearService(
     }
 
     fun validatePeriodOpen(
-        organizationId: String,
+        organizationId: java.util.UUID,
         date: LocalDate,
     ) {
         when (val result = findPeriodForDate(organizationId, date)) {
@@ -243,8 +243,8 @@ class FiscalYearService(
 
     private fun createClosingEntry(
         fiscalYear: FiscalYear,
-        organizationId: String,
-        closedBy: String,
+        organizationId: java.util.UUID,
+        closedBy: java.util.UUID,
     ): JournalEntry? {
         val sourceRef = "YEAR-END-CLOSE-${fiscalYear.id}"
         if (journalEntryRepository.existsByOrganizationIdAndSourceReference(organizationId, sourceRef)) {
@@ -260,7 +260,7 @@ class FiscalYearService(
                 fiscalYear.endDate,
             )
 
-        val accountTotals = mutableMapOf<String, Pair<BigDecimal, BigDecimal>>()
+        val accountTotals = mutableMapOf<java.util.UUID, Pair<BigDecimal, BigDecimal>>()
         entries.forEach { entry ->
             entry.lines.forEach { line ->
                 val (debits, credits) =
@@ -396,8 +396,8 @@ class FiscalYearService(
     }
 
     private fun findFiscalYear(
-        fiscalYearId: String,
-        organizationId: String,
+        fiscalYearId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): FiscalYear {
         val fiscalYear =
             fiscalYearRepository.findById(fiscalYearId).orElseThrow {

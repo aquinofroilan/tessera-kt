@@ -59,7 +59,7 @@ class DepartmentController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:read')")
     fun getDepartment(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(DepartmentResponse.from(departmentService.getDepartment(id, orgId)))
@@ -68,7 +68,7 @@ class DepartmentController(
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:write')")
     fun updateDepartment(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateDepartmentRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -78,7 +78,7 @@ class DepartmentController(
     @PutMapping("/{id}/parent")
     @PreAuthorize("hasAuthority('hr:write')")
     fun setParent(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: SetDepartmentParentRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -88,7 +88,7 @@ class DepartmentController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:write')")
     fun deactivateDepartment(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(DepartmentResponse.from(departmentService.deactivateDepartment(id, orgId)))

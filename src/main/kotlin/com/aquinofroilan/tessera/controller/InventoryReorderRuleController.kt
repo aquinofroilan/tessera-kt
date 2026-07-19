@@ -48,7 +48,7 @@ class InventoryReorderRuleController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun getRule(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(reorderRuleService.getRule(id, orgId).toResponse())
@@ -57,7 +57,7 @@ class InventoryReorderRuleController(
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun updateRule(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateReorderRuleRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -67,7 +67,7 @@ class InventoryReorderRuleController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun deleteRule(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         reorderRuleService.deleteRule(id, orgId)

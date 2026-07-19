@@ -36,7 +36,7 @@ data class UpdateWarehouseRequest(
 )
 
 data class WarehouseResponse(
-    val id: String,
+    val id: java.util.UUID,
     val code: String,
     val name: String,
     val description: String?,
@@ -44,7 +44,7 @@ data class WarehouseResponse(
     val city: String?,
     val country: String?,
     val allowNegativeStock: Boolean,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,

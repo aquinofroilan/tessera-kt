@@ -10,7 +10,7 @@ import java.time.LocalDate
  */
 data class SubmitSelfLeaveRequest(
     @field:NotBlank(message = "Leave type ID is required")
-    val leaveTypeId: String,
+    val leaveTypeId: java.util.UUID,
     @field:NotNull(message = "Start date is required")
     val startDate: LocalDate?,
     @field:NotNull(message = "End date is required")

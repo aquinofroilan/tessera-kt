@@ -27,11 +27,11 @@ enum class LeaveRequestStatus {
 class LeaveRequest(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "employee_id", columnDefinition = "uuid")
-    var employeeId: String,
+    var employeeId: java.util.UUID,
     @Column(name = "leave_type_id", columnDefinition = "uuid")
-    var leaveTypeId: String,
+    var leaveTypeId: java.util.UUID,
     @Column(name = "start_date")
     var startDate: LocalDate,
     @Column(name = "end_date")
@@ -43,13 +43,13 @@ class LeaveRequest(
     @Column(name = "decision_reason")
     var decisionReason: String? = null,
     @Column(name = "decided_by", columnDefinition = "uuid")
-    var decidedBy: String? = null,
+    var decidedBy: java.util.UUID? = null,
     @Column(name = "decided_at")
     var decidedAt: LocalDateTime? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "requested_by", columnDefinition = "uuid")
-    var requestedBy: String,
+    var requestedBy: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,
