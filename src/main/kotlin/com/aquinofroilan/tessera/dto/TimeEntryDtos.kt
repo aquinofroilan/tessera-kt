@@ -9,9 +9,9 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 data class CreateTimeEntryRequest(
-    @field:NotBlank(message = "Employee ID is required")
+    @field:NotNull(message = "Employee ID is required")
     val employeeId: java.util.UUID,
-    @field:NotBlank(message = "Project ID is required")
+    @field:NotNull(message = "Project ID is required")
     val projectId: java.util.UUID,
     val taskId: java.util.UUID? = null,
     @field:NotNull(message = "Entry date is required")

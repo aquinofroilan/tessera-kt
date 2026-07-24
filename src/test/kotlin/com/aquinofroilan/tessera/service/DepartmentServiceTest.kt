@@ -128,9 +128,9 @@ class DepartmentServiceTest {
         val chart = service.getOrgChart(orgId)
 
         assertThat(chart).hasSize(1)
-        assertThat(chart[0].id).isEqualTo("d1")
+        assertThat(chart[0].id).isEqualTo(java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"))
         assertThat(chart[0].children).hasSize(1)
-        assertThat(chart[0].children[0].id).isEqualTo("d2")
-        assertThat(chart[0].children[0].children[0].id).isEqualTo("d3")
+        assertThat(chart[0].children[0].id).isEqualTo(java.util.UUID.fromString("f4a3552a-c7de-3d1b-af12-d405cc03de00"))
+        assertThat(chart[0].children[0].children[0].id).isEqualTo(java.util.UUID.fromString("e29b3acf-98e5-3490-8aed-24d79551dbb9"))
     }
 }

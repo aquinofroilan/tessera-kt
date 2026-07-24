@@ -50,14 +50,14 @@ class AccountServiceTest {
         assertThat(result.name).isEqualTo("Cash")
         assertThat(result.type).isEqualTo(AccountType.ASSET)
         assertThat(result.description).isEqualTo("Cash account")
-        assertThat(result.organizationId).isEqualTo("org-123")
+        assertThat(result.organizationId).isEqualTo(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
         assertThat(result.isActive).isTrue()
         assertThat(result.isSystemAccount).isFalse()
 
         val captor = argumentCaptor<Account>()
         verify(accountRepository).save(captor.capture())
         assertThat(captor.firstValue.code).isEqualTo("1000")
-        assertThat(captor.firstValue.organizationId).isEqualTo("org-123")
+        assertThat(captor.firstValue.organizationId).isEqualTo(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
     }
 
     @Test
@@ -279,7 +279,7 @@ class AccountServiceTest {
         val result = accountService.listAccounts(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), type = null, parentId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))
 
         assertThat(result).hasSize(1)
-        assertThat(result[0].parentId).isEqualTo("acc-1")
+        assertThat(result[0].parentId).isEqualTo(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))
         verify(accountRepository).findByOrganizationIdAndParentIdAndIsActive(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), true)
     }
 

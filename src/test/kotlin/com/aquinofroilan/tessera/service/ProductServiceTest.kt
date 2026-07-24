@@ -203,7 +203,7 @@ class ProductServiceTest {
 
         val result = productService.getProduct(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"), orgId)
 
-        assertThat(result.id).isEqualTo("prod-123")
+        assertThat(result.id).isEqualTo(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"))
         assertThat(result.organizationId).isEqualTo(orgId)
     }
 

@@ -6,9 +6,9 @@ import jakarta.validation.constraints.NotNull
 import java.math.BigDecimal
 
 data class CreateReorderRuleRequest(
-    @field:NotBlank(message = "Product ID is required")
+    @field:NotNull(message = "Product ID is required")
     val productId: java.util.UUID,
-    @field:NotBlank(message = "Warehouse ID is required")
+    @field:NotNull(message = "Warehouse ID is required")
     val warehouseId: java.util.UUID,
     @field:NotNull(message = "Reorder point is required")
     @field:DecimalMin(value = "0.0", message = "Reorder point must be zero or positive")

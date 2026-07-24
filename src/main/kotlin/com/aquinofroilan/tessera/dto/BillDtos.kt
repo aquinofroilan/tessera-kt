@@ -3,13 +3,14 @@ package com.aquinofroilan.tessera.dto
 import com.aquinofroilan.tessera.model.PaymentMethod
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Positive
 import java.math.BigDecimal
 import java.time.LocalDate
 
 data class BillLineRequest(
-    @field:NotBlank(message = "Account ID is required")
+    @field:NotNull(message = "Account ID is required")
     val accountId: java.util.UUID,
     @field:Positive(message = "Amount must be positive")
     val amount: BigDecimal,
@@ -17,7 +18,7 @@ data class BillLineRequest(
 )
 
 data class CreateBillRequest(
-    @field:NotBlank(message = "Vendor ID is required")
+    @field:NotNull(message = "Vendor ID is required")
     val vendorId: java.util.UUID,
     val date: LocalDate,
     val dueDate: LocalDate,

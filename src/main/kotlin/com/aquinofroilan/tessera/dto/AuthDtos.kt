@@ -2,6 +2,7 @@ package com.aquinofroilan.tessera.dto
 
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
@@ -89,7 +90,7 @@ data class AuthResponse(
 )
 
 data class SwitchOrganizationRequest(
-    @field:NotBlank(message = "Organization ID is required")
+    @field:NotNull(message = "Organization ID is required")
     val organizationId: java.util.UUID,
 )
 

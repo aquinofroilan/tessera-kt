@@ -2,12 +2,13 @@ package com.aquinofroilan.tessera.dto
 
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.NotEmpty
 import java.math.BigDecimal
 import java.time.LocalDate
 
 data class JournalEntryLineRequest(
-    @field:NotBlank(message = "Account ID is required")
+    @field:NotNull(message = "Account ID is required")
     val accountId: java.util.UUID,
     val debit: BigDecimal = BigDecimal.ZERO,
     val credit: BigDecimal = BigDecimal.ZERO,

@@ -8,7 +8,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class ClockRequest(
-    @field:NotBlank(message = "Employee ID is required")
+    @field:NotNull(message = "Employee ID is required")
     val employeeId: java.util.UUID,
 )
 
@@ -17,7 +17,7 @@ data class ClockRequest(
  * absence or fixing clock times). [status] defaults to PRESENT when omitted.
  */
 data class RecordAttendanceRequest(
-    @field:NotBlank(message = "Employee ID is required")
+    @field:NotNull(message = "Employee ID is required")
     val employeeId: java.util.UUID,
     @field:NotNull(message = "Work date is required")
     val workDate: LocalDate?,

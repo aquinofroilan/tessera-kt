@@ -9,7 +9,7 @@ import java.time.LocalDate
  * resolved from the authenticated user, so no employee ID is supplied.
  */
 data class SubmitSelfLeaveRequest(
-    @field:NotBlank(message = "Leave type ID is required")
+    @field:NotNull(message = "Leave type ID is required")
     val leaveTypeId: java.util.UUID,
     @field:NotNull(message = "Start date is required")
     val startDate: LocalDate?,

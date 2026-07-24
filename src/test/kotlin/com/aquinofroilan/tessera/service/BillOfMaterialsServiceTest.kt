@@ -58,7 +58,7 @@ class BillOfMaterialsServiceTest {
         assertThat(bom.version).isEqualTo(4)
         assertThat(bom.lines).hasSize(2)
         assertThat(bom.lines[0].lineNumber).isEqualTo(1)
-        assertThat(bom.lines[1].componentSku).isEqualTo("COMP-B")
+        assertThat(bom.lines[1].componentSku).isEqualTo("d44a6bcf-e191-3b25-b7c8-60f8c11b710f")
     }
 
     @Test

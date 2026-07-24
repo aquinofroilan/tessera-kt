@@ -10,9 +10,9 @@ import java.time.LocalDateTime
 data class CreateStockMovementRequest(
     @field:NotNull(message = "Movement type is required")
     val type: StockMovementType?,
-    @field:NotBlank(message = "Product ID is required")
+    @field:NotNull(message = "Product ID is required")
     val productId: java.util.UUID,
-    @field:NotBlank(message = "Warehouse ID is required")
+    @field:NotNull(message = "Warehouse ID is required")
     val warehouseId: java.util.UUID,
     val transferToWarehouseId: java.util.UUID? = null,
     @field:NotNull(message = "Quantity is required")

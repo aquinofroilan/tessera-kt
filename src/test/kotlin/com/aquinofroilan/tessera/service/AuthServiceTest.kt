@@ -698,14 +698,14 @@ class AuthServiceTest {
 
         val result = authService.switchOrganization(user, java.util.UUID.fromString("8576b8f7-dd04-3e57-b849-081b3776f223"))
 
-        assertThat(result.organizationId).isEqualTo("org-456")
+        assertThat(result.organizationId).isEqualTo(java.util.UUID.fromString("8576b8f7-dd04-3e57-b849-081b3776f223"))
         assertThat(result.roles).isEqualTo(listOf("MEMBER"))
         assertThat(result.accessToken).isNotNull()
         assertThat(result.refreshToken).isNotNull()
 
         val sessionCaptor = argumentCaptor<SessionToken>()
         verify(sessionTokenRepository).save(sessionCaptor.capture())
-        assertThat(sessionCaptor.firstValue.organizationId).isEqualTo("org-456")
+        assertThat(sessionCaptor.firstValue.organizationId).isEqualTo(java.util.UUID.fromString("8576b8f7-dd04-3e57-b849-081b3776f223"))
     }
 
     @Test

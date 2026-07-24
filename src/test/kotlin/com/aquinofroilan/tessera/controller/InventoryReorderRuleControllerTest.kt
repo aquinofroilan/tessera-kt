@@ -136,8 +136,8 @@ class InventoryReorderRuleControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
                         """{
-                            "productId": java.util.UUID.fromString("70ff8372-8fb2-701c-bc52-fac8df762bf1"),
-                            "warehouseId": java.util.UUID.fromString("3710ce26-03ca-fbd5-fb96-5c9b432db960"),
+                            "productId": "70ff8372-8fb2-701c-bc52-fac8df762bf1",
+                            "warehouseId": "3710ce26-03ca-fbd5-fb96-5c9b432db960",
                             "reorderPoint": "10",
                             "safetyStock": "2"
                         }""",
@@ -186,8 +186,8 @@ class InventoryReorderRuleControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
                         """{
-                            "productId": java.util.UUID.fromString("70ff8372-8fb2-701c-bc52-fac8df762bf1"),
-                            "warehouseId": java.util.UUID.fromString("3710ce26-03ca-fbd5-fb96-5c9b432db960"),
+                            "productId": "70ff8372-8fb2-701c-bc52-fac8df762bf1",
+                            "warehouseId": "3710ce26-03ca-fbd5-fb96-5c9b432db960",
                             "reorderPoint": "10"
                         }""",
                     ),

@@ -59,7 +59,7 @@ class WarehouseServiceTest {
 
         val result = warehouseService.createWarehouse(request, orgId)
 
-        assertThat(result.code).isEqualTo(java.util.UUID.fromString("MAIN"))
+        assertThat(result.code).isEqualTo("MAIN")
         assertThat(result.organizationId).isEqualTo(orgId)
         assertThat(result.allowNegativeStock).isFalse()
         assertThat(result.isActive).isTrue()
@@ -102,7 +102,7 @@ class WarehouseServiceTest {
 
         val result = warehouseService.getWarehouse(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"), orgId)
 
-        assertThat(result.id).isEqualTo(java.util.UUID.fromString("wh-123"))
+        assertThat(result.id).isEqualTo(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"))
         assertThat(result.organizationId).isEqualTo(orgId)
     }
 
@@ -155,7 +155,7 @@ class WarehouseServiceTest {
         val result = warehouseService.listWarehouses(orgId, search = "main")
 
         assertThat(result).hasSize(1)
-        assertThat(result[0].code).isEqualTo(java.util.UUID.fromString("MAIN"))
+        assertThat(result[0].code).isEqualTo("MAIN")
     }
 
     @Test
@@ -168,8 +168,8 @@ class WarehouseServiceTest {
         val request = UpdateWarehouseRequest(name = "Renamed Warehouse")
         val result = warehouseService.updateWarehouse(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"), request, orgId)
 
-        assertThat(result.name).isEqualTo(java.util.UUID.fromString("Renamed Warehouse"))
-        assertThat(result.code).isEqualTo(java.util.UUID.fromString("MAIN"))
+        assertThat(result.name).isEqualTo("Renamed Warehouse")
+        assertThat(result.code).isEqualTo("MAIN")
     }
 
     @Test

@@ -166,17 +166,17 @@ class QuotationServiceTest {
 
         val so = service.convertToSalesOrder(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"), ConvertQuotationRequest(), orgId, userId)
 
-        assertThat(so.id).isEqualTo("so-9")
+        assertThat(so.id).isEqualTo(java.util.UUID.fromString("8ce4a550-f369-3e9f-be38-d2cdfa73a158"))
         val soReq = argumentCaptor<CreateSalesOrderRequest>()
         verify(salesOrderService).createSalesOrder(soReq.capture(), eq(orgId), eq(userId))
-        assertThat(soReq.firstValue.customerId).isEqualTo("c-1")
-        assertThat(soReq.firstValue.warehouseId).isEqualTo("wh-1")
+        assertThat(soReq.firstValue.customerId).isEqualTo(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"))
+        assertThat(soReq.firstValue.warehouseId).isEqualTo(java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"))
         assertThat(soReq.firstValue.lines[0].unitPrice).isEqualByComparingTo("10")
 
         val saved = argumentCaptor<Quotation>()
         verify(repository).save(saved.capture())
         assertThat(saved.firstValue.status).isEqualTo(QuotationStatus.CONVERTED)
-        assertThat(saved.firstValue.convertedSalesOrderId).isEqualTo("so-9")
+        assertThat(saved.firstValue.convertedSalesOrderId).isEqualTo(java.util.UUID.fromString("8ce4a550-f369-3e9f-be38-d2cdfa73a158"))
     }
 
     @Test

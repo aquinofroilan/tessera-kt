@@ -11,7 +11,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 data class CreateQuotationLineRequest(
-    @field:NotBlank(message = "Product ID is required")
+    @field:NotNull(message = "Product ID is required")
     val productId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
@@ -22,7 +22,7 @@ data class CreateQuotationLineRequest(
 )
 
 data class CreateQuotationRequest(
-    @field:NotBlank(message = "Customer ID is required")
+    @field:NotNull(message = "Customer ID is required")
     val customerId: java.util.UUID,
     val warehouseId: java.util.UUID? = null,
     @field:NotNull(message = "Quote date is required")

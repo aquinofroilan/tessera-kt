@@ -11,7 +11,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 data class CreatePurchaseRequestLineRequest(
-    @field:NotBlank(message = "Product ID is required")
+    @field:NotNull(message = "Product ID is required")
     val productId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
@@ -38,7 +38,7 @@ data class RejectPurchaseRequestRequest(
  * Lines without an override fall back to their estimated unit cost.
  */
 data class ConvertPurchaseRequestLineCost(
-    @field:NotBlank(message = "Line ID is required")
+    @field:NotNull(message = "Line ID is required")
     val lineId: java.util.UUID,
     @field:NotNull(message = "Unit cost is required")
     val unitCost: BigDecimal?,

@@ -82,9 +82,9 @@ class FinancialReportServiceTest {
         `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
             .thenReturn(listOf(revenue))
         `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, start, end))
-            .thenReturn(mapOf(java.util.UUID.fromString("29966082-61ff-37c7-bdcc-b261daa39578") to AccountTotals(BigDecimal.ZERO, BigDecimal("1000.00"))))
+            .thenReturn(mapOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a") to AccountTotals(BigDecimal.ZERO, BigDecimal("1000.00"))))
         `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, compareStart, compareEnd))
-            .thenReturn(mapOf(java.util.UUID.fromString("29966082-61ff-37c7-bdcc-b261daa39578") to AccountTotals(BigDecimal.ZERO, BigDecimal("800.00"))))
+            .thenReturn(mapOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a") to AccountTotals(BigDecimal.ZERO, BigDecimal("800.00"))))
 
         val result = service.getIncomeStatement(orgId, start, end, compareStart, compareEnd)
 
@@ -173,7 +173,7 @@ class FinancialReportServiceTest {
         assertThat(result.outOfBalanceAmount).isEqualByComparingTo(BigDecimal.ZERO)
         val earningsRow = result.equity.last()
         assertThat(earningsRow.accountName).isEqualTo("Current Period Earnings")
-        assertThat(earningsRow.accountId).isEqualTo(SyntheticAccountIds.CURRENT_PERIOD_EARNINGS)
+        assertThat(earningsRow.accountId).isEqualTo(SyntheticAccountIds.CURRENT_PERIOD_EARNINGS_ID)
         assertThat(earningsRow.accountCode).isEqualTo(SyntheticAccountIds.CURRENT_PERIOD_EARNINGS)
         assertThat(earningsRow.isSynthetic).isTrue()
     }

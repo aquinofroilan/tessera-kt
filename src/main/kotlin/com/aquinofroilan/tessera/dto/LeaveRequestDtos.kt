@@ -7,9 +7,9 @@ import jakarta.validation.constraints.NotNull
 import java.time.LocalDate
 
 data class CreateLeaveRequestRequest(
-    @field:NotBlank(message = "Employee ID is required")
+    @field:NotNull(message = "Employee ID is required")
     val employeeId: java.util.UUID,
-    @field:NotBlank(message = "Leave type ID is required")
+    @field:NotNull(message = "Leave type ID is required")
     val leaveTypeId: java.util.UUID,
     @field:NotNull(message = "Start date is required")
     val startDate: LocalDate?,

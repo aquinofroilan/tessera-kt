@@ -139,7 +139,7 @@ class InventoryReorderRuleServiceTest {
         `when`(stockMovementRepository.onHandByProductWarehouse(orgId)).thenReturn(
             mapOf(
                 OnHandKey(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")) to BigDecimal("4"), // below
-                OnHandKey(java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"), java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")) to BigDecimal("8"), // above
+                OnHandKey(java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"), java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")) to BigDecimal("12"), // above
                 OnHandKey(java.util.UUID.fromString("a4bd2b8b-0864-3a85-b209-0cabb1f6f16a"), java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")) to BigDecimal("2"), // below
             ),
         )

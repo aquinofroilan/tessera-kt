@@ -11,7 +11,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 data class CreatePurchaseOrderLineRequest(
-    @field:NotBlank(message = "Product ID is required")
+    @field:NotNull(message = "Product ID is required")
     val productId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
@@ -22,9 +22,9 @@ data class CreatePurchaseOrderLineRequest(
 )
 
 data class CreatePurchaseOrderRequest(
-    @field:NotBlank(message = "Vendor ID is required")
+    @field:NotNull(message = "Vendor ID is required")
     val vendorId: java.util.UUID,
-    @field:NotBlank(message = "Warehouse ID is required")
+    @field:NotNull(message = "Warehouse ID is required")
     val warehouseId: java.util.UUID,
     @field:NotNull(message = "Order date is required")
     val orderDate: LocalDate?,
@@ -36,7 +36,7 @@ data class CreatePurchaseOrderRequest(
 )
 
 data class ReceivePurchaseOrderLine(
-    @field:NotBlank(message = "Line ID is required")
+    @field:NotNull(message = "Line ID is required")
     val lineId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
@@ -49,7 +49,7 @@ data class ReceivePurchaseOrderRequest(
 )
 
 data class GenerateBillLine(
-    @field:NotBlank(message = "Line ID is required")
+    @field:NotNull(message = "Line ID is required")
     val lineId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
@@ -69,7 +69,7 @@ enum class MatchStatus {
 }
 
 data class BillMatchLineRequest(
-    @field:NotBlank(message = "Line ID is required")
+    @field:NotNull(message = "Line ID is required")
     val lineId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
