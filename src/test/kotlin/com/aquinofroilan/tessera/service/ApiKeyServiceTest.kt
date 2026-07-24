@@ -1,5 +1,7 @@
 package com.aquinofroilan.tessera.service
 
+import java.util.UUID
+
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import com.aquinofroilan.tessera.model.ApiKey
@@ -46,14 +48,14 @@ class ApiKeyServiceTest {
             apiKeyService.createApiKey(
                 name = "Test Key",
                 permissions = listOf("session:read", "organization:read"),
-                organizationId = "org-123",
-                createdBy = "user-123",
+                organizationId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                createdBy = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9"),
                 creatorPermissions = setOf("session:read", "session:delete", "organization:read"),
             )
 
         assertThat(apiKey.name).isEqualTo("Test Key")
-        assertThat(apiKey.organizationId).isEqualTo("org-123")
-        assertThat(apiKey.createdBy).isEqualTo("user-123")
+        assertThat(apiKey.organizationId).isEqualTo(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
+        assertThat(apiKey.createdBy).isEqualTo(java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9"))
         assertThat(apiKey.permissions).isEqualTo(listOf("session:read", "organization:read"))
         assertThat(apiKey.keyPrefix.take(8)).isEqualTo("generate")
         assertThat(rawKey).isNotNull()
@@ -70,8 +72,8 @@ class ApiKeyServiceTest {
                 apiKeyService.createApiKey(
                     name = "Bad Key",
                     permissions = listOf("session:read", "nonexistent:permission"),
-                    organizationId = "org-123",
-                    createdBy = "user-123",
+                    organizationId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                    createdBy = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9"),
                     creatorPermissions = setOf("session:read"),
                 )
             }
@@ -85,8 +87,8 @@ class ApiKeyServiceTest {
                 apiKeyService.createApiKey(
                     name = "Empty Key",
                     permissions = emptyList(),
-                    organizationId = "org-123",
-                    createdBy = "user-123",
+                    organizationId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                    createdBy = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9"),
                     creatorPermissions = setOf("session:read"),
                 )
             }
@@ -100,8 +102,8 @@ class ApiKeyServiceTest {
                 apiKeyService.createApiKey(
                     name = "Escalated Key",
                     permissions = listOf("session:read", "user:delete"),
-                    organizationId = "org-123",
-                    createdBy = "user-123",
+                    organizationId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                    createdBy = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9"),
                     creatorPermissions = setOf("session:read", "organization:read"),
                 )
             }
@@ -151,9 +153,9 @@ class ApiKeyServiceTest {
     @Test
     fun `listApiKeys should return active keys for org`() {
         val keys = listOf(createMockApiKey(), createMockApiKey(name = "Key 2"))
-        `when`(apiKeyRepository.findByOrganizationIdAndIsActive("org-123", true)).thenReturn(keys)
+        `when`(apiKeyRepository.findByOrganizationIdAndIsActive(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), true)).thenReturn(keys)
 
-        val result = apiKeyService.listApiKeys("org-123")
+        val result = apiKeyService.listApiKeys(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
 
         assertThat(result.size).isEqualTo(2)
     }
@@ -164,7 +166,7 @@ class ApiKeyServiceTest {
         `when`(apiKeyRepository.findById(apiKey.id)).thenReturn(Optional.of(apiKey))
         `when`(apiKeyRepository.save(any<ApiKey>())).thenAnswer { it.arguments[0] }
 
-        apiKeyService.revokeApiKey(apiKey.id, "org-123")
+        apiKeyService.revokeApiKey(apiKey.id, java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
 
         val captor = argumentCaptor<ApiKey>()
         verify(apiKeyRepository).save(captor.capture())
@@ -173,12 +175,12 @@ class ApiKeyServiceTest {
 
     @Test
     fun `revokeApiKey should throw when key not in same org`() {
-        val apiKey = createMockApiKey(organizationId = "other-org")
+        val apiKey = createMockApiKey(organizationId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"))
         `when`(apiKeyRepository.findById(apiKey.id)).thenReturn(Optional.of(apiKey))
 
         val exception =
             assertThrows<ResourceNotFoundException> {
-                apiKeyService.revokeApiKey(apiKey.id, "org-123")
+                apiKeyService.revokeApiKey(apiKey.id, java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
             }
         assertThat(exception.message).isEqualTo("API key not found")
     }
@@ -190,24 +192,24 @@ class ApiKeyServiceTest {
 
         val exception =
             assertThrows<BusinessRuleException> {
-                apiKeyService.revokeApiKey(apiKey.id, "org-123")
+                apiKeyService.revokeApiKey(apiKey.id, java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
             }
         assertThat(exception.message).isEqualTo("API key is already revoked")
     }
 
     private fun createMockApiKey(
         name: String = "Test Key",
-        organizationId: String = "org-123",
+        organizationId: UUID = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
         isActive: Boolean = true,
         expiresAt: LocalDateTime? = null,
     ) = ApiKey(
-        id = "key-123",
+        id = java.util.UUID.fromString("6b9a90d2-9f77-3ac1-89b4-41f2c27bb55a"),
         name = name,
-        keyHash = "hashed-key",
+        keyHash = "07f345f8-a2e7-3f88-86bf-8ebd86d33f23",
         keyPrefix = "generate",
         organizationId = organizationId,
         permissions = listOf("session:read", "organization:read"),
-        createdBy = "user-123",
+        createdBy = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9"),
         isActive = isActive,
         expiresAt = expiresAt,
     )

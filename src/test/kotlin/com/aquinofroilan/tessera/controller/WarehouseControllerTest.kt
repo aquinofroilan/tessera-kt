@@ -215,7 +215,7 @@ class WarehouseControllerTest {
         `when`(warehouseService.getWarehouse(any(), any())).thenReturn(createMockWarehouse())
 
         mockMvc
-            .perform(get("/inventory/warehouses/wh-123"))
+            .perform(get("/inventory/warehouses/22a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value("7e061540-240c-d66d-4293-05c236c66fc0"))
             .andExpect(jsonPath("$.code").value("MAIN"))
@@ -227,7 +227,7 @@ class WarehouseControllerTest {
             .thenThrow(ResourceNotFoundException("Warehouse not found"))
 
         mockMvc
-            .perform(get("/inventory/warehouses/nonexistent"))
+            .perform(get("/inventory/warehouses/00000000-0000-0000-0000-000000000000"))
             .andExpect(status().isNotFound)
     }
 
@@ -238,7 +238,7 @@ class WarehouseControllerTest {
 
         mockMvc
             .perform(
-                patch("/inventory/warehouses/wh-123")
+                patch("/inventory/warehouses/22a14436-99e0-5e9d-9396-3a670fc505c0")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"name": "Renamed"}"""),
             ).andExpect(status().isOk)
@@ -250,7 +250,7 @@ class WarehouseControllerTest {
         `when`(warehouseService.deleteWarehouse(any(), any())).thenReturn(createMockWarehouse().apply { isActive = false })
 
         mockMvc
-            .perform(delete("/inventory/warehouses/wh-123"))
+            .perform(delete("/inventory/warehouses/22a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isOk)
     }
 
@@ -281,7 +281,7 @@ class WarehouseControllerTest {
 
         mockMvc
             .perform(
-                patch("/inventory/warehouses/wh-123")
+                patch("/inventory/warehouses/22a14436-99e0-5e9d-9396-3a670fc505c0")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"name": "Renamed"}"""),
             ).andExpect(status().isForbidden)
@@ -292,7 +292,7 @@ class WarehouseControllerTest {
         setupAuthWithPermissions("inventory:read")
 
         mockMvc
-            .perform(delete("/inventory/warehouses/wh-123"))
+            .perform(delete("/inventory/warehouses/22a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isForbidden)
     }
 }

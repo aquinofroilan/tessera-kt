@@ -19,7 +19,7 @@ class PositionServiceTest {
     private lateinit var departmentService: DepartmentService
     private lateinit var service: PositionService
 
-    private val orgId = "org-1"
+    private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
 
     @BeforeEach
     fun setup() {
@@ -32,18 +32,18 @@ class PositionServiceTest {
 
     @Test
     fun `create persists a position and validates the department when provided`() {
-        whenever(departmentService.getDepartment("d1", orgId))
-            .thenReturn(Department(id = "d1", code = "ENG", name = "Engineering", organizationId = orgId))
+        whenever(departmentService.getDepartment(java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"), orgId))
+            .thenReturn(Department(id = java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"), code = "ENG", name = "Engineering", organizationId = orgId))
 
         val pos =
             service.createPosition(
-                CreatePositionRequest(code = " SE2 ", title = " Software Engineer II ", departmentId = "d1", payGrade = "G5"),
+                CreatePositionRequest(code = " SE2 ", title = " Software Engineer II ", departmentId = java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"), payGrade = "G5"),
                 orgId,
             )
 
         assertThat(pos.code).isEqualTo("SE2")
         assertThat(pos.title).isEqualTo("Software Engineer II")
-        assertThat(pos.departmentId).isEqualTo("d1")
+        assertThat(pos.departmentId).isEqualTo(java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"))
         assertThat(pos.payGrade).isEqualTo("G5")
     }
 
@@ -58,10 +58,10 @@ class PositionServiceTest {
 
     @Test
     fun `deactivate rejects double-deactivation`() {
-        whenever(repository.findById("p1"))
-            .thenReturn(Optional.of(Position(id = "p1", code = "SE2", title = "SE II", organizationId = orgId, isActive = false)))
+        whenever(repository.findById(java.util.UUID.fromString("fd2ef362-436b-3e1e-8083-ccaefc73ba78")))
+            .thenReturn(Optional.of(Position(id = java.util.UUID.fromString("fd2ef362-436b-3e1e-8083-ccaefc73ba78"), code = "SE2", title = "SE II", organizationId = orgId, isActive = false)))
 
-        assertThatThrownBy { service.deactivatePosition("p1", orgId) }
+        assertThatThrownBy { service.deactivatePosition(java.util.UUID.fromString("fd2ef362-436b-3e1e-8083-ccaefc73ba78"), orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 }

@@ -265,7 +265,7 @@ class InvitationControllerTest {
     @Test
     fun `DELETE invitation should return 200 when revoked`() {
         mockMvc
-            .perform(delete("/auth/invitations/inv-123"))
+            .perform(delete("/auth/invitations/52a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("Invitation revoked"))
     }
@@ -276,7 +276,7 @@ class InvitationControllerTest {
             .thenThrow(IllegalArgumentException("Invitation is not pending"))
 
         mockMvc
-            .perform(delete("/auth/invitations/inv-123"))
+            .perform(delete("/auth/invitations/52a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Invitation is not pending"))
     }

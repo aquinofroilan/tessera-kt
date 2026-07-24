@@ -127,7 +127,7 @@ class AuthControllerTest {
                     .content(requestJson),
             ).andExpect(status().isCreated)
             .andExpect(jsonPath("$.message").value("User registered successfully"))
-            .andExpect(jsonPath("$.userId").value(savedUser.uuid))
+            .andExpect(jsonPath("$.userId").value(savedUser.uuid.toString()))
     }
 
     @Test
@@ -716,7 +716,7 @@ class AuthControllerTest {
             .perform(
                 post("/auth/organizations/switch")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"organizationId": java.util.UUID.fromString("040b1958-b04e-e825-c7e5-7819150449fc")}"""),
+                    .content("""{"organizationId": "040b1958-b04e-e825-c7e5-7819150449fc"}"""),
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$.organizationId").value("040b1958-b04e-e825-c7e5-7819150449fc"))
             .andExpect(jsonPath("$.roles[0]").value("MEMBER"))
@@ -746,7 +746,7 @@ class AuthControllerTest {
             .perform(
                 post("/auth/organizations/switch")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"organizationId": java.util.UUID.fromString("595d3c91-ee25-67cc-6522-f2f3b0e0ffb2")}"""),
+                    .content("""{"organizationId": "595d3c91-ee25-67cc-6522-f2f3b0e0ffb2"}"""),
             ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("You do not have access to this organization"))
     }

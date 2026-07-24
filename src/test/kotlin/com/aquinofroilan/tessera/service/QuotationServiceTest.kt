@@ -1,5 +1,7 @@
 package com.aquinofroilan.tessera.service
 
+import java.util.UUID
+
 import com.aquinofroilan.tessera.dto.ConvertQuotationRequest
 import com.aquinofroilan.tessera.dto.CreateQuotationLineRequest
 import com.aquinofroilan.tessera.dto.CreateQuotationRequest
@@ -36,8 +38,8 @@ class QuotationServiceTest {
     private lateinit var salesOrderService: SalesOrderService
     private lateinit var service: QuotationService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
+    private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
+    private val userId = java.util.UUID.fromString("1db2395f-13ba-3d37-9d2b-f77d3eb3aa2e")
 
     @BeforeEach
     fun setup() {
@@ -48,25 +50,25 @@ class QuotationServiceTest {
         salesOrderService = mock(SalesOrderService::class.java)
         whenever(repository.countByOrganizationId(orgId)).thenReturn(0L)
         whenever(repository.save(any<Quotation>())).thenAnswer { it.arguments[0] }
-        whenever(customerService.getCustomer("c-1", orgId)).thenReturn(Customer(id = "c-1", name = "Globex", organizationId = orgId))
-        whenever(warehouseService.getWarehouse("wh-1", orgId))
-            .thenReturn(Warehouse(id = "wh-1", code = "MAIN", name = "Main", organizationId = orgId))
-        whenever(productService.getProduct("p-1", orgId)).thenReturn(
-            Product(id = "p-1", sku = "SKU-1", name = "Widget", listPrice = BigDecimal("9"), priceCurrency = "USD", organizationId = orgId),
+        whenever(customerService.getCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), orgId)).thenReturn(Customer(id = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), name = "Globex", organizationId = orgId))
+        whenever(warehouseService.getWarehouse(java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"), orgId))
+            .thenReturn(Warehouse(id = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"), code = "MAIN", name = "Main", organizationId = orgId))
+        whenever(productService.getProduct(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), orgId)).thenReturn(
+            Product(id = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), sku = "SKU-1", name = "Widget", listPrice = BigDecimal("9"), priceCurrency = "USD", organizationId = orgId),
         )
         service = QuotationService(repository, customerService, warehouseService, productService, salesOrderService)
     }
 
-    private fun lineReq() = CreateQuotationLineRequest(productId = "p-1", quantity = BigDecimal("2"), unitPrice = BigDecimal("10"))
+    private fun lineReq() = CreateQuotationLineRequest(productId = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), quantity = BigDecimal("2"), unitPrice = BigDecimal("10"))
 
     private fun acceptedQuote(
-        warehouseId: String? = "wh-1",
+        warehouseId: UUID? = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
         validUntil: LocalDate? = null,
         status: QuotationStatus = QuotationStatus.ACCEPTED,
     ) = Quotation(
-        id = "q-1",
+        id = java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"),
         quoteNumber = "QT-0001",
-        customerId = "c-1",
+        customerId = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"),
         customerName = "Globex",
         warehouseId = warehouseId,
         quoteDate = LocalDate.of(2026, 5, 1),
@@ -76,9 +78,9 @@ class QuotationServiceTest {
         lines =
             listOf(
                 QuotationLine(
-                    id = "ql-1",
+                    id = java.util.UUID.fromString("837c38e2-9ccb-3ecc-afb8-b21e3b6e6717"),
                     lineNumber = 1,
-                    productId = "p-1",
+                    productId = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
                     productSku = "SKU-1",
                     productName = "Widget",
                     quantity = BigDecimal("2"),
@@ -95,8 +97,8 @@ class QuotationServiceTest {
         val quote =
             service.createQuotation(
                 CreateQuotationRequest(
-                    customerId = "c-1",
-                    warehouseId = "wh-1",
+                    customerId = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"),
+                    warehouseId = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
                     quoteDate = LocalDate.of(2026, 5, 1),
                     lines = listOf(lineReq()),
                 ),
@@ -111,49 +113,49 @@ class QuotationServiceTest {
 
     @Test
     fun `send moves a draft to sent`() {
-        whenever(repository.findById("q-1")).thenReturn(Optional.of(acceptedQuote(status = QuotationStatus.DRAFT)))
-        assertThat(service.sendQuotation("q-1", orgId).status).isEqualTo(QuotationStatus.SENT)
+        whenever(repository.findById(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"))).thenReturn(Optional.of(acceptedQuote(status = QuotationStatus.DRAFT)))
+        assertThat(service.sendQuotation(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"), orgId).status).isEqualTo(QuotationStatus.SENT)
     }
 
     @Test
     fun `accept rejects a quote that is not sent`() {
-        whenever(repository.findById("q-1")).thenReturn(Optional.of(acceptedQuote()))
-        assertThatThrownBy { service.acceptQuotation("q-1", orgId) }
+        whenever(repository.findById(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"))).thenReturn(Optional.of(acceptedQuote()))
+        assertThatThrownBy { service.acceptQuotation(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"), orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `accept rejects an expired quote`() {
-        whenever(repository.findById("q-1"))
+        whenever(repository.findById(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37")))
             .thenReturn(Optional.of(acceptedQuote(status = QuotationStatus.SENT, validUntil = LocalDate.of(2000, 1, 1))))
-        assertThatThrownBy { service.acceptQuotation("q-1", orgId) }
+        assertThatThrownBy { service.acceptQuotation(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"), orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `cancel rejects a converted quote`() {
-        whenever(repository.findById("q-1")).thenReturn(Optional.of(acceptedQuote(status = QuotationStatus.CONVERTED)))
-        assertThatThrownBy { service.cancelQuotation("q-1", orgId) }
+        whenever(repository.findById(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"))).thenReturn(Optional.of(acceptedQuote(status = QuotationStatus.CONVERTED)))
+        assertThatThrownBy { service.cancelQuotation(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"), orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `convert requires an accepted quote`() {
-        whenever(repository.findById("q-1")).thenReturn(Optional.of(acceptedQuote(status = QuotationStatus.SENT)))
-        assertThatThrownBy { service.convertToSalesOrder("q-1", ConvertQuotationRequest(), orgId, userId) }
+        whenever(repository.findById(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"))).thenReturn(Optional.of(acceptedQuote(status = QuotationStatus.SENT)))
+        assertThatThrownBy { service.convertToSalesOrder(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"), ConvertQuotationRequest(), orgId, userId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `convert builds a sales order from quote lines and marks it converted`() {
-        whenever(repository.findById("q-1")).thenReturn(Optional.of(acceptedQuote()))
+        whenever(repository.findById(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"))).thenReturn(Optional.of(acceptedQuote()))
         val createdSo =
             SalesOrder(
-                id = "so-9",
+                id = java.util.UUID.fromString("8ce4a550-f369-3e9f-be38-d2cdfa73a158"),
                 soNumber = "SO-0001",
-                customerId = "c-1",
+                customerId = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"),
                 customerName = "Globex",
-                warehouseId = "wh-1",
+                warehouseId = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
                 orderDate = LocalDate.of(2026, 5, 1),
                 organizationId = orgId,
                 lines = emptyList(),
@@ -162,7 +164,7 @@ class QuotationServiceTest {
             )
         whenever(salesOrderService.createSalesOrder(any(), eq(orgId), eq(userId))).thenReturn(createdSo)
 
-        val so = service.convertToSalesOrder("q-1", ConvertQuotationRequest(), orgId, userId)
+        val so = service.convertToSalesOrder(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"), ConvertQuotationRequest(), orgId, userId)
 
         assertThat(so.id).isEqualTo("so-9")
         val soReq = argumentCaptor<CreateSalesOrderRequest>()
@@ -179,15 +181,15 @@ class QuotationServiceTest {
 
     @Test
     fun `convert without a warehouse anywhere is rejected`() {
-        whenever(repository.findById("q-1")).thenReturn(Optional.of(acceptedQuote(warehouseId = null)))
-        assertThatThrownBy { service.convertToSalesOrder("q-1", ConvertQuotationRequest(), orgId, userId) }
+        whenever(repository.findById(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"))).thenReturn(Optional.of(acceptedQuote(warehouseId = null)))
+        assertThatThrownBy { service.convertToSalesOrder(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"), ConvertQuotationRequest(), orgId, userId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `get rejects cross-org access`() {
-        whenever(repository.findById("q-1")).thenReturn(Optional.of(acceptedQuote().copy(organizationId = "other")))
-        assertThatThrownBy { service.getQuotation("q-1", orgId) }
+        whenever(repository.findById(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"))).thenReturn(Optional.of(acceptedQuote().copy(organizationId = java.util.UUID.fromString("f022a845-ae01-3e07-ae04-7fc0ffb096a8"))))
+        assertThatThrownBy { service.getQuotation(java.util.UUID.fromString("10ac9264-b864-3f2b-872a-26d40a9b3b37"), orgId) }
             .isInstanceOf(ResourceNotFoundException::class.java)
     }
 }

@@ -23,7 +23,7 @@ class ExchangeRateServiceTest {
     private lateinit var repository: ExchangeRateRepository
     private lateinit var currencyService: CurrencyService
 
-    private val orgId = "org-1"
+    private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
     private val today = LocalDate.of(2026, 4, 19)
 
     @BeforeEach
@@ -137,7 +137,7 @@ class ExchangeRateServiceTest {
 
     @Test
     fun `deleteRate rejects cross-org`() {
-        val rate = rateOf("USD", "PHP", BigDecimal("57.50"), today, orgId = "other-org")
+        val rate = rateOf("fe2db454-a7f7-3170-995e-74c0045ab41b", "e6eb0ebe-1a8c-39eb-851a-4495c5096549", BigDecimal("57.50"), today, orgId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"))
         `when`(repository.findById(rate.id)).thenReturn(Optional.of(rate))
 
         assertThrows<ResourceNotFoundException> {
@@ -150,7 +150,7 @@ class ExchangeRateServiceTest {
         to: String,
         rate: BigDecimal,
         date: LocalDate,
-        orgId: String = this.orgId,
+        orgId: java.util.UUID = this.orgId,
         source: ExchangeRateSource = ExchangeRateSource.MANUAL,
     ) = ExchangeRate(
         organizationId = orgId,

@@ -1,5 +1,7 @@
 package com.aquinofroilan.tessera.service
 
+import java.util.UUID
+
 import com.aquinofroilan.tessera.dto.CreateBomLineRequest
 import com.aquinofroilan.tessera.dto.CreateBomRequest
 import com.aquinofroilan.tessera.dto.UpdateBomRequest
@@ -24,11 +26,11 @@ class BillOfMaterialsServiceTest {
     private lateinit var productService: ProductService
     private lateinit var service: BillOfMaterialsService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
-    private val parentId = "prod-parent"
-    private val compAId = "prod-A"
-    private val compBId = "prod-B"
+    private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
+    private val userId = java.util.UUID.fromString("1db2395f-13ba-3d37-9d2b-f77d3eb3aa2e")
+    private val parentId = java.util.UUID.fromString("8460eb67-cc2b-3de5-bdba-6c4320d2c3de")
+    private val compAId = java.util.UUID.fromString("97c02c2b-db1d-3201-b200-5645c65c4ecc")
+    private val compBId = java.util.UUID.fromString("f411ffb7-66f2-3534-92de-46af447dbec3")
 
     @BeforeEach
     fun setup() {
@@ -39,9 +41,9 @@ class BillOfMaterialsServiceTest {
         whenever(bomRepository.findByOrganizationIdAndProductId(any(), any())).thenReturn(emptyList())
         whenever(bomRepository.findByOrganizationIdAndProductIdAndIsDefaultTrue(any(), any()))
             .thenReturn(Optional.empty())
-        whenever(productService.getProduct(parentId, orgId)).thenReturn(product(parentId, "PARENT"))
-        whenever(productService.getProduct(compAId, orgId)).thenReturn(product(compAId, "COMP-A"))
-        whenever(productService.getProduct(compBId, orgId)).thenReturn(product(compBId, "COMP-B"))
+        whenever(productService.getProduct(parentId, orgId)).thenReturn(product(parentId, "65817213-08c3-311c-bd60-044bb2ac84d8"))
+        whenever(productService.getProduct(compAId, orgId)).thenReturn(product(compAId, "3d79a2eb-7221-3c73-aab1-048d4848d923"))
+        whenever(productService.getProduct(compBId, orgId)).thenReturn(product(compBId, "d44a6bcf-e191-3b25-b7c8-60f8c11b710f"))
         service = BillOfMaterialsService(bomRepository, productService)
     }
 
@@ -98,10 +100,10 @@ class BillOfMaterialsServiceTest {
 
     @Test
     fun `activate marks bom ACTIVE and stamps audit fields`() {
-        val draft = bom().copy(id = "b1")
-        whenever(bomRepository.findById("b1")).thenReturn(Optional.of(draft))
+        val draft = bom().copy(id = java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"))
+        whenever(bomRepository.findById(java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"))).thenReturn(Optional.of(draft))
 
-        val activated = service.activateBom("b1", orgId, userId, makeDefault = false)
+        val activated = service.activateBom(java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"), orgId, userId, makeDefault = false)
 
         assertThat(activated.status).isEqualTo(BomStatus.ACTIVE)
         assertThat(activated.activatedBy).isEqualTo(userId)
@@ -110,13 +112,13 @@ class BillOfMaterialsServiceTest {
 
     @Test
     fun `activate with makeDefault demotes the previous default`() {
-        val draft = bom().copy(id = "b2")
-        val priorDefault = bom().copy(id = "b1", isDefault = true, status = BomStatus.ACTIVE)
-        whenever(bomRepository.findById("b2")).thenReturn(Optional.of(draft))
+        val draft = bom().copy(id = java.util.UUID.fromString("89cc91a6-b578-318a-81f6-141ba86d1362"))
+        val priorDefault = bom().copy(id = java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"), isDefault = true, status = BomStatus.ACTIVE)
+        whenever(bomRepository.findById(java.util.UUID.fromString("89cc91a6-b578-318a-81f6-141ba86d1362"))).thenReturn(Optional.of(draft))
         whenever(bomRepository.findByOrganizationIdAndProductIdAndIsDefaultTrue(orgId, parentId))
             .thenReturn(Optional.of(priorDefault))
 
-        val activated = service.activateBom("b2", orgId, userId, makeDefault = true)
+        val activated = service.activateBom(java.util.UUID.fromString("89cc91a6-b578-318a-81f6-141ba86d1362"), orgId, userId, makeDefault = true)
 
         assertThat(activated.isDefault).isTrue()
         assertThat(activated.status).isEqualTo(BomStatus.ACTIVE)
@@ -124,20 +126,20 @@ class BillOfMaterialsServiceTest {
 
     @Test
     fun `update is rejected when bom is not DRAFT`() {
-        val active = bom().copy(id = "b1", status = BomStatus.ACTIVE)
-        whenever(bomRepository.findById("b1")).thenReturn(Optional.of(active))
+        val active = bom().copy(id = java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"), status = BomStatus.ACTIVE)
+        whenever(bomRepository.findById(java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"))).thenReturn(Optional.of(active))
 
         assertThatThrownBy {
-            service.updateBom("b1", UpdateBomRequest(name = "renamed"), orgId)
+            service.updateBom(java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"), UpdateBomRequest(name = "renamed"), orgId)
         }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `obsolete clears default flag`() {
-        val active = bom().copy(id = "b1", status = BomStatus.ACTIVE, isDefault = true)
-        whenever(bomRepository.findById("b1")).thenReturn(Optional.of(active))
+        val active = bom().copy(id = java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"), status = BomStatus.ACTIVE, isDefault = true)
+        whenever(bomRepository.findById(java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"))).thenReturn(Optional.of(active))
 
-        val obsoleted = service.obsoleteBom("b1", orgId, userId)
+        val obsoleted = service.obsoleteBom(java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"), orgId, userId)
 
         assertThat(obsoleted.status).isEqualTo(BomStatus.OBSOLETE)
         assertThat(obsoleted.isDefault).isFalse()
@@ -146,10 +148,10 @@ class BillOfMaterialsServiceTest {
 
     @Test
     fun `delete is rejected when bom is not DRAFT`() {
-        val active = bom().copy(id = "b1", status = BomStatus.ACTIVE)
-        whenever(bomRepository.findById("b1")).thenReturn(Optional.of(active))
+        val active = bom().copy(id = java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"), status = BomStatus.ACTIVE)
+        whenever(bomRepository.findById(java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"))).thenReturn(Optional.of(active))
 
-        assertThatThrownBy { service.deleteBom("b1", orgId) }
+        assertThatThrownBy { service.deleteBom(java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"), orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 
@@ -170,7 +172,7 @@ class BillOfMaterialsServiceTest {
     )
 
     private fun line(
-        productId: String,
+        productId: UUID,
         quantity: BigDecimal,
     ) = CreateBomLineRequest(
         componentProductId = productId,
@@ -203,7 +205,7 @@ class BillOfMaterialsServiceTest {
         )
 
     private fun product(
-        id: String,
+        id: UUID,
         sku: String,
     ) = Product(
         id = id,

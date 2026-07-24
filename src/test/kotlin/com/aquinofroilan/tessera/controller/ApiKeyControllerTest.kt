@@ -177,7 +177,7 @@ class ApiKeyControllerTest {
     @Test
     fun `DELETE api-keys should return 200 when revoked`() {
         mockMvc
-            .perform(delete("/auth/api-keys/key-123"))
+            .perform(delete("/auth/api-keys/32a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("API key revoked"))
     }
@@ -188,7 +188,7 @@ class ApiKeyControllerTest {
             .thenThrow(IllegalArgumentException("API key is already revoked"))
 
         mockMvc
-            .perform(delete("/auth/api-keys/key-123"))
+            .perform(delete("/auth/api-keys/32a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("API key is already revoked"))
     }

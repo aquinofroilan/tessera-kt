@@ -27,9 +27,9 @@ class LeaveRequestServiceTest {
     private lateinit var leaveTypeService: LeaveTypeService
     private lateinit var service: LeaveRequestService
 
-    private val orgId = "org-1"
-    private val empId = "e1"
-    private val typeId = "lt1"
+    private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
+    private val empId = java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4")
+    private val typeId = java.util.UUID.fromString("82d745af-a33b-3e13-adff-05141b0d976d")
 
     @BeforeEach
     fun setup() {
@@ -63,14 +63,14 @@ class LeaveRequestServiceTest {
         days: Int,
         start: LocalDate = LocalDate.of(2020, 3, 2),
     ) = LeaveRequest(
-        id = "lr1",
+        id = java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"),
         employeeId = empId,
         leaveTypeId = typeId,
         startDate = start,
         endDate = start.plusDays((days - 1).toLong()),
         days = days,
         organizationId = orgId,
-        requestedBy = "u1",
+        requestedBy = java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"),
     )
 
     @Test
@@ -84,7 +84,7 @@ class LeaveRequestServiceTest {
                     endDate = LocalDate.of(2020, 3, 6),
                 ),
                 orgId,
-                "u1",
+                java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"),
             )
 
         assertThat(req.days).isEqualTo(5)
@@ -99,19 +99,19 @@ class LeaveRequestServiceTest {
             service.createLeaveRequest(
                 CreateLeaveRequestRequest(empId, typeId, LocalDate.of(2020, 3, 2), LocalDate.of(2020, 3, 6)),
                 orgId,
-                "u1",
+                java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"),
             )
         }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `approve within entitlement marks APPROVED without touching past-dated employee status`() {
-        whenever(repository.findById("lr1")).thenReturn(Optional.of(pending(5)))
+        whenever(repository.findById(java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"))).thenReturn(Optional.of(pending(5)))
 
-        val approved = service.approveLeaveRequest("lr1", orgId, "mgr")
+        val approved = service.approveLeaveRequest(java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"), orgId, java.util.UUID.fromString("339851d6-a2ee-38e3-9908-6d48907f4a92"))
 
         assertThat(approved.status).isEqualTo(LeaveRequestStatus.APPROVED)
-        assertThat(approved.decidedBy).isEqualTo("mgr")
+        assertThat(approved.decidedBy).isEqualTo(java.util.UUID.fromString("339851d6-a2ee-38e3-9908-6d48907f4a92"))
         // Past-dated leave does not flip employment status.
         verify(employeeService, never()).placeOnLeave(any(), any())
     }
@@ -119,9 +119,9 @@ class LeaveRequestServiceTest {
     @Test
     fun `approve exceeding entitlement is rejected`() {
         whenever(leaveTypeService.getLeaveType(typeId, orgId)).thenReturn(leaveType(3))
-        whenever(repository.findById("lr1")).thenReturn(Optional.of(pending(5)))
+        whenever(repository.findById(java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"))).thenReturn(Optional.of(pending(5)))
 
-        assertThatThrownBy { service.approveLeaveRequest("lr1", orgId, "mgr") }
+        assertThatThrownBy { service.approveLeaveRequest(java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"), orgId, java.util.UUID.fromString("339851d6-a2ee-38e3-9908-6d48907f4a92")) }
             .isInstanceOf(BusinessRuleException::class.java)
         verify(repository, never()).save(any<LeaveRequest>())
     }
@@ -129,9 +129,9 @@ class LeaveRequestServiceTest {
     @Test
     fun `approving leave covering today places the employee on leave`() {
         val today = LocalDate.now(java.time.ZoneOffset.UTC)
-        whenever(repository.findById("lr1")).thenReturn(Optional.of(pending(1, start = today)))
+        whenever(repository.findById(java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"))).thenReturn(Optional.of(pending(1, start = today)))
 
-        service.approveLeaveRequest("lr1", orgId, "mgr")
+        service.approveLeaveRequest(java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"), orgId, java.util.UUID.fromString("339851d6-a2ee-38e3-9908-6d48907f4a92"))
 
         verify(employeeService).placeOnLeave(eq(empId), eq(orgId))
     }

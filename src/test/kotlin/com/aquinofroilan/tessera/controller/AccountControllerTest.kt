@@ -192,7 +192,7 @@ class AccountControllerTest {
         `when`(accountService.getAccount(any(), any())).thenReturn(account)
 
         mockMvc
-            .perform(get("/finance/accounts/acc-123"))
+            .perform(get("/finance/accounts/12a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value("12a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(jsonPath("$.code").value("1000"))
@@ -206,7 +206,7 @@ class AccountControllerTest {
             .thenThrow(ResourceNotFoundException("Account not found"))
 
         mockMvc
-            .perform(get("/finance/accounts/nonexistent"))
+            .perform(get("/finance/accounts/00000000-0000-0000-0000-000000000000"))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.error").value("Account not found"))
     }
@@ -218,7 +218,7 @@ class AccountControllerTest {
 
         mockMvc
             .perform(
-                put("/finance/accounts/acc-123")
+                put("/finance/accounts/12a14436-99e0-5e9d-9396-3a670fc505c0")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"name": "Updated Cash"}"""),
             ).andExpect(status().isOk)
@@ -229,7 +229,7 @@ class AccountControllerTest {
     @Test
     fun `DELETE accounts should return 200 when deactivated`() {
         mockMvc
-            .perform(delete("/finance/accounts/acc-123"))
+            .perform(delete("/finance/accounts/12a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("Account deactivated"))
     }
@@ -240,7 +240,7 @@ class AccountControllerTest {
             .thenThrow(BusinessRuleException("System accounts cannot be deleted"))
 
         mockMvc
-            .perform(delete("/finance/accounts/acc-123"))
+            .perform(delete("/finance/accounts/12a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("System accounts cannot be deleted"))
     }
@@ -262,7 +262,7 @@ class AccountControllerTest {
         setupAuthWithPermissions("account:read")
 
         mockMvc
-            .perform(delete("/finance/accounts/acc-123"))
+            .perform(delete("/finance/accounts/12a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isForbidden)
     }
 

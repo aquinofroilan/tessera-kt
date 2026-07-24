@@ -25,9 +25,9 @@ class StockOnHandConcurrencyIT {
     @Autowired
     private lateinit var stockOnHandRepository: StockOnHandRepository
 
-    private val orgId = UUID.randomUUID().toString()
-    private val productId = UUID.randomUUID().toString()
-    private val warehouseId = UUID.randomUUID().toString()
+    private val orgId = UUID.randomUUID()
+    private val productId = UUID.randomUUID()
+    private val warehouseId = UUID.randomUUID()
 
     @BeforeEach
     fun setup() {
@@ -78,7 +78,7 @@ class StockOnHandConcurrencyIT {
             INSERT INTO stock_on_hand (id, organization_id, product_id, warehouse_id, quantity, created_at)
             VALUES (?::uuid, ?::uuid, ?::uuid, ?::uuid, ?, current_timestamp)
             """.trimIndent(),
-            UUID.randomUUID().toString(),
+            UUID.randomUUID(),
             orgId,
             productId,
             warehouseId,
@@ -177,8 +177,8 @@ class StockOnHandConcurrencyIT {
         assertThat(ok).isFalse()
     }
 
-    private fun insertProduct(): String {
-        val pid = UUID.randomUUID().toString()
+    private fun insertProduct(): java.util.UUID {
+        val pid = UUID.randomUUID()
         jdbcTemplate.update(
             """
             INSERT INTO products

@@ -33,11 +33,11 @@ class StockMovementServiceTest {
     private lateinit var inventoryCostingService: InventoryCostingService
     private lateinit var inventoryPostingService: InventoryPostingService
 
-    private val orgId = "org-123"
-    private val userId = "user-123"
-    private val productId = "prod-1"
-    private val warehouseId = "wh-1"
-    private val otherWarehouseId = "wh-2"
+    private val orgId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
+    private val userId = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
+    private val productId = java.util.UUID.fromString("dbf2a095-ce0d-371a-bd21-a52d4a5a29c9")
+    private val warehouseId = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")
+    private val otherWarehouseId = java.util.UUID.fromString("1d0e273c-e8f6-3c81-aa83-af17bdd332f5")
 
     @BeforeEach
     fun setup() {
@@ -59,11 +59,11 @@ class StockMovementServiceTest {
     }
 
     private fun mockWarehouse(
-        id: String = warehouseId,
+        id: java.util.UUID = warehouseId,
         code: String = "MAIN",
         allowNegativeStock: Boolean = false,
         isActive: Boolean = true,
-        organizationId: String = orgId,
+        organizationId: java.util.UUID = orgId,
     ) {
         whenever(warehouseRepository.findById(id)).thenReturn(
             Optional.of(
@@ -342,7 +342,7 @@ class StockMovementServiceTest {
 
     @Test
     fun `createMovement rejects when warehouse from other org`() {
-        mockWarehouse(organizationId = "other-org")
+        mockWarehouse(organizationId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"))
         val request =
             CreateStockMovementRequest(
                 type = StockMovementType.RECEIPT,
@@ -426,7 +426,7 @@ class StockMovementServiceTest {
         answerSave()
         val original =
             StockMovement(
-                id = "m1",
+                id = java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"),
                 organizationId = orgId,
                 type = StockMovementType.RECEIPT,
                 productId = productId,
@@ -437,24 +437,24 @@ class StockMovementServiceTest {
                 occurredAt = LocalDateTime.now(),
                 createdBy = userId,
             )
-        whenever(stockMovementRepository.findById("m1")).thenReturn(Optional.of(original))
+        whenever(stockMovementRepository.findById(java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"))).thenReturn(Optional.of(original))
 
-        val reversal = stockMovementService.reverseMovement("m1", orgId, userId)
+        val reversal = stockMovementService.reverseMovement(java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"), orgId, userId)
 
         assertThat(reversal.type).isEqualTo(StockMovementType.ADJUSTMENT)
         assertThat(reversal.quantity).isEqualByComparingTo("-10")
-        assertThat(reversal.reversalOfMovementId).isEqualTo("m1")
+        assertThat(reversal.reversalOfMovementId).isEqualTo(java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"))
 
         val captor = argumentCaptor<StockMovement>()
         verify(stockMovementRepository, org.mockito.kotlin.atLeastOnce()).save(captor.capture())
-        assertThat(captor.allValues).anyMatch { it.id == "m1" && it.reversed }
+        assertThat(captor.allValues).anyMatch { it.id == java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e") && it.reversed }
     }
 
     @Test
     fun `reverseMovement rejects an already-reversed movement`() {
         val original =
             StockMovement(
-                id = "m1",
+                id = java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"),
                 organizationId = orgId,
                 type = StockMovementType.RECEIPT,
                 productId = productId,
@@ -465,9 +465,9 @@ class StockMovementServiceTest {
                 occurredAt = LocalDateTime.now(),
                 createdBy = userId,
             )
-        whenever(stockMovementRepository.findById("m1")).thenReturn(Optional.of(original))
+        whenever(stockMovementRepository.findById(java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"))).thenReturn(Optional.of(original))
 
-        assertThrows<BusinessRuleException> { stockMovementService.reverseMovement("m1", orgId, userId) }
+        assertThrows<BusinessRuleException> { stockMovementService.reverseMovement(java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"), orgId, userId) }
         verify(stockMovementRepository, never()).save(any<StockMovement>())
     }
 }

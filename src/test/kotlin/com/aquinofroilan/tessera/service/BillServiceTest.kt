@@ -1,5 +1,7 @@
 package com.aquinofroilan.tessera.service
 
+import java.util.UUID
+
 import com.aquinofroilan.tessera.dto.BillLineRequest
 import com.aquinofroilan.tessera.dto.CreateBillRequest
 import com.aquinofroilan.tessera.dto.RecordPaymentRequest
@@ -48,8 +50,8 @@ class BillServiceTest {
     private lateinit var currencyService: CurrencyService
     private lateinit var exchangeRateService: ExchangeRateService
 
-    private val orgId = "org-123"
-    private val userId = "user-1"
+    private val orgId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
+    private val userId = java.util.UUID.fromString("1db2395f-13ba-3d37-9d2b-f77d3eb3aa2e")
 
     @BeforeEach
     fun setup() {
@@ -98,22 +100,22 @@ class BillServiceTest {
     @Test
     fun `create should save bill as DRAFT with correct total`() {
         val vendor = createVendor()
-        val expenseAccount = createAccount("acc-1", "5000", "Office Supplies", AccountType.EXPENSE)
+        val expenseAccount = createAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), "5000", "Office Supplies", AccountType.EXPENSE)
 
-        `when`(vendorService.getVendor("v-1", orgId)).thenReturn(vendor)
-        `when`(accountRepository.findAllById(listOf("acc-1")))
+        `when`(vendorService.getVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId)).thenReturn(vendor)
+        `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))))
             .thenReturn(listOf(expenseAccount))
         `when`(billRepository.countByOrganizationId(orgId)).thenReturn(0L)
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
 
         val request =
             CreateBillRequest(
-                vendorId = "v-1",
+                vendorId = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"),
                 date = LocalDate.of(2026, 3, 1),
                 dueDate = LocalDate.of(2026, 3, 31),
                 lines =
                     listOf(
-                        BillLineRequest(accountId = "acc-1", amount = BigDecimal("250.00")),
+                        BillLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), amount = BigDecimal("250.00")),
                     ),
             )
 
@@ -131,16 +133,16 @@ class BillServiceTest {
     @Test
     fun `create should reject inactive vendor`() {
         val vendor = createVendor(isActive = false)
-        `when`(vendorService.getVendor("v-1", orgId)).thenReturn(vendor)
+        `when`(vendorService.getVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId)).thenReturn(vendor)
 
         val request =
             CreateBillRequest(
-                vendorId = "v-1",
+                vendorId = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"),
                 date = LocalDate.of(2026, 3, 1),
                 dueDate = LocalDate.of(2026, 3, 31),
                 lines =
                     listOf(
-                        BillLineRequest(accountId = "acc-1", amount = BigDecimal("100.00")),
+                        BillLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), amount = BigDecimal("100.00")),
                     ),
             )
 
@@ -154,10 +156,10 @@ class BillServiceTest {
     @Test
     fun `approve should post journal entry and update status`() {
         val bill = createBill()
-        val apAccount = createAccount("acc-ap", "2000", "Accounts Payable", AccountType.LIABILITY)
+        val apAccount = createAccount(java.util.UUID.randomUUID(), "2000", "Accounts Payable", AccountType.LIABILITY)
         val mockEntry =
             JournalEntry(
-                id = "je-1",
+                id = java.util.UUID.fromString("dea446cc-a162-314e-a549-c9aa550c0496"),
                 entryNumber = "JE-0001",
                 date = bill.date,
                 description = "Bill BILL-0001 - Acme Corp",
@@ -167,17 +169,17 @@ class BillServiceTest {
                 createdBy = userId,
             )
 
-        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2000"))
             .thenReturn(Optional.of(apAccount))
         `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
             .thenReturn(mockEntry)
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
 
-        val result = billService.approveBill("bill-1", orgId, userId)
+        val result = billService.approveBill(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"), orgId, userId)
 
         assertThat(result.status).isEqualTo(BillStatus.APPROVED)
-        assertThat(result.journalEntryId).isEqualTo("je-1")
+        assertThat(result.journalEntryId).isEqualTo(java.util.UUID.fromString("dea446cc-a162-314e-a549-c9aa550c0496"))
         assertThat(result.approvedBy).isEqualTo(userId)
 
         verify(journalEntryService).createSystemEntry(any(), any(), any(), any(), any(), any())
@@ -186,21 +188,21 @@ class BillServiceTest {
     @Test
     fun `approve should reject non-draft bill`() {
         val bill = createBill(status = BillStatus.APPROVED)
-        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
 
         val exception =
             assertThrows<BusinessRuleException> {
-                billService.approveBill("bill-1", orgId, userId)
+                billService.approveBill(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"), orgId, userId)
             }
         assertThat(exception.message).contains("Only draft")
     }
 
     @Test
     fun `void should void journal entry for approved bill`() {
-        val bill = createBill(status = BillStatus.APPROVED, journalEntryId = "je-1")
+        val bill = createBill(status = BillStatus.APPROVED, journalEntryId = java.util.UUID.fromString("dea446cc-a162-314e-a549-c9aa550c0496"))
         val voidedEntry =
             JournalEntry(
-                id = "je-1",
+                id = java.util.UUID.fromString("dea446cc-a162-314e-a549-c9aa550c0496"),
                 entryNumber = "JE-0001",
                 date = bill.date,
                 description = "Bill BILL-0001",
@@ -210,25 +212,25 @@ class BillServiceTest {
                 createdBy = userId,
             )
 
-        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
-        `when`(journalEntryService.voidJournalEntry("je-1", orgId, "Duplicate"))
+        `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
+        `when`(journalEntryService.voidJournalEntry(java.util.UUID.fromString("dea446cc-a162-314e-a549-c9aa550c0496"), orgId, "Duplicate"))
             .thenReturn(voidedEntry)
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
 
-        val result = billService.voidBill("bill-1", orgId, "Duplicate", userId)
+        val result = billService.voidBill(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"), orgId, "Duplicate", userId)
 
         assertThat(result.status).isEqualTo(BillStatus.VOID)
         assertThat(result.voidReason).isEqualTo("Duplicate")
-        verify(journalEntryService).voidJournalEntry("je-1", orgId, "Duplicate")
+        verify(journalEntryService).voidJournalEntry(java.util.UUID.fromString("dea446cc-a162-314e-a549-c9aa550c0496"), orgId, "Duplicate")
     }
 
     @Test
     fun `void should allow voiding draft without journal entry`() {
         val bill = createBill(status = BillStatus.DRAFT)
-        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
 
-        val result = billService.voidBill("bill-1", orgId, "Not needed", userId)
+        val result = billService.voidBill(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"), orgId, "Not needed", userId)
 
         assertThat(result.status).isEqualTo(BillStatus.VOID)
     }
@@ -240,11 +242,11 @@ class BillServiceTest {
                 status = BillStatus.PARTIALLY_PAID,
                 amountPaid = BigDecimal("100.00"),
             )
-        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
 
         val exception =
             assertThrows<BusinessRuleException> {
-                billService.voidBill("bill-1", orgId, "Cancel", userId)
+                billService.voidBill(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"), orgId, "Test", userId)
             }
         assertThat(exception.message).contains("recorded payments")
     }
@@ -252,11 +254,11 @@ class BillServiceTest {
     @Test
     fun `recordPayment should create payment and update bill status`() {
         val bill = createBill(status = BillStatus.APPROVED)
-        val apAccount = createAccount("acc-ap", "2000", "Accounts Payable", AccountType.LIABILITY)
-        val cashAccount = createAccount("acc-cash", "1000", "Cash", AccountType.ASSET)
+        val apAccount = createAccount(java.util.UUID.randomUUID(), "2000", "Accounts Payable", AccountType.LIABILITY)
+        val cashAccount = createAccount(java.util.UUID.randomUUID(), "1000", "Cash", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
-        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2000"))
             .thenReturn(Optional.of(apAccount))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1000"))
@@ -273,7 +275,7 @@ class BillServiceTest {
                 paymentMethod = PaymentMethod.BANK_TRANSFER,
             )
 
-        val payment = billService.recordPayment("bill-1", request, orgId, userId)
+        val payment = billService.recordPayment(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"), request, orgId, userId)
 
         assertThat(payment.amount).isEqualByComparingTo(BigDecimal("200.00"))
         assertThat(payment.paymentMethod).isEqualTo(PaymentMethod.BANK_TRANSFER)
@@ -287,11 +289,11 @@ class BillServiceTest {
     @Test
     fun `recordPayment should mark bill as PAID when fully paid`() {
         val bill = createBill(status = BillStatus.APPROVED)
-        val apAccount = createAccount("acc-ap", "2000", "Accounts Payable", AccountType.LIABILITY)
-        val cashAccount = createAccount("acc-cash", "1000", "Cash", AccountType.ASSET)
+        val apAccount = createAccount(java.util.UUID.randomUUID(), "2000", "Accounts Payable", AccountType.LIABILITY)
+        val cashAccount = createAccount(java.util.UUID.randomUUID(), "1000", "Cash", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
-        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2000"))
             .thenReturn(Optional.of(apAccount))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1000"))
@@ -308,7 +310,7 @@ class BillServiceTest {
                 paymentMethod = PaymentMethod.CHECK,
             )
 
-        billService.recordPayment("bill-1", request, orgId, userId)
+        billService.recordPayment(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"), request, orgId, userId)
 
         val billCaptor = argumentCaptor<Bill>()
         verify(billRepository).save(billCaptor.capture())
@@ -319,7 +321,7 @@ class BillServiceTest {
     @Test
     fun `recordPayment should reject overpayment`() {
         val bill = createBill(status = BillStatus.APPROVED)
-        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
 
         val request =
             RecordPaymentRequest(
@@ -330,7 +332,7 @@ class BillServiceTest {
 
         val exception =
             assertThrows<BusinessRuleException> {
-                billService.recordPayment("bill-1", request, orgId, userId)
+                billService.recordPayment(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"), request, orgId, userId)
             }
         assertThat(exception.message).contains("exceeds remaining balance")
     }
@@ -338,7 +340,7 @@ class BillServiceTest {
     @Test
     fun `recordPayment should reject draft bill`() {
         val bill = createBill(status = BillStatus.DRAFT)
-        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
 
         val request =
             RecordPaymentRequest(
@@ -349,7 +351,7 @@ class BillServiceTest {
 
         val exception =
             assertThrows<BusinessRuleException> {
-                billService.recordPayment("bill-1", request, orgId, userId)
+                billService.recordPayment(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"), request, orgId, userId)
             }
         assertThat(exception.message).contains("approved or partially paid")
     }
@@ -360,22 +362,22 @@ class BillServiceTest {
         val bills =
             listOf(
                 createBill(
-                    id = "bill-1",
-                    vendorId = "v-1",
+                    id = java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"),
+                    vendorId = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"),
                     dueDate = LocalDate.of(2026, 5, 15),
                     totalAmount = BigDecimal("100.00"),
                     status = BillStatus.APPROVED,
                 ),
                 createBill(
-                    id = "bill-2",
-                    vendorId = "v-1",
+                    id = java.util.UUID.fromString("988e65e5-9aa6-3a07-a0c7-2df5b617ee2c"),
+                    vendorId = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"),
                     dueDate = LocalDate.of(2026, 4, 15),
                     totalAmount = BigDecimal("200.00"),
                     status = BillStatus.APPROVED,
                 ),
                 createBill(
-                    id = "bill-3",
-                    vendorId = "v-1",
+                    id = java.util.UUID.fromString("7730746c-3012-3b1f-8af8-6e5cac3aab33"),
+                    vendorId = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"),
                     dueDate = LocalDate.of(2026, 2, 1),
                     totalAmount = BigDecimal("300.00"),
                     status = BillStatus.PARTIALLY_PAID,
@@ -403,10 +405,10 @@ class BillServiceTest {
     @Test
     fun `create with taxGroupId should compute and store tax`() {
         val vendor = createVendor()
-        val expenseAccount = createAccount("acc-1", "5000", "Office Supplies", AccountType.EXPENSE)
+        val expenseAccount = createAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), "5000", "Office Supplies", AccountType.EXPENSE)
 
-        `when`(vendorService.getVendor("v-1", orgId)).thenReturn(vendor)
-        `when`(accountRepository.findAllById(listOf("acc-1")))
+        `when`(vendorService.getVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId)).thenReturn(vendor)
+        `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))))
             .thenReturn(listOf(expenseAccount))
         `when`(billRepository.countByOrganizationId(orgId)).thenReturn(0L)
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
@@ -415,16 +417,16 @@ class BillServiceTest {
 
         val request =
             CreateBillRequest(
-                vendorId = "v-1",
+                vendorId = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"),
                 date = LocalDate.of(2026, 3, 1),
                 dueDate = LocalDate.of(2026, 3, 31),
-                taxGroupId = "tg-1",
-                lines = listOf(BillLineRequest(accountId = "acc-1", amount = BigDecimal("500.00"))),
+                taxGroupId = java.util.UUID.fromString("7fc85de2-2162-3dcd-9d2d-78e80e0d10c6"),
+                lines = listOf(BillLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), amount = BigDecimal("500.00"))),
             )
 
         val result = billService.createBill(request, orgId, userId)
 
-        assertThat(result.taxGroupId).isEqualTo("tg-1")
+        assertThat(result.taxGroupId).isEqualTo(java.util.UUID.fromString("7fc85de2-2162-3dcd-9d2d-78e80e0d10c6"))
         assertThat(result.taxAmount).isEqualByComparingTo(BigDecimal("42.50"))
         assertThat(result.totalAmount).isEqualByComparingTo(BigDecimal("542.50"))
     }
@@ -437,11 +439,11 @@ class BillServiceTest {
                 totalAmount = BigDecimal("542.50"),
                 taxAmount = BigDecimal("42.50"),
             )
-        val apAccount = createAccount("acc-ap", "2000", "Accounts Payable", AccountType.LIABILITY)
-        val taxInputAccount = createAccount("acc-tax", "2310", "Tax Input Credits", AccountType.ASSET)
+        val apAccount = createAccount(java.util.UUID.randomUUID(), "2000", "Accounts Payable", AccountType.LIABILITY)
+        val taxInputAccount = createAccount(java.util.UUID.randomUUID(), "2310", "Tax Input Credits", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
-        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2000"))
             .thenReturn(Optional.of(apAccount))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2310"))
@@ -450,7 +452,7 @@ class BillServiceTest {
             .thenReturn(mockEntry)
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
 
-        billService.approveBill("bill-1", orgId, userId)
+        billService.approveBill(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"), orgId, userId)
 
         val linesCaptor = argumentCaptor<List<JournalEntryLine>>()
         verify(journalEntryService).createSystemEntry(
@@ -477,7 +479,7 @@ class BillServiceTest {
     }
 
     private fun createVendor(
-        id: String = "v-1",
+        id: UUID = java.util.UUID.randomUUID(),
         isActive: Boolean = true,
     ) = Vendor(
         id = id,
@@ -489,7 +491,7 @@ class BillServiceTest {
     )
 
     private fun createAccount(
-        id: String,
+        id: UUID = java.util.UUID.randomUUID(),
         code: String,
         name: String,
         type: AccountType,
@@ -502,14 +504,14 @@ class BillServiceTest {
     )
 
     private fun createBill(
-        id: String = "bill-1",
-        vendorId: String = "v-1",
+        id: UUID = java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"),
+        vendorId: UUID = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"),
         status: BillStatus = BillStatus.DRAFT,
         totalAmount: BigDecimal = BigDecimal("500.00"),
         taxAmount: BigDecimal = BigDecimal.ZERO,
         amountPaid: BigDecimal = BigDecimal.ZERO,
         dueDate: LocalDate = LocalDate.of(2026, 3, 31),
-        journalEntryId: String? = null,
+        journalEntryId: UUID? = null,
         currencyCode: String = "USD",
         exchangeRate: BigDecimal = BigDecimal.ONE,
         baseCurrencyAmount: BigDecimal = totalAmount,
@@ -527,7 +529,7 @@ class BillServiceTest {
         lines =
             listOf(
                 BillLine(
-                    accountId = "acc-1",
+                    accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
                     accountCode = "5000",
                     accountName = "Office Supplies",
                     amount = totalAmount.subtract(taxAmount),
@@ -547,7 +549,7 @@ class BillServiceTest {
 
     private fun createMockJournalEntry() =
         JournalEntry(
-            id = "je-1",
+            id = java.util.UUID.fromString("dea446cc-a162-314e-a549-c9aa550c0496"),
             entryNumber = "JE-0001",
             date = LocalDate.of(2026, 3, 1),
             description = "Mock entry",
@@ -560,10 +562,10 @@ class BillServiceTest {
     @Test
     fun `create in foreign currency should lock rate and compute baseCurrencyAmount`() {
         val vendor = createVendor()
-        val expenseAccount = createAccount("acc-1", "5000", "Office Supplies", AccountType.EXPENSE)
+        val expenseAccount = createAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), "5000", "Office Supplies", AccountType.EXPENSE)
 
-        `when`(vendorService.getVendor("v-1", orgId)).thenReturn(vendor)
-        `when`(accountRepository.findAllById(listOf("acc-1"))).thenReturn(listOf(expenseAccount))
+        `when`(vendorService.getVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId)).thenReturn(vendor)
+        `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")))).thenReturn(listOf(expenseAccount))
         `when`(billRepository.countByOrganizationId(orgId)).thenReturn(0L)
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
         `when`(exchangeRateService.getRate(orgId, "PHP", "USD", LocalDate.of(2026, 3, 1)))
@@ -571,11 +573,11 @@ class BillServiceTest {
 
         val request =
             CreateBillRequest(
-                vendorId = "v-1",
+                vendorId = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"),
                 date = LocalDate.of(2026, 3, 1),
                 dueDate = LocalDate.of(2026, 3, 31),
                 currencyCode = "PHP",
-                lines = listOf(BillLineRequest(accountId = "acc-1", amount = BigDecimal("10000.00"))),
+                lines = listOf(BillLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), amount = BigDecimal("10000.00"))),
             )
 
         val result = billService.createBill(request, orgId, userId)
@@ -596,17 +598,17 @@ class BillServiceTest {
                 exchangeRate = BigDecimal("0.018"),
                 baseCurrencyAmount = BigDecimal("180.00"),
             )
-        val apAccount = createAccount("acc-ap", "2000", "Accounts Payable", AccountType.LIABILITY)
+        val apAccount = createAccount(java.util.UUID.randomUUID(), "2000", "Accounts Payable", AccountType.LIABILITY)
         val mockEntry = createMockJournalEntry()
 
-        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2000"))
             .thenReturn(Optional.of(apAccount))
         `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
             .thenReturn(mockEntry)
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
 
-        billService.approveBill("bill-1", orgId, userId)
+        billService.approveBill(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"), orgId, userId)
 
         val linesCaptor = argumentCaptor<List<JournalEntryLine>>()
         verify(journalEntryService).createSystemEntry(any(), any(), any(), linesCaptor.capture(), any(), any())
@@ -626,11 +628,11 @@ class BillServiceTest {
                 baseCurrencyAmount = BigDecimal("54.00"),
                 baseCurrencyAmountPaid = BigDecimal("36.01"),
             )
-        val apAccount = createAccount("acc-ap", "2000", "Accounts Payable", AccountType.LIABILITY)
-        val cashAccount = createAccount("acc-cash", "1000", "Cash", AccountType.ASSET)
+        val apAccount = createAccount(java.util.UUID.randomUUID(), "2000", "Accounts Payable", AccountType.LIABILITY)
+        val cashAccount = createAccount(java.util.UUID.randomUUID(), "1000", "Cash", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
-        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2000")).thenReturn(Optional.of(apAccount))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1000")).thenReturn(Optional.of(cashAccount))
         `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
@@ -639,7 +641,7 @@ class BillServiceTest {
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
 
         billService.recordPayment(
-            "bill-1",
+            java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"),
             RecordPaymentRequest(
                 paymentDate = LocalDate.of(2026, 3, 31),
                 amount = BigDecimal("1000.00"),
@@ -665,11 +667,11 @@ class BillServiceTest {
                 exchangeRate = BigDecimal("0.018"),
                 baseCurrencyAmount = BigDecimal("180.00"),
             )
-        val apAccount = createAccount("acc-ap", "2000", "Accounts Payable", AccountType.LIABILITY)
-        val cashAccount = createAccount("acc-cash", "1000", "Cash", AccountType.ASSET)
+        val apAccount = createAccount(java.util.UUID.randomUUID(), "2000", "Accounts Payable", AccountType.LIABILITY)
+        val cashAccount = createAccount(java.util.UUID.randomUUID(), "1000", "Cash", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
-        `when`(billRepository.findById("bill-1")).thenReturn(Optional.of(bill))
+        `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2000")).thenReturn(Optional.of(apAccount))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1000")).thenReturn(Optional.of(cashAccount))
         `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
@@ -679,7 +681,7 @@ class BillServiceTest {
 
         val payment =
             billService.recordPayment(
-                "bill-1",
+                java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"),
                 RecordPaymentRequest(
                     paymentDate = LocalDate.of(2026, 3, 15),
                     amount = BigDecimal("5000.00"),

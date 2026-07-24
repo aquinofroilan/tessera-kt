@@ -173,7 +173,7 @@ class InventoryReorderRuleControllerTest {
     @Test
     fun `DELETE reorder-rules returns 204`() {
         mockMvc
-            .perform(delete("/inventory/reorder-rules/rr-1"))
+            .perform(delete("/inventory/reorder-rules/42a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isNoContent)
     }
 
