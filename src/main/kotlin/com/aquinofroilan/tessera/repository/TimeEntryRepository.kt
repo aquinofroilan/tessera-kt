@@ -6,27 +6,27 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface TimeEntryRepository : JpaRepository<TimeEntry, String> {
-    fun findByOrganizationId(organizationId: String): List<TimeEntry>
+interface TimeEntryRepository : JpaRepository<TimeEntry, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<TimeEntry>
 
     fun findByOrganizationIdAndEmployeeId(
-        organizationId: String,
-        employeeId: String,
+        organizationId: java.util.UUID,
+        employeeId: java.util.UUID,
     ): List<TimeEntry>
 
     fun findByOrganizationIdAndProjectId(
-        organizationId: String,
-        projectId: String,
+        organizationId: java.util.UUID,
+        projectId: java.util.UUID,
     ): List<TimeEntry>
 
     fun findByOrganizationIdAndStatus(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: TimeEntryStatus,
     ): List<TimeEntry>
 
     fun findByOrganizationIdAndProjectIdAndStatus(
-        organizationId: String,
-        projectId: String,
+        organizationId: java.util.UUID,
+        projectId: java.util.UUID,
         status: TimeEntryStatus,
     ): List<TimeEntry>
 }

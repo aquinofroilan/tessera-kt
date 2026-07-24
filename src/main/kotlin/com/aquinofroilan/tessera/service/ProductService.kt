@@ -21,7 +21,7 @@ class ProductService(
     @Transactional
     fun createProduct(
         request: CreateProductRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Product {
         val sku = requireNonBlankTrimmed(request.sku, "SKU")
         val name = requireNonBlankTrimmed(request.name, "Product name")
@@ -56,8 +56,8 @@ class ProductService(
     }
 
     fun getProduct(
-        productId: String,
-        organizationId: String,
+        productId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Product {
         val product =
             productRepository.findById(productId).orElseThrow {
@@ -70,7 +70,7 @@ class ProductService(
     }
 
     fun listProducts(
-        organizationId: String,
+        organizationId: java.util.UUID,
         category: String? = null,
         isActive: Boolean = true,
         search: String? = null,
@@ -78,9 +78,9 @@ class ProductService(
 
     @Transactional
     fun updateProduct(
-        productId: String,
+        productId: java.util.UUID,
         request: UpdateProductRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Product {
         val existing = getProduct(productId, organizationId)
         if (!existing.isActive) {
@@ -124,8 +124,8 @@ class ProductService(
 
     @Transactional
     fun deleteProduct(
-        productId: String,
-        organizationId: String,
+        productId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Product {
         val product = getProduct(productId, organizationId)
         if (!product.isActive) {
@@ -138,8 +138,8 @@ class ProductService(
     }
 
     private fun validateTaxGroup(
-        taxGroupId: String,
-        organizationId: String,
+        taxGroupId: java.util.UUID,
+        organizationId: java.util.UUID,
     ) {
         val group = taxGroupService.getTaxGroup(taxGroupId, organizationId)
         if (!group.isActive) {
@@ -147,7 +147,7 @@ class ProductService(
         }
     }
 
-    private fun getBaseCurrency(organizationId: String): String =
+    private fun getBaseCurrency(organizationId: java.util.UUID): String =
         organizationRepository
             .findById(organizationId)
             .orElseThrow {

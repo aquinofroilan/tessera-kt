@@ -113,7 +113,7 @@ class InventoryPostingService(
         }
 
     private fun account(
-        organizationId: String,
+        organizationId: java.util.UUID,
         code: String,
     ): Account {
         val account =

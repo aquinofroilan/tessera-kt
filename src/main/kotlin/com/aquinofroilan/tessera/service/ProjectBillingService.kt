@@ -27,10 +27,10 @@ class ProjectBillingService(
      */
     @Transactional
     fun generateInvoice(
-        projectId: String,
+        projectId: java.util.UUID,
         request: GenerateProjectInvoiceRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): Invoice {
         val project = projectService.getProject(projectId, organizationId)
         val customerId =

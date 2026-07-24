@@ -62,7 +62,7 @@ class AttendanceGraphqlControllerTest {
                   clockIn(input: ${'$'}input)
                 }
                 """.trimIndent(),
-            ).variable("input", mapOf("employeeId" to "e1"))
+            ).variable("input", mapOf("employeeId" to "00000000-0000-0000-0000-000000000001"))
             .execute()
             .path("clockIn.status")
             .entity(String::class.java)

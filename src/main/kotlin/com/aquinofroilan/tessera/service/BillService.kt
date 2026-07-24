@@ -43,8 +43,8 @@ class BillService(
     @Transactional
     fun createBill(
         request: CreateBillRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): Bill {
         val vendor = vendorService.getVendor(request.vendorId, organizationId)
         if (!vendor.isActive) {
@@ -135,7 +135,7 @@ class BillService(
         }
     }
 
-    private fun getBaseCurrency(organizationId: String): String =
+    private fun getBaseCurrency(organizationId: java.util.UUID): String =
         organizationRepository
             .findById(organizationId)
             .orElseThrow {
@@ -143,8 +143,8 @@ class BillService(
             }.baseCurrency
 
     fun getBill(
-        billId: String,
-        organizationId: String,
+        billId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Bill {
         val bill =
             billRepository.findById(billId).orElseThrow {
@@ -157,9 +157,9 @@ class BillService(
     }
 
     fun listBills(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: BillStatus? = null,
-        vendorId: String? = null,
+        vendorId: java.util.UUID? = null,
     ): List<Bill> =
         when {
             status != null && vendorId != null ->
@@ -174,9 +174,9 @@ class BillService(
 
     @Transactional
     fun approveBill(
-        billId: String,
-        organizationId: String,
-        approvedBy: String,
+        billId: java.util.UUID,
+        organizationId: java.util.UUID,
+        approvedBy: java.util.UUID,
     ): Bill {
         val bill = getBill(billId, organizationId)
 
@@ -260,10 +260,10 @@ class BillService(
 
     @Transactional
     fun voidBill(
-        billId: String,
-        organizationId: String,
+        billId: java.util.UUID,
+        organizationId: java.util.UUID,
         reason: String,
-        voidedBy: String,
+        voidedBy: java.util.UUID,
     ): Bill {
         val bill = getBill(billId, organizationId)
 
@@ -301,10 +301,10 @@ class BillService(
 
     @Transactional
     fun recordPayment(
-        billId: String,
+        billId: java.util.UUID,
         request: RecordPaymentRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): BillPayment {
         val bill = getBill(billId, organizationId)
 
@@ -326,7 +326,7 @@ class BillService(
         val apAccount = getApAccount(organizationId)
         val cashAccount = getCashAccount(organizationId)
 
-        val paymentId = UUID.randomUUID().toString()
+        val paymentId = UUID.randomUUID()
         val baseDecimals = currencyService.getCurrency(getBaseCurrency(organizationId)).decimalPlaces
         val newAmountPaid = bill.amountPaid.add(request.amount)
         val fullyPaid = newAmountPaid.compareTo(bill.totalAmount) >= 0
@@ -395,15 +395,15 @@ class BillService(
     }
 
     fun getPayments(
-        billId: String,
-        organizationId: String,
+        billId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): List<BillPayment> {
         getBill(billId, organizationId)
         return billPaymentRepository.findByBillIdAndOrganizationId(billId, organizationId)
     }
 
     fun getAgingReport(
-        organizationId: String,
+        organizationId: java.util.UUID,
         asOfDate: LocalDate = LocalDate.now(ZoneOffset.UTC),
     ): ApAgingReportResponse {
         val outstandingStatuses =
@@ -481,7 +481,7 @@ class BillService(
     }
 
     private fun saveBillWithRetry(
-        organizationId: String,
+        organizationId: java.util.UUID,
         maxRetries: Int = 3,
         buildBill: (String) -> Bill,
     ): Bill {
@@ -499,7 +499,7 @@ class BillService(
         throw IllegalStateException("Failed to generate unique bill number")
     }
 
-    private fun getApAccount(organizationId: String): Account {
+    private fun getApAccount(organizationId: java.util.UUID): Account {
         val account =
             accountRepository.findByOrganizationIdAndCode(organizationId, "2000").orElseThrow {
                 IllegalStateException("Accounts Payable account (2000) not found")
@@ -510,7 +510,7 @@ class BillService(
         return account
     }
 
-    private fun getCashAccount(organizationId: String): Account {
+    private fun getCashAccount(organizationId: java.util.UUID): Account {
         val account =
             accountRepository.findByOrganizationIdAndCode(organizationId, "1000").orElseThrow {
                 IllegalStateException("Cash account (1000) not found")
@@ -540,7 +540,7 @@ class BillService(
         return mutable
     }
 
-    private fun getTaxInputAccount(organizationId: String): Account {
+    private fun getTaxInputAccount(organizationId: java.util.UUID): Account {
         val account =
             accountRepository.findByOrganizationIdAndCode(organizationId, "2310").orElseThrow {
                 IllegalStateException("Tax Input Credits account (2310) not found")

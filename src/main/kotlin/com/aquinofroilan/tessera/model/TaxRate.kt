@@ -18,13 +18,13 @@ import java.util.UUID
 class TaxRate(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     var name: String,
     var code: String,
     var percentage: BigDecimal,
     var authority: String,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "is_active")
     var isActive: Boolean = true,
     @CreatedDate

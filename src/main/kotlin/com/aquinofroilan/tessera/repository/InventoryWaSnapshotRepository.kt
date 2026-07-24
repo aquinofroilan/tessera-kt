@@ -6,12 +6,12 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface InventoryWaSnapshotRepository : JpaRepository<InventoryWaSnapshot, String> {
+interface InventoryWaSnapshotRepository : JpaRepository<InventoryWaSnapshot, java.util.UUID> {
     fun findByOrganizationIdAndProductIdAndWarehouseId(
-        organizationId: String,
-        productId: String,
-        warehouseId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
     ): Optional<InventoryWaSnapshot>
 
-    fun findByOrganizationId(organizationId: String): List<InventoryWaSnapshot>
+    fun findByOrganizationId(organizationId: java.util.UUID): List<InventoryWaSnapshot>
 }

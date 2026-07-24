@@ -17,14 +17,14 @@ import java.util.UUID
 class Department(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     var code: String,
     var name: String,
     var description: String? = null,
     @Column(name = "parent_id", columnDefinition = "uuid")
-    var parentId: String? = null,
+    var parentId: java.util.UUID? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "is_active")
     var isActive: Boolean = true,
     @CreatedDate

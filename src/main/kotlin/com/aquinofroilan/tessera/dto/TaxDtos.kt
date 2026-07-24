@@ -32,35 +32,35 @@ data class CreateTaxGroupRequest(
     @field:NotBlank(message = "Tax group code is required")
     val code: String,
     @field:NotEmpty(message = "At least one tax rate is required")
-    val taxRateIds: List<String>,
+    val taxRateIds: List<java.util.UUID>,
 )
 
 data class UpdateTaxGroupRequest(
     @field:Size(min = 1, message = "Tax group name cannot be blank")
     val name: String? = null,
     @field:Size(min = 1, message = "At least one tax rate is required")
-    val taxRateIds: List<String>? = null,
+    val taxRateIds: List<java.util.UUID>? = null,
 )
 
 data class TaxRateResponse(
-    val id: String,
+    val id: java.util.UUID,
     val name: String,
     val code: String,
     val percentage: BigDecimal,
     val authority: String,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,
 )
 
 data class TaxGroupResponse(
-    val id: String,
+    val id: java.util.UUID,
     val name: String,
     val code: String,
     val taxRates: List<TaxRateResponse>,
     val combinedRate: BigDecimal,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,

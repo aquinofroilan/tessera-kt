@@ -11,8 +11,8 @@ data class CreateProjectRequest(
     @field:NotBlank(message = "Name is required")
     val name: String,
     val description: String? = null,
-    val customerId: String? = null,
-    val managerEmployeeId: String? = null,
+    val customerId: java.util.UUID? = null,
+    val managerEmployeeId: java.util.UUID? = null,
     @field:NotNull(message = "Start date is required")
     val startDate: LocalDate?,
     val endDate: LocalDate? = null,
@@ -22,24 +22,24 @@ data class CreateProjectRequest(
 data class UpdateProjectRequest(
     val name: String? = null,
     val description: String? = null,
-    val customerId: String? = null,
-    val managerEmployeeId: String? = null,
+    val customerId: java.util.UUID? = null,
+    val managerEmployeeId: java.util.UUID? = null,
     val endDate: LocalDate? = null,
     val billingType: ProjectBillingType? = null,
 )
 
 data class ProjectResponse(
-    val id: String,
+    val id: java.util.UUID,
     val projectNumber: String,
     val name: String,
     val description: String?,
-    val customerId: String?,
-    val managerEmployeeId: String?,
+    val customerId: java.util.UUID?,
+    val managerEmployeeId: java.util.UUID?,
     val startDate: String,
     val endDate: String?,
     val status: ProjectStatus,
     val billingType: ProjectBillingType,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val createdAt: String?,
     val updatedAt: String?,
 ) {

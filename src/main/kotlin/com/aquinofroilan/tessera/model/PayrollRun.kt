@@ -32,17 +32,17 @@ enum class PayrollRunStatus {
 class PayrollRunLine(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "line_number")
     var lineNumber: Int = 0,
     @Column(name = "employee_id", columnDefinition = "uuid")
-    var employeeId: String,
+    var employeeId: java.util.UUID,
     @Column(name = "employee_number")
     var employeeNumber: String,
     @Column(name = "employee_name")
     var employeeName: String,
     @Column(name = "compensation_id", columnDefinition = "uuid")
-    var compensationId: String,
+    var compensationId: java.util.UUID,
     @Column(name = "gross_amount")
     var grossAmount: BigDecimal,
 )
@@ -53,7 +53,7 @@ class PayrollRunLine(
 class PayrollRun(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "run_number")
     var runNumber: String,
     @Column(name = "period_start")
@@ -63,7 +63,7 @@ class PayrollRun(
     @Column(name = "pay_date")
     var payDate: LocalDate,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Enumerated(EnumType.STRING)
     var status: PayrollRunStatus = PayrollRunStatus.DRAFT,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
@@ -74,15 +74,15 @@ class PayrollRun(
     var totalGross: BigDecimal,
     var currency: String,
     @Column(name = "created_by", columnDefinition = "uuid")
-    var createdBy: String,
+    var createdBy: java.util.UUID,
     @Column(name = "accrual_journal_entry_id", columnDefinition = "uuid")
-    var accrualJournalEntryId: String? = null,
+    var accrualJournalEntryId: java.util.UUID? = null,
     @Column(name = "payment_journal_entry_id", columnDefinition = "uuid")
-    var paymentJournalEntryId: String? = null,
+    var paymentJournalEntryId: java.util.UUID? = null,
     @Column(name = "approved_at")
     var approvedAt: LocalDateTime? = null,
     @Column(name = "approved_by", columnDefinition = "uuid")
-    var approvedBy: String? = null,
+    var approvedBy: java.util.UUID? = null,
     @Column(name = "paid_at")
     var paidAt: LocalDateTime? = null,
     @Column(name = "cancelled_at")

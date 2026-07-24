@@ -24,8 +24,8 @@ class ProjectBudgetServiceTest {
     private lateinit var timeEntryRepository: TimeEntryRepository
     private lateinit var service: ProjectBudgetService
 
-    private val orgId = "org-1"
-    private val projectId = "p-1"
+    private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
+    private val projectId = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89")
     private val day = LocalDate.of(2026, 5, 1)
 
     @BeforeEach
@@ -46,7 +46,7 @@ class ProjectBudgetServiceTest {
         hours: String,
         rate: String?,
     ) = TimeEntry(
-        employeeId = "e-1",
+        employeeId = java.util.UUID.fromString("00262aa5-14d7-3a01-b098-d7e370f001b2"),
         projectId = projectId,
         entryDate = day,
         hours = BigDecimal(hours),
@@ -68,7 +68,7 @@ class ProjectBudgetServiceTest {
             .thenReturn(
                 Optional.of(
                     ProjectBudget(
-                        id = "b-1",
+                        id = java.util.UUID.fromString("0450a282-dc1c-3366-95d5-db2755646dac"),
                         projectId = projectId,
                         category = ProjectCostCategory.LABOR,
                         budgetAmount = BigDecimal("500"),
@@ -77,7 +77,7 @@ class ProjectBudgetServiceTest {
                 ),
             )
         val b = service.setBudget(projectId, SetProjectBudgetRequest(ProjectCostCategory.LABOR, BigDecimal("1500")), orgId)
-        assertThat(b.id).isEqualTo("b-1")
+        assertThat(b.id).isEqualTo(java.util.UUID.fromString("0450a282-dc1c-3366-95d5-db2755646dac"))
         assertThat(b.budgetAmount).isEqualByComparingTo("1500")
     }
 

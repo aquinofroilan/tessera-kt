@@ -49,8 +49,8 @@ class PurchaseOrderServiceTest {
     private lateinit var billService: BillService
     private lateinit var service: PurchaseOrderService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
+    private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
+    private val userId = java.util.UUID.fromString("1db2395f-13ba-3d37-9d2b-f77d3eb3aa2e")
 
     @BeforeEach
     fun setup() {
@@ -63,11 +63,27 @@ class PurchaseOrderServiceTest {
         billService = mock(BillService::class.java)
         whenever(repository.countByOrganizationId(orgId)).thenReturn(0L)
         whenever(repository.save(any<PurchaseOrder>())).thenAnswer { it.arguments[0] }
-        whenever(vendorService.getVendor("v-1", orgId)).thenReturn(Vendor(id = "v-1", name = "Acme", organizationId = orgId))
-        whenever(warehouseService.getWarehouse("wh-1", orgId))
-            .thenReturn(Warehouse(id = "wh-1", code = "MAIN", name = "Main", organizationId = orgId))
-        whenever(productService.getProduct("p-1", orgId)).thenReturn(
-            Product(id = "p-1", sku = "SKU-1", name = "Widget", listPrice = BigDecimal("9"), priceCurrency = "USD", organizationId = orgId),
+        whenever(
+            vendorService.getVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId),
+        ).thenReturn(Vendor(id = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), name = "Acme", organizationId = orgId))
+        whenever(warehouseService.getWarehouse(java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"), orgId))
+            .thenReturn(
+                Warehouse(
+                    id = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                    code = "MAIN",
+                    name = "Main",
+                    organizationId = orgId,
+                ),
+            )
+        whenever(productService.getProduct(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), orgId)).thenReturn(
+            Product(
+                id = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                sku = "SKU-1",
+                name = "Widget",
+                listPrice = BigDecimal("9"),
+                priceCurrency = "USD",
+                organizationId = orgId,
+            ),
         )
         service =
             PurchaseOrderService(
@@ -83,10 +99,17 @@ class PurchaseOrderServiceTest {
 
     private fun createRequest() =
         CreatePurchaseOrderRequest(
-            vendorId = "v-1",
-            warehouseId = "wh-1",
+            vendorId = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"),
+            warehouseId = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
             orderDate = LocalDate.of(2026, 5, 1),
-            lines = listOf(CreatePurchaseOrderLineRequest(productId = "p-1", quantity = BigDecimal("10"), unitCost = BigDecimal("5"))),
+            lines =
+                listOf(
+                    CreatePurchaseOrderLineRequest(
+                        productId = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                        quantity = BigDecimal("10"),
+                        unitCost = BigDecimal("5"),
+                    ),
+                ),
         )
 
     @Test
@@ -103,8 +126,15 @@ class PurchaseOrderServiceTest {
 
     @Test
     fun `create rejects inactive vendor`() {
-        whenever(vendorService.getVendor("v-1", orgId))
-            .thenReturn(Vendor(id = "v-1", name = "Acme", organizationId = orgId, isActive = false))
+        whenever(vendorService.getVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId))
+            .thenReturn(
+                Vendor(
+                    id = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"),
+                    name = "Acme",
+                    organizationId = orgId,
+                    isActive = false,
+                ),
+            )
 
         assertThatThrownBy { service.createPurchaseOrder(createRequest(), orgId, userId) }
             .isInstanceOf(BusinessRuleException::class.java)
@@ -119,7 +149,11 @@ class PurchaseOrderServiceTest {
 
         assertThat(received.status).isEqualTo(PurchaseOrderStatus.RECEIVED)
         verify(stockMovementService, times(1)).createMovement(
-            argThat { type == StockMovementType.RECEIPT && warehouseId == "wh-1" && productId == "p-1" },
+            argThat {
+                type == StockMovementType.RECEIPT &&
+                    warehouseId == java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff") &&
+                    productId == java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89")
+            },
             eq(orgId),
             eq(userId),
         )
@@ -185,7 +219,7 @@ class PurchaseOrderServiceTest {
             .thenReturn(
                 Optional.of(
                     Account(
-                        id = "acc-2150",
+                        id = java.util.UUID.fromString("14f5b104-2bbd-3434-8b0c-088fd82a010a"),
                         code = "2150",
                         name = "Inventory Clearing",
                         type = AccountType.LIABILITY,
@@ -201,7 +235,7 @@ class PurchaseOrderServiceTest {
         verify(billService).createBill(captor.capture(), eq(orgId), any())
         val billReq = captor.firstValue
         assertThat(billReq.lines).hasSize(1)
-        assertThat(billReq.lines.first().accountId).isEqualTo("acc-2150")
+        assertThat(billReq.lines.first().accountId).isEqualTo(java.util.UUID.fromString("14f5b104-2bbd-3434-8b0c-088fd82a010a"))
         assertThat(billReq.lines.first().amount).isEqualByComparingTo("50")
     }
 
@@ -222,7 +256,7 @@ class PurchaseOrderServiceTest {
             .thenReturn(
                 Optional.of(
                     Account(
-                        id = "acc-2150",
+                        id = java.util.UUID.fromString("14f5b104-2bbd-3434-8b0c-088fd82a010a"),
                         code = "2150",
                         name = "Inventory Clearing",
                         type = AccountType.LIABILITY,

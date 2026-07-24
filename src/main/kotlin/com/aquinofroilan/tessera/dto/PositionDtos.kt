@@ -10,23 +10,23 @@ data class CreatePositionRequest(
     val code: String,
     @field:NotBlank(message = "Title is required")
     val title: String,
-    val departmentId: String? = null,
+    val departmentId: java.util.UUID? = null,
     val payGrade: String? = null,
 )
 
 data class UpdatePositionRequest(
     val title: String? = null,
-    val departmentId: String? = null,
+    val departmentId: java.util.UUID? = null,
     val payGrade: String? = null,
 )
 
 data class PositionResponse(
-    val id: String,
+    val id: java.util.UUID,
     val code: String,
     val title: String,
-    val departmentId: String?,
+    val departmentId: java.util.UUID?,
     val payGrade: String?,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,

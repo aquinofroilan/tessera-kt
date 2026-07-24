@@ -20,7 +20,7 @@ class EmployeeService(
     @Transactional
     fun createEmployee(
         request: CreateEmployeeRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Employee {
         val hireDate = request.hireDate ?: throw BusinessRuleException("Hire date is required")
         request.departmentId?.let { requireActiveDepartment(it, organizationId) }
@@ -41,8 +41,8 @@ class EmployeeService(
     }
 
     fun getEmployee(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Employee {
         val employee =
             employeeRepository.findById(id).orElseThrow {
@@ -55,9 +55,9 @@ class EmployeeService(
     }
 
     fun listEmployees(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: EmploymentStatus? = null,
-        departmentId: String? = null,
+        departmentId: java.util.UUID? = null,
     ): List<Employee> =
         when {
             status != null -> employeeRepository.findByOrganizationIdAndStatus(organizationId, status)
@@ -67,9 +67,9 @@ class EmployeeService(
 
     @Transactional
     fun updateEmployee(
-        id: String,
+        id: java.util.UUID,
         request: UpdateEmployeeRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Employee {
         val employee = getEmployee(id, organizationId)
         request.userId?.let { requireUserUnlinked(it, organizationId, excludingEmployeeId = employee.id) }
@@ -85,8 +85,8 @@ class EmployeeService(
 
     /** Resolves the employee record linked to the given login user, for self-service. */
     fun getEmployeeByUser(
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Employee =
         employeeRepository.findByOrganizationIdAndUserId(organizationId, userId).orElseThrow {
             ResourceNotFoundException("No employee record is linked to your account")
@@ -94,9 +94,9 @@ class EmployeeService(
 
     @Transactional
     fun assignDepartment(
-        id: String,
-        departmentId: String?,
-        organizationId: String,
+        id: java.util.UUID,
+        departmentId: java.util.UUID?,
+        organizationId: java.util.UUID,
     ): Employee {
         val employee = getEmployee(id, organizationId)
         if (employee.status == EmploymentStatus.TERMINATED) {
@@ -109,8 +109,8 @@ class EmployeeService(
 
     @Transactional
     fun placeOnLeave(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Employee {
         val employee = getEmployee(id, organizationId)
         if (employee.status != EmploymentStatus.ACTIVE) {
@@ -122,8 +122,8 @@ class EmployeeService(
 
     @Transactional
     fun returnFromLeave(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Employee {
         val employee = getEmployee(id, organizationId)
         if (employee.status != EmploymentStatus.ON_LEAVE) {
@@ -135,9 +135,9 @@ class EmployeeService(
 
     @Transactional
     fun terminate(
-        id: String,
+        id: java.util.UUID,
         terminationDate: LocalDate,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Employee {
         val employee = getEmployee(id, organizationId)
         if (employee.status == EmploymentStatus.TERMINATED) {
@@ -152,9 +152,9 @@ class EmployeeService(
     }
 
     private fun requireUserUnlinked(
-        userId: String,
-        organizationId: String,
-        excludingEmployeeId: String?,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
+        excludingEmployeeId: java.util.UUID?,
     ) {
         val existing = employeeRepository.findByOrganizationIdAndUserId(organizationId, userId)
         if (existing.isPresent && existing.get().id != excludingEmployeeId) {
@@ -163,8 +163,8 @@ class EmployeeService(
     }
 
     private fun requireActiveDepartment(
-        departmentId: String,
-        organizationId: String,
+        departmentId: java.util.UUID,
+        organizationId: java.util.UUID,
     ) {
         val department = departmentService.getDepartment(departmentId, organizationId)
         if (!department.isActive) {
@@ -173,7 +173,7 @@ class EmployeeService(
     }
 
     private fun saveWithRetry(
-        organizationId: String,
+        organizationId: java.util.UUID,
         maxRetries: Int = 3,
         build: (String) -> Employee,
     ): Employee {

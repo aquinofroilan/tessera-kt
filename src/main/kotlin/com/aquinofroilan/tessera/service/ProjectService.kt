@@ -21,7 +21,7 @@ class ProjectService(
     @Transactional
     fun createProject(
         request: CreateProjectRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Project {
         val startDate = request.startDate ?: throw BusinessRuleException("Start date is required")
         if (request.endDate != null && request.endDate.isBefore(startDate)) {
@@ -46,8 +46,8 @@ class ProjectService(
     }
 
     fun getProject(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Project {
         val project =
             projectRepository.findById(id).orElseThrow {
@@ -60,9 +60,9 @@ class ProjectService(
     }
 
     fun listProjects(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: ProjectStatus? = null,
-        customerId: String? = null,
+        customerId: java.util.UUID? = null,
     ): List<Project> =
         when {
             status != null -> projectRepository.findByOrganizationIdAndStatus(organizationId, status)
@@ -72,9 +72,9 @@ class ProjectService(
 
     @Transactional
     fun updateProject(
-        id: String,
+        id: java.util.UUID,
         request: UpdateProjectRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Project {
         val project = getProject(id, organizationId)
         request.customerId?.let { customerService.getCustomer(it, organizationId) }
@@ -96,8 +96,8 @@ class ProjectService(
 
     @Transactional
     fun activateProject(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Project {
         val project = getProject(id, organizationId)
         if (project.status != ProjectStatus.PLANNED && project.status != ProjectStatus.ON_HOLD) {
@@ -109,8 +109,8 @@ class ProjectService(
 
     @Transactional
     fun holdProject(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Project {
         val project = getProject(id, organizationId)
         if (project.status != ProjectStatus.ACTIVE) {
@@ -122,8 +122,8 @@ class ProjectService(
 
     @Transactional
     fun closeProject(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Project {
         val project = getProject(id, organizationId)
         if (project.status != ProjectStatus.ACTIVE && project.status != ProjectStatus.ON_HOLD) {
@@ -135,8 +135,8 @@ class ProjectService(
 
     @Transactional
     fun cancelProject(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Project {
         val project = getProject(id, organizationId)
         if (project.status == ProjectStatus.CLOSED || project.status == ProjectStatus.CANCELLED) {
@@ -147,7 +147,7 @@ class ProjectService(
     }
 
     private fun saveWithRetry(
-        organizationId: String,
+        organizationId: java.util.UUID,
         maxRetries: Int = 3,
         build: (String) -> Project,
     ): Project {

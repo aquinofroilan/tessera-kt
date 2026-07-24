@@ -42,8 +42,8 @@ class TimeEntryController(
     @GetMapping
     @PreAuthorize("hasAuthority('projects:read')")
     fun listTimeEntries(
-        @RequestParam(required = false) employeeId: String?,
-        @RequestParam(required = false) projectId: String?,
+        @RequestParam(required = false) employeeId: java.util.UUID?,
+        @RequestParam(required = false) projectId: java.util.UUID?,
         @RequestParam(required = false) status: String?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -65,7 +65,7 @@ class TimeEntryController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('projects:read')")
     fun getTimeEntry(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.getTimeEntry(id, orgId)))
@@ -74,7 +74,7 @@ class TimeEntryController(
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('projects:write')")
     fun updateTimeEntry(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateTimeEntryRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -84,7 +84,7 @@ class TimeEntryController(
     @PostMapping("/{id}/submit")
     @PreAuthorize("hasAuthority('projects:write')")
     fun submitTimeEntry(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.submitTimeEntry(id, orgId)))
@@ -93,20 +93,20 @@ class TimeEntryController(
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasAuthority('projects:approve')")
     fun approveTimeEntry(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val approvedBy = authContext.userId() ?: "api-key"
+        val approvedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         return ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.approveTimeEntry(id, orgId, approvedBy)))
     }
 
     @PostMapping("/{id}/reject")
     @PreAuthorize("hasAuthority('projects:approve')")
     fun rejectTimeEntry(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val decidedBy = authContext.userId() ?: "api-key"
+        val decidedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         return ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.rejectTimeEntry(id, orgId, decidedBy)))
     }
 }

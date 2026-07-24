@@ -88,7 +88,7 @@ class AuthServiceTest {
         val encodedPassword = "encodedPassword123"
         val savedOrg =
             Organizations(
-                uuid = "org-123",
+                uuid = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
                 name = request.orgName,
                 orgSlug = request.orgSlug,
                 description = request.orgDescription,
@@ -100,7 +100,7 @@ class AuthServiceTest {
             )
         val savedUser =
             User(
-                uuid = "user-123",
+                uuid = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9"),
                 username = request.username,
                 email = request.email,
                 firstName = request.firstName,
@@ -211,17 +211,17 @@ class AuthServiceTest {
         val request = LoginRequest(username = "testuser", password = "password123")
         val user =
             User(
-                uuid = "user-123",
+                uuid = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9"),
                 username = request.username,
                 email = "test@example.com",
                 firstName = "Test",
                 lastName = "User",
                 passwordHash = "encodedPassword",
-                organizationId = "org-123",
+                organizationId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
                 roleAssignments =
                     listOf(
-                        RoleAssignment("MEMBER", "org-123"),
-                        RoleAssignment("ADMIN", "org-123"),
+                        RoleAssignment("MEMBER", java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")),
+                        RoleAssignment("ADMIN", java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")),
                     ),
             )
         val savedToken = createMockSessionToken()
@@ -355,7 +355,7 @@ class AuthServiceTest {
         val oldSessionToken = createMockSessionToken()
         val existingRefreshToken =
             RefreshToken(
-                id = "rt-123",
+                id = java.util.UUID.fromString("f0819e9d-eb2c-39d0-89eb-bc6099c0126b"),
                 tokenHash = oldRefreshTokenHash,
                 userId = user.uuid,
                 sessionTokenId = oldSessionToken.id,
@@ -385,8 +385,8 @@ class AuthServiceTest {
         val expiredRefreshToken =
             RefreshToken(
                 tokenHash = expiredTokenHash,
-                userId = "user-123",
-                sessionTokenId = "session-123",
+                userId = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9"),
+                sessionTokenId = java.util.UUID.fromString("18734c39-05d7-34a5-9b8b-b9478597bffa"),
                 expiryAt = LocalDateTime.now(ZoneOffset.UTC).minusHours(1),
             )
 
@@ -401,8 +401,8 @@ class AuthServiceTest {
 
     @Test
     fun `refresh should throw exception with invalid refresh token`() {
-        val invalidTokenStr = "invalid-refresh-token"
-        val invalidTokenHash = "hashed-$invalidTokenStr"
+        val invalidTokenStr = "99f9014b-4737-3010-80ac-4ed761491cfc"
+        val invalidTokenHash = "f1f540a6-c40c-340b-a0f8-e3b0fcb7d805"
 
         `when`(refreshTokenRepository.findByTokenHash(invalidTokenHash)).thenReturn(Optional.empty())
 
@@ -422,7 +422,7 @@ class AuthServiceTest {
             RefreshToken(
                 tokenHash = refreshTokenHash,
                 userId = inactiveUser.uuid,
-                sessionTokenId = "session-123",
+                sessionTokenId = java.util.UUID.fromString("18734c39-05d7-34a5-9b8b-b9478597bffa"),
                 expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusDays(30),
             )
 
@@ -464,74 +464,114 @@ class AuthServiceTest {
 
     @Test
     fun `listSessions should return only non-expired sessions`() {
-        val userId = "user-123"
+        val userId = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
         val activeSession =
-            SessionToken(id = "s1", token = "t1", userId = userId, expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12))
+            SessionToken(
+                id = java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"),
+                token = "t1",
+                userId = userId,
+                expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12),
+            )
         `when`(sessionTokenRepository.findByUserIdAndExpiryAtAfter(eq(userId), any())).thenReturn(listOf(activeSession))
 
         val result = authService.listSessions(userId)
 
         assertThat(result.size).isEqualTo(1)
-        assertThat(result[0].id).isEqualTo("s1")
+        assertThat(result[0].id).isEqualTo(java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"))
     }
 
     @Test
     fun `revokeSession should delete session and its refresh token`() {
-        val userId = "user-123"
-        val session = SessionToken(id = "s1", token = "t1", userId = userId, expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12))
+        val userId = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
+        val session =
+            SessionToken(
+                id = java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"),
+                token = "t1",
+                userId = userId,
+                expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12),
+            )
 
-        `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
+        `when`(
+            sessionTokenRepository.findById(java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3")),
+        ).thenReturn(Optional.of(session))
 
-        authService.revokeSession(userId, "s1", "other-token")
+        authService.revokeSession(
+            userId,
+            java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"),
+            "5d3a39eb-7f53-38bd-9285-b709451d2bb5",
+        )
 
-        verify(refreshTokenRepository).deleteBySessionTokenId("s1")
-        verify(sessionTokenRepository).deleteById("s1")
+        verify(refreshTokenRepository).deleteBySessionTokenId(java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"))
+        verify(sessionTokenRepository).deleteById(java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"))
     }
 
     @Test
     fun `revokeSession should throw when session belongs to different user`() {
         val session =
-            SessionToken(id = "s1", token = "t1", userId = "other-user", expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12))
+            SessionToken(
+                id = java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"),
+                token = "t1",
+                userId = java.util.UUID.fromString("10a8c040-b348-34f9-b495-1d1c714ae089"),
+                expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12),
+            )
 
-        `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
+        `when`(
+            sessionTokenRepository.findById(java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3")),
+        ).thenReturn(Optional.of(session))
 
         val exception =
             assertThrows<ResourceNotFoundException> {
-                authService.revokeSession("user-123", "s1", "other-token")
+                authService.revokeSession(
+                    java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9"),
+                    java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"),
+                    "5d3a39eb-7f53-38bd-9285-b709451d2bb5",
+                )
             }
         assertThat(exception.message).isEqualTo("Session not found")
     }
 
     @Test
     fun `revokeSession should throw when attempting to revoke the current session`() {
-        val userId = "user-123"
+        val userId = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
         val currentToken = "current-token"
         val session =
-            SessionToken(id = "s1", token = currentToken, userId = userId, expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12))
+            SessionToken(
+                id = java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"),
+                token = currentToken,
+                userId = userId,
+                expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12),
+            )
 
-        `when`(sessionTokenRepository.findById("s1")).thenReturn(Optional.of(session))
+        `when`(
+            sessionTokenRepository.findById(java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3")),
+        ).thenReturn(Optional.of(session))
 
         val exception =
             assertThrows<BusinessRuleException> {
-                authService.revokeSession(userId, "s1", currentToken)
+                authService.revokeSession(userId, java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"), currentToken)
             }
         assertThat(exception.message).isEqualTo("Cannot revoke the current session")
     }
 
     @Test
     fun `revokeOtherSessions should keep current session and delete others in bulk`() {
-        val userId = "user-123"
+        val userId = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
         val currentToken = "current-token"
         val otherSessions =
             listOf(
-                SessionToken(id = "s2", token = "other-token", userId = userId, expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12)),
+                SessionToken(
+                    id = java.util.UUID.fromString("077439bc-04b8-3d51-a3f4-7b157fbc8ea0"),
+                    token = "other-token",
+                    userId = userId,
+                    expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12),
+                ),
             )
         `when`(sessionTokenRepository.findByUserIdAndTokenNot(userId, currentToken)).thenReturn(otherSessions)
 
         authService.revokeOtherSessions(userId, currentToken)
 
-        verify(refreshTokenRepository).deleteBySessionTokenIdIn(listOf("s2"))
-        verify(sessionTokenRepository).deleteAllById(listOf("s2"))
+        verify(refreshTokenRepository).deleteBySessionTokenIdIn(listOf(java.util.UUID.fromString("077439bc-04b8-3d51-a3f4-7b157fbc8ea0")))
+        verify(sessionTokenRepository).deleteAllById(listOf(java.util.UUID.fromString("077439bc-04b8-3d51-a3f4-7b157fbc8ea0")))
     }
 
     @Test
@@ -647,7 +687,7 @@ class AuthServiceTest {
         val expiredToken =
             PasswordResetToken(
                 tokenHash = "hashed-expired-token",
-                userId = "user-123",
+                userId = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9"),
                 expiryAt = LocalDateTime.now(ZoneOffset.UTC).minusMinutes(10),
             )
 
@@ -686,26 +726,28 @@ class AuthServiceTest {
             createMockUser().apply {
                 roleAssignments =
                     listOf(
-                        RoleAssignment("OWNER", "org-123"),
-                        RoleAssignment("MEMBER", "org-456"),
+                        RoleAssignment("OWNER", java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")),
+                        RoleAssignment("MEMBER", java.util.UUID.fromString("8576b8f7-dd04-3e57-b849-081b3776f223")),
                     )
             }
-        val targetOrg = createMockOrganization().apply { uuid = "org-456" }
+        val targetOrg = createMockOrganization().apply { uuid = java.util.UUID.fromString("8576b8f7-dd04-3e57-b849-081b3776f223") }
 
-        `when`(organizationRepository.findById("org-456")).thenReturn(Optional.of(targetOrg))
+        `when`(
+            organizationRepository.findById(java.util.UUID.fromString("8576b8f7-dd04-3e57-b849-081b3776f223")),
+        ).thenReturn(Optional.of(targetOrg))
         `when`(sessionTokenRepository.save(any<SessionToken>())).thenAnswer { it.arguments[0] }
         `when`(refreshTokenRepository.save(any<RefreshToken>())).thenAnswer { it.arguments[0] }
 
-        val result = authService.switchOrganization(user, "org-456")
+        val result = authService.switchOrganization(user, java.util.UUID.fromString("8576b8f7-dd04-3e57-b849-081b3776f223"))
 
-        assertThat(result.organizationId).isEqualTo("org-456")
+        assertThat(result.organizationId).isEqualTo(java.util.UUID.fromString("8576b8f7-dd04-3e57-b849-081b3776f223"))
         assertThat(result.roles).isEqualTo(listOf("MEMBER"))
         assertThat(result.accessToken).isNotNull()
         assertThat(result.refreshToken).isNotNull()
 
         val sessionCaptor = argumentCaptor<SessionToken>()
         verify(sessionTokenRepository).save(sessionCaptor.capture())
-        assertThat(sessionCaptor.firstValue.organizationId).isEqualTo("org-456")
+        assertThat(sessionCaptor.firstValue.organizationId).isEqualTo(java.util.UUID.fromString("8576b8f7-dd04-3e57-b849-081b3776f223"))
     }
 
     @Test
@@ -714,7 +756,7 @@ class AuthServiceTest {
 
         val exception =
             assertThrows<BusinessRuleException> {
-                authService.switchOrganization(user, "org-999")
+                authService.switchOrganization(user, java.util.UUID.fromString("800a923a-74f1-3b92-b740-74c9c41c47f7"))
             }
         assertThat(exception.message).isEqualTo("You do not have access to this organization")
     }
@@ -725,16 +767,18 @@ class AuthServiceTest {
             createMockUser().apply {
                 roleAssignments =
                     listOf(
-                        RoleAssignment("MEMBER", "org-123"),
-                        RoleAssignment("MEMBER", "org-missing"),
+                        RoleAssignment("MEMBER", java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")),
+                        RoleAssignment("MEMBER", java.util.UUID.fromString("87d38354-2a17-3485-b3bb-33c1a83acb7a")),
                     )
             }
 
-        `when`(organizationRepository.findById("org-missing")).thenReturn(Optional.empty())
+        `when`(
+            organizationRepository.findById(java.util.UUID.fromString("87d38354-2a17-3485-b3bb-33c1a83acb7a")),
+        ).thenReturn(Optional.empty())
 
         val exception =
             assertThrows<ResourceNotFoundException> {
-                authService.switchOrganization(user, "org-missing")
+                authService.switchOrganization(user, java.util.UUID.fromString("87d38354-2a17-3485-b3bb-33c1a83acb7a"))
             }
         assertThat(exception.message).isEqualTo("Organization not found")
     }
@@ -745,21 +789,23 @@ class AuthServiceTest {
             createMockUser().apply {
                 roleAssignments =
                     listOf(
-                        RoleAssignment("MEMBER", "org-123"),
-                        RoleAssignment("MEMBER", "org-inactive"),
+                        RoleAssignment("MEMBER", java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")),
+                        RoleAssignment("MEMBER", java.util.UUID.fromString("e679dc56-27ba-357b-9d96-f59411774170")),
                     )
             }
         val inactiveOrg =
             createMockOrganization().apply {
-                uuid = "org-inactive"
+                uuid = java.util.UUID.fromString("e679dc56-27ba-357b-9d96-f59411774170")
                 isActive = false
             }
 
-        `when`(organizationRepository.findById("org-inactive")).thenReturn(Optional.of(inactiveOrg))
+        `when`(
+            organizationRepository.findById(java.util.UUID.fromString("e679dc56-27ba-357b-9d96-f59411774170")),
+        ).thenReturn(Optional.of(inactiveOrg))
 
         val exception =
             assertThrows<BusinessRuleException> {
-                authService.switchOrganization(user, "org-inactive")
+                authService.switchOrganization(user, java.util.UUID.fromString("e679dc56-27ba-357b-9d96-f59411774170"))
             }
         assertThat(exception.message).isEqualTo("Organization is not active")
     }
@@ -770,34 +816,41 @@ class AuthServiceTest {
             createMockUser().apply {
                 roleAssignments =
                     listOf(
-                        RoleAssignment("OWNER", "org-123"),
-                        RoleAssignment("MEMBER", "org-456"),
+                        RoleAssignment("OWNER", java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")),
+                        RoleAssignment("MEMBER", java.util.UUID.fromString("8576b8f7-dd04-3e57-b849-081b3776f223")),
                     )
             }
         val org1 =
             createMockOrganization().apply {
-                uuid = "org-123"
+                uuid = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
                 name = "Org One"
                 orgSlug = "org-one"
             }
         val org2 =
             createMockOrganization().apply {
-                uuid = "org-456"
+                uuid = java.util.UUID.fromString("8576b8f7-dd04-3e57-b849-081b3776f223")
                 name = "Org Two"
                 orgSlug = "org-two"
             }
 
-        `when`(organizationRepository.findAllById(listOf("org-123", "org-456"))).thenReturn(listOf(org1, org2))
+        `when`(
+            organizationRepository.findAllById(
+                listOf(
+                    java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                    java.util.UUID.fromString("8576b8f7-dd04-3e57-b849-081b3776f223"),
+                ),
+            ),
+        ).thenReturn(listOf(org1, org2))
 
-        val result = authService.listUserOrganizations(user, "org-123")
+        val result = authService.listUserOrganizations(user, java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
 
         assertThat(result.size).isEqualTo(2)
         val current = result.first { it.isCurrent }
-        assertThat(current.organizationId).isEqualTo("org-123")
+        assertThat(current.organizationId).isEqualTo(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
         assertThat(current.roles).isEqualTo(listOf("OWNER"))
 
         val other = result.first { !it.isCurrent }
-        assertThat(other.organizationId).isEqualTo("org-456")
+        assertThat(other.organizationId).isEqualTo(java.util.UUID.fromString("8576b8f7-dd04-3e57-b849-081b3776f223"))
         assertThat(other.roles).isEqualTo(listOf("MEMBER"))
     }
 
@@ -807,31 +860,38 @@ class AuthServiceTest {
             createMockUser().apply {
                 roleAssignments =
                     listOf(
-                        RoleAssignment("OWNER", "org-123"),
-                        RoleAssignment("MEMBER", "org-inactive"),
+                        RoleAssignment("OWNER", java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")),
+                        RoleAssignment("MEMBER", java.util.UUID.fromString("e679dc56-27ba-357b-9d96-f59411774170")),
                     )
             }
-        val activeOrg = createMockOrganization().apply { uuid = "org-123" }
+        val activeOrg = createMockOrganization().apply { uuid = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d") }
         val inactiveOrg =
             createMockOrganization().apply {
-                uuid = "org-inactive"
+                uuid = java.util.UUID.fromString("e679dc56-27ba-357b-9d96-f59411774170")
                 isActive = false
             }
 
-        `when`(organizationRepository.findAllById(listOf("org-123", "org-inactive"))).thenReturn(listOf(activeOrg, inactiveOrg))
+        `when`(
+            organizationRepository.findAllById(
+                listOf(
+                    java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                    java.util.UUID.fromString("e679dc56-27ba-357b-9d96-f59411774170"),
+                ),
+            ),
+        ).thenReturn(listOf(activeOrg, inactiveOrg))
 
-        val result = authService.listUserOrganizations(user, "org-123")
+        val result = authService.listUserOrganizations(user, java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
 
         assertThat(result.size).isEqualTo(2)
-        val active = result.first { it.organizationId == "org-123" }
+        val active = result.first { it.organizationId == java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d") }
         assertThat(active.isActive).isTrue()
-        val inactive = result.first { it.organizationId == "org-inactive" }
+        val inactive = result.first { it.organizationId == java.util.UUID.fromString("e679dc56-27ba-357b-9d96-f59411774170") }
         assertThat(inactive.isActive).isFalse()
     }
 
     private fun createMockOrganization() =
         Organizations(
-            uuid = "org-123",
+            uuid = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
             name = "Test Organization",
             orgSlug = "test-org",
             description = "Test description",
@@ -844,21 +904,21 @@ class AuthServiceTest {
 
     private fun createMockUser() =
         User(
-            uuid = "user-123",
+            uuid = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9"),
             username = "testuser",
             email = "test@example.com",
             firstName = "Test",
             lastName = "User",
             passwordHash = "encodedPassword",
-            organizationId = "org-123",
-            roleAssignments = listOf(RoleAssignment("MEMBER", "org-123")),
+            organizationId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+            roleAssignments = listOf(RoleAssignment("MEMBER", java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))),
         )
 
     private fun createMockSessionToken() =
         SessionToken(
-            id = "token-123",
+            id = java.util.UUID.fromString("d33b440a-b021-3e58-824f-1c4750763da4"),
             token = "generated-token",
-            userId = "user-123",
+            userId = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9"),
             expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(24),
         )
 }

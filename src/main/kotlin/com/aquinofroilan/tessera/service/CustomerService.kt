@@ -17,7 +17,7 @@ class CustomerService(
     @Transactional
     fun createCustomer(
         request: CreateCustomerRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Customer {
         val customer =
             Customer(
@@ -41,8 +41,8 @@ class CustomerService(
     }
 
     fun getCustomer(
-        customerId: String,
-        organizationId: String,
+        customerId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Customer {
         val customer =
             customerRepository.findById(customerId).orElseThrow {
@@ -54,13 +54,14 @@ class CustomerService(
         return customer
     }
 
-    fun listCustomers(organizationId: String): List<Customer> = customerRepository.findByOrganizationIdAndIsActive(organizationId, true)
+    fun listCustomers(organizationId: java.util.UUID): List<Customer> =
+        customerRepository.findByOrganizationIdAndIsActive(organizationId, true)
 
     @Transactional
     fun updateCustomer(
-        customerId: String,
+        customerId: java.util.UUID,
         request: UpdateCustomerRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Customer {
         val customer = getCustomer(customerId, organizationId)
 
@@ -92,8 +93,8 @@ class CustomerService(
 
     @Transactional
     fun deleteCustomer(
-        customerId: String,
-        organizationId: String,
+        customerId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Customer {
         val customer = getCustomer(customerId, organizationId)
 

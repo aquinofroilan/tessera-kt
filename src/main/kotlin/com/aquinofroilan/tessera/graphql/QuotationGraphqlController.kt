@@ -24,13 +24,13 @@ class QuotationGraphqlController(
     @PreAuthorize("hasAuthority('sales:read')")
     fun quotations(
         @Argument status: String?,
-        @Argument customerId: String?,
+        @Argument customerId: java.util.UUID?,
     ): Any = support.unwrap(quotationController.listQuotations(status, customerId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('sales:read')")
     fun quotation(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(quotationController.getQuotation(id))
 
     @MutationMapping
@@ -42,19 +42,19 @@ class QuotationGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('sales:write')")
     fun sendQuotation(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(quotationController.sendQuotation(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('sales:write')")
     fun acceptQuotation(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(quotationController.acceptQuotation(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('sales:write')")
     fun rejectQuotation(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<RejectQuotationRequest>(it) }
@@ -64,13 +64,13 @@ class QuotationGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('sales:write')")
     fun cancelQuotation(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(quotationController.cancelQuotation(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('sales:write')")
     fun convertQuotation(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<ConvertQuotationRequest>(it) }

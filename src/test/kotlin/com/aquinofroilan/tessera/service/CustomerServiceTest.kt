@@ -21,7 +21,7 @@ class CustomerServiceTest {
     private lateinit var customerService: CustomerService
     private lateinit var customerRepository: CustomerRepository
 
-    private val orgId = "org-123"
+    private val orgId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
 
     @BeforeEach
     fun setup() {
@@ -54,27 +54,35 @@ class CustomerServiceTest {
     @Test
     fun `get should return customer for correct org`() {
         val customer = createCustomer()
-        `when`(customerRepository.findById("c-1")).thenReturn(Optional.of(customer))
+        `when`(
+            customerRepository.findById(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230")),
+        ).thenReturn(Optional.of(customer))
 
-        val result = customerService.getCustomer("c-1", orgId)
-        assertThat(result.id).isEqualTo("c-1")
+        val result = customerService.getCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), orgId)
+        assertThat(result.id).isEqualTo(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))
     }
 
     @Test
     fun `get should throw when customer belongs to different org`() {
-        val customer = createCustomer(orgId = "other-org")
-        `when`(customerRepository.findById("c-1")).thenReturn(Optional.of(customer))
+        val customer = createCustomer(orgId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"))
+        `when`(
+            customerRepository.findById(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230")),
+        ).thenReturn(Optional.of(customer))
 
         val exception =
             assertThrows<ResourceNotFoundException> {
-                customerService.getCustomer("c-1", orgId)
+                customerService.getCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), orgId)
             }
         assertThat(exception.message).contains("Customer not found")
     }
 
     @Test
     fun `list should return active customers`() {
-        val customers = listOf(createCustomer(), createCustomer(id = "c-2", name = "SmallCo"))
+        val customers =
+            listOf(
+                createCustomer(),
+                createCustomer(id = java.util.UUID.fromString("6bab8639-706a-38d0-b9da-9789e76438e4"), name = "SmallCo"),
+            )
         `when`(customerRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(customers)
 
         val result = customerService.listCustomers(orgId)
@@ -84,11 +92,13 @@ class CustomerServiceTest {
     @Test
     fun `update should apply partial changes`() {
         val customer = createCustomer()
-        `when`(customerRepository.findById("c-1")).thenReturn(Optional.of(customer))
+        `when`(
+            customerRepository.findById(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230")),
+        ).thenReturn(Optional.of(customer))
         `when`(customerRepository.save(any<Customer>())).thenAnswer { it.arguments[0] }
 
         val request = UpdateCustomerRequest(name = "Updated Corp")
-        val result = customerService.updateCustomer("c-1", request, orgId)
+        val result = customerService.updateCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), request, orgId)
 
         assertThat(result.name).isEqualTo("Updated Corp")
         assertThat(result.contactName).isEqualTo("Jane Doe")
@@ -97,11 +107,17 @@ class CustomerServiceTest {
     @Test
     fun `update should reject inactive customer`() {
         val customer = createCustomer(isActive = false)
-        `when`(customerRepository.findById("c-1")).thenReturn(Optional.of(customer))
+        `when`(
+            customerRepository.findById(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230")),
+        ).thenReturn(Optional.of(customer))
 
         val exception =
             assertThrows<BusinessRuleException> {
-                customerService.updateCustomer("c-1", UpdateCustomerRequest(name = "New"), orgId)
+                customerService.updateCustomer(
+                    java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"),
+                    UpdateCustomerRequest(name = "New"),
+                    orgId,
+                )
             }
         assertThat(exception.message).contains("inactive")
     }
@@ -109,11 +125,17 @@ class CustomerServiceTest {
     @Test
     fun `update should reject blank name`() {
         val customer = createCustomer()
-        `when`(customerRepository.findById("c-1")).thenReturn(Optional.of(customer))
+        `when`(
+            customerRepository.findById(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230")),
+        ).thenReturn(Optional.of(customer))
 
         val exception =
             assertThrows<BusinessRuleException> {
-                customerService.updateCustomer("c-1", UpdateCustomerRequest(name = "  "), orgId)
+                customerService.updateCustomer(
+                    java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"),
+                    UpdateCustomerRequest(name = "  "),
+                    orgId,
+                )
             }
         assertThat(exception.message).contains("blank")
     }
@@ -121,10 +143,12 @@ class CustomerServiceTest {
     @Test
     fun `delete should soft delete customer`() {
         val customer = createCustomer()
-        `when`(customerRepository.findById("c-1")).thenReturn(Optional.of(customer))
+        `when`(
+            customerRepository.findById(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230")),
+        ).thenReturn(Optional.of(customer))
         `when`(customerRepository.save(any<Customer>())).thenAnswer { it.arguments[0] }
 
-        val result = customerService.deleteCustomer("c-1", orgId)
+        val result = customerService.deleteCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), orgId)
 
         assertThat(result.isActive).isFalse()
         val captor = argumentCaptor<Customer>()
@@ -135,19 +159,21 @@ class CustomerServiceTest {
     @Test
     fun `delete should reject already inactive customer`() {
         val customer = createCustomer(isActive = false)
-        `when`(customerRepository.findById("c-1")).thenReturn(Optional.of(customer))
+        `when`(
+            customerRepository.findById(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230")),
+        ).thenReturn(Optional.of(customer))
 
         val exception =
             assertThrows<BusinessRuleException> {
-                customerService.deleteCustomer("c-1", orgId)
+                customerService.deleteCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), orgId)
             }
         assertThat(exception.message).contains("already inactive")
     }
 
     private fun createCustomer(
-        id: String = "c-1",
+        id: java.util.UUID = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
         name: String = "BigCorp",
-        orgId: String = this.orgId,
+        orgId: java.util.UUID = this.orgId,
         isActive: Boolean = true,
     ) = Customer(
         id = id,

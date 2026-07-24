@@ -20,7 +20,7 @@ class ProjectBillingGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun generateProjectInvoice(
-        @Argument projectId: String,
+        @Argument projectId: java.util.UUID,
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<GenerateProjectInvoiceRequest>(it) }

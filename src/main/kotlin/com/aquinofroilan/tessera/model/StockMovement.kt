@@ -27,17 +27,17 @@ enum class StockMovementType {
 class StockMovement(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Enumerated(EnumType.STRING)
     var type: StockMovementType,
     @Column(name = "product_id", columnDefinition = "uuid")
-    var productId: String,
+    var productId: java.util.UUID,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
-    var warehouseId: String,
+    var warehouseId: java.util.UUID,
     @Column(name = "transfer_to_warehouse_id", columnDefinition = "uuid")
-    var transferToWarehouseId: String? = null,
+    var transferToWarehouseId: java.util.UUID? = null,
     var quantity: BigDecimal,
     @Column(name = "unit_cost")
     var unitCost: BigDecimal? = null,
@@ -46,11 +46,11 @@ class StockMovement(
     @Column(name = "reversed")
     var reversed: Boolean = false,
     @Column(name = "reversal_of_movement_id", columnDefinition = "uuid")
-    var reversalOfMovementId: String? = null,
+    var reversalOfMovementId: java.util.UUID? = null,
     @Column(name = "occurred_at")
     var occurredAt: LocalDateTime,
     @Column(name = "created_by", columnDefinition = "uuid")
-    var createdBy: String,
+    var createdBy: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

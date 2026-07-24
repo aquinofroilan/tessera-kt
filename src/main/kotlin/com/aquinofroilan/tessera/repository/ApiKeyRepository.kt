@@ -6,11 +6,11 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface ApiKeyRepository : JpaRepository<ApiKey, String> {
+interface ApiKeyRepository : JpaRepository<ApiKey, java.util.UUID> {
     fun findByKeyHash(keyHash: String): Optional<ApiKey>
 
     fun findByOrganizationIdAndIsActive(
-        organizationId: String,
+        organizationId: java.util.UUID,
         isActive: Boolean,
     ): List<ApiKey>
 }

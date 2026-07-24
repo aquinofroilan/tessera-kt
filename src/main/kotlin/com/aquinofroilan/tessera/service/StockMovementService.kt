@@ -25,8 +25,8 @@ class StockMovementService(
     @Transactional
     fun createMovement(
         request: CreateStockMovementRequest,
-        organizationId: String,
-        userId: String,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): StockMovement {
         val type = request.type ?: throw BusinessRuleException("Movement type is required")
         val quantity = request.quantity ?: throw BusinessRuleException("Quantity is required")
@@ -64,9 +64,9 @@ class StockMovementService(
 
     @Transactional
     fun reverseMovement(
-        movementId: String,
-        organizationId: String,
-        userId: String,
+        movementId: java.util.UUID,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): StockMovement {
         val original =
             stockMovementRepository.findById(movementId).orElseThrow {
@@ -82,8 +82,8 @@ class StockMovementService(
     @Transactional
     fun reverseByReference(
         reference: String,
-        organizationId: String,
-        userId: String,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): List<StockMovement> =
         stockMovementRepository
             .findByOrganizationIdAndReference(organizationId, reference)
@@ -92,8 +92,8 @@ class StockMovementService(
 
     private fun reverse(
         original: StockMovement,
-        organizationId: String,
-        userId: String,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): StockMovement {
         if (original.reversed) {
             throw BusinessRuleException("Stock movement has already been reversed")
@@ -141,18 +141,18 @@ class StockMovementService(
     }
 
     fun listMovements(
-        organizationId: String,
-        productId: String? = null,
-        warehouseId: String? = null,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID? = null,
+        warehouseId: java.util.UUID? = null,
         type: StockMovementType? = null,
         from: LocalDateTime? = null,
         to: LocalDateTime? = null,
     ): List<StockMovement> = stockMovementRepository.listMovements(organizationId, productId, warehouseId, type, from, to)
 
     fun onHand(
-        organizationId: String,
-        productId: String,
-        warehouseId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
     ): BigDecimal = stockOnHandRepository.get(organizationId, productId, warehouseId)
 
     private fun validateQuantitySign(
@@ -189,11 +189,11 @@ class StockMovementService(
 
     private fun validateTransferShape(
         type: StockMovementType,
-        warehouseId: String,
-        transferToWarehouseId: String?,
+        warehouseId: java.util.UUID,
+        transferToWarehouseId: java.util.UUID?,
     ) {
         if (type == StockMovementType.TRANSFER) {
-            if (transferToWarehouseId.isNullOrBlank()) {
+            if (transferToWarehouseId == null) {
                 throw BusinessRuleException("transferToWarehouseId is required for TRANSFER movements")
             }
             if (transferToWarehouseId == warehouseId) {
@@ -205,8 +205,8 @@ class StockMovementService(
     }
 
     private fun loadActiveWarehouse(
-        warehouseId: String,
-        organizationId: String,
+        warehouseId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Warehouse {
         val warehouse =
             warehouseRepository.findById(warehouseId).orElseThrow {
@@ -224,7 +224,7 @@ class StockMovementService(
     private fun applyToCounter(
         type: StockMovementType,
         request: CreateStockMovementRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
         quantity: BigDecimal,
         sourceWarehouse: Warehouse,
         destWarehouse: Warehouse?,

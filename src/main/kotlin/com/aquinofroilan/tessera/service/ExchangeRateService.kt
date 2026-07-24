@@ -19,7 +19,7 @@ class ExchangeRateService(
     private val currencyService: CurrencyService,
 ) {
     fun getRate(
-        organizationId: String,
+        organizationId: java.util.UUID,
         fromCurrency: String,
         toCurrency: String,
         onOrBefore: LocalDate,
@@ -33,7 +33,7 @@ class ExchangeRateService(
     )
 
     fun lookupRate(
-        organizationId: String,
+        organizationId: java.util.UUID,
         fromCurrency: String,
         toCurrency: String,
         onOrBefore: LocalDate,
@@ -86,7 +86,7 @@ class ExchangeRateService(
     @Transactional
     fun createManualRate(
         request: CreateExchangeRateRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): ExchangeRate {
         if (request.fromCurrency == request.toCurrency) {
             throw BusinessRuleException("fromCurrency and toCurrency must differ")
@@ -131,7 +131,7 @@ class ExchangeRateService(
     }
 
     fun listRates(
-        organizationId: String,
+        organizationId: java.util.UUID,
         fromCurrency: String?,
         toCurrency: String?,
     ): List<ExchangeRate> {
@@ -152,8 +152,8 @@ class ExchangeRateService(
 
     @Transactional
     fun deleteRate(
-        rateId: String,
-        organizationId: String,
+        rateId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): ExchangeRate {
         val rate =
             exchangeRateRepository.findById(rateId).orElseThrow {

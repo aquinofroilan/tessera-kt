@@ -11,7 +11,7 @@ class InventoryValuationService(
     private val stockMovementRepository: StockMovementRepository,
     private val inventoryCostingService: InventoryCostingService,
 ) {
-    fun valuation(organizationId: String): ValuationReportResponse {
+    fun valuation(organizationId: java.util.UUID): ValuationReportResponse {
         val method = inventoryCostingService.costingMethodFor(organizationId)
         val onHand = stockMovementRepository.onHandByProductWarehouse(organizationId)
         val lines =

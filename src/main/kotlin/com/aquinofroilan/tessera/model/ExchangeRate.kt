@@ -26,9 +26,9 @@ enum class ExchangeRateSource {
 class ExchangeRate(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "from_currency", columnDefinition = "char(3)")
     var fromCurrency: String,
     @Column(name = "to_currency", columnDefinition = "char(3)")

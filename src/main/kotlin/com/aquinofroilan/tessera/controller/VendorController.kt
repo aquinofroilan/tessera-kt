@@ -49,7 +49,7 @@ class VendorController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ap:read')")
     fun getVendor(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val vendor = vendorService.getVendor(id, orgId)
@@ -59,7 +59,7 @@ class VendorController(
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ap:create')")
     fun updateVendor(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateVendorRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -70,7 +70,7 @@ class VendorController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ap:create')")
     fun deleteVendor(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val vendor = vendorService.deleteVendor(id, orgId)

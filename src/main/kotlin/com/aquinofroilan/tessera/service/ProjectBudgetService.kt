@@ -22,9 +22,9 @@ class ProjectBudgetService(
     /** Upserts the budget for a single cost category on a project. */
     @Transactional
     fun setBudget(
-        projectId: String,
+        projectId: java.util.UUID,
         request: SetProjectBudgetRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): ProjectBudget {
         projectService.getProject(projectId, organizationId)
         val category = request.category ?: throw BusinessRuleException("Category is required")
@@ -54,8 +54,8 @@ class ProjectBudgetService(
     }
 
     fun listBudgets(
-        projectId: String,
-        organizationId: String,
+        projectId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): List<ProjectBudget> {
         projectService.getProject(projectId, organizationId)
         return projectBudgetRepository.findByOrganizationIdAndProjectId(organizationId, projectId)
@@ -67,8 +67,8 @@ class ProjectBudgetService(
      * expense claims carry a project reference (Epic #166).
      */
     fun budgetVsActual(
-        projectId: String,
-        organizationId: String,
+        projectId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): ProjectBudgetVsActualResponse {
         projectService.getProject(projectId, organizationId)
         val budgets = projectBudgetRepository.findByOrganizationIdAndProjectId(organizationId, projectId)

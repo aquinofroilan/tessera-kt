@@ -28,7 +28,7 @@ enum class RoleLevel {
 class Role(
     @Id
     @Column(name = "uuid", columnDefinition = "uuid")
-    var uuid: String = UUID.randomUUID().toString(),
+    var uuid: java.util.UUID = UUID.randomUUID(),
     var name: String,
     var description: String,
     @Enumerated(EnumType.STRING)

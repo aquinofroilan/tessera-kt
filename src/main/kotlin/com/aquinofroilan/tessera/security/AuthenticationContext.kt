@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class AuthenticationContext {
-    fun organizationId(): String? {
+    fun organizationId(): java.util.UUID? {
         val authentication = SecurityContextHolder.getContext().authentication ?: return null
         return when (val details = authentication.details) {
             is SessionContext -> details.organizationId
@@ -17,7 +17,7 @@ class AuthenticationContext {
         }
     }
 
-    fun userId(): String? {
+    fun userId(): java.util.UUID? {
         val authentication = SecurityContextHolder.getContext().authentication ?: return null
         return (authentication.principal as? User)?.uuid
     }

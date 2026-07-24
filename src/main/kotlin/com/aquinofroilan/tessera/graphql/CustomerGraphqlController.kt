@@ -31,7 +31,7 @@ class CustomerGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('ar:read')")
     fun customer(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): CustomerGraphql {
         val orgId = requireOrganizationId()
         return customerService.getCustomer(id, orgId).toGraphql()
@@ -61,7 +61,7 @@ class CustomerGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('ar:create')")
     fun updateCustomer(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument @Valid input: UpdateCustomerInput,
     ): CustomerGraphql {
         val orgId = requireOrganizationId()
@@ -84,13 +84,14 @@ class CustomerGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('ar:create')")
     fun deleteCustomer(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): CustomerGraphql {
         val orgId = requireOrganizationId()
         return customerService.deleteCustomer(id, orgId).toGraphql()
     }
 
-    private fun requireOrganizationId(): String = authContext.organizationId() ?: throw AuthenticationException("Authentication required")
+    private fun requireOrganizationId(): java.util.UUID =
+        authContext.organizationId() ?: throw AuthenticationException("Authentication required")
 
     private fun Customer.toGraphql() =
         CustomerGraphql(
@@ -117,7 +118,7 @@ data class CreateCustomerInput(
     val contactPhone: String? = null,
     @field:Min(value = 0, message = "Payment term days must be zero or positive")
     val paymentTermDays: Int = 30,
-    val defaultRevenueAccountId: String? = null,
+    val defaultRevenueAccountId: java.util.UUID? = null,
 )
 
 data class UpdateCustomerInput(
@@ -128,18 +129,18 @@ data class UpdateCustomerInput(
     val contactPhone: String? = null,
     @field:Min(value = 0, message = "Payment term days must be zero or positive")
     val paymentTermDays: Int? = null,
-    val defaultRevenueAccountId: String? = null,
+    val defaultRevenueAccountId: java.util.UUID? = null,
 )
 
 data class CustomerGraphql(
-    val id: String,
+    val id: java.util.UUID,
     val name: String,
     val contactName: String?,
     val contactEmail: String?,
     val contactPhone: String?,
     val paymentTermDays: Int,
-    val defaultRevenueAccountId: String?,
-    val organizationId: String,
+    val defaultRevenueAccountId: java.util.UUID?,
+    val organizationId: java.util.UUID,
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,

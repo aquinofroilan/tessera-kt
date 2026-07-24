@@ -34,11 +34,11 @@ enum class QuotationStatus {
 data class QuotationLine(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: java.util.UUID = java.util.UUID.randomUUID(),
     @Column(name = "line_number")
     val lineNumber: Int = 0,
     @Column(name = "product_id", columnDefinition = "uuid")
-    val productId: String,
+    val productId: java.util.UUID,
     @Column(name = "product_sku")
     val productSku: String,
     @Column(name = "product_name")
@@ -57,15 +57,15 @@ data class QuotationLine(
 data class Quotation(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: java.util.UUID = java.util.UUID.randomUUID(),
     @Column(name = "quote_number")
     val quoteNumber: String,
     @Column(name = "customer_id", columnDefinition = "uuid")
-    val customerId: String,
+    val customerId: java.util.UUID,
     @Column(name = "customer_name")
     val customerName: String,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
-    val warehouseId: String? = null,
+    val warehouseId: java.util.UUID? = null,
     @Column(name = "quote_date")
     val quoteDate: LocalDate,
     @Column(name = "valid_until")
@@ -73,7 +73,7 @@ data class Quotation(
     @Column(name = "reference_number")
     val referenceNumber: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     @Enumerated(EnumType.STRING)
     val status: QuotationStatus = QuotationStatus.DRAFT,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
@@ -83,7 +83,7 @@ data class Quotation(
     @Column(name = "total_amount")
     val totalAmount: BigDecimal,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    val createdBy: java.util.UUID,
     @Column(name = "sent_at")
     val sentAt: LocalDateTime? = null,
     @Column(name = "decided_at")
@@ -91,7 +91,7 @@ data class Quotation(
     @Column(name = "decision_reason")
     val decisionReason: String? = null,
     @Column(name = "converted_sales_order_id", columnDefinition = "uuid")
-    val convertedSalesOrderId: String? = null,
+    val convertedSalesOrderId: java.util.UUID? = null,
     @CreatedDate
     @Column(name = "created_at")
     val createdAt: LocalDateTime? = null,
