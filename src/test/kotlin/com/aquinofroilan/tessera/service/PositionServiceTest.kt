@@ -33,11 +33,23 @@ class PositionServiceTest {
     @Test
     fun `create persists a position and validates the department when provided`() {
         whenever(departmentService.getDepartment(java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"), orgId))
-            .thenReturn(Department(id = java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"), code = "ENG", name = "Engineering", organizationId = orgId))
+            .thenReturn(
+                Department(
+                    id = java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"),
+                    code = "ENG",
+                    name = "Engineering",
+                    organizationId = orgId,
+                ),
+            )
 
         val pos =
             service.createPosition(
-                CreatePositionRequest(code = " SE2 ", title = " Software Engineer II ", departmentId = java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"), payGrade = "G5"),
+                CreatePositionRequest(
+                    code = " SE2 ",
+                    title = " Software Engineer II ",
+                    departmentId = java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"),
+                    payGrade = "G5",
+                ),
                 orgId,
             )
 
@@ -59,7 +71,17 @@ class PositionServiceTest {
     @Test
     fun `deactivate rejects double-deactivation`() {
         whenever(repository.findById(java.util.UUID.fromString("fd2ef362-436b-3e1e-8083-ccaefc73ba78")))
-            .thenReturn(Optional.of(Position(id = java.util.UUID.fromString("fd2ef362-436b-3e1e-8083-ccaefc73ba78"), code = "SE2", title = "SE II", organizationId = orgId, isActive = false)))
+            .thenReturn(
+                Optional.of(
+                    Position(
+                        id = java.util.UUID.fromString("fd2ef362-436b-3e1e-8083-ccaefc73ba78"),
+                        code = "SE2",
+                        title = "SE II",
+                        organizationId = orgId,
+                        isActive = false,
+                    ),
+                ),
+            )
 
         assertThatThrownBy { service.deactivatePosition(java.util.UUID.fromString("fd2ef362-436b-3e1e-8083-ccaefc73ba78"), orgId) }
             .isInstanceOf(BusinessRuleException::class.java)

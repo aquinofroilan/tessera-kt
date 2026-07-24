@@ -84,32 +84,64 @@ class TimeEntryServiceTest {
 
     @Test
     fun `submit moves draft to submitted then approval is gated`() {
-        whenever(repository.findById(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf"))).thenReturn(Optional.of(entry(TimeEntryStatus.DRAFT)))
-        assertThat(service.submitTimeEntry(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf"), orgId).status).isEqualTo(TimeEntryStatus.SUBMITTED)
+        whenever(
+            repository.findById(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf")),
+        ).thenReturn(Optional.of(entry(TimeEntryStatus.DRAFT)))
+        assertThat(
+            service.submitTimeEntry(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf"), orgId).status,
+        ).isEqualTo(TimeEntryStatus.SUBMITTED)
 
-        whenever(repository.findById(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf"))).thenReturn(Optional.of(entry(TimeEntryStatus.DRAFT)))
-        assertThatThrownBy { service.approveTimeEntry(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf"), orgId, java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb")) }
-            .isInstanceOf(BusinessRuleException::class.java)
+        whenever(
+            repository.findById(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf")),
+        ).thenReturn(Optional.of(entry(TimeEntryStatus.DRAFT)))
+        assertThatThrownBy {
+            service.approveTimeEntry(
+                java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf"),
+                orgId,
+                java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"),
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `approve sets approver on a submitted entry`() {
-        whenever(repository.findById(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf"))).thenReturn(Optional.of(entry(TimeEntryStatus.SUBMITTED)))
-        val approved = service.approveTimeEntry(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf"), orgId, java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"))
+        whenever(
+            repository.findById(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf")),
+        ).thenReturn(Optional.of(entry(TimeEntryStatus.SUBMITTED)))
+        val approved =
+            service.approveTimeEntry(
+                java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf"),
+                orgId,
+                java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"),
+            )
         assertThat(approved.status).isEqualTo(TimeEntryStatus.APPROVED)
         assertThat(approved.approvedBy).isEqualTo(java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"))
     }
 
     @Test
     fun `update is rejected once not draft`() {
-        whenever(repository.findById(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf"))).thenReturn(Optional.of(entry(TimeEntryStatus.APPROVED)))
-        assertThatThrownBy { service.updateTimeEntry(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf"), UpdateTimeEntryRequest(hours = BigDecimal("2")), orgId) }
-            .isInstanceOf(BusinessRuleException::class.java)
+        whenever(
+            repository.findById(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf")),
+        ).thenReturn(Optional.of(entry(TimeEntryStatus.APPROVED)))
+        assertThatThrownBy {
+            service.updateTimeEntry(
+                java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf"),
+                UpdateTimeEntryRequest(hours = BigDecimal("2")),
+                orgId,
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `get rejects cross-org access`() {
-        whenever(repository.findById(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf"))).thenReturn(Optional.of(entry().apply { organizationId = java.util.UUID.fromString("f022a845-ae01-3e07-ae04-7fc0ffb096a8") }))
+        whenever(repository.findById(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf"))).thenReturn(
+            Optional.of(
+                entry().apply {
+                    organizationId =
+                        java.util.UUID.fromString("f022a845-ae01-3e07-ae04-7fc0ffb096a8")
+                },
+            ),
+        )
         assertThatThrownBy { service.getTimeEntry(java.util.UUID.fromString("dbd39088-81c8-3352-845f-b26779415ecf"), orgId) }
             .isInstanceOf(ResourceNotFoundException::class.java)
     }

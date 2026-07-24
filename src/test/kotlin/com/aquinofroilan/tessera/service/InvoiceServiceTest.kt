@@ -1,7 +1,5 @@
 package com.aquinofroilan.tessera.service
 
-import java.util.UUID
-
 import com.aquinofroilan.tessera.dto.CreateInvoiceRequest
 import com.aquinofroilan.tessera.dto.InvoiceLineRequest
 import com.aquinofroilan.tessera.dto.RecordReceiptRequest
@@ -37,6 +35,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.Optional
+import java.util.UUID
 
 class InvoiceServiceTest {
     private lateinit var invoiceService: InvoiceService
@@ -99,7 +98,8 @@ class InvoiceServiceTest {
     @Test
     fun `create should save invoice as DRAFT with correct total`() {
         val customer = createCustomer()
-        val revenueAccount = createAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), "4100", "Service Revenue", AccountType.REVENUE)
+        val revenueAccount =
+            createAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), "4100", "Service Revenue", AccountType.REVENUE)
 
         `when`(customerService.getCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), orgId)).thenReturn(customer)
         `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))))
@@ -114,7 +114,10 @@ class InvoiceServiceTest {
                 dueDate = LocalDate.of(2026, 3, 31),
                 lines =
                     listOf(
-                        InvoiceLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), amount = BigDecimal("2000.00")),
+                        InvoiceLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            amount = BigDecimal("2000.00"),
+                        ),
                     ),
             )
 
@@ -141,7 +144,10 @@ class InvoiceServiceTest {
                 dueDate = LocalDate.of(2026, 3, 31),
                 lines =
                     listOf(
-                        InvoiceLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), amount = BigDecimal("100.00")),
+                        InvoiceLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            amount = BigDecimal("100.00"),
+                        ),
                     ),
             )
 
@@ -158,7 +164,9 @@ class InvoiceServiceTest {
         val arAccount = createAccount(java.util.UUID.randomUUID(), "1100", "Accounts Receivable", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
-        `when`(invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"))).thenReturn(Optional.of(invoice))
+        `when`(
+            invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5")),
+        ).thenReturn(Optional.of(invoice))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1100"))
             .thenReturn(Optional.of(arAccount))
         `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
@@ -177,7 +185,9 @@ class InvoiceServiceTest {
     @Test
     fun `approve should reject non-draft invoice`() {
         val invoice = createInvoice(status = InvoiceStatus.APPROVED)
-        `when`(invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"))).thenReturn(Optional.of(invoice))
+        `when`(
+            invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5")),
+        ).thenReturn(Optional.of(invoice))
 
         val exception =
             assertThrows<BusinessRuleException> {
@@ -188,15 +198,27 @@ class InvoiceServiceTest {
 
     @Test
     fun `void should void journal entry for approved invoice`() {
-        val invoice = createInvoice(status = InvoiceStatus.APPROVED, journalEntryId = java.util.UUID.fromString("dea446cc-a162-314e-a549-c9aa550c0496"))
+        val invoice =
+            createInvoice(
+                status = InvoiceStatus.APPROVED,
+                journalEntryId = java.util.UUID.fromString("dea446cc-a162-314e-a549-c9aa550c0496"),
+            )
         val voidedEntry = createMockJournalEntry(status = JournalEntryStatus.VOIDED)
 
-        `when`(invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"))).thenReturn(Optional.of(invoice))
+        `when`(
+            invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5")),
+        ).thenReturn(Optional.of(invoice))
         `when`(journalEntryService.voidJournalEntry(java.util.UUID.fromString("dea446cc-a162-314e-a549-c9aa550c0496"), orgId, "Duplicate"))
             .thenReturn(voidedEntry)
         `when`(invoiceRepository.save(any<Invoice>())).thenAnswer { it.arguments[0] }
 
-        val result = invoiceService.voidInvoice(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"), orgId, "Duplicate", userId)
+        val result =
+            invoiceService.voidInvoice(
+                java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"),
+                orgId,
+                "Duplicate",
+                userId,
+            )
 
         assertThat(result.status).isEqualTo(InvoiceStatus.VOID)
         assertThat(result.voidReason).isEqualTo("Duplicate")
@@ -206,10 +228,18 @@ class InvoiceServiceTest {
     @Test
     fun `void should allow voiding draft without journal entry`() {
         val invoice = createInvoice(status = InvoiceStatus.DRAFT)
-        `when`(invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"))).thenReturn(Optional.of(invoice))
+        `when`(
+            invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5")),
+        ).thenReturn(Optional.of(invoice))
         `when`(invoiceRepository.save(any<Invoice>())).thenAnswer { it.arguments[0] }
 
-        val result = invoiceService.voidInvoice(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"), orgId, "Not needed", userId)
+        val result =
+            invoiceService.voidInvoice(
+                java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"),
+                orgId,
+                "Not needed",
+                userId,
+            )
 
         assertThat(result.status).isEqualTo(InvoiceStatus.VOID)
     }
@@ -221,7 +251,9 @@ class InvoiceServiceTest {
                 status = InvoiceStatus.PARTIALLY_PAID,
                 amountReceived = BigDecimal("500.00"),
             )
-        `when`(invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"))).thenReturn(Optional.of(invoice))
+        `when`(
+            invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5")),
+        ).thenReturn(Optional.of(invoice))
 
         val exception =
             assertThrows<BusinessRuleException> {
@@ -237,7 +269,9 @@ class InvoiceServiceTest {
         val cashAccount = createAccount(java.util.UUID.randomUUID(), "1000", "Cash", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
-        `when`(invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"))).thenReturn(Optional.of(invoice))
+        `when`(
+            invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5")),
+        ).thenReturn(Optional.of(invoice))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1100"))
             .thenReturn(Optional.of(arAccount))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1000"))
@@ -254,7 +288,13 @@ class InvoiceServiceTest {
                 paymentMethod = PaymentMethod.BANK_TRANSFER,
             )
 
-        val receipt = invoiceService.recordReceipt(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"), request, orgId, userId)
+        val receipt =
+            invoiceService.recordReceipt(
+                java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"),
+                request,
+                orgId,
+                userId,
+            )
 
         assertThat(receipt.amount).isEqualByComparingTo(BigDecimal("1000.00"))
         assertThat(receipt.paymentMethod).isEqualTo(PaymentMethod.BANK_TRANSFER)
@@ -272,7 +312,9 @@ class InvoiceServiceTest {
         val cashAccount = createAccount(java.util.UUID.randomUUID(), "1000", "Cash", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
-        `when`(invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"))).thenReturn(Optional.of(invoice))
+        `when`(
+            invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5")),
+        ).thenReturn(Optional.of(invoice))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1100"))
             .thenReturn(Optional.of(arAccount))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1000"))
@@ -300,7 +342,9 @@ class InvoiceServiceTest {
     @Test
     fun `recordReceipt should reject overpayment`() {
         val invoice = createInvoice(status = InvoiceStatus.APPROVED)
-        `when`(invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"))).thenReturn(Optional.of(invoice))
+        `when`(
+            invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5")),
+        ).thenReturn(Optional.of(invoice))
 
         val request =
             RecordReceiptRequest(
@@ -319,7 +363,9 @@ class InvoiceServiceTest {
     @Test
     fun `recordReceipt should reject draft invoice`() {
         val invoice = createInvoice(status = InvoiceStatus.DRAFT)
-        `when`(invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"))).thenReturn(Optional.of(invoice))
+        `when`(
+            invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5")),
+        ).thenReturn(Optional.of(invoice))
 
         val request =
             RecordReceiptRequest(
@@ -396,7 +442,8 @@ class InvoiceServiceTest {
     @Test
     fun `create with taxGroupId should compute and store tax`() {
         val customer = createCustomer()
-        val revenueAccount = createAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), "4100", "Service Revenue", AccountType.REVENUE)
+        val revenueAccount =
+            createAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), "4100", "Service Revenue", AccountType.REVENUE)
 
         `when`(customerService.getCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), orgId)).thenReturn(customer)
         `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))))
@@ -412,7 +459,13 @@ class InvoiceServiceTest {
                 date = LocalDate.of(2026, 3, 1),
                 dueDate = LocalDate.of(2026, 3, 31),
                 taxGroupId = java.util.UUID.fromString("7fc85de2-2162-3dcd-9d2d-78e80e0d10c6"),
-                lines = listOf(InvoiceLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), amount = BigDecimal("2000.00"))),
+                lines =
+                    listOf(
+                        InvoiceLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            amount = BigDecimal("2000.00"),
+                        ),
+                    ),
             )
 
         val result = invoiceService.createInvoice(request, orgId, userId)
@@ -434,7 +487,9 @@ class InvoiceServiceTest {
         val taxPayableAccount = createAccount(java.util.UUID.randomUUID(), "2300", "Sales Tax Payable", AccountType.LIABILITY)
         val mockEntry = createMockJournalEntry()
 
-        `when`(invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"))).thenReturn(Optional.of(invoice))
+        `when`(
+            invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5")),
+        ).thenReturn(Optional.of(invoice))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1100"))
             .thenReturn(Optional.of(arAccount))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "2300"))
@@ -541,10 +596,13 @@ class InvoiceServiceTest {
     @Test
     fun `create in foreign currency should lock rate and compute baseCurrencyAmount`() {
         val customer = createCustomer()
-        val revenueAccount = createAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), "4100", "Service Revenue", AccountType.REVENUE)
+        val revenueAccount =
+            createAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), "4100", "Service Revenue", AccountType.REVENUE)
 
         `when`(customerService.getCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), orgId)).thenReturn(customer)
-        `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")))).thenReturn(listOf(revenueAccount))
+        `when`(
+            accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))),
+        ).thenReturn(listOf(revenueAccount))
         `when`(invoiceRepository.countByOrganizationId(orgId)).thenReturn(0L)
         `when`(invoiceRepository.save(any<Invoice>())).thenAnswer { it.arguments[0] }
         `when`(exchangeRateService.getRate(orgId, "PHP", "USD", LocalDate.of(2026, 3, 1)))
@@ -556,7 +614,13 @@ class InvoiceServiceTest {
                 date = LocalDate.of(2026, 3, 1),
                 dueDate = LocalDate.of(2026, 3, 31),
                 currencyCode = "PHP",
-                lines = listOf(InvoiceLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), amount = BigDecimal("10000.00"))),
+                lines =
+                    listOf(
+                        InvoiceLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            amount = BigDecimal("10000.00"),
+                        ),
+                    ),
             )
 
         val result = invoiceService.createInvoice(request, orgId, userId)
@@ -580,7 +644,9 @@ class InvoiceServiceTest {
         val arAccount = createAccount(java.util.UUID.randomUUID(), "1100", "Accounts Receivable", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
-        `when`(invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"))).thenReturn(Optional.of(invoice))
+        `when`(
+            invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5")),
+        ).thenReturn(Optional.of(invoice))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1100"))
             .thenReturn(Optional.of(arAccount))
         `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
@@ -609,7 +675,9 @@ class InvoiceServiceTest {
         val cashAccount = createAccount(java.util.UUID.randomUUID(), "1000", "Cash", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
-        `when`(invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"))).thenReturn(Optional.of(invoice))
+        `when`(
+            invoiceRepository.findById(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5")),
+        ).thenReturn(Optional.of(invoice))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1100")).thenReturn(Optional.of(arAccount))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "1000")).thenReturn(Optional.of(cashAccount))
         `when`(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))

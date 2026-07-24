@@ -70,7 +70,11 @@ class SelfServiceServiceTest {
         service.submitLeave(
             userId,
             orgId,
-            SubmitSelfLeaveRequest(leaveTypeId = java.util.UUID.fromString("82d745af-a33b-3e13-adff-05141b0d976d"), startDate = LocalDate.of(2026, 5, 1), endDate = LocalDate.of(2026, 5, 3)),
+            SubmitSelfLeaveRequest(
+                leaveTypeId = java.util.UUID.fromString("82d745af-a33b-3e13-adff-05141b0d976d"),
+                startDate = LocalDate.of(2026, 5, 1),
+                endDate = LocalDate.of(2026, 5, 3),
+            ),
         )
 
         val captor = argumentCaptor<CreateLeaveRequestRequest>()
@@ -82,12 +86,21 @@ class SelfServiceServiceTest {
     @Test
     fun `leave balance delegates with the caller's own employee id`() {
         service.myLeaveBalance(userId, orgId, java.util.UUID.fromString("82d745af-a33b-3e13-adff-05141b0d976d"), 2026)
-        verify(leaveRequestService).balance(eq(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4")), eq(java.util.UUID.fromString("82d745af-a33b-3e13-adff-05141b0d976d")), eq(2026), eq(orgId))
+        verify(
+            leaveRequestService,
+        ).balance(
+            eq(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4")),
+            eq(java.util.UUID.fromString("82d745af-a33b-3e13-adff-05141b0d976d")),
+            eq(2026),
+            eq(orgId),
+        )
     }
 
     @Test
     fun `compensation history delegates with the caller's own employee id`() {
         service.myCompensationHistory(userId, orgId)
-        verify(employeeCompensationService).listCompensation(eq(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4")), eq(orgId))
+        verify(
+            employeeCompensationService,
+        ).listCompensation(eq(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4")), eq(orgId))
     }
 }

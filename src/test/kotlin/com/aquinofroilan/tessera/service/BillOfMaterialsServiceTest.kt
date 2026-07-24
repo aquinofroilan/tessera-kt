@@ -1,7 +1,5 @@
 package com.aquinofroilan.tessera.service
 
-import java.util.UUID
-
 import com.aquinofroilan.tessera.dto.CreateBomLineRequest
 import com.aquinofroilan.tessera.dto.CreateBomRequest
 import com.aquinofroilan.tessera.dto.UpdateBomRequest
@@ -20,6 +18,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.util.Optional
+import java.util.UUID
 
 class BillOfMaterialsServiceTest {
     private lateinit var bomRepository: BillOfMaterialsRepository
@@ -103,7 +102,13 @@ class BillOfMaterialsServiceTest {
         val draft = bom().copy(id = java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"))
         whenever(bomRepository.findById(java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"))).thenReturn(Optional.of(draft))
 
-        val activated = service.activateBom(java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"), orgId, userId, makeDefault = false)
+        val activated =
+            service.activateBom(
+                java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"),
+                orgId,
+                userId,
+                makeDefault = false,
+            )
 
         assertThat(activated.status).isEqualTo(BomStatus.ACTIVE)
         assertThat(activated.activatedBy).isEqualTo(userId)
@@ -113,12 +118,23 @@ class BillOfMaterialsServiceTest {
     @Test
     fun `activate with makeDefault demotes the previous default`() {
         val draft = bom().copy(id = java.util.UUID.fromString("89cc91a6-b578-318a-81f6-141ba86d1362"))
-        val priorDefault = bom().copy(id = java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"), isDefault = true, status = BomStatus.ACTIVE)
+        val priorDefault =
+            bom().copy(
+                id = java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"),
+                isDefault = true,
+                status = BomStatus.ACTIVE,
+            )
         whenever(bomRepository.findById(java.util.UUID.fromString("89cc91a6-b578-318a-81f6-141ba86d1362"))).thenReturn(Optional.of(draft))
         whenever(bomRepository.findByOrganizationIdAndProductIdAndIsDefaultTrue(orgId, parentId))
             .thenReturn(Optional.of(priorDefault))
 
-        val activated = service.activateBom(java.util.UUID.fromString("89cc91a6-b578-318a-81f6-141ba86d1362"), orgId, userId, makeDefault = true)
+        val activated =
+            service.activateBom(
+                java.util.UUID.fromString("89cc91a6-b578-318a-81f6-141ba86d1362"),
+                orgId,
+                userId,
+                makeDefault = true,
+            )
 
         assertThat(activated.isDefault).isTrue()
         assertThat(activated.status).isEqualTo(BomStatus.ACTIVE)
@@ -136,7 +152,12 @@ class BillOfMaterialsServiceTest {
 
     @Test
     fun `obsolete clears default flag`() {
-        val active = bom().copy(id = java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"), status = BomStatus.ACTIVE, isDefault = true)
+        val active =
+            bom().copy(
+                id = java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"),
+                status = BomStatus.ACTIVE,
+                isDefault = true,
+            )
         whenever(bomRepository.findById(java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"))).thenReturn(Optional.of(active))
 
         val obsoleted = service.obsoleteBom(java.util.UUID.fromString("10c2deb1-ad3c-35e5-b931-4fa8a1ecd140"), orgId, userId)

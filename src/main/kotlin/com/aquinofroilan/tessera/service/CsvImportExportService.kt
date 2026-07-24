@@ -134,7 +134,13 @@ class CsvImportExportService(
                         contactEmail = row["contactEmail"]?.ifBlank { null },
                         contactPhone = row["contactPhone"]?.ifBlank { null },
                         paymentTermDays = row["paymentTermDays"]?.toIntOrNull() ?: 30,
-                        defaultRevenueAccountId = row["defaultRevenueAccountId"]?.takeIf { it.isNotBlank() }?.let { java.util.UUID.fromString(it) },
+                        defaultRevenueAccountId =
+                            row["defaultRevenueAccountId"]?.takeIf { it.isNotBlank() }?.let {
+                                java.util.UUID
+                                    .fromString(
+                                        it,
+                                    )
+                            },
                     ),
                     organizationId,
                 )

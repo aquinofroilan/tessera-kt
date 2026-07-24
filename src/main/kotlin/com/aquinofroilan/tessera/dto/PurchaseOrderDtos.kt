@@ -3,7 +3,6 @@ package com.aquinofroilan.tessera.dto
 import com.aquinofroilan.tessera.model.PurchaseOrder
 import com.aquinofroilan.tessera.model.PurchaseOrderStatus
 import jakarta.validation.Valid
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive

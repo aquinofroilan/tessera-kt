@@ -41,9 +41,17 @@ class ProjectBillingServiceTest {
         customerService = mock(CustomerService::class.java)
         timeEntryRepository = mock(TimeEntryRepository::class.java)
         invoiceService = mock(InvoiceService::class.java)
-        whenever(projectService.getProject(projectId, orgId)).thenReturn(project(customerId = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230")))
+        whenever(
+            projectService.getProject(projectId, orgId),
+        ).thenReturn(project(customerId = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230")))
         whenever(customerService.getCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), orgId)).thenReturn(
-            Customer(id = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), name = "Globex", paymentTermDays = 30, defaultRevenueAccountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), organizationId = orgId),
+            Customer(
+                id = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"),
+                name = "Globex",
+                paymentTermDays = 30,
+                defaultRevenueAccountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                organizationId = orgId,
+            ),
         )
         val invoice = mock(Invoice::class.java)
         whenever(invoice.id).thenReturn(java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5"))
@@ -97,7 +105,10 @@ class ProjectBillingServiceTest {
         val saved = argumentCaptor<List<TimeEntry>>()
         verify(timeEntryRepository).saveAll(saved.capture())
         assertThat(saved.firstValue).hasSize(2)
-        assertThat(saved.firstValue).allMatch { it.invoiced && it.invoiceId == java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5") }
+        assertThat(saved.firstValue).allMatch {
+            it.invoiced &&
+                it.invoiceId == java.util.UUID.fromString("feba952a-78ae-3408-9880-1611b3e9e0b5")
+        }
     }
 
     @Test
@@ -110,7 +121,14 @@ class ProjectBillingServiceTest {
     @Test
     fun `generate invoice fails when no revenue account can be resolved`() {
         whenever(customerService.getCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), orgId))
-            .thenReturn(Customer(id = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), name = "Globex", defaultRevenueAccountId = null, organizationId = orgId))
+            .thenReturn(
+                Customer(
+                    id = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"),
+                    name = "Globex",
+                    defaultRevenueAccountId = null,
+                    organizationId = orgId,
+                ),
+            )
         whenever(timeEntryRepository.findByOrganizationIdAndProjectIdAndStatus(orgId, projectId, TimeEntryStatus.APPROVED))
             .thenReturn(listOf(entry("50")))
 

@@ -137,7 +137,14 @@ class ExchangeRateServiceTest {
 
     @Test
     fun `deleteRate rejects cross-org`() {
-        val rate = rateOf("fe2db454-a7f7-3170-995e-74c0045ab41b", "e6eb0ebe-1a8c-39eb-851a-4495c5096549", BigDecimal("57.50"), today, orgId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"))
+        val rate =
+            rateOf(
+                "fe2db454-a7f7-3170-995e-74c0045ab41b",
+                "e6eb0ebe-1a8c-39eb-851a-4495c5096549",
+                BigDecimal("57.50"),
+                today,
+                orgId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"),
+            )
         `when`(repository.findById(rate.id)).thenReturn(Optional.of(rate))
 
         assertThrows<ResourceNotFoundException> {

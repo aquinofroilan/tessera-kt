@@ -29,12 +29,32 @@ class InventoryValuationServiceTest {
         `when`(costingService.costingMethodFor(orgId)).thenReturn(InventoryCostingMethod.WEIGHTED_AVERAGE)
         `when`(stockMovementRepository.onHandByProductWarehouse(orgId)).thenReturn(
             mapOf(
-                OnHandKey(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")) to BigDecimal("10"),
-                OnHandKey(java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"), java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")) to BigDecimal("5"),
+                OnHandKey(
+                    java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                    java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                ) to
+                    BigDecimal("10"),
+                OnHandKey(
+                    java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"),
+                    java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                ) to
+                    BigDecimal("5"),
             ),
         )
-        `when`(costingService.valuationCost(orgId, java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"))).thenReturn(BigDecimal("100"))
-        `when`(costingService.valuationCost(orgId, java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"), java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"))).thenReturn(BigDecimal("25"))
+        `when`(
+            costingService.valuationCost(
+                orgId,
+                java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+            ),
+        ).thenReturn(BigDecimal("100"))
+        `when`(
+            costingService.valuationCost(
+                orgId,
+                java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"),
+                java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+            ),
+        ).thenReturn(BigDecimal("25"))
 
         val report = service.valuation(orgId)
 
@@ -48,11 +68,25 @@ class InventoryValuationServiceTest {
         `when`(costingService.costingMethodFor(orgId)).thenReturn(InventoryCostingMethod.FIFO)
         `when`(stockMovementRepository.onHandByProductWarehouse(orgId)).thenReturn(
             mapOf(
-                OnHandKey(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")) to BigDecimal("0"),
-                OnHandKey(java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"), java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")) to BigDecimal("3"),
+                OnHandKey(
+                    java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                    java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                ) to
+                    BigDecimal("0"),
+                OnHandKey(
+                    java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"),
+                    java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                ) to
+                    BigDecimal("3"),
             ),
         )
-        `when`(costingService.valuationCost(orgId, java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"), java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"))).thenReturn(BigDecimal("9"))
+        `when`(
+            costingService.valuationCost(
+                orgId,
+                java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"),
+                java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+            ),
+        ).thenReturn(BigDecimal("9"))
 
         val report = service.valuation(orgId)
 

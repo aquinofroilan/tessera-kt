@@ -101,7 +101,11 @@ class VendorServiceTest {
 
         val exception =
             assertThrows<BusinessRuleException> {
-                vendorService.updateVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), UpdateVendorRequest(name = "New"), orgId)
+                vendorService.updateVendor(
+                    java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"),
+                    UpdateVendorRequest(name = "New"),
+                    orgId,
+                )
             }
         assertThat(exception.message).contains("inactive")
     }

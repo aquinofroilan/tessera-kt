@@ -53,7 +53,17 @@ class LeaveTypeServiceTest {
     @Test
     fun `deactivate rejects double-deactivation`() {
         whenever(repository.findById(java.util.UUID.fromString("82d745af-a33b-3e13-adff-05141b0d976d")))
-            .thenReturn(Optional.of(LeaveType(id = java.util.UUID.fromString("82d745af-a33b-3e13-adff-05141b0d976d"), code = "AL", name = "Annual", organizationId = orgId, isActive = false)))
+            .thenReturn(
+                Optional.of(
+                    LeaveType(
+                        id = java.util.UUID.fromString("82d745af-a33b-3e13-adff-05141b0d976d"),
+                        code = "AL",
+                        name = "Annual",
+                        organizationId = orgId,
+                        isActive = false,
+                    ),
+                ),
+            )
 
         assertThatThrownBy { service.deactivateLeaveType(java.util.UUID.fromString("82d745af-a33b-3e13-adff-05141b0d976d"), orgId) }
             .isInstanceOf(BusinessRuleException::class.java)

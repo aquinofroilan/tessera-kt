@@ -1,7 +1,5 @@
 package com.aquinofroilan.tessera.service
 
-import java.util.UUID
-
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import com.aquinofroilan.tessera.model.ApiKey
@@ -19,6 +17,7 @@ import org.mockito.kotlin.argumentCaptor
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.Optional
+import java.util.UUID
 
 class ApiKeyServiceTest {
     private lateinit var apiKeyService: ApiKeyService
@@ -153,7 +152,9 @@ class ApiKeyServiceTest {
     @Test
     fun `listApiKeys should return active keys for org`() {
         val keys = listOf(createMockApiKey(), createMockApiKey(name = "Key 2"))
-        `when`(apiKeyRepository.findByOrganizationIdAndIsActive(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), true)).thenReturn(keys)
+        `when`(
+            apiKeyRepository.findByOrganizationIdAndIsActive(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), true),
+        ).thenReturn(keys)
 
         val result = apiKeyService.listApiKeys(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
 

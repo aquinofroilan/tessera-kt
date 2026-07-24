@@ -108,7 +108,12 @@ class LeaveRequestServiceTest {
     fun `approve within entitlement marks APPROVED without touching past-dated employee status`() {
         whenever(repository.findById(java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"))).thenReturn(Optional.of(pending(5)))
 
-        val approved = service.approveLeaveRequest(java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"), orgId, java.util.UUID.fromString("339851d6-a2ee-38e3-9908-6d48907f4a92"))
+        val approved =
+            service.approveLeaveRequest(
+                java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"),
+                orgId,
+                java.util.UUID.fromString("339851d6-a2ee-38e3-9908-6d48907f4a92"),
+            )
 
         assertThat(approved.status).isEqualTo(LeaveRequestStatus.APPROVED)
         assertThat(approved.decidedBy).isEqualTo(java.util.UUID.fromString("339851d6-a2ee-38e3-9908-6d48907f4a92"))
@@ -121,17 +126,28 @@ class LeaveRequestServiceTest {
         whenever(leaveTypeService.getLeaveType(typeId, orgId)).thenReturn(leaveType(3))
         whenever(repository.findById(java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"))).thenReturn(Optional.of(pending(5)))
 
-        assertThatThrownBy { service.approveLeaveRequest(java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"), orgId, java.util.UUID.fromString("339851d6-a2ee-38e3-9908-6d48907f4a92")) }
-            .isInstanceOf(BusinessRuleException::class.java)
+        assertThatThrownBy {
+            service.approveLeaveRequest(
+                java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"),
+                orgId,
+                java.util.UUID.fromString("339851d6-a2ee-38e3-9908-6d48907f4a92"),
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
         verify(repository, never()).save(any<LeaveRequest>())
     }
 
     @Test
     fun `approving leave covering today places the employee on leave`() {
         val today = LocalDate.now(java.time.ZoneOffset.UTC)
-        whenever(repository.findById(java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"))).thenReturn(Optional.of(pending(1, start = today)))
+        whenever(
+            repository.findById(java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e")),
+        ).thenReturn(Optional.of(pending(1, start = today)))
 
-        service.approveLeaveRequest(java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"), orgId, java.util.UUID.fromString("339851d6-a2ee-38e3-9908-6d48907f4a92"))
+        service.approveLeaveRequest(
+            java.util.UUID.fromString("bb7f4762-d646-3869-9c36-7f6c06fb377e"),
+            orgId,
+            java.util.UUID.fromString("339851d6-a2ee-38e3-9908-6d48907f4a92"),
+        )
 
         verify(employeeService).placeOnLeave(eq(empId), eq(orgId))
     }

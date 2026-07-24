@@ -23,7 +23,12 @@ class PostHogLoggingServiceTest {
 
         val service =
             PostHogLoggingService(
-                postHogProperties = PostHogProperties(enabled = true, loggingEnabled = true, distinctId = "50a05a28-c428-37f5-852e-9a226ac073f6"),
+                postHogProperties =
+                    PostHogProperties(
+                        enabled = true,
+                        loggingEnabled = true,
+                        distinctId = "50a05a28-c428-37f5-852e-9a226ac073f6",
+                    ),
                 postHogProvider = beanFactory.getBeanProvider(PostHog::class.java),
             )
 
@@ -49,7 +54,12 @@ class PostHogLoggingServiceTest {
 
         val service =
             PostHogLoggingService(
-                postHogProperties = PostHogProperties(enabled = true, loggingEnabled = true, distinctId = "50a05a28-c428-37f5-852e-9a226ac073f6"),
+                postHogProperties =
+                    PostHogProperties(
+                        enabled = true,
+                        loggingEnabled = true,
+                        distinctId = "50a05a28-c428-37f5-852e-9a226ac073f6",
+                    ),
                 postHogProvider = beanFactory.getBeanProvider(PostHog::class.java),
             )
 
@@ -66,7 +76,12 @@ class PostHogLoggingServiceTest {
 
         val service =
             PostHogLoggingService(
-                postHogProperties = PostHogProperties(enabled = false, loggingEnabled = true, distinctId = "50a05a28-c428-37f5-852e-9a226ac073f6"),
+                postHogProperties =
+                    PostHogProperties(
+                        enabled = false,
+                        loggingEnabled = true,
+                        distinctId = "50a05a28-c428-37f5-852e-9a226ac073f6",
+                    ),
                 postHogProvider = beanFactory.getBeanProvider(PostHog::class.java),
             )
 

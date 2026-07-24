@@ -62,8 +62,14 @@ class SelfServiceGraphqlControllerTest {
                   submitMyLeave(input: ${'$'}input)
                 }
                 """.trimIndent(),
-            ).variable("input", mapOf("leaveTypeId" to "82d745af-a33b-3e13-adff-05141b0d976d", "startDate" to "2026-05-01", "endDate" to "2026-05-03"))
-            .execute()
+            ).variable(
+                "input",
+                mapOf(
+                    "leaveTypeId" to "82d745af-a33b-3e13-adff-05141b0d976d",
+                    "startDate" to "2026-05-01",
+                    "endDate" to "2026-05-03",
+                ),
+            ).execute()
             .path("submitMyLeave.status")
             .entity(String::class.java)
             .isEqualTo("PENDING")

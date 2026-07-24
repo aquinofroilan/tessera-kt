@@ -34,7 +34,11 @@ class ProjectServiceTest {
         employeeService = mock(EmployeeService::class.java)
         whenever(repository.countByOrganizationId(orgId)).thenReturn(0L)
         whenever(repository.save(any<Project>())).thenAnswer { it.arguments[0] }
-        whenever(customerService.getCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), orgId)).thenReturn(Customer(id = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), name = "Globex", organizationId = orgId))
+        whenever(
+            customerService.getCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), orgId),
+        ).thenReturn(
+            Customer(id = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), name = "Globex", organizationId = orgId),
+        )
         service = ProjectService(repository, customerService, employeeService)
     }
 
@@ -66,48 +70,91 @@ class ProjectServiceTest {
 
     @Test
     fun `create validates the customer belongs to the org`() {
-        whenever(customerService.getCustomer(java.util.UUID.fromString("b7f756f4-4e53-3047-b0aa-fd3012bea789"), orgId)).thenThrow(ResourceNotFoundException("Customer not found"))
+        whenever(
+            customerService.getCustomer(java.util.UUID.fromString("b7f756f4-4e53-3047-b0aa-fd3012bea789"), orgId),
+        ).thenThrow(ResourceNotFoundException("Customer not found"))
         assertThatThrownBy {
-            service.createProject(CreateProjectRequest(name = "Apollo", startDate = start, customerId = java.util.UUID.fromString("b7f756f4-4e53-3047-b0aa-fd3012bea789")), orgId)
+            service.createProject(
+                CreateProjectRequest(
+                    name = "Apollo",
+                    startDate = start,
+                    customerId = java.util.UUID.fromString("b7f756f4-4e53-3047-b0aa-fd3012bea789"),
+                ),
+                orgId,
+            )
         }.isInstanceOf(ResourceNotFoundException::class.java)
     }
 
     @Test
     fun `activate moves planned to active and rejects from other states`() {
-        whenever(repository.findById(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"))).thenReturn(Optional.of(project(ProjectStatus.PLANNED)))
-        assertThat(service.activateProject(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), orgId).status).isEqualTo(ProjectStatus.ACTIVE)
+        whenever(
+            repository.findById(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89")),
+        ).thenReturn(Optional.of(project(ProjectStatus.PLANNED)))
+        assertThat(
+            service.activateProject(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), orgId).status,
+        ).isEqualTo(ProjectStatus.ACTIVE)
 
-        whenever(repository.findById(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"))).thenReturn(Optional.of(project(ProjectStatus.CLOSED)))
-        assertThatThrownBy { service.activateProject(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), orgId) }.isInstanceOf(BusinessRuleException::class.java)
+        whenever(
+            repository.findById(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89")),
+        ).thenReturn(Optional.of(project(ProjectStatus.CLOSED)))
+        assertThatThrownBy {
+            service.activateProject(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), orgId)
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `hold requires an active project`() {
-        whenever(repository.findById(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"))).thenReturn(Optional.of(project(ProjectStatus.PLANNED)))
-        assertThatThrownBy { service.holdProject(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), orgId) }.isInstanceOf(BusinessRuleException::class.java)
+        whenever(
+            repository.findById(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89")),
+        ).thenReturn(Optional.of(project(ProjectStatus.PLANNED)))
+        assertThatThrownBy {
+            service.holdProject(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), orgId)
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `cancel rejects an already-closed project`() {
-        whenever(repository.findById(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"))).thenReturn(Optional.of(project(ProjectStatus.CLOSED)))
-        assertThatThrownBy { service.cancelProject(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), orgId) }.isInstanceOf(BusinessRuleException::class.java)
+        whenever(
+            repository.findById(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89")),
+        ).thenReturn(Optional.of(project(ProjectStatus.CLOSED)))
+        assertThatThrownBy {
+            service.cancelProject(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), orgId)
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `update changes fields and validates end date`() {
         whenever(repository.findById(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"))).thenReturn(Optional.of(project()))
-        val updated = service.updateProject(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), UpdateProjectRequest(name = "Apollo II"), orgId)
+        val updated =
+            service.updateProject(
+                java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                UpdateProjectRequest(name = "Apollo II"),
+                orgId,
+            )
         assertThat(updated.name).isEqualTo("Apollo II")
 
         whenever(repository.findById(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"))).thenReturn(Optional.of(project()))
         assertThatThrownBy {
-            service.updateProject(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), UpdateProjectRequest(endDate = start.minusDays(5)), orgId)
+            service.updateProject(
+                java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                UpdateProjectRequest(endDate = start.minusDays(5)),
+                orgId,
+            )
         }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `get rejects cross-org access`() {
-        whenever(repository.findById(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"))).thenReturn(Optional.of(project().apply { organizationId = java.util.UUID.fromString("f022a845-ae01-3e07-ae04-7fc0ffb096a8") }))
-        assertThatThrownBy { service.getProject(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), orgId) }.isInstanceOf(ResourceNotFoundException::class.java)
+        whenever(repository.findById(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"))).thenReturn(
+            Optional.of(
+                project().apply {
+                    organizationId =
+                        java.util.UUID.fromString("f022a845-ae01-3e07-ae04-7fc0ffb096a8")
+                },
+            ),
+        )
+        assertThatThrownBy {
+            service.getProject(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), orgId)
+        }.isInstanceOf(ResourceNotFoundException::class.java)
     }
 }

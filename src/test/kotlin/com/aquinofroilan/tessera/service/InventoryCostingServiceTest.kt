@@ -100,8 +100,22 @@ class InventoryCostingServiceTest {
     @Test
     fun `FIFO ISSUE consumes oldest layers first`() {
         mockOrg(InventoryCostingMethod.FIFO)
-        val older = makeLayer(BigDecimal("4"), BigDecimal("4"), BigDecimal("2"), id = java.util.UUID.fromString("336769dc-3e2c-3551-b2b1-22511f94d60f"), occurredOffsetSec = -1000)
-        val newer = makeLayer(BigDecimal("6"), BigDecimal("6"), BigDecimal("3"), id = java.util.UUID.fromString("f8a2b403-56bd-3082-89c5-e2ac4afade07"), occurredOffsetSec = 0)
+        val older =
+            makeLayer(
+                BigDecimal("4"),
+                BigDecimal("4"),
+                BigDecimal("2"),
+                id = java.util.UUID.fromString("336769dc-3e2c-3551-b2b1-22511f94d60f"),
+                occurredOffsetSec = -1000,
+            )
+        val newer =
+            makeLayer(
+                BigDecimal("6"),
+                BigDecimal("6"),
+                BigDecimal("3"),
+                id = java.util.UUID.fromString("f8a2b403-56bd-3082-89c5-e2ac4afade07"),
+                occurredOffsetSec = 0,
+            )
         `when`(
             layerRepository.findByOrganizationIdAndProductIdAndWarehouseIdOrderByOccurredAtAsc(
                 orgId,
@@ -118,8 +132,18 @@ class InventoryCostingServiceTest {
             .verify(layerRepository, org.mockito.Mockito.atLeast(2))
             .save(captor.capture())
         val saved = captor.allValues
-        assertThat(saved.first { it.id == java.util.UUID.fromString("336769dc-3e2c-3551-b2b1-22511f94d60f") }.remainingQuantity).isEqualByComparingTo("0")
-        assertThat(saved.first { it.id == java.util.UUID.fromString("f8a2b403-56bd-3082-89c5-e2ac4afade07") }.remainingQuantity).isEqualByComparingTo("5")
+        assertThat(
+            saved
+                .first {
+                    it.id == java.util.UUID.fromString("336769dc-3e2c-3551-b2b1-22511f94d60f")
+                }.remainingQuantity,
+        ).isEqualByComparingTo("0")
+        assertThat(
+            saved
+                .first {
+                    it.id == java.util.UUID.fromString("f8a2b403-56bd-3082-89c5-e2ac4afade07")
+                }.remainingQuantity,
+        ).isEqualByComparingTo("5")
     }
 
     @Test

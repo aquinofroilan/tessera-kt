@@ -1,7 +1,6 @@
 package com.aquinofroilan.tessera.dto
 
 import com.aquinofroilan.tessera.model.StockMovementType
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import java.math.BigDecimal

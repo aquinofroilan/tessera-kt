@@ -437,9 +437,16 @@ class StockMovementServiceTest {
                 occurredAt = LocalDateTime.now(),
                 createdBy = userId,
             )
-        whenever(stockMovementRepository.findById(java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"))).thenReturn(Optional.of(original))
+        whenever(
+            stockMovementRepository.findById(java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e")),
+        ).thenReturn(Optional.of(original))
 
-        val reversal = stockMovementService.reverseMovement(java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"), orgId, userId)
+        val reversal =
+            stockMovementService.reverseMovement(
+                java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"),
+                orgId,
+                userId,
+            )
 
         assertThat(reversal.type).isEqualTo(StockMovementType.ADJUSTMENT)
         assertThat(reversal.quantity).isEqualByComparingTo("-10")
@@ -465,9 +472,13 @@ class StockMovementServiceTest {
                 occurredAt = LocalDateTime.now(),
                 createdBy = userId,
             )
-        whenever(stockMovementRepository.findById(java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"))).thenReturn(Optional.of(original))
+        whenever(
+            stockMovementRepository.findById(java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e")),
+        ).thenReturn(Optional.of(original))
 
-        assertThrows<BusinessRuleException> { stockMovementService.reverseMovement(java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"), orgId, userId) }
+        assertThrows<BusinessRuleException> {
+            stockMovementService.reverseMovement(java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"), orgId, userId)
+        }
         verify(stockMovementRepository, never()).save(any<StockMovement>())
     }
 }

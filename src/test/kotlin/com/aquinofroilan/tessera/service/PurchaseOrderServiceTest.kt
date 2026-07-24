@@ -63,11 +63,27 @@ class PurchaseOrderServiceTest {
         billService = mock(BillService::class.java)
         whenever(repository.countByOrganizationId(orgId)).thenReturn(0L)
         whenever(repository.save(any<PurchaseOrder>())).thenAnswer { it.arguments[0] }
-        whenever(vendorService.getVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId)).thenReturn(Vendor(id = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), name = "Acme", organizationId = orgId))
+        whenever(
+            vendorService.getVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId),
+        ).thenReturn(Vendor(id = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), name = "Acme", organizationId = orgId))
         whenever(warehouseService.getWarehouse(java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"), orgId))
-            .thenReturn(Warehouse(id = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"), code = "MAIN", name = "Main", organizationId = orgId))
+            .thenReturn(
+                Warehouse(
+                    id = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                    code = "MAIN",
+                    name = "Main",
+                    organizationId = orgId,
+                ),
+            )
         whenever(productService.getProduct(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), orgId)).thenReturn(
-            Product(id = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), sku = "SKU-1", name = "Widget", listPrice = BigDecimal("9"), priceCurrency = "USD", organizationId = orgId),
+            Product(
+                id = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                sku = "SKU-1",
+                name = "Widget",
+                listPrice = BigDecimal("9"),
+                priceCurrency = "USD",
+                organizationId = orgId,
+            ),
         )
         service =
             PurchaseOrderService(
@@ -86,7 +102,14 @@ class PurchaseOrderServiceTest {
             vendorId = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"),
             warehouseId = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
             orderDate = LocalDate.of(2026, 5, 1),
-            lines = listOf(CreatePurchaseOrderLineRequest(productId = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), quantity = BigDecimal("10"), unitCost = BigDecimal("5"))),
+            lines =
+                listOf(
+                    CreatePurchaseOrderLineRequest(
+                        productId = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                        quantity = BigDecimal("10"),
+                        unitCost = BigDecimal("5"),
+                    ),
+                ),
         )
 
     @Test
@@ -104,7 +127,14 @@ class PurchaseOrderServiceTest {
     @Test
     fun `create rejects inactive vendor`() {
         whenever(vendorService.getVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId))
-            .thenReturn(Vendor(id = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), name = "Acme", organizationId = orgId, isActive = false))
+            .thenReturn(
+                Vendor(
+                    id = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"),
+                    name = "Acme",
+                    organizationId = orgId,
+                    isActive = false,
+                ),
+            )
 
         assertThatThrownBy { service.createPurchaseOrder(createRequest(), orgId, userId) }
             .isInstanceOf(BusinessRuleException::class.java)
@@ -119,7 +149,11 @@ class PurchaseOrderServiceTest {
 
         assertThat(received.status).isEqualTo(PurchaseOrderStatus.RECEIVED)
         verify(stockMovementService, times(1)).createMovement(
-            argThat { type == StockMovementType.RECEIPT && warehouseId == java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff") && productId == java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89") },
+            argThat {
+                type == StockMovementType.RECEIPT &&
+                    warehouseId == java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff") &&
+                    productId == java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89")
+            },
             eq(orgId),
             eq(userId),
         )

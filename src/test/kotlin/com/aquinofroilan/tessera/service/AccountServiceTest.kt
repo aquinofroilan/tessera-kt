@@ -1,7 +1,5 @@
 package com.aquinofroilan.tessera.service
 
-import java.util.UUID
-
 import com.aquinofroilan.tessera.dto.CreateAccountRequest
 import com.aquinofroilan.tessera.dto.UpdateAccountRequest
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -20,6 +18,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.springframework.dao.DuplicateKeyException
 import java.util.Optional
+import java.util.UUID
 
 class AccountServiceTest {
     private lateinit var accountService: AccountService
@@ -122,11 +121,14 @@ class AccountServiceTest {
     @Test
     fun `createAccount should throw when parent is different type`() {
         val parent =
-            createMockAccount(id = java.util.UUID.fromString("a287d498-1fce-3c08-926f-097971e137a0"),
+            createMockAccount(
+                id = java.util.UUID.fromString("a287d498-1fce-3c08-926f-097971e137a0"),
                 type = AccountType.ASSET,
                 organizationId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
             )
-        `when`(accountRepository.findById(java.util.UUID.fromString("a287d498-1fce-3c08-926f-097971e137a0"))).thenReturn(Optional.of(parent))
+        `when`(
+            accountRepository.findById(java.util.UUID.fromString("a287d498-1fce-3c08-926f-097971e137a0")),
+        ).thenReturn(Optional.of(parent))
 
         val request =
             CreateAccountRequest(
@@ -147,11 +149,14 @@ class AccountServiceTest {
     @Test
     fun `createAccount should throw when parent is different org`() {
         val parent =
-            createMockAccount(id = java.util.UUID.fromString("a287d498-1fce-3c08-926f-097971e137a0"),
+            createMockAccount(
+                id = java.util.UUID.fromString("a287d498-1fce-3c08-926f-097971e137a0"),
                 type = AccountType.ASSET,
                 organizationId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"),
             )
-        `when`(accountRepository.findById(java.util.UUID.fromString("a287d498-1fce-3c08-926f-097971e137a0"))).thenReturn(Optional.of(parent))
+        `when`(
+            accountRepository.findById(java.util.UUID.fromString("a287d498-1fce-3c08-926f-097971e137a0")),
+        ).thenReturn(Optional.of(parent))
 
         val request =
             CreateAccountRequest(
@@ -171,13 +176,26 @@ class AccountServiceTest {
 
     @Test
     fun `updateAccount should update name and description`() {
-        val existing = createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), code = "1000", name = "Cash", type = AccountType.ASSET)
-        `when`(accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))).thenReturn(Optional.of(existing))
+        val existing =
+            createMockAccount(
+                id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                code = "1000",
+                name = "Cash",
+                type = AccountType.ASSET,
+            )
+        `when`(
+            accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")),
+        ).thenReturn(Optional.of(existing))
         `when`(accountRepository.save(any<Account>())).thenAnswer { it.arguments[0] }
 
         val request = UpdateAccountRequest(name = "Updated Cash", description = "Updated desc")
 
-        val result = accountService.updateAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), request, java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
+        val result =
+            accountService.updateAccount(
+                java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                request,
+                java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+            )
 
         assertThat(result.name).isEqualTo("Updated Cash")
         assertThat(result.description).isEqualTo("Updated desc")
@@ -198,21 +216,35 @@ class AccountServiceTest {
 
         val exception =
             assertThrows<ResourceNotFoundException> {
-                accountService.updateAccount(java.util.UUID.fromString("3b29ac85-9e7e-3010-b2f4-c7ded43370d9"), request, java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
+                accountService.updateAccount(
+                    java.util.UUID.fromString("3b29ac85-9e7e-3010-b2f4-c7ded43370d9"),
+                    request,
+                    java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                )
             }
         assertThat(exception.message).isEqualTo("Account not found")
     }
 
     @Test
     fun `updateAccount should throw when wrong org`() {
-        val existing = createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), organizationId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"))
-        `when`(accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))).thenReturn(Optional.of(existing))
+        val existing =
+            createMockAccount(
+                id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                organizationId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"),
+            )
+        `when`(
+            accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")),
+        ).thenReturn(Optional.of(existing))
 
         val request = UpdateAccountRequest(name = "New Name")
 
         val exception =
             assertThrows<ResourceNotFoundException> {
-                accountService.updateAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), request, java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
+                accountService.updateAccount(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                    request,
+                    java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                )
             }
         assertThat(exception.message).isEqualTo("Account not found")
     }
@@ -220,9 +252,15 @@ class AccountServiceTest {
     @Test
     fun `getAccount should return account`() {
         val account = createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))
-        `when`(accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))).thenReturn(Optional.of(account))
+        `when`(
+            accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")),
+        ).thenReturn(Optional.of(account))
 
-        val result = accountService.getAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
+        val result =
+            accountService.getAccount(
+                java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+            )
 
         assertThat(result.id).isEqualTo(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))
         assertThat(result.organizationId).isEqualTo(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
@@ -230,12 +268,21 @@ class AccountServiceTest {
 
     @Test
     fun `getAccount should throw when wrong org`() {
-        val account = createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), organizationId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"))
-        `when`(accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))).thenReturn(Optional.of(account))
+        val account =
+            createMockAccount(
+                id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                organizationId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"),
+            )
+        `when`(
+            accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")),
+        ).thenReturn(Optional.of(account))
 
         val exception =
             assertThrows<ResourceNotFoundException> {
-                accountService.getAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
+                accountService.getAccount(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                    java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                )
             }
         assertThat(exception.message).isEqualTo("Account not found")
     }
@@ -247,9 +294,16 @@ class AccountServiceTest {
                 createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")),
                 createMockAccount(id = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"), name = "Receivables"),
             )
-        `when`(accountRepository.findByOrganizationIdAndIsActive(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), true)).thenReturn(accounts)
+        `when`(
+            accountRepository.findByOrganizationIdAndIsActive(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), true),
+        ).thenReturn(accounts)
 
-        val result = accountService.listAccounts(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), type = null, parentId = null)
+        val result =
+            accountService.listAccounts(
+                java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                type = null,
+                parentId = null,
+            )
 
         assertThat(result).hasSize(2)
         verify(accountRepository).findByOrganizationIdAndIsActive(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), true)
@@ -257,53 +311,118 @@ class AccountServiceTest {
 
     @Test
     fun `listAccounts should filter by type`() {
-        val accounts = listOf(createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), type = AccountType.EXPENSE))
+        val accounts =
+            listOf(createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), type = AccountType.EXPENSE))
         `when`(
-            accountRepository.findByOrganizationIdAndTypeAndIsActive(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), AccountType.EXPENSE, true),
+            accountRepository.findByOrganizationIdAndTypeAndIsActive(
+                java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                AccountType.EXPENSE,
+                true,
+            ),
         ).thenReturn(accounts)
 
-        val result = accountService.listAccounts(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), type = AccountType.EXPENSE, parentId = null)
+        val result =
+            accountService.listAccounts(
+                java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                type = AccountType.EXPENSE,
+                parentId = null,
+            )
 
         assertThat(result).hasSize(1)
         assertThat(result[0].type).isEqualTo(AccountType.EXPENSE)
-        verify(accountRepository).findByOrganizationIdAndTypeAndIsActive(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), AccountType.EXPENSE, true)
+        verify(
+            accountRepository,
+        ).findByOrganizationIdAndTypeAndIsActive(
+            java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+            AccountType.EXPENSE,
+            true,
+        )
     }
 
     @Test
     fun `listAccounts should filter by parentId`() {
-        val accounts = listOf(createMockAccount(id = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"), parentId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")))
+        val accounts =
+            listOf(
+                createMockAccount(
+                    id = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                    parentId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                ),
+            )
         `when`(
-            accountRepository.findByOrganizationIdAndParentIdAndIsActive(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), true),
+            accountRepository.findByOrganizationIdAndParentIdAndIsActive(
+                java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                true,
+            ),
         ).thenReturn(accounts)
 
-        val result = accountService.listAccounts(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), type = null, parentId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))
+        val result =
+            accountService.listAccounts(
+                java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                type = null,
+                parentId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+            )
 
         assertThat(result).hasSize(1)
         assertThat(result[0].parentId).isEqualTo(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))
-        verify(accountRepository).findByOrganizationIdAndParentIdAndIsActive(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), true)
+        verify(
+            accountRepository,
+        ).findByOrganizationIdAndParentIdAndIsActive(
+            java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+            java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+            true,
+        )
     }
 
     @Test
     fun `listAccounts should filter by type and parentId combined`() {
         val accounts = listOf(createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")))
         `when`(
-            accountRepository.findByOrganizationIdAndTypeAndParentIdAndIsActive(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), AccountType.ASSET, java.util.UUID.fromString("a287d498-1fce-3c08-926f-097971e137a0"), true),
+            accountRepository.findByOrganizationIdAndTypeAndParentIdAndIsActive(
+                java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                AccountType.ASSET,
+                java.util.UUID.fromString("a287d498-1fce-3c08-926f-097971e137a0"),
+                true,
+            ),
         ).thenReturn(accounts)
 
-        val result = accountService.listAccounts(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), type = AccountType.ASSET, parentId = java.util.UUID.fromString("a287d498-1fce-3c08-926f-097971e137a0"))
+        val result =
+            accountService.listAccounts(
+                java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                type = AccountType.ASSET,
+                parentId = java.util.UUID.fromString("a287d498-1fce-3c08-926f-097971e137a0"),
+            )
 
         assertThat(result).hasSize(1)
-        verify(accountRepository).findByOrganizationIdAndTypeAndParentIdAndIsActive(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), AccountType.ASSET, java.util.UUID.fromString("a287d498-1fce-3c08-926f-097971e137a0"), true)
+        verify(
+            accountRepository,
+        ).findByOrganizationIdAndTypeAndParentIdAndIsActive(
+            java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+            AccountType.ASSET,
+            java.util.UUID.fromString("a287d498-1fce-3c08-926f-097971e137a0"),
+            true,
+        )
     }
 
     @Test
     fun `deleteAccount should soft delete account`() {
         val account = createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), isSystemAccount = false)
-        `when`(accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))).thenReturn(Optional.of(account))
-        `when`(accountRepository.existsByOrganizationIdAndParentIdAndIsActive(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), true)).thenReturn(false)
+        `when`(
+            accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")),
+        ).thenReturn(Optional.of(account))
+        `when`(
+            accountRepository.existsByOrganizationIdAndParentIdAndIsActive(
+                java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                true,
+            ),
+        ).thenReturn(false)
         `when`(accountRepository.save(any<Account>())).thenAnswer { it.arguments[0] }
 
-        accountService.deleteAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
+        accountService.deleteAccount(
+            java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+            java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+        )
 
         val captor = argumentCaptor<Account>()
         verify(accountRepository).save(captor.capture())
@@ -314,11 +433,16 @@ class AccountServiceTest {
     @Test
     fun `deleteAccount should throw when system account`() {
         val account = createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), isSystemAccount = true)
-        `when`(accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))).thenReturn(Optional.of(account))
+        `when`(
+            accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")),
+        ).thenReturn(Optional.of(account))
 
         val exception =
             assertThrows<BusinessRuleException> {
-                accountService.deleteAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
+                accountService.deleteAccount(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                    java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                )
             }
         assertThat(exception.message).isEqualTo("System accounts cannot be deleted")
     }
@@ -326,12 +450,23 @@ class AccountServiceTest {
     @Test
     fun `deleteAccount should throw when has children`() {
         val account = createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), isSystemAccount = false)
-        `when`(accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))).thenReturn(Optional.of(account))
-        `when`(accountRepository.existsByOrganizationIdAndParentIdAndIsActive(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"), java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), true)).thenReturn(true)
+        `when`(
+            accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")),
+        ).thenReturn(Optional.of(account))
+        `when`(
+            accountRepository.existsByOrganizationIdAndParentIdAndIsActive(
+                java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                true,
+            ),
+        ).thenReturn(true)
 
         val exception =
             assertThrows<BusinessRuleException> {
-                accountService.deleteAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
+                accountService.deleteAccount(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                    java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                )
             }
         assertThat(exception.message).isEqualTo("Cannot delete account with child accounts")
     }

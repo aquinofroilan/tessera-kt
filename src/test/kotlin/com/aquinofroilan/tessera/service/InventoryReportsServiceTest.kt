@@ -1,7 +1,5 @@
 package com.aquinofroilan.tessera.service
 
-import java.util.UUID
-
 import com.aquinofroilan.tessera.model.StockMovement
 import com.aquinofroilan.tessera.model.StockMovementType
 import com.aquinofroilan.tessera.repository.OnHandKey
@@ -15,6 +13,7 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 class InventoryReportsServiceTest {
     private lateinit var service: InventoryReportsService
@@ -32,8 +31,16 @@ class InventoryReportsServiceTest {
     fun `stockOnHand without asOfDate delegates to live aggregator`() {
         `when`(stockMovementRepository.onHandByProductWarehouse(orgId)).thenReturn(
             mapOf(
-                OnHandKey(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")) to BigDecimal("10"),
-                OnHandKey(java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"), java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")) to BigDecimal("0"),
+                OnHandKey(
+                    java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                    java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                ) to
+                    BigDecimal("10"),
+                OnHandKey(
+                    java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"),
+                    java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                ) to
+                    BigDecimal("0"),
             ),
         )
         val report = service.stockOnHand(orgId, null, null, null)
@@ -48,7 +55,11 @@ class InventoryReportsServiceTest {
             stockMovementRepository.listMovements(eq(orgId), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), eq(asOf)),
         ).thenReturn(
             listOf(
-                movement(StockMovementType.RECEIPT, BigDecimal("10"), id = java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e")),
+                movement(
+                    StockMovementType.RECEIPT,
+                    BigDecimal("10"),
+                    id = java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"),
+                ),
                 movement(StockMovementType.ISSUE, BigDecimal("3"), id = java.util.UUID.fromString("8d955049-1fdf-3f79-9590-0a50fa1e16cb")),
                 movement(
                     StockMovementType.TRANSFER,
@@ -62,35 +73,101 @@ class InventoryReportsServiceTest {
         val report = service.stockOnHand(orgId, null, null, asOf)
         // wh-1: +10 -3 -2 = 5;  wh-2: +2 (from transfer)
         val byKey = report.lines.associate { (it.productId to it.warehouseId) to it.quantity }
-        assertThat(byKey).containsEntry((java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89") to java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")), BigDecimal("5"))
-        assertThat(byKey).containsEntry((java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89") to java.util.UUID.fromString("1d0e273c-e8f6-3c81-aa83-af17bdd332f5")), BigDecimal("2"))
+        assertThat(byKey).containsEntry(
+            (
+                java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89") to
+                    java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")
+            ),
+            BigDecimal("5"),
+        )
+        assertThat(byKey).containsEntry(
+            (
+                java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89") to
+                    java.util.UUID.fromString("1d0e273c-e8f6-3c81-aa83-af17bdd332f5")
+            ),
+            BigDecimal("2"),
+        )
     }
 
     @Test
     fun `stockOnHand applies productId and warehouseId filters`() {
         `when`(stockMovementRepository.onHandByProductWarehouse(orgId)).thenReturn(
             mapOf(
-                OnHandKey(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")) to BigDecimal("10"),
-                OnHandKey(java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"), java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")) to BigDecimal("5"),
-                OnHandKey(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), java.util.UUID.fromString("1d0e273c-e8f6-3c81-aa83-af17bdd332f5")) to BigDecimal("7"),
+                OnHandKey(
+                    java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                    java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                ) to
+                    BigDecimal("10"),
+                OnHandKey(
+                    java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"),
+                    java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                ) to
+                    BigDecimal("5"),
+                OnHandKey(
+                    java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                    java.util.UUID.fromString("1d0e273c-e8f6-3c81-aa83-af17bdd332f5"),
+                ) to
+                    BigDecimal("7"),
             ),
         )
-        val report = service.stockOnHand(orgId, productId = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), warehouseId = null, asOfDate = null)
-        assertThat(report.lines.map { it.warehouseId }).containsExactlyInAnyOrder(java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"), java.util.UUID.fromString("1d0e273c-e8f6-3c81-aa83-af17bdd332f5"))
+        val report =
+            service.stockOnHand(
+                orgId,
+                productId = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                warehouseId = null,
+                asOfDate = null,
+            )
+        assertThat(
+            report.lines.map {
+                it.warehouseId
+            },
+        ).containsExactlyInAnyOrder(
+            java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+            java.util.UUID.fromString("1d0e273c-e8f6-3c81-aa83-af17bdd332f5"),
+        )
     }
 
     @Test
     fun `movementHistory returns running balance per pair`() {
         `when`(
-            stockMovementRepository.listMovements(eq(orgId), eq(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89")), eq(java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")), anyOrNull(), anyOrNull(), anyOrNull()),
+            stockMovementRepository.listMovements(
+                eq(orgId),
+                eq(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89")),
+                eq(java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull(),
+            ),
         ).thenReturn(
             listOf(
-                movement(StockMovementType.RECEIPT, BigDecimal("10"), id = java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"), occurredOffsetSec = 0),
-                movement(StockMovementType.ISSUE, BigDecimal("3"), id = java.util.UUID.fromString("8d955049-1fdf-3f79-9590-0a50fa1e16cb"), occurredOffsetSec = 10),
-                movement(StockMovementType.RECEIPT, BigDecimal("5"), id = java.util.UUID.fromString("c576d44c-0ef7-311d-9658-92317a6a2c03"), occurredOffsetSec = 20),
+                movement(
+                    StockMovementType.RECEIPT,
+                    BigDecimal("10"),
+                    id = java.util.UUID.fromString("9e0b57e6-ae56-3955-bb0a-78763cf4171e"),
+                    occurredOffsetSec = 0,
+                ),
+                movement(
+                    StockMovementType.ISSUE,
+                    BigDecimal("3"),
+                    id = java.util.UUID.fromString("8d955049-1fdf-3f79-9590-0a50fa1e16cb"),
+                    occurredOffsetSec = 10,
+                ),
+                movement(
+                    StockMovementType.RECEIPT,
+                    BigDecimal("5"),
+                    id = java.util.UUID.fromString("c576d44c-0ef7-311d-9658-92317a6a2c03"),
+                    occurredOffsetSec = 20,
+                ),
             ),
         )
-        val history = service.movementHistory(orgId, productId = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), warehouseId = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"), from = null, to = null)
+        val history =
+            service.movementHistory(
+                orgId,
+                productId = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                warehouseId = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                from = null,
+                to = null,
+            )
         assertThat(history.lines.map { it.runningBalance.toPlainString() }).containsExactly("10", "7", "12")
     }
 

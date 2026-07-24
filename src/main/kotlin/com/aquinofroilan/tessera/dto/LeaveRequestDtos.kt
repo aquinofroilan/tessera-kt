@@ -2,7 +2,6 @@ package com.aquinofroilan.tessera.dto
 
 import com.aquinofroilan.tessera.model.LeaveRequest
 import com.aquinofroilan.tessera.model.LeaveRequestStatus
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import java.time.LocalDate
 

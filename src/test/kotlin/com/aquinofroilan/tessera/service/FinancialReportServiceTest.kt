@@ -1,7 +1,5 @@
 package com.aquinofroilan.tessera.service
 
-import java.util.UUID
-
 import com.aquinofroilan.tessera.dto.SyntheticAccountIds
 import com.aquinofroilan.tessera.dto.TrialBalanceResponse
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -21,6 +19,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 
 class FinancialReportServiceTest {
     private lateinit var service: FinancialReportService
@@ -82,9 +81,19 @@ class FinancialReportServiceTest {
         `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
             .thenReturn(listOf(revenue))
         `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, start, end))
-            .thenReturn(mapOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a") to AccountTotals(BigDecimal.ZERO, BigDecimal("1000.00"))))
+            .thenReturn(
+                mapOf(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a") to
+                        AccountTotals(BigDecimal.ZERO, BigDecimal("1000.00")),
+                ),
+            )
         `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, compareStart, compareEnd))
-            .thenReturn(mapOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a") to AccountTotals(BigDecimal.ZERO, BigDecimal("800.00"))))
+            .thenReturn(
+                mapOf(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a") to
+                        AccountTotals(BigDecimal.ZERO, BigDecimal("800.00")),
+                ),
+            )
 
         val result = service.getIncomeStatement(orgId, start, end, compareStart, compareEnd)
 

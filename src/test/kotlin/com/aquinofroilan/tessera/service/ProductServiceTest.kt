@@ -199,7 +199,9 @@ class ProductServiceTest {
     @Test
     fun `getProduct should return product when org matches`() {
         val product = createMockProduct()
-        `when`(productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"))).thenReturn(Optional.of(product))
+        `when`(
+            productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f")),
+        ).thenReturn(Optional.of(product))
 
         val result = productService.getProduct(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"), orgId)
 
@@ -219,7 +221,9 @@ class ProductServiceTest {
     @Test
     fun `getProduct should throw 404 when org does not match (cross-org isolation)`() {
         val product = createMockProduct(organizationId = otherOrgId)
-        `when`(productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"))).thenReturn(Optional.of(product))
+        `when`(
+            productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f")),
+        ).thenReturn(Optional.of(product))
 
         assertThrows<ResourceNotFoundException> {
             productService.getProduct(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"), orgId)
@@ -294,7 +298,9 @@ class ProductServiceTest {
     fun `updateProduct should perform partial update`() {
         val existing = createMockProduct()
         val updated = existing.apply { name = "Updated Widget" }
-        `when`(productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"))).thenReturn(Optional.of(existing))
+        `when`(
+            productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f")),
+        ).thenReturn(Optional.of(existing))
         mockCurrency("USD")
         `when`(productRepository.save(any<Product>())).thenReturn(updated)
 
@@ -308,7 +314,9 @@ class ProductServiceTest {
     @Test
     fun `updateProduct should throw when product inactive`() {
         val existing = createMockProduct(isActive = false)
-        `when`(productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"))).thenReturn(Optional.of(existing))
+        `when`(
+            productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f")),
+        ).thenReturn(Optional.of(existing))
 
         val request = UpdateProductRequest(name = "Updated Widget")
 
@@ -320,7 +328,9 @@ class ProductServiceTest {
     @Test
     fun `updateProduct should validate new tax group is active`() {
         val existing = createMockProduct()
-        `when`(productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"))).thenReturn(Optional.of(existing))
+        `when`(
+            productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f")),
+        ).thenReturn(Optional.of(existing))
         mockCurrency("USD")
         `when`(taxGroupService.getTaxGroup(java.util.UUID.fromString("b634f85e-352e-3c6a-98de-9237abf136c3"), orgId))
             .thenReturn(
@@ -346,7 +356,9 @@ class ProductServiceTest {
     fun `updateProduct should allow currency change`() {
         val existing = createMockProduct(priceCurrency = "USD")
         mockCurrency("EUR")
-        `when`(productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"))).thenReturn(Optional.of(existing))
+        `when`(
+            productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f")),
+        ).thenReturn(Optional.of(existing))
         val updated = existing.apply { priceCurrency = "EUR" }
         `when`(productRepository.save(any<Product>())).thenReturn(updated)
 
@@ -360,7 +372,9 @@ class ProductServiceTest {
     fun `deleteProduct should set isActive to false (soft delete)`() {
         val existing = createMockProduct(isActive = true)
         val deleted = createMockProduct(isActive = false)
-        `when`(productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"))).thenReturn(Optional.of(existing))
+        `when`(
+            productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f")),
+        ).thenReturn(Optional.of(existing))
         `when`(productRepository.save(any<Product>())).thenReturn(deleted)
 
         val result = productService.deleteProduct(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"), orgId)
@@ -371,7 +385,9 @@ class ProductServiceTest {
     @Test
     fun `deleteProduct should throw when already inactive`() {
         val existing = createMockProduct(isActive = false)
-        `when`(productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"))).thenReturn(Optional.of(existing))
+        `when`(
+            productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f")),
+        ).thenReturn(Optional.of(existing))
 
         assertThrows<BusinessRuleException> {
             productService.deleteProduct(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"), orgId)
@@ -381,7 +397,9 @@ class ProductServiceTest {
     @Test
     fun `deleteProduct should enforce cross-org isolation`() {
         val product = createMockProduct(organizationId = otherOrgId)
-        `when`(productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"))).thenReturn(Optional.of(product))
+        `when`(
+            productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f")),
+        ).thenReturn(Optional.of(product))
 
         assertThrows<ResourceNotFoundException> {
             productService.deleteProduct(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"), orgId)
@@ -444,7 +462,9 @@ class ProductServiceTest {
     @Test
     fun `updateProduct trims name when provided`() {
         val existing = createMockProduct()
-        `when`(productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"))).thenReturn(Optional.of(existing))
+        `when`(
+            productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f")),
+        ).thenReturn(Optional.of(existing))
         mockCurrency("USD")
         `when`(productRepository.save(any<Product>())).thenAnswer { it.arguments[0] }
 
@@ -457,7 +477,9 @@ class ProductServiceTest {
     @Test
     fun `updateProduct rejects blank name`() {
         val existing = createMockProduct()
-        `when`(productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f"))).thenReturn(Optional.of(existing))
+        `when`(
+            productRepository.findById(java.util.UUID.fromString("5bb2c240-6e9f-3a0e-8813-ed834a8c079f")),
+        ).thenReturn(Optional.of(existing))
 
         val request = UpdateProductRequest(name = "   ")
         assertThrows<BusinessRuleException> {

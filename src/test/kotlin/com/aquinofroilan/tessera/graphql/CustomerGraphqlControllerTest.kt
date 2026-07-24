@@ -81,15 +81,19 @@ class CustomerGraphqlControllerTest {
 
     @Test
     fun `createCustomer mutation should map input and return created customer`() {
-        `when`(customerService.createCustomer(CreateCustomerRequest(name = "Acme", paymentTermDays = 15), java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216")))
-            .thenReturn(
-                Customer(
-                    id = java.util.UUID.fromString("e9463b75-4c1b-05e7-a5e1-26e705fb5fcb"),
-                    name = "Acme",
-                    paymentTermDays = 15,
-                    organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
-                ),
-            )
+        `when`(
+            customerService.createCustomer(
+                CreateCustomerRequest(name = "Acme", paymentTermDays = 15),
+                java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
+            ),
+        ).thenReturn(
+            Customer(
+                id = java.util.UUID.fromString("e9463b75-4c1b-05e7-a5e1-26e705fb5fcb"),
+                name = "Acme",
+                paymentTermDays = 15,
+                organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
+            ),
+        )
 
         graphQlTester
             .document(

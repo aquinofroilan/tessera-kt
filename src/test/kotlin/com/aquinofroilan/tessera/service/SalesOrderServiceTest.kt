@@ -53,11 +53,29 @@ class SalesOrderServiceTest {
         invoiceService = mock(InvoiceService::class.java)
         whenever(repository.countByOrganizationId(orgId)).thenReturn(0L)
         whenever(repository.save(any<SalesOrder>())).thenAnswer { it.arguments[0] }
-        whenever(customerService.getCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), orgId)).thenReturn(Customer(id = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), name = "Buyer", organizationId = orgId))
+        whenever(
+            customerService.getCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), orgId),
+        ).thenReturn(
+            Customer(id = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), name = "Buyer", organizationId = orgId),
+        )
         whenever(warehouseService.getWarehouse(java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"), orgId))
-            .thenReturn(Warehouse(id = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"), code = "MAIN", name = "Main", organizationId = orgId))
+            .thenReturn(
+                Warehouse(
+                    id = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                    code = "MAIN",
+                    name = "Main",
+                    organizationId = orgId,
+                ),
+            )
         whenever(productService.getProduct(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), orgId)).thenReturn(
-            Product(id = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), sku = "SKU-1", name = "Widget", listPrice = BigDecimal("9"), priceCurrency = "USD", organizationId = orgId),
+            Product(
+                id = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                sku = "SKU-1",
+                name = "Widget",
+                listPrice = BigDecimal("9"),
+                priceCurrency = "USD",
+                organizationId = orgId,
+            ),
         )
         service =
             SalesOrderService(
@@ -75,7 +93,14 @@ class SalesOrderServiceTest {
             customerId = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"),
             warehouseId = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
             orderDate = LocalDate.of(2026, 5, 1),
-            lines = listOf(CreateSalesOrderLineRequest(productId = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), quantity = BigDecimal("4"), unitPrice = BigDecimal("9"))),
+            lines =
+                listOf(
+                    CreateSalesOrderLineRequest(
+                        productId = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                        quantity = BigDecimal("4"),
+                        unitPrice = BigDecimal("9"),
+                    ),
+                ),
         )
 
     @Test
@@ -97,7 +122,11 @@ class SalesOrderServiceTest {
 
         assertThat(fulfilled.status).isEqualTo(SalesOrderStatus.FULFILLED)
         verify(stockMovementService, times(1)).createMovement(
-            argThat { type == StockMovementType.ISSUE && warehouseId == java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff") && productId == java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89") },
+            argThat {
+                type == StockMovementType.ISSUE &&
+                    warehouseId == java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff") &&
+                    productId == java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89")
+            },
             eq(orgId),
             eq(userId),
         )
@@ -134,7 +163,14 @@ class SalesOrderServiceTest {
     @Test
     fun `generateInvoice invoices fulfilled quantity to the customer revenue account`() {
         whenever(customerService.getCustomer(java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), orgId))
-            .thenReturn(Customer(id = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"), name = "Buyer", organizationId = orgId, defaultRevenueAccountId = java.util.UUID.fromString("fa05fbc9-4ba3-3224-970e-34049bab227a")))
+            .thenReturn(
+                Customer(
+                    id = java.util.UUID.fromString("3fee4eba-8bd0-3b22-b897-e836ed3ce230"),
+                    name = "Buyer",
+                    organizationId = orgId,
+                    defaultRevenueAccountId = java.util.UUID.fromString("fa05fbc9-4ba3-3224-970e-34049bab227a"),
+                ),
+            )
         val fulfilled =
             service
                 .createSalesOrder(createRequest(), orgId, userId)

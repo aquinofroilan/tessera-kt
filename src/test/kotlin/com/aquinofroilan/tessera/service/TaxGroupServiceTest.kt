@@ -47,15 +47,25 @@ class TaxGroupServiceTest {
         val rate1 = createTaxRate(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), BigDecimal("4.00"))
         val rate2 = createTaxRate(java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"), BigDecimal("4.50"))
 
-        `when`(taxRateRepository.findAllById(listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"))))
-            .thenReturn(listOf(rate1, rate2))
+        `when`(
+            taxRateRepository.findAllById(
+                listOf(
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"),
+                ),
+            ),
+        ).thenReturn(listOf(rate1, rate2))
         `when`(taxGroupRepository.save(any<TaxGroup>())).thenAnswer { it.arguments[0] }
 
         val request =
             CreateTaxGroupRequest(
                 name = "NY Combined",
                 code = "NYC",
-                taxRateIds = listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), java.util.UUID.fromString("00000000-0000-0000-0000-000000000002")),
+                taxRateIds =
+                    listOf(
+                        java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                        java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"),
+                    ),
             )
 
         val result = taxGroupService.createTaxGroup(request, orgId)
@@ -86,8 +96,15 @@ class TaxGroupServiceTest {
 
     @Test
     fun `create should throw when taxRate belongs to different org`() {
-        val rate = createTaxRate(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), BigDecimal("5.00"), orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000099"))
-        `when`(taxRateRepository.findAllById(listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")))).thenReturn(listOf(rate))
+        val rate =
+            createTaxRate(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                BigDecimal("5.00"),
+                orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000099"),
+            )
+        `when`(
+            taxRateRepository.findAllById(listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))),
+        ).thenReturn(listOf(rate))
 
         val request =
             CreateTaxGroupRequest(
@@ -117,15 +134,29 @@ class TaxGroupServiceTest {
         val rate1 = createTaxRate(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), BigDecimal("4.00"))
         val rate2 = createTaxRate(java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"), BigDecimal("6.00"))
 
-        `when`(taxGroupRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"))).thenReturn(Optional.of(group))
-        `when`(taxRateRepository.findAllById(listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"))))
-            .thenReturn(listOf(rate1, rate2))
+        `when`(
+            taxGroupRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011")),
+        ).thenReturn(Optional.of(group))
+        `when`(
+            taxRateRepository.findAllById(
+                listOf(
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"),
+                ),
+            ),
+        ).thenReturn(listOf(rate1, rate2))
         `when`(taxGroupRepository.save(any<TaxGroup>())).thenAnswer { it.arguments[0] }
 
         val result =
             taxGroupService.updateTaxGroup(
                 java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"),
-                UpdateTaxGroupRequest(taxRateIds = listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"))),
+                UpdateTaxGroupRequest(
+                    taxRateIds =
+                        listOf(
+                            java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                            java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"),
+                        ),
+                ),
                 orgId,
             )
 
@@ -149,9 +180,16 @@ class TaxGroupServiceTest {
                 combinedRate = BigDecimal("8.50"),
                 organizationId = orgId,
             )
-        `when`(taxGroupRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"))).thenReturn(Optional.of(group))
+        `when`(
+            taxGroupRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011")),
+        ).thenReturn(Optional.of(group))
 
-        val result = taxGroupService.calculateTaxAmount(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"), orgId, BigDecimal("1000.00"))
+        val result =
+            taxGroupService.calculateTaxAmount(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"),
+                orgId,
+                BigDecimal("1000.00"),
+            )
 
         assertThat(result).isEqualByComparingTo(BigDecimal("85.00"))
     }
@@ -167,9 +205,16 @@ class TaxGroupServiceTest {
                 combinedRate = BigDecimal("8.333"),
                 organizationId = orgId,
             )
-        `when`(taxGroupRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"))).thenReturn(Optional.of(group))
+        `when`(
+            taxGroupRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011")),
+        ).thenReturn(Optional.of(group))
 
-        val result = taxGroupService.calculateTaxAmount(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"), orgId, BigDecimal("100.00"))
+        val result =
+            taxGroupService.calculateTaxAmount(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"),
+                orgId,
+                BigDecimal("100.00"),
+            )
 
         assertThat(result).isEqualByComparingTo(BigDecimal("8.33"))
     }
@@ -192,7 +237,9 @@ class TaxGroupServiceTest {
         val rateB = createTaxRate(idB, BigDecimal("3.00"))
         val rateC = createTaxRate(idC, BigDecimal("4.00"))
 
-        `when`(taxGroupRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"))).thenReturn(Optional.of(group))
+        `when`(
+            taxGroupRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011")),
+        ).thenReturn(Optional.of(group))
         `when`(taxRateRepository.findAllById(listOf(idC, idA, idB)))
             .thenReturn(listOf(rateA, rateB, rateC))
 
@@ -214,9 +261,12 @@ class TaxGroupServiceTest {
                 organizationId = orgId,
             )
         val rate1 = createTaxRate(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), BigDecimal("5.00"))
-        val foreignRate = createTaxRate(foreignId, BigDecimal("5.00"), orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000099"))
+        val foreignRate =
+            createTaxRate(foreignId, BigDecimal("5.00"), orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000099"))
 
-        `when`(taxGroupRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"))).thenReturn(Optional.of(group))
+        `when`(
+            taxGroupRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011")),
+        ).thenReturn(Optional.of(group))
         `when`(taxRateRepository.findAllById(listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), foreignId)))
             .thenReturn(listOf(rate1, foreignRate))
 
@@ -240,9 +290,12 @@ class TaxGroupServiceTest {
                 organizationId = orgId,
             )
         val rate1 = createTaxRate(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), BigDecimal("5.00"))
-        val foreignRate = createTaxRate(foreignId, BigDecimal("5.00"), orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000099"))
+        val foreignRate =
+            createTaxRate(foreignId, BigDecimal("5.00"), orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000099"))
 
-        `when`(taxGroupRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"))).thenReturn(Optional.of(group))
+        `when`(
+            taxGroupRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011")),
+        ).thenReturn(Optional.of(group))
         `when`(taxRateRepository.findAllById(listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), foreignId)))
             .thenReturn(listOf(rate1, foreignRate))
 
@@ -271,7 +324,9 @@ class TaxGroupServiceTest {
             )
         val rate1 = createTaxRate(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), BigDecimal("5.00"))
 
-        `when`(taxGroupRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"))).thenReturn(Optional.of(group))
+        `when`(
+            taxGroupRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011")),
+        ).thenReturn(Optional.of(group))
         `when`(taxRateRepository.findAllById(listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), missingId)))
             .thenReturn(listOf(rate1))
 
@@ -329,14 +384,21 @@ class TaxGroupServiceTest {
         `when`(
             journalEntryRepository.aggregateAccountTotals(
                 orgId,
-                listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"), java.util.UUID.fromString("00000000-0000-0000-0000-000000000022")),
+                listOf(
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000022"),
+                ),
                 startDate,
                 endDate,
             ),
         ).thenReturn(
             mapOf(
-                java.util.UUID.fromString("00000000-0000-0000-0000-000000000021") to AccountTotals(BigDecimal("0.00"), BigDecimal("400.00")),
-                java.util.UUID.fromString("00000000-0000-0000-0000-000000000022") to AccountTotals(BigDecimal("100.00"), BigDecimal("0.00")),
+                java.util.UUID.fromString(
+                    "00000000-0000-0000-0000-000000000021",
+                ) to AccountTotals(BigDecimal("0.00"), BigDecimal("400.00")),
+                java.util.UUID.fromString(
+                    "00000000-0000-0000-0000-000000000022",
+                ) to AccountTotals(BigDecimal("100.00"), BigDecimal("0.00")),
             ),
         )
 
@@ -355,8 +417,8 @@ class TaxGroupServiceTest {
         orgId: java.util.UUID = this.orgId,
     ) = TaxRate(
         id = id,
-        name = "Tax Rate ${id}",
-        code = "TR-${id}",
+        name = "Tax Rate $id",
+        code = "TR-$id",
         percentage = percentage,
         authority = "State",
         organizationId = orgId,
@@ -369,7 +431,7 @@ class TaxGroupServiceTest {
     ) = Account(
         id = id,
         code = code,
-        name = "Account ${code}",
+        name = "Account $code",
         type = type,
         organizationId = orgId,
     )

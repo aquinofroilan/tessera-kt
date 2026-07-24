@@ -169,7 +169,9 @@ class FiscalYearServiceTest {
     @Test
     fun `closePeriod should update period status to CLOSED`() {
         val fiscalYear = createFiscalYear()
-        `when`(fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"))).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
         `when`(fiscalYearRepository.save(any<FiscalYear>())).thenAnswer { it.arguments[0] }
 
         val result =
@@ -194,7 +196,9 @@ class FiscalYearServiceTest {
                         createPeriod(1, status = FiscalPeriodStatus.CLOSED),
                     ),
             )
-        `when`(fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"))).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
 
         val exception =
             assertThrows<BusinessRuleException> {
@@ -216,7 +220,9 @@ class FiscalYearServiceTest {
                 createPeriod(2, status = FiscalPeriodStatus.OPEN),
             )
         val fiscalYear = createFiscalYear(periods = periods)
-        `when`(fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"))).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
 
         val exception =
             assertThrows<BusinessRuleException> {
@@ -238,7 +244,9 @@ class FiscalYearServiceTest {
                 createPeriod(2, status = FiscalPeriodStatus.CLOSED),
             )
         val fiscalYear = createFiscalYear(periods = periods)
-        `when`(fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"))).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
         `when`(fiscalYearRepository.save(any<FiscalYear>())).thenAnswer { it.arguments[0] }
 
         val result =
@@ -262,7 +270,9 @@ class FiscalYearServiceTest {
                 createPeriod(2, status = FiscalPeriodStatus.OPEN),
             )
         val fiscalYear = createFiscalYear(periods = periods)
-        `when`(fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"))).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
 
         val exception =
             assertThrows<BusinessRuleException> {
@@ -287,7 +297,9 @@ class FiscalYearServiceTest {
                 periods = periods,
                 status = FiscalYearStatus.CLOSED,
             )
-        `when`(fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"))).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
 
         val exception =
             assertThrows<BusinessRuleException> {
@@ -309,7 +321,9 @@ class FiscalYearServiceTest {
                 createPeriod(2, status = FiscalPeriodStatus.OPEN),
             )
         val fiscalYear = createFiscalYear(periods = periods)
-        `when`(fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"))).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
 
         val exception =
             assertThrows<BusinessRuleException> {
@@ -325,7 +339,9 @@ class FiscalYearServiceTest {
                 createPeriod(1, status = FiscalPeriodStatus.CLOSED),
             )
         val fiscalYear = createFiscalYear(periods = periods)
-        `when`(fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"))).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
         `when`(fiscalYearRepository.save(any<FiscalYear>())).thenAnswer { it.arguments[0] }
         `when`(journalEntryRepository.existsByOrganizationIdAndSourceReference(orgId, "YEAR-END-CLOSE-fy-1"))
             .thenReturn(false)
@@ -469,7 +485,9 @@ class FiscalYearServiceTest {
                 createPeriod(1, status = FiscalPeriodStatus.CLOSED),
             )
         val fiscalYear = createFiscalYear(periods = periods)
-        `when`(fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"))).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
         `when`(fiscalYearRepository.save(any<FiscalYear>())).thenAnswer { it.arguments[0] }
         `when`(journalEntryRepository.existsByOrganizationIdAndSourceReference(orgId, "YEAR-END-CLOSE-fy-1"))
             .thenReturn(false)
@@ -566,7 +584,9 @@ class FiscalYearServiceTest {
                 createPeriod(1, status = FiscalPeriodStatus.CLOSED),
             )
         val fiscalYear = createFiscalYear(periods = periods)
-        `when`(fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"))).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
         `when`(fiscalYearRepository.save(any<FiscalYear>())).thenAnswer { it.arguments[0] }
         `when`(journalEntryRepository.existsByOrganizationIdAndSourceReference(orgId, "YEAR-END-CLOSE-fy-1"))
             .thenReturn(false)

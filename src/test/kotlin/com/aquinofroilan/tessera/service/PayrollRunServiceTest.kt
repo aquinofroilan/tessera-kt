@@ -72,7 +72,13 @@ class PayrollRunServiceTest {
     }
 
     private fun account(code: String) =
-        Account(id = java.util.UUID.fromString("ae92ad4d-a711-3aa4-9401-800b5a2fdac2"), code = code, name = "Account $code", type = AccountType.EXPENSE, organizationId = orgId)
+        Account(
+            id = java.util.UUID.fromString("ae92ad4d-a711-3aa4-9401-800b5a2fdac2"),
+            code = code,
+            name = "Account $code",
+            type = AccountType.EXPENSE,
+            organizationId = orgId,
+        )
 
     private fun draftRun() =
         PayrollRun(
@@ -149,10 +155,20 @@ class PayrollRunServiceTest {
         val e1 = employee(java.util.UUID.fromString("afd0b036-625a-3aa8-b639-9dc8c8fff0ff"))
         val e2 = employee(java.util.UUID.fromString("9c45c2f1-1761-3daa-ad31-1ff8703ae846"))
         whenever(employeeService.listEmployees(orgId, EmploymentStatus.ACTIVE, null)).thenReturn(listOf(e1, e2))
-        whenever(compensationService.currentCompensationOrNull(eq(java.util.UUID.fromString("afd0b036-625a-3aa8-b639-9dc8c8fff0ff")), eq(orgId), any()))
-            .thenReturn(comp(java.util.UUID.randomUUID(), "120000", PayPeriod.ANNUAL)) // → 10000/mo
-        whenever(compensationService.currentCompensationOrNull(eq(java.util.UUID.fromString("9c45c2f1-1761-3daa-ad31-1ff8703ae846")), eq(orgId), any()))
-            .thenReturn(comp(java.util.UUID.randomUUID(), "5000", PayPeriod.MONTHLY)) // → 5000/mo
+        whenever(
+            compensationService.currentCompensationOrNull(
+                eq(java.util.UUID.fromString("afd0b036-625a-3aa8-b639-9dc8c8fff0ff")),
+                eq(orgId),
+                any(),
+            ),
+        ).thenReturn(comp(java.util.UUID.randomUUID(), "120000", PayPeriod.ANNUAL)) // → 10000/mo
+        whenever(
+            compensationService.currentCompensationOrNull(
+                eq(java.util.UUID.fromString("9c45c2f1-1761-3daa-ad31-1ff8703ae846")),
+                eq(orgId),
+                any(),
+            ),
+        ).thenReturn(comp(java.util.UUID.randomUUID(), "5000", PayPeriod.MONTHLY)) // → 5000/mo
 
         val run = service.createPayrollRun(request(), orgId, java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"))
 
@@ -167,10 +183,20 @@ class PayrollRunServiceTest {
         val e1 = employee(java.util.UUID.fromString("afd0b036-625a-3aa8-b639-9dc8c8fff0ff"))
         val e2 = employee(java.util.UUID.fromString("9c45c2f1-1761-3daa-ad31-1ff8703ae846"))
         whenever(employeeService.listEmployees(orgId, EmploymentStatus.ACTIVE, null)).thenReturn(listOf(e1, e2))
-        whenever(compensationService.currentCompensationOrNull(eq(java.util.UUID.fromString("afd0b036-625a-3aa8-b639-9dc8c8fff0ff")), eq(orgId), any()))
-            .thenReturn(comp(java.util.UUID.randomUUID(), "8000", PayPeriod.MONTHLY, currency = "EUR")) // skipped (currency)
-        whenever(compensationService.currentCompensationOrNull(eq(java.util.UUID.fromString("9c45c2f1-1761-3daa-ad31-1ff8703ae846")), eq(orgId), any()))
-            .thenReturn(comp(java.util.UUID.randomUUID(), "50", PayPeriod.HOURLY)) // skipped (hourly)
+        whenever(
+            compensationService.currentCompensationOrNull(
+                eq(java.util.UUID.fromString("afd0b036-625a-3aa8-b639-9dc8c8fff0ff")),
+                eq(orgId),
+                any(),
+            ),
+        ).thenReturn(comp(java.util.UUID.randomUUID(), "8000", PayPeriod.MONTHLY, currency = "EUR")) // skipped (currency)
+        whenever(
+            compensationService.currentCompensationOrNull(
+                eq(java.util.UUID.fromString("9c45c2f1-1761-3daa-ad31-1ff8703ae846")),
+                eq(orgId),
+                any(),
+            ),
+        ).thenReturn(comp(java.util.UUID.randomUUID(), "50", PayPeriod.HOURLY)) // skipped (hourly)
 
         assertThatThrownBy { service.createPayrollRun(request(), orgId, java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb")) }
             .isInstanceOf(BusinessRuleException::class.java)
@@ -184,7 +210,12 @@ class PayrollRunServiceTest {
         whenever(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
             .thenReturn(mock(JournalEntry::class.java))
 
-        val approved = service.approvePayrollRun(java.util.UUID.fromString("01cdc64c-d62f-3b43-8b91-1dd0193edcac"), orgId, java.util.UUID.fromString("339851d6-a2ee-38e3-9908-6d48907f4a92"))
+        val approved =
+            service.approvePayrollRun(
+                java.util.UUID.fromString("01cdc64c-d62f-3b43-8b91-1dd0193edcac"),
+                orgId,
+                java.util.UUID.fromString("339851d6-a2ee-38e3-9908-6d48907f4a92"),
+            )
 
         assertThat(approved.status).isEqualTo(PayrollRunStatus.APPROVED)
         val captor = argumentCaptor<List<JournalEntryLine>>()
@@ -203,7 +234,12 @@ class PayrollRunServiceTest {
         whenever(journalEntryService.createSystemEntry(any(), any(), any(), any(), any(), any()))
             .thenReturn(mock(JournalEntry::class.java))
 
-        val paid = service.payPayrollRun(java.util.UUID.fromString("01cdc64c-d62f-3b43-8b91-1dd0193edcac"), orgId, java.util.UUID.fromString("339851d6-a2ee-38e3-9908-6d48907f4a92"))
+        val paid =
+            service.payPayrollRun(
+                java.util.UUID.fromString("01cdc64c-d62f-3b43-8b91-1dd0193edcac"),
+                orgId,
+                java.util.UUID.fromString("339851d6-a2ee-38e3-9908-6d48907f4a92"),
+            )
 
         assertThat(paid.status).isEqualTo(PayrollRunStatus.PAID)
         val captor = argumentCaptor<List<JournalEntryLine>>()
@@ -215,7 +251,14 @@ class PayrollRunServiceTest {
 
     @Test
     fun `cannot cancel an approved run`() {
-        whenever(repository.findById(java.util.UUID.fromString("01cdc64c-d62f-3b43-8b91-1dd0193edcac"))).thenReturn(Optional.of(draftRun().apply { status = PayrollRunStatus.APPROVED }))
+        whenever(repository.findById(java.util.UUID.fromString("01cdc64c-d62f-3b43-8b91-1dd0193edcac"))).thenReturn(
+            Optional.of(
+                draftRun().apply {
+                    status =
+                        PayrollRunStatus.APPROVED
+                },
+            ),
+        )
         assertThatThrownBy { service.cancelPayrollRun(java.util.UUID.fromString("01cdc64c-d62f-3b43-8b91-1dd0193edcac"), orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }

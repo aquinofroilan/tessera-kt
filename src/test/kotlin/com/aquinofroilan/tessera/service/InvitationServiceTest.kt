@@ -1,7 +1,5 @@
 package com.aquinofroilan.tessera.service
 
-import java.util.UUID
-
 import com.aquinofroilan.tessera.dto.AcceptInvitationRequest
 import com.aquinofroilan.tessera.dto.CreateInvitationRequest
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -35,6 +33,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.Optional
+import java.util.UUID
 
 class InvitationServiceTest {
     private lateinit var invitationService: InvitationService
@@ -252,7 +251,13 @@ class InvitationServiceTest {
                 lastName = "User",
                 passwordHash = "hash",
                 organizationId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"),
-                roleAssignments = listOf(RoleAssignment("fd77e00b-9d47-330b-92f4-a64820025f7d", java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))),
+                roleAssignments =
+                    listOf(
+                        RoleAssignment(
+                            "fd77e00b-9d47-330b-92f4-a64820025f7d",
+                            java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                        ),
+                    ),
             )
 
         `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
@@ -365,8 +370,13 @@ class InvitationServiceTest {
     fun `listInvitations should return pending invitations for org`() {
         val invitations = listOf(createMockInvitation(), createMockInvitation(email = "other@example.com"))
 
-        `when`(invitationRepository.findByOrganizationIdAndStatusAndExpiryAtAfter(eq(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")), eq(InvitationStatus.PENDING), any()))
-            .thenReturn(invitations)
+        `when`(
+            invitationRepository.findByOrganizationIdAndStatusAndExpiryAtAfter(
+                eq(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")),
+                eq(InvitationStatus.PENDING),
+                any(),
+            ),
+        ).thenReturn(invitations)
 
         val result = invitationService.listInvitations(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
 
@@ -382,7 +392,13 @@ class InvitationServiceTest {
             lastName = "User",
             passwordHash = "hash",
             organizationId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
-            roleAssignments = listOf(RoleAssignment("fd77e00b-9d47-330b-92f4-a64820025f7d", java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))),
+            roleAssignments =
+                listOf(
+                    RoleAssignment(
+                        "fd77e00b-9d47-330b-92f4-a64820025f7d",
+                        java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                    ),
+                ),
         )
 
     private fun createMockInvitation(

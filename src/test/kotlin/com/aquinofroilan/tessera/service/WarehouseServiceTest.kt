@@ -98,7 +98,9 @@ class WarehouseServiceTest {
     @Test
     fun `getWarehouse should return warehouse when org matches`() {
         val warehouse = createMockWarehouse()
-        `when`(warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"))).thenReturn(Optional.of(warehouse))
+        `when`(
+            warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd")),
+        ).thenReturn(Optional.of(warehouse))
 
         val result = warehouseService.getWarehouse(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"), orgId)
 
@@ -118,7 +120,9 @@ class WarehouseServiceTest {
     @Test
     fun `getWarehouse should enforce cross-org isolation`() {
         val warehouse = createMockWarehouse(organizationId = otherOrgId)
-        `when`(warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"))).thenReturn(Optional.of(warehouse))
+        `when`(
+            warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd")),
+        ).thenReturn(Optional.of(warehouse))
 
         assertThrows<ResourceNotFoundException> {
             warehouseService.getWarehouse(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"), orgId)
@@ -162,7 +166,9 @@ class WarehouseServiceTest {
     fun `updateWarehouse should perform partial update`() {
         val existing = createMockWarehouse()
         val updated = existing.apply { name = "Renamed Warehouse" }
-        `when`(warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"))).thenReturn(Optional.of(existing))
+        `when`(
+            warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd")),
+        ).thenReturn(Optional.of(existing))
         `when`(warehouseRepository.save(any<Warehouse>())).thenReturn(updated)
 
         val request = UpdateWarehouseRequest(name = "Renamed Warehouse")
@@ -176,7 +182,9 @@ class WarehouseServiceTest {
     fun `updateWarehouse should allow toggling allowNegativeStock`() {
         val existing = createMockWarehouse(allowNegativeStock = false)
         val updated = existing.apply { allowNegativeStock = true }
-        `when`(warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"))).thenReturn(Optional.of(existing))
+        `when`(
+            warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd")),
+        ).thenReturn(Optional.of(existing))
         `when`(warehouseRepository.save(any<Warehouse>())).thenReturn(updated)
 
         val request = UpdateWarehouseRequest(allowNegativeStock = true)
@@ -188,10 +196,16 @@ class WarehouseServiceTest {
     @Test
     fun `updateWarehouse should throw when warehouse inactive`() {
         val existing = createMockWarehouse(isActive = false)
-        `when`(warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"))).thenReturn(Optional.of(existing))
+        `when`(
+            warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd")),
+        ).thenReturn(Optional.of(existing))
 
         assertThrows<BusinessRuleException> {
-            warehouseService.updateWarehouse(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"), UpdateWarehouseRequest(name = "X"), orgId)
+            warehouseService.updateWarehouse(
+                java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"),
+                UpdateWarehouseRequest(name = "X"),
+                orgId,
+            )
         }
     }
 
@@ -199,7 +213,9 @@ class WarehouseServiceTest {
     fun `deleteWarehouse should set isActive to false (soft delete)`() {
         val existing = createMockWarehouse(isActive = true)
         val deleted = createMockWarehouse(isActive = false)
-        `when`(warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"))).thenReturn(Optional.of(existing))
+        `when`(
+            warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd")),
+        ).thenReturn(Optional.of(existing))
         `when`(warehouseRepository.save(any<Warehouse>())).thenReturn(deleted)
 
         val result = warehouseService.deleteWarehouse(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"), orgId)
@@ -210,7 +226,9 @@ class WarehouseServiceTest {
     @Test
     fun `deleteWarehouse should throw when already inactive`() {
         val existing = createMockWarehouse(isActive = false)
-        `when`(warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"))).thenReturn(Optional.of(existing))
+        `when`(
+            warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd")),
+        ).thenReturn(Optional.of(existing))
 
         assertThrows<BusinessRuleException> {
             warehouseService.deleteWarehouse(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"), orgId)
@@ -220,7 +238,9 @@ class WarehouseServiceTest {
     @Test
     fun `deleteWarehouse should enforce cross-org isolation`() {
         val warehouse = createMockWarehouse(organizationId = otherOrgId)
-        `when`(warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"))).thenReturn(Optional.of(warehouse))
+        `when`(
+            warehouseRepository.findById(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd")),
+        ).thenReturn(Optional.of(warehouse))
 
         assertThrows<ResourceNotFoundException> {
             warehouseService.deleteWarehouse(java.util.UUID.fromString("8b11c117-b443-30a0-8fa7-63d123d9d6fd"), orgId)

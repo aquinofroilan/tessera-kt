@@ -80,12 +80,22 @@ class TaxRateServiceTest {
 
         `when`(taxRateRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(rate))
         `when`(taxRateRepository.save(any<TaxRate>())).thenReturn(updatedRate)
-        `when`(taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(orgId, java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")))
-            .thenReturn(listOf(group))
-        `when`(taxRateRepository.findAllById(listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")))).thenReturn(listOf(updatedRate))
+        `when`(
+            taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(
+                orgId,
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+            ),
+        ).thenReturn(listOf(group))
+        `when`(
+            taxRateRepository.findAllById(listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))),
+        ).thenReturn(listOf(updatedRate))
         `when`(taxGroupRepository.save(any<TaxGroup>())).thenAnswer { it.arguments[0] }
 
-        taxRateService.updateTaxRate(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), UpdateTaxRateRequest(percentage = BigDecimal("10.00")), orgId)
+        taxRateService.updateTaxRate(
+            java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+            UpdateTaxRateRequest(percentage = BigDecimal("10.00")),
+            orgId,
+        )
 
         verify(taxGroupRepository).save(any<TaxGroup>())
     }
@@ -107,8 +117,12 @@ class TaxRateServiceTest {
 
         `when`(taxRateRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(rate))
         `when`(taxRateRepository.save(any<TaxRate>())).thenReturn(updatedRate)
-        `when`(taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(orgId, java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")))
-            .thenReturn(listOf(group))
+        `when`(
+            taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(
+                orgId,
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+            ),
+        ).thenReturn(listOf(group))
         `when`(taxRateRepository.findAllById(listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), orphanId)))
             .thenReturn(listOf(updatedRate))
 
@@ -137,8 +151,12 @@ class TaxRateServiceTest {
             )
 
         `when`(taxRateRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(rate))
-        `when`(taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(orgId, java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")))
-            .thenReturn(listOf(activeGroup))
+        `when`(
+            taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(
+                orgId,
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+            ),
+        ).thenReturn(listOf(activeGroup))
 
         val exception =
             assertThrows<BusinessRuleException> {
@@ -152,8 +170,12 @@ class TaxRateServiceTest {
         val rate = createTaxRate()
 
         `when`(taxRateRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(rate))
-        `when`(taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(orgId, java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")))
-            .thenReturn(emptyList())
+        `when`(
+            taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(
+                orgId,
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+            ),
+        ).thenReturn(emptyList())
         `when`(taxRateRepository.save(any<TaxRate>())).thenAnswer { it.arguments[0] }
 
         val result = taxRateService.deleteTaxRate(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), orgId)

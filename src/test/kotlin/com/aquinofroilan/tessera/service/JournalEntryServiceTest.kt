@@ -1,7 +1,5 @@
 package com.aquinofroilan.tessera.service
 
-import java.util.UUID
-
 import com.aquinofroilan.tessera.dto.CreateJournalEntryRequest
 import com.aquinofroilan.tessera.dto.JournalEntryLineRequest
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -28,6 +26,7 @@ import org.mockito.kotlin.doThrow
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Optional
+import java.util.UUID
 
 class JournalEntryServiceTest {
     private lateinit var journalEntryService: JournalEntryService
@@ -56,10 +55,31 @@ class JournalEntryServiceTest {
 
     @Test
     fun `create should save balanced journal entry as DRAFT`() {
-        val cashAccount = createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), code = "1000", name = "Cash", type = AccountType.ASSET, orgId = orgId)
-        val revenueAccount = createMockAccount(id = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"), code = "4000", name = "Revenue", type = AccountType.REVENUE, orgId = orgId)
+        val cashAccount =
+            createMockAccount(
+                id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                code = "1000",
+                name = "Cash",
+                type = AccountType.ASSET,
+                orgId = orgId,
+            )
+        val revenueAccount =
+            createMockAccount(
+                id = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                code = "4000",
+                name = "Revenue",
+                type = AccountType.REVENUE,
+                orgId = orgId,
+            )
 
-        `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec")))).thenReturn(listOf(cashAccount, revenueAccount))
+        `when`(
+            accountRepository.findAllById(
+                listOf(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                    java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                ),
+            ),
+        ).thenReturn(listOf(cashAccount, revenueAccount))
         `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(0L)
         `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
 
@@ -69,8 +89,16 @@ class JournalEntryServiceTest {
                 description = "Sale received",
                 lines =
                     listOf(
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), debit = BigDecimal("100.00"), credit = BigDecimal.ZERO),
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"), debit = BigDecimal.ZERO, credit = BigDecimal("100.00")),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal("100.00"),
+                        ),
                     ),
             )
 
@@ -98,7 +126,11 @@ class JournalEntryServiceTest {
                 description = "Bad entry",
                 lines =
                     listOf(
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), debit = BigDecimal("100.00"), credit = BigDecimal.ZERO),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
                     ),
             )
 
@@ -117,8 +149,16 @@ class JournalEntryServiceTest {
                 description = "Bad entry",
                 lines =
                     listOf(
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), debit = BigDecimal("100.00"), credit = BigDecimal("50.00")),
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"), debit = BigDecimal.ZERO, credit = BigDecimal("50.00")),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal("50.00"),
+                        ),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal("50.00"),
+                        ),
                     ),
             )
 
@@ -137,8 +177,16 @@ class JournalEntryServiceTest {
                 description = "Bad entry",
                 lines =
                     listOf(
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), debit = BigDecimal.ZERO, credit = BigDecimal.ZERO),
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"), debit = BigDecimal("100.00"), credit = BigDecimal.ZERO),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal.ZERO,
+                        ),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
                     ),
             )
 
@@ -157,8 +205,16 @@ class JournalEntryServiceTest {
                 description = "Unbalanced entry",
                 lines =
                     listOf(
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), debit = BigDecimal("100.00"), credit = BigDecimal.ZERO),
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"), debit = BigDecimal.ZERO, credit = BigDecimal("50.00")),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal("50.00"),
+                        ),
                     ),
             )
 
@@ -171,8 +227,23 @@ class JournalEntryServiceTest {
 
     @Test
     fun `create should throw when account not found`() {
-        `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), java.util.UUID.fromString("f9f4cccd-5a62-3777-8b70-12a8106bfcd4")))).thenReturn(
-            listOf(createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), code = "1000", name = "Cash", type = AccountType.ASSET, orgId = orgId)),
+        `when`(
+            accountRepository.findAllById(
+                listOf(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                    java.util.UUID.fromString("f9f4cccd-5a62-3777-8b70-12a8106bfcd4"),
+                ),
+            ),
+        ).thenReturn(
+            listOf(
+                createMockAccount(
+                    id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                    code = "1000",
+                    name = "Cash",
+                    type = AccountType.ASSET,
+                    orgId = orgId,
+                ),
+            ),
         )
 
         val request =
@@ -181,8 +252,16 @@ class JournalEntryServiceTest {
                 description = "Missing account",
                 lines =
                     listOf(
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), debit = BigDecimal("100.00"), credit = BigDecimal.ZERO),
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("f9f4cccd-5a62-3777-8b70-12a8106bfcd4"), debit = BigDecimal.ZERO, credit = BigDecimal("100.00")),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("f9f4cccd-5a62-3777-8b70-12a8106bfcd4"),
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal("100.00"),
+                        ),
                     ),
             )
 
@@ -203,9 +282,23 @@ class JournalEntryServiceTest {
                 type = AccountType.REVENUE,
                 orgId = orgId,
             ).apply { isActive = false }
-        val cashAccount = createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), code = "1000", name = "Cash", type = AccountType.ASSET, orgId = orgId)
+        val cashAccount =
+            createMockAccount(
+                id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                code = "1000",
+                name = "Cash",
+                type = AccountType.ASSET,
+                orgId = orgId,
+            )
 
-        `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec")))).thenReturn(listOf(cashAccount, inactiveAccount))
+        `when`(
+            accountRepository.findAllById(
+                listOf(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                    java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                ),
+            ),
+        ).thenReturn(listOf(cashAccount, inactiveAccount))
 
         val request =
             CreateJournalEntryRequest(
@@ -213,8 +306,16 @@ class JournalEntryServiceTest {
                 description = "Inactive account entry",
                 lines =
                     listOf(
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), debit = BigDecimal("100.00"), credit = BigDecimal.ZERO),
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"), debit = BigDecimal.ZERO, credit = BigDecimal("100.00")),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal("100.00"),
+                        ),
                     ),
             )
 
@@ -227,11 +328,31 @@ class JournalEntryServiceTest {
 
     @Test
     fun `create should throw when account is in different org`() {
-        val cashAccount = createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), code = "1000", name = "Cash", type = AccountType.ASSET, orgId = orgId)
+        val cashAccount =
+            createMockAccount(
+                id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                code = "1000",
+                name = "Cash",
+                type = AccountType.ASSET,
+                orgId = orgId,
+            )
         val otherOrgAccount =
-            createMockAccount(id = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"), code = "1000", name = "Cash", type = AccountType.REVENUE, orgId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"))
+            createMockAccount(
+                id = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                code = "1000",
+                name = "Cash",
+                type = AccountType.REVENUE,
+                orgId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"),
+            )
 
-        `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec")))).thenReturn(listOf(cashAccount, otherOrgAccount))
+        `when`(
+            accountRepository.findAllById(
+                listOf(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                    java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                ),
+            ),
+        ).thenReturn(listOf(cashAccount, otherOrgAccount))
 
         val request =
             CreateJournalEntryRequest(
@@ -239,8 +360,16 @@ class JournalEntryServiceTest {
                 description = "Wrong org entry",
                 lines =
                     listOf(
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), debit = BigDecimal("100.00"), credit = BigDecimal.ZERO),
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"), debit = BigDecimal.ZERO, credit = BigDecimal("100.00")),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal("100.00"),
+                        ),
                     ),
             )
 
@@ -253,10 +382,31 @@ class JournalEntryServiceTest {
 
     @Test
     fun `create should generate sequential entry number`() {
-        val cashAccount = createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), code = "1000", name = "Cash", type = AccountType.ASSET, orgId = orgId)
-        val revenueAccount = createMockAccount(id = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"), code = "4000", name = "Revenue", type = AccountType.REVENUE, orgId = orgId)
+        val cashAccount =
+            createMockAccount(
+                id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                code = "1000",
+                name = "Cash",
+                type = AccountType.ASSET,
+                orgId = orgId,
+            )
+        val revenueAccount =
+            createMockAccount(
+                id = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                code = "4000",
+                name = "Revenue",
+                type = AccountType.REVENUE,
+                orgId = orgId,
+            )
 
-        `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec")))).thenReturn(listOf(cashAccount, revenueAccount))
+        `when`(
+            accountRepository.findAllById(
+                listOf(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                    java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                ),
+            ),
+        ).thenReturn(listOf(cashAccount, revenueAccount))
         `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(5L)
         `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
 
@@ -266,8 +416,16 @@ class JournalEntryServiceTest {
                 description = "Sequential test",
                 lines =
                     listOf(
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), debit = BigDecimal("100.00"), credit = BigDecimal.ZERO),
-                        JournalEntryLineRequest(accountId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"), debit = BigDecimal.ZERO, credit = BigDecimal("100.00")),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            debit = BigDecimal("100.00"),
+                            credit = BigDecimal.ZERO,
+                        ),
+                        JournalEntryLineRequest(
+                            accountId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                            debit = BigDecimal.ZERO,
+                            credit = BigDecimal("100.00"),
+                        ),
                     ),
             )
 
@@ -303,7 +461,9 @@ class JournalEntryServiceTest {
                 orgId = orgId,
             )
 
-        `when`(journalEntryRepository.findById(java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22"))).thenReturn(Optional.of(draftEntry))
+        `when`(
+            journalEntryRepository.findById(java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22")),
+        ).thenReturn(Optional.of(draftEntry))
         `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
 
         val result = journalEntryService.postJournalEntry(java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22"), orgId)
@@ -343,7 +503,9 @@ class JournalEntryServiceTest {
                 orgId = orgId,
             )
 
-        `when`(journalEntryRepository.findById(java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22"))).thenReturn(Optional.of(postedEntry))
+        `when`(
+            journalEntryRepository.findById(java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22")),
+        ).thenReturn(Optional.of(postedEntry))
 
         val exception =
             assertThrows<BusinessRuleException> {
@@ -379,11 +541,18 @@ class JournalEntryServiceTest {
                 orgId = orgId,
             )
 
-        `when`(journalEntryRepository.findById(java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22"))).thenReturn(Optional.of(postedEntry))
+        `when`(
+            journalEntryRepository.findById(java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22")),
+        ).thenReturn(Optional.of(postedEntry))
         `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(1L)
         `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
 
-        val result = journalEntryService.voidJournalEntry(java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22"), orgId, "Incorrect amount")
+        val result =
+            journalEntryService.voidJournalEntry(
+                java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22"),
+                orgId,
+                "Incorrect amount",
+            )
 
         assertThat(result.status).isEqualTo(JournalEntryStatus.VOIDED)
         assertThat(result.voidedAt).isNotNull()
@@ -435,21 +604,47 @@ class JournalEntryServiceTest {
                 orgId = orgId,
             )
 
-        `when`(journalEntryRepository.findById(java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22"))).thenReturn(Optional.of(draftEntry))
+        `when`(
+            journalEntryRepository.findById(java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22")),
+        ).thenReturn(Optional.of(draftEntry))
 
         val exception =
             assertThrows<BusinessRuleException> {
-                journalEntryService.voidJournalEntry(java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22"), orgId, "Some reason")
+                journalEntryService.voidJournalEntry(
+                    java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22"),
+                    orgId,
+                    "Some reason",
+                )
             }
         assertThat(exception.message).contains("Only posted entries can be voided")
     }
 
     @Test
     fun `getAccountBalance should sum debits and credits from posted entries`() {
-        val account = createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), code = "1000", name = "Cash", type = AccountType.ASSET, orgId = orgId)
-        `when`(accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))).thenReturn(Optional.of(account))
-        `when`(journalEntryRepository.aggregateAccountTotals(orgId, listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")), null, null))
-            .thenReturn(mapOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a") to AccountTotals(BigDecimal("500.00"), BigDecimal("150.00"))))
+        val account =
+            createMockAccount(
+                id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                code = "1000",
+                name = "Cash",
+                type = AccountType.ASSET,
+                orgId = orgId,
+            )
+        `when`(
+            accountRepository.findById(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")),
+        ).thenReturn(Optional.of(account))
+        `when`(
+            journalEntryRepository.aggregateAccountTotals(
+                orgId,
+                listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")),
+                null,
+                null,
+            ),
+        ).thenReturn(
+            mapOf(
+                java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a") to
+                    AccountTotals(BigDecimal("500.00"), BigDecimal("150.00")),
+            ),
+        )
 
         val result = journalEntryService.getAccountBalance(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), orgId)
 
@@ -464,17 +659,42 @@ class JournalEntryServiceTest {
 
     @Test
     fun `getTrialBalance should return all account balances`() {
-        val cashAccount = createMockAccount(id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), code = "1000", name = "Cash", type = AccountType.ASSET, orgId = orgId)
-        val revenueAccount = createMockAccount(id = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"), code = "4000", name = "Revenue", type = AccountType.REVENUE, orgId = orgId)
+        val cashAccount =
+            createMockAccount(
+                id = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                code = "1000",
+                name = "Cash",
+                type = AccountType.ASSET,
+                orgId = orgId,
+            )
+        val revenueAccount =
+            createMockAccount(
+                id = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                code = "4000",
+                name = "Revenue",
+                type = AccountType.REVENUE,
+                orgId = orgId,
+            )
 
         `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(listOf(cashAccount, revenueAccount))
-        `when`(journalEntryRepository.aggregateAccountTotals(orgId, listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec")), null, null))
-            .thenReturn(
-                mapOf(
-                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a") to AccountTotals(BigDecimal("300.00"), BigDecimal.ZERO),
-                    java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec") to AccountTotals(BigDecimal.ZERO, BigDecimal("300.00")),
+        `when`(
+            journalEntryRepository.aggregateAccountTotals(
+                orgId,
+                listOf(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                    java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
                 ),
-            )
+                null,
+                null,
+            ),
+        ).thenReturn(
+            mapOf(
+                java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a") to
+                    AccountTotals(BigDecimal("300.00"), BigDecimal.ZERO),
+                java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec") to
+                    AccountTotals(BigDecimal.ZERO, BigDecimal("300.00")),
+            ),
+        )
 
         val result = journalEntryService.getTrialBalance(orgId)
 
@@ -513,8 +733,14 @@ class JournalEntryServiceTest {
                 orgId = orgId,
             )
 
-        `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"))))
-            .thenReturn(listOf(cashAccount, revenueAccount))
+        `when`(
+            accountRepository.findAllById(
+                listOf(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                    java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                ),
+            ),
+        ).thenReturn(listOf(cashAccount, revenueAccount))
         `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(0L)
         `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
 
@@ -560,8 +786,14 @@ class JournalEntryServiceTest {
                 orgId = orgId,
             )
 
-        `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"))))
-            .thenReturn(listOf(cashAccount, revenueAccount))
+        `when`(
+            accountRepository.findAllById(
+                listOf(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                    java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                ),
+            ),
+        ).thenReturn(listOf(cashAccount, revenueAccount))
         doThrow(BusinessRuleException("Fiscal period 'January 2026' is closed"))
             .`when`(fiscalYearService)
             .validatePeriodOpen(orgId, LocalDate.of(2026, 1, 15))
@@ -610,8 +842,14 @@ class JournalEntryServiceTest {
                 type = AccountType.REVENUE,
                 orgId = orgId,
             )
-        `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"))))
-            .thenReturn(listOf(cashAccount, revenueAccount))
+        `when`(
+            accountRepository.findAllById(
+                listOf(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                    java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec"),
+                ),
+            ),
+        ).thenReturn(listOf(cashAccount, revenueAccount))
         `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(0L)
         `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
 
@@ -665,7 +903,9 @@ class JournalEntryServiceTest {
                 orgId = orgId,
             )
 
-        `when`(journalEntryRepository.findById(java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22"))).thenReturn(Optional.of(entry))
+        `when`(
+            journalEntryRepository.findById(java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22")),
+        ).thenReturn(Optional.of(entry))
         doThrow(BusinessRuleException("Fiscal period 'January 2026' is closed"))
             .`when`(fiscalYearService)
             .validatePeriodOpen(orgId, LocalDate.of(2026, 1, 15))

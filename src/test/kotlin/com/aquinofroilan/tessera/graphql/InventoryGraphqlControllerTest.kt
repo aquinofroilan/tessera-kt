@@ -56,7 +56,16 @@ class InventoryGraphqlControllerTest {
     @WithMockUser(authorities = ["inventory:read"])
     fun `products query should return json payload`() {
         `when`(productController.listProducts(null, true, null))
-            .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "p1", "sku" to java.util.UUID.fromString("318e4195-194f-e73c-1e71-d2d29630c151")))))
+            .thenReturn(
+                ResponseEntity.ok(
+                    listOf(
+                        mapOf(
+                            "id" to "p1",
+                            "sku" to java.util.UUID.fromString("318e4195-194f-e73c-1e71-d2d29630c151"),
+                        ),
+                    ),
+                ),
+            )
 
         graphQlTester
             .document(

@@ -59,11 +59,24 @@ class EmployeeServiceTest {
     @Test
     fun `create validates an inactive department`() {
         whenever(departmentService.getDepartment(java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"), orgId))
-            .thenReturn(Department(id = java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"), code = "ENG", name = "Engineering", organizationId = orgId, isActive = false))
+            .thenReturn(
+                Department(
+                    id = java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"),
+                    code = "ENG",
+                    name = "Engineering",
+                    organizationId = orgId,
+                    isActive = false,
+                ),
+            )
 
         assertThatThrownBy {
             service.createEmployee(
-                CreateEmployeeRequest(firstName = "Ada", lastName = "Lovelace", departmentId = java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"), hireDate = hireDate),
+                CreateEmployeeRequest(
+                    firstName = "Ada",
+                    lastName = "Lovelace",
+                    departmentId = java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"),
+                    hireDate = hireDate,
+                ),
                 orgId,
             )
         }.isInstanceOf(BusinessRuleException::class.java)
@@ -72,43 +85,77 @@ class EmployeeServiceTest {
     @Test
     fun `leave and return follow the lifecycle`() {
         whenever(repository.findById(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"))).thenReturn(Optional.of(employee()))
-        assertThat(service.placeOnLeave(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"), orgId).status).isEqualTo(EmploymentStatus.ON_LEAVE)
+        assertThat(
+            service.placeOnLeave(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"), orgId).status,
+        ).isEqualTo(EmploymentStatus.ON_LEAVE)
 
-        whenever(repository.findById(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"))).thenReturn(Optional.of(employee(status = EmploymentStatus.ON_LEAVE)))
-        assertThat(service.returnFromLeave(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"), orgId).status).isEqualTo(EmploymentStatus.ACTIVE)
+        whenever(
+            repository.findById(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4")),
+        ).thenReturn(Optional.of(employee(status = EmploymentStatus.ON_LEAVE)))
+        assertThat(
+            service.returnFromLeave(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"), orgId).status,
+        ).isEqualTo(EmploymentStatus.ACTIVE)
     }
 
     @Test
     fun `cannot place a terminated employee on leave`() {
-        whenever(repository.findById(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"))).thenReturn(Optional.of(employee(status = EmploymentStatus.TERMINATED)))
-        assertThatThrownBy { service.placeOnLeave(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"), orgId) }.isInstanceOf(BusinessRuleException::class.java)
+        whenever(
+            repository.findById(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4")),
+        ).thenReturn(Optional.of(employee(status = EmploymentStatus.TERMINATED)))
+        assertThatThrownBy {
+            service.placeOnLeave(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"), orgId)
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `terminate sets status and date and rejects a date before hire`() {
         whenever(repository.findById(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"))).thenReturn(Optional.of(employee()))
-        val terminated = service.terminate(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"), LocalDate.of(2026, 6, 30), orgId)
+        val terminated =
+            service.terminate(
+                java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"),
+                LocalDate.of(2026, 6, 30),
+                orgId,
+            )
         assertThat(terminated.status).isEqualTo(EmploymentStatus.TERMINATED)
         assertThat(terminated.terminationDate).isEqualTo(LocalDate.of(2026, 6, 30))
 
         whenever(repository.findById(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"))).thenReturn(Optional.of(employee()))
-        assertThatThrownBy { service.terminate(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"), LocalDate.of(2025, 1, 1), orgId) }
-            .isInstanceOf(BusinessRuleException::class.java)
+        assertThatThrownBy {
+            service.terminate(
+                java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"),
+                LocalDate.of(2025, 1, 1),
+                orgId,
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `assign department rejects a terminated employee`() {
-        whenever(repository.findById(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"))).thenReturn(Optional.of(employee(status = EmploymentStatus.TERMINATED)))
-        assertThatThrownBy { service.assignDepartment(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"), java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"), orgId) }
-            .isInstanceOf(BusinessRuleException::class.java)
+        whenever(
+            repository.findById(java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4")),
+        ).thenReturn(Optional.of(employee(status = EmploymentStatus.TERMINATED)))
+        assertThatThrownBy {
+            service.assignDepartment(
+                java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4"),
+                java.util.UUID.fromString("67fcd632-bb89-3160-94c2-9367eb55276c"),
+                orgId,
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `create links a user`() {
-        whenever(repository.findByOrganizationIdAndUserId(orgId, java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"))).thenReturn(Optional.empty())
+        whenever(
+            repository.findByOrganizationIdAndUserId(orgId, java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb")),
+        ).thenReturn(Optional.empty())
         val emp =
             service.createEmployee(
-                CreateEmployeeRequest(firstName = "Ada", lastName = "Lovelace", hireDate = hireDate, userId = java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb")),
+                CreateEmployeeRequest(
+                    firstName = "Ada",
+                    lastName = "Lovelace",
+                    hireDate = hireDate,
+                    userId = java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"),
+                ),
                 orgId,
             )
         assertThat(emp.userId).isEqualTo(java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"))
@@ -120,7 +167,12 @@ class EmployeeServiceTest {
             .thenReturn(Optional.of(employee(id = java.util.UUID.fromString("f022a845-ae01-3e07-ae04-7fc0ffb096a8"))))
         assertThatThrownBy {
             service.createEmployee(
-                CreateEmployeeRequest(firstName = "Ada", lastName = "Lovelace", hireDate = hireDate, userId = java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb")),
+                CreateEmployeeRequest(
+                    firstName = "Ada",
+                    lastName = "Lovelace",
+                    hireDate = hireDate,
+                    userId = java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"),
+                ),
                 orgId,
             )
         }.isInstanceOf(BusinessRuleException::class.java)
@@ -128,10 +180,16 @@ class EmployeeServiceTest {
 
     @Test
     fun `getEmployeeByUser resolves the linked employee or throws`() {
-        whenever(repository.findByOrganizationIdAndUserId(orgId, java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"))).thenReturn(Optional.of(employee()))
-        assertThat(service.getEmployeeByUser(java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"), orgId).id).isEqualTo(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))
+        whenever(
+            repository.findByOrganizationIdAndUserId(orgId, java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb")),
+        ).thenReturn(Optional.of(employee()))
+        assertThat(
+            service.getEmployeeByUser(java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"), orgId).id,
+        ).isEqualTo(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))
 
-        whenever(repository.findByOrganizationIdAndUserId(orgId, java.util.UUID.fromString("731b3177-ae56-32b2-9b3b-f13f4cde1ee2"))).thenReturn(Optional.empty())
+        whenever(
+            repository.findByOrganizationIdAndUserId(orgId, java.util.UUID.fromString("731b3177-ae56-32b2-9b3b-f13f4cde1ee2")),
+        ).thenReturn(Optional.empty())
         assertThatThrownBy { service.getEmployeeByUser(java.util.UUID.fromString("731b3177-ae56-32b2-9b3b-f13f4cde1ee2"), orgId) }
             .isInstanceOf(ResourceNotFoundException::class.java)
     }

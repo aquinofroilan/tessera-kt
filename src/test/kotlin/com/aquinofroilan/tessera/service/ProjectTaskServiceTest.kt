@@ -64,40 +64,81 @@ class ProjectTaskServiceTest {
     fun `create with a parent validates the parent is in the same project`() {
         whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000999"))).thenReturn(Optional.empty())
         assertThatThrownBy {
-            service.createTask(projectId, CreateProjectTaskRequest(name = "Sub", parentTaskId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000999")), orgId)
+            service.createTask(
+                projectId,
+                CreateProjectTaskRequest(name = "Sub", parentTaskId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000999")),
+                orgId,
+            )
         }.isInstanceOf(ResourceNotFoundException::class.java)
     }
 
     @Test
     fun `setParent rejects self-parenting`() {
-        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))))
-        assertThatThrownBy { service.setParent(projectId, java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), orgId) }
-            .isInstanceOf(BusinessRuleException::class.java)
+        whenever(
+            repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")),
+        ).thenReturn(Optional.of(task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))))
+        assertThatThrownBy {
+            service.setParent(
+                projectId,
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                orgId,
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `setParent rejects a descendant cycle`() {
         val t1 = task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))
-        val t2 = task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"), parent = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))
+        val t2 =
+            task(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"),
+                parent = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+            )
         whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(t1))
         whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"))).thenReturn(Optional.of(t2))
         whenever(repository.findByOrganizationIdAndProjectId(orgId, projectId)).thenReturn(listOf(t1, t2))
 
-        assertThatThrownBy { service.setParent(projectId, java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"), orgId) }
-            .isInstanceOf(BusinessRuleException::class.java)
+        assertThatThrownBy {
+            service.setParent(
+                projectId,
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"),
+                orgId,
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `setParent clears the parent when null`() {
-        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"))).thenReturn(Optional.of(task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"), parent = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))))
-        assertThat(service.setParent(projectId, java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"), null, orgId).parentTaskId).isNull()
+        whenever(
+            repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000002")),
+        ).thenReturn(
+            Optional.of(
+                task(
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"),
+                    parent = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                ),
+            ),
+        )
+        assertThat(
+            service.setParent(projectId, java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"), null, orgId).parentTaskId,
+        ).isNull()
     }
 
     @Test
     fun `task tree nests children under roots`() {
         val root = task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))
-        val child = task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"), parent = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))
-        val grandchild = task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000003"), parent = java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"))
+        val child =
+            task(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"),
+                parent = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+            )
+        val grandchild =
+            task(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000003"),
+                parent = java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"),
+            )
         whenever(repository.findByOrganizationIdAndProjectId(orgId, projectId)).thenReturn(listOf(child, root, grandchild))
 
         val tree = service.getTaskTree(projectId, orgId)
@@ -110,15 +151,27 @@ class ProjectTaskServiceTest {
 
     @Test
     fun `get rejects a task from another project`() {
-        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), project = java.util.UUID.randomUUID())))
+        whenever(
+            repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")),
+        ).thenReturn(
+            Optional.of(task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), project = java.util.UUID.randomUUID())),
+        )
         assertThatThrownBy { service.getTask(projectId, java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), orgId) }
             .isInstanceOf(ResourceNotFoundException::class.java)
     }
 
     @Test
     fun `update changes status`() {
-        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))))
-        val updated = service.updateTask(projectId, java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), UpdateProjectTaskRequest(status = TaskStatus.DONE), orgId)
+        whenever(
+            repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")),
+        ).thenReturn(Optional.of(task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))))
+        val updated =
+            service.updateTask(
+                projectId,
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                UpdateProjectTaskRequest(status = TaskStatus.DONE),
+                orgId,
+            )
         assertThat(updated.status).isEqualTo(TaskStatus.DONE)
     }
 }

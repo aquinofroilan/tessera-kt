@@ -2,7 +2,6 @@ package com.aquinofroilan.tessera.dto
 
 import com.aquinofroilan.tessera.model.AttendanceRecord
 import com.aquinofroilan.tessera.model.AttendanceStatus
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import java.time.LocalDate
 import java.time.LocalDateTime

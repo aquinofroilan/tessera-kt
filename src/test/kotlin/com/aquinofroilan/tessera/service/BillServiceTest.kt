@@ -1,7 +1,5 @@
 package com.aquinofroilan.tessera.service
 
-import java.util.UUID
-
 import com.aquinofroilan.tessera.dto.BillLineRequest
 import com.aquinofroilan.tessera.dto.CreateBillRequest
 import com.aquinofroilan.tessera.dto.RecordPaymentRequest
@@ -37,6 +35,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.Optional
+import java.util.UUID
 
 class BillServiceTest {
     private lateinit var billService: BillService
@@ -100,7 +99,8 @@ class BillServiceTest {
     @Test
     fun `create should save bill as DRAFT with correct total`() {
         val vendor = createVendor()
-        val expenseAccount = createAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), "5000", "Office Supplies", AccountType.EXPENSE)
+        val expenseAccount =
+            createAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), "5000", "Office Supplies", AccountType.EXPENSE)
 
         `when`(vendorService.getVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId)).thenReturn(vendor)
         `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))))
@@ -115,7 +115,10 @@ class BillServiceTest {
                 dueDate = LocalDate.of(2026, 3, 31),
                 lines =
                     listOf(
-                        BillLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), amount = BigDecimal("250.00")),
+                        BillLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            amount = BigDecimal("250.00"),
+                        ),
                     ),
             )
 
@@ -142,7 +145,10 @@ class BillServiceTest {
                 dueDate = LocalDate.of(2026, 3, 31),
                 lines =
                     listOf(
-                        BillLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), amount = BigDecimal("100.00")),
+                        BillLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            amount = BigDecimal("100.00"),
+                        ),
                     ),
             )
 
@@ -199,7 +205,8 @@ class BillServiceTest {
 
     @Test
     fun `void should void journal entry for approved bill`() {
-        val bill = createBill(status = BillStatus.APPROVED, journalEntryId = java.util.UUID.fromString("dea446cc-a162-314e-a549-c9aa550c0496"))
+        val bill =
+            createBill(status = BillStatus.APPROVED, journalEntryId = java.util.UUID.fromString("dea446cc-a162-314e-a549-c9aa550c0496"))
         val voidedEntry =
             JournalEntry(
                 id = java.util.UUID.fromString("dea446cc-a162-314e-a549-c9aa550c0496"),
@@ -405,7 +412,8 @@ class BillServiceTest {
     @Test
     fun `create with taxGroupId should compute and store tax`() {
         val vendor = createVendor()
-        val expenseAccount = createAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), "5000", "Office Supplies", AccountType.EXPENSE)
+        val expenseAccount =
+            createAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), "5000", "Office Supplies", AccountType.EXPENSE)
 
         `when`(vendorService.getVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId)).thenReturn(vendor)
         `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))))
@@ -421,7 +429,13 @@ class BillServiceTest {
                 date = LocalDate.of(2026, 3, 1),
                 dueDate = LocalDate.of(2026, 3, 31),
                 taxGroupId = java.util.UUID.fromString("7fc85de2-2162-3dcd-9d2d-78e80e0d10c6"),
-                lines = listOf(BillLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), amount = BigDecimal("500.00"))),
+                lines =
+                    listOf(
+                        BillLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            amount = BigDecimal("500.00"),
+                        ),
+                    ),
             )
 
         val result = billService.createBill(request, orgId, userId)
@@ -562,10 +576,13 @@ class BillServiceTest {
     @Test
     fun `create in foreign currency should lock rate and compute baseCurrencyAmount`() {
         val vendor = createVendor()
-        val expenseAccount = createAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), "5000", "Office Supplies", AccountType.EXPENSE)
+        val expenseAccount =
+            createAccount(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), "5000", "Office Supplies", AccountType.EXPENSE)
 
         `when`(vendorService.getVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId)).thenReturn(vendor)
-        `when`(accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")))).thenReturn(listOf(expenseAccount))
+        `when`(
+            accountRepository.findAllById(listOf(java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"))),
+        ).thenReturn(listOf(expenseAccount))
         `when`(billRepository.countByOrganizationId(orgId)).thenReturn(0L)
         `when`(billRepository.save(any<Bill>())).thenAnswer { it.arguments[0] }
         `when`(exchangeRateService.getRate(orgId, "PHP", "USD", LocalDate.of(2026, 3, 1)))
@@ -577,7 +594,13 @@ class BillServiceTest {
                 date = LocalDate.of(2026, 3, 1),
                 dueDate = LocalDate.of(2026, 3, 31),
                 currencyCode = "PHP",
-                lines = listOf(BillLineRequest(accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"), amount = BigDecimal("10000.00"))),
+                lines =
+                    listOf(
+                        BillLineRequest(
+                            accountId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a"),
+                            amount = BigDecimal("10000.00"),
+                        ),
+                    ),
             )
 
         val result = billService.createBill(request, orgId, userId)
