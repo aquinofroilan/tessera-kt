@@ -40,7 +40,7 @@ class StockOnHandConcurrencyIT {
               (uuid, org_slug, name, legal_name, trade_name, base_currency,
                fiscal_year_start, timezone, status, inventory_costing_method,
                is_active, created_at)
-            VALUES (?::uuid, ?, ?, ?, ?, 'USD', current_timestamp, 'UTC',
+            VALUES (?, ?, ?, ?, ?, 'USD', current_timestamp, 'UTC',
                     'ACTIVE', 'WEIGHTED_AVERAGE', true, current_timestamp)
             """.trimIndent(),
             orgId,
@@ -54,7 +54,7 @@ class StockOnHandConcurrencyIT {
             INSERT INTO products
               (id, sku, name, list_price, price_currency, organization_id,
                is_active, created_at)
-            VALUES (?::uuid, ?, ?, 0, 'USD', ?::uuid, true, current_timestamp)
+            VALUES (?, ?, ?, 0, 'USD', ?, true, current_timestamp)
             """.trimIndent(),
             productId,
             "sku-$productId",
@@ -66,7 +66,7 @@ class StockOnHandConcurrencyIT {
             INSERT INTO warehouses
               (id, code, name, allow_negative_stock, organization_id, is_active,
                created_at)
-            VALUES (?::uuid, ?, ?, false, ?::uuid, true, current_timestamp)
+            VALUES (?, ?, ?, false, ?, true, current_timestamp)
             """.trimIndent(),
             warehouseId,
             "code-$warehouseId",
@@ -76,7 +76,7 @@ class StockOnHandConcurrencyIT {
         jdbcTemplate.update(
             """
             INSERT INTO stock_on_hand (id, organization_id, product_id, warehouse_id, quantity, created_at)
-            VALUES (?::uuid, ?::uuid, ?::uuid, ?::uuid, ?, current_timestamp)
+            VALUES (?, ?, ?, ?, ?, current_timestamp)
             """.trimIndent(),
             UUID.randomUUID(),
             orgId,
@@ -88,10 +88,10 @@ class StockOnHandConcurrencyIT {
 
     @AfterEach
     fun cleanup() {
-        jdbcTemplate.update("DELETE FROM stock_on_hand WHERE organization_id = ?::uuid", orgId)
-        jdbcTemplate.update("DELETE FROM warehouses WHERE organization_id = ?::uuid", orgId)
-        jdbcTemplate.update("DELETE FROM products WHERE organization_id = ?::uuid", orgId)
-        jdbcTemplate.update("DELETE FROM organizations WHERE uuid = ?::uuid", orgId)
+        jdbcTemplate.update("DELETE FROM stock_on_hand WHERE organization_id = ?", orgId)
+        jdbcTemplate.update("DELETE FROM warehouses WHERE organization_id = ?", orgId)
+        jdbcTemplate.update("DELETE FROM products WHERE organization_id = ?", orgId)
+        jdbcTemplate.update("DELETE FROM organizations WHERE uuid = ?", orgId)
     }
 
     @Test
@@ -184,7 +184,7 @@ class StockOnHandConcurrencyIT {
             INSERT INTO products
               (id, sku, name, list_price, price_currency, organization_id,
                is_active, created_at)
-            VALUES (?::uuid, ?, ?, 0, 'USD', ?::uuid, true, current_timestamp)
+            VALUES (?, ?, ?, 0, 'USD', ?, true, current_timestamp)
             """.trimIndent(),
             pid,
             "sku-$pid",
