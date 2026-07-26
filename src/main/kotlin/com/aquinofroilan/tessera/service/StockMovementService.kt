@@ -74,8 +74,8 @@ class StockMovementService(
     @Transactional
     fun createMovementCapturingCost(
         request: CreateStockMovementRequest,
-        organizationId: String,
-        userId: String,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): Pair<StockMovement, BigDecimal> {
         val type = request.type ?: throw BusinessRuleException("Movement type is required")
         val quantity = request.quantity ?: throw BusinessRuleException("Quantity is required")

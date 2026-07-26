@@ -56,14 +56,14 @@ class WorkOrderExecutionService(
                         stockMovementService.createMovementCapturingCost(
                             CreateStockMovementRequest(
                                 type = StockMovementType.WIP_ISSUE,
-                                productId = component.componentProductId,
-                                warehouseId = wo.sourceWarehouseId,
+                                productId = java.util.UUID.fromString(component.componentProductId),
+                                warehouseId = java.util.UUID.fromString(wo.sourceWarehouseId),
                                 quantity = qty,
                                 reference = "WO-${wo.woNumber}-ISSUE",
                                 notes = request.notes,
                             ),
-                            organizationId,
-                            userId,
+                            java.util.UUID.fromString(organizationId),
+                            java.util.UUID.fromString(userId),
                         )
                     val idx = mutable.indexOfFirst { it.id == component.id }
                     mutable[idx] =
@@ -117,15 +117,15 @@ class WorkOrderExecutionService(
                 stockMovementService.createMovementCapturingCost(
                     CreateStockMovementRequest(
                         type = StockMovementType.WIP_RECEIPT,
-                        productId = wo.productId,
-                        warehouseId = wo.targetWarehouseId,
+                        productId = java.util.UUID.fromString(wo.productId),
+                        warehouseId = java.util.UUID.fromString(wo.targetWarehouseId),
                         quantity = completed,
                         unitCost = unitCost,
                         reference = "WO-${wo.woNumber}-COMPLETE",
                         notes = request.notes,
                     ),
-                    organizationId,
-                    userId,
+                    java.util.UUID.fromString(organizationId),
+                    java.util.UUID.fromString(userId),
                 )
             receiptCost = cost
         }

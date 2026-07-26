@@ -6,6 +6,7 @@ import com.aquinofroilan.tessera.dto.CreateWorkOrderRequest
 import com.aquinofroilan.tessera.dto.WorkOrderResponse
 import com.aquinofroilan.tessera.model.WorkOrderStatus
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.service.WorkOrderExecutionService
 import com.aquinofroilan.tessera.service.WorkOrderService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus

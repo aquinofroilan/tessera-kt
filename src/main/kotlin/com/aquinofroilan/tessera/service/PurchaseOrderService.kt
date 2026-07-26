@@ -160,7 +160,7 @@ class PurchaseOrderService(
                     .associate { it.id to it.quantity.subtract(it.receivedQuantity) }
                     .filterValues { it.signum() > 0 }
             } else {
-                request.lines!!.associate { it.lineId to (it.quantity ?: throw BusinessRuleException("Quantity is required")) }
+                request!!.lines.associate { it.lineId to (it.quantity ?: throw BusinessRuleException("Quantity is required")) }
             }
         requested.keys.forEach { if (it !in byId) throw BusinessRuleException("Unknown purchase order line '$it'") }
         if (requested.isEmpty()) {
@@ -216,7 +216,7 @@ class PurchaseOrderService(
                     .associate { it.id to (it.receivedQuantity.subtract(it.billedQuantity) to null as BigDecimal?) }
                     .filterValues { it.first.signum() > 0 }
             } else {
-                request.lines!!.associate {
+                request!!.lines.associate {
                     it.lineId to ((it.quantity ?: throw BusinessRuleException("Quantity is required")) to it.unitCost)
                 }
             }
