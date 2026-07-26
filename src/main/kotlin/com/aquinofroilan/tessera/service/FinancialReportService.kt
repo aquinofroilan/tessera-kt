@@ -22,7 +22,7 @@ class FinancialReportService(
     private val journalEntryService: JournalEntryService,
 ) {
     fun getComparativeTrialBalance(
-        organizationId: String,
+        organizationId: java.util.UUID,
         asOfDate: LocalDate?,
         compareAsOfDate: LocalDate?,
     ) = ComparativeTrialBalanceResponse(
@@ -31,7 +31,7 @@ class FinancialReportService(
     )
 
     fun getIncomeStatement(
-        organizationId: String,
+        organizationId: java.util.UUID,
         startDate: LocalDate,
         endDate: LocalDate,
         compareStartDate: LocalDate? = null,
@@ -99,7 +99,7 @@ class FinancialReportService(
     }
 
     fun getBalanceSheet(
-        organizationId: String,
+        organizationId: java.util.UUID,
         asOfDate: LocalDate,
         compareAsOfDate: LocalDate? = null,
     ): BalanceSheetResponse {
@@ -116,7 +116,7 @@ class FinancialReportService(
 
         val earningsLine =
             ReportAccountLine(
-                accountId = SyntheticAccountIds.CURRENT_PERIOD_EARNINGS,
+                accountId = SyntheticAccountIds.CURRENT_PERIOD_EARNINGS_ID,
                 accountCode = SyntheticAccountIds.CURRENT_PERIOD_EARNINGS,
                 accountName = "Current Period Earnings",
                 amount = currentEarnings,
@@ -169,7 +169,7 @@ class FinancialReportService(
 
     private fun computeCurrentEarnings(
         accounts: List<Account>,
-        totals: Map<String, Pair<BigDecimal, BigDecimal>>,
+        totals: Map<java.util.UUID, Pair<BigDecimal, BigDecimal>>,
     ): BigDecimal {
         var earnings = BigDecimal.ZERO
         accounts
@@ -190,8 +190,8 @@ class FinancialReportService(
     private fun buildLines(
         accounts: List<Account>,
         type: AccountType,
-        current: Map<String, Pair<BigDecimal, BigDecimal>>,
-        comparative: Map<String, Pair<BigDecimal, BigDecimal>>?,
+        current: Map<java.util.UUID, Pair<BigDecimal, BigDecimal>>,
+        comparative: Map<java.util.UUID, Pair<BigDecimal, BigDecimal>>?,
     ): List<ReportAccountLine> =
         accounts
             .filter { it.type == type }
@@ -213,10 +213,10 @@ class FinancialReportService(
             }.sortedBy { it.accountCode }
 
     private fun computePeriodTotals(
-        organizationId: String,
+        organizationId: java.util.UUID,
         startDate: LocalDate?,
         endDate: LocalDate,
-    ): Map<String, Pair<BigDecimal, BigDecimal>> =
+    ): Map<java.util.UUID, Pair<BigDecimal, BigDecimal>> =
         journalEntryRepository
             .aggregateAccountTotals(organizationId, null, startDate, endDate)
             .mapValues { (_, totals) -> totals.totalDebits to totals.totalCredits }

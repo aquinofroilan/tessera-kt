@@ -23,27 +23,27 @@ enum class PayPeriod {
 @Entity
 @Table(name = "employee_compensation")
 @EntityListeners(AuditingEntityListener::class)
-data class EmployeeCompensation(
+class EmployeeCompensation(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "employee_id", columnDefinition = "uuid")
-    val employeeId: String,
+    var employeeId: java.util.UUID,
     @Column(name = "position_id", columnDefinition = "uuid")
-    val positionId: String? = null,
+    var positionId: java.util.UUID? = null,
     @Column(name = "pay_rate")
-    val payRate: BigDecimal,
-    val currency: String,
+    var payRate: BigDecimal,
+    var currency: String,
     @Enumerated(EnumType.STRING)
     @Column(name = "pay_period")
-    val payPeriod: PayPeriod,
+    var payPeriod: PayPeriod,
     @Column(name = "effective_date")
-    val effectiveDate: LocalDate,
+    var effectiveDate: LocalDate,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    var createdBy: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
-    val createdAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime? = null,
 )

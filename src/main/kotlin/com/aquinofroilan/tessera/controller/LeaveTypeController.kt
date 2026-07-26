@@ -49,7 +49,7 @@ class LeaveTypeController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:read')")
     fun getLeaveType(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(LeaveTypeResponse.from(leaveTypeService.getLeaveType(id, orgId)))
@@ -58,7 +58,7 @@ class LeaveTypeController(
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:write')")
     fun updateLeaveType(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateLeaveTypeRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -68,7 +68,7 @@ class LeaveTypeController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:write')")
     fun deactivateLeaveType(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(LeaveTypeResponse.from(leaveTypeService.deactivateLeaveType(id, orgId)))

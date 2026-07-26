@@ -11,22 +11,22 @@ data class AccountTotals(
 
 interface JournalEntryAggregations {
     fun aggregateAccountTotals(
-        organizationId: String,
-        accountIds: Collection<String>?,
+        organizationId: java.util.UUID,
+        accountIds: Collection<java.util.UUID>?,
         startDate: LocalDate?,
         endDate: LocalDate?,
-    ): Map<String, AccountTotals>
+    ): Map<java.util.UUID, AccountTotals>
 }
 
 open class JournalEntryAggregationsImpl(
     private val jdbc: JdbcTemplate,
 ) : JournalEntryAggregations {
     override fun aggregateAccountTotals(
-        organizationId: String,
-        accountIds: Collection<String>?,
+        organizationId: java.util.UUID,
+        accountIds: Collection<java.util.UUID>?,
         startDate: LocalDate?,
         endDate: LocalDate?,
-    ): Map<String, AccountTotals> {
+    ): Map<java.util.UUID, AccountTotals> {
         if (accountIds != null && accountIds.isEmpty()) {
             return emptyMap()
         }
@@ -63,9 +63,9 @@ open class JournalEntryAggregationsImpl(
                 append(" GROUP BY l.account_id")
             }
 
-        val totals = mutableMapOf<String, AccountTotals>()
+        val totals = mutableMapOf<java.util.UUID, AccountTotals>()
         jdbc.query(sql, { rs ->
-            val accountId = rs.getString("account_id")
+            val accountId = java.util.UUID.fromString(rs.getString("account_id"))
             val debits = rs.getBigDecimal("total_debits") ?: BigDecimal.ZERO
             val credits = rs.getBigDecimal("total_credits") ?: BigDecimal.ZERO
             totals[accountId] = AccountTotals(debits, credits)

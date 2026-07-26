@@ -52,7 +52,7 @@ jobs:
 
       - name: Run Tests
         env:
-          DATABASE_URL: jdbc:postgresql://localhost:5432/tessera_test
+          DATABASE_URL: jdbc:postgresql://localhost:5432/tessera_test?currentSchema=tessera_test
           DATABASE_USERNAME: tessera
           DATABASE_PASSWORD: tessera
           JWT_SECRET: test-secret-key-for-ci-cd
@@ -60,7 +60,7 @@ jobs:
 
       - name: Start Application and Health Check
         env:
-          DATABASE_URL: jdbc:postgresql://localhost:5432/tessera_test
+          DATABASE_URL: jdbc:postgresql://localhost:5432/tessera_test?currentSchema=tessera_test
           DATABASE_USERNAME: tessera
           DATABASE_PASSWORD: tessera
           JWT_SECRET: test-secret-key-for-ci-cd

@@ -36,7 +36,7 @@ class BillOfMaterialsController(
         @Valid @RequestBody request: CreateBomRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val bom = bomService.createBom(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(BomResponse.from(bom))
     }
@@ -45,7 +45,7 @@ class BillOfMaterialsController(
     @PreAuthorize("hasAuthority('mfg:read')")
     fun list(
         @RequestParam(required = false) status: String?,
-        @RequestParam(required = false) productId: String?,
+        @RequestParam(required = false) productId: java.util.UUID?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val parsed =
@@ -65,7 +65,7 @@ class BillOfMaterialsController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:read')")
     fun get(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(BomResponse.from(bomService.getBom(id, orgId)))
@@ -74,7 +74,7 @@ class BillOfMaterialsController(
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun update(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateBomRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -84,28 +84,28 @@ class BillOfMaterialsController(
     @PostMapping("/{id}/activate")
     @PreAuthorize("hasAuthority('mfg:approve')")
     fun activate(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @RequestParam(required = false, defaultValue = "false") makeDefault: Boolean,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         return ResponseEntity.ok(BomResponse.from(bomService.activateBom(id, orgId, userId, makeDefault)))
     }
 
     @PostMapping("/{id}/obsolete")
     @PreAuthorize("hasAuthority('mfg:approve')")
     fun obsolete(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         return ResponseEntity.ok(BomResponse.from(bomService.obsoleteBom(id, orgId, userId)))
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun delete(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         bomService.deleteBom(id, orgId)

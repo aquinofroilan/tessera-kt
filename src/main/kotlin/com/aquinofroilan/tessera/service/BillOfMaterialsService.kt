@@ -23,8 +23,8 @@ class BillOfMaterialsService(
     @Transactional
     fun createBom(
         request: CreateBomRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): BillOfMaterials {
         val parent = productService.getProduct(request.productId, organizationId)
         if (!parent.isActive) {
@@ -58,8 +58,8 @@ class BillOfMaterialsService(
     }
 
     fun getBom(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): BillOfMaterials {
         val bom =
             bomRepository.findById(id).orElseThrow {
@@ -72,9 +72,9 @@ class BillOfMaterialsService(
     }
 
     fun listBoms(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: BomStatus?,
-        productId: String?,
+        productId: java.util.UUID?,
     ): List<BillOfMaterials> =
         when {
             status != null && productId != null ->
@@ -86,9 +86,9 @@ class BillOfMaterialsService(
 
     @Transactional
     fun updateBom(
-        id: String,
+        id: java.util.UUID,
         request: UpdateBomRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): BillOfMaterials {
         val bom = getBom(id, organizationId)
         if (bom.status != BomStatus.DRAFT) {
@@ -113,9 +113,9 @@ class BillOfMaterialsService(
 
     @Transactional
     fun activateBom(
-        id: String,
-        organizationId: String,
-        userId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
         makeDefault: Boolean,
     ): BillOfMaterials {
         val bom = getBom(id, organizationId)
@@ -146,9 +146,9 @@ class BillOfMaterialsService(
 
     @Transactional
     fun obsoleteBom(
-        id: String,
-        organizationId: String,
-        userId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): BillOfMaterials {
         val bom = getBom(id, organizationId)
         if (bom.status == BomStatus.OBSOLETE) {
@@ -166,8 +166,8 @@ class BillOfMaterialsService(
 
     @Transactional
     fun deleteBom(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ) {
         val bom = getBom(id, organizationId)
         if (bom.status != BomStatus.DRAFT) {
@@ -178,13 +178,13 @@ class BillOfMaterialsService(
 
     private fun buildLines(
         requests: List<CreateBomLineRequest>,
-        organizationId: String,
-        parentProductId: String,
+        organizationId: java.util.UUID,
+        parentProductId: java.util.UUID,
     ): List<BomLine> {
         if (requests.isEmpty()) {
             throw BusinessRuleException("BOM must have at least one component line")
         }
-        val seen = mutableSetOf<String>()
+        val seen = mutableSetOf<java.util.UUID>()
         return requests.mapIndexed { index, lineReq ->
             val quantity = lineReq.quantity ?: throw BusinessRuleException("Line quantity is required")
             if (quantity.signum() <= 0) {
@@ -218,8 +218,8 @@ class BillOfMaterialsService(
     }
 
     private fun nextVersion(
-        organizationId: String,
-        productId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
     ): Int {
         val existing = bomRepository.findByOrganizationIdAndProductId(organizationId, productId)
         return (existing.maxOfOrNull { it.version } ?: 0) + 1

@@ -36,9 +36,9 @@ class InventoryCostingService(
         }
 
     fun valuationCost(
-        organizationId: String,
-        productId: String,
-        warehouseId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
     ): BigDecimal =
         when (costingMethodFor(organizationId)) {
             InventoryCostingMethod.FIFO ->
@@ -55,7 +55,7 @@ class InventoryCostingService(
                     .orElse(BigDecimal.ZERO)
         }
 
-    fun costingMethodFor(organizationId: String): InventoryCostingMethod =
+    fun costingMethodFor(organizationId: java.util.UUID): InventoryCostingMethod =
         organizationRepository
             .findById(organizationId)
             .orElseThrow { ResourceNotFoundException("Organization not found") }
@@ -124,7 +124,7 @@ class InventoryCostingService(
 
     private fun consumeFifo(
         movement: StockMovement,
-        warehouseId: String,
+        warehouseId: java.util.UUID,
         quantity: BigDecimal,
     ): BigDecimal {
         var remaining = quantity
@@ -141,7 +141,8 @@ class InventoryCostingService(
             val take = layer.remainingQuantity.min(remaining)
             totalCost += take.multiply(layer.unitCost)
             remaining -= take
-            layerRepository.save(layer.copy(remainingQuantity = layer.remainingQuantity - take))
+            layer.remainingQuantity = layer.remainingQuantity - take
+            layerRepository.save(layer)
         }
         if (remaining.signum() > 0) {
             // Negative-stock policy is enforced upstream in StockMovementService.
@@ -193,7 +194,7 @@ class InventoryCostingService(
 
     private fun addToWa(
         movement: StockMovement,
-        warehouseId: String,
+        warehouseId: java.util.UUID,
         quantity: BigDecimal,
         unitCost: BigDecimal,
     ): BigDecimal {
@@ -207,8 +208,12 @@ class InventoryCostingService(
         val newTotal = existing.map { it.totalCost }.orElse(BigDecimal.ZERO) + quantity.multiply(unitCost)
         val snapshot =
             existing
-                .map { it.copy(quantity = newQty, totalCost = newTotal) }
-                .orElseGet {
+                .map {
+                    it.apply {
+                        this.quantity = newQty
+                        this.totalCost = newTotal
+                    }
+                }.orElseGet {
                     InventoryWaSnapshot(
                         organizationId = movement.organizationId,
                         productId = movement.productId,
@@ -223,7 +228,7 @@ class InventoryCostingService(
 
     private fun consumeWa(
         movement: StockMovement,
-        warehouseId: String,
+        warehouseId: java.util.UUID,
         quantity: BigDecimal,
     ): BigDecimal {
         val existing =
@@ -242,13 +247,15 @@ class InventoryCostingService(
         val consumedCost = quantity.multiply(avgCost)
         val newQty = existing.quantity - quantity
         val newTotal = (existing.totalCost - consumedCost).max(BigDecimal.ZERO)
-        waSnapshotRepository.save(existing.copy(quantity = newQty, totalCost = newTotal))
+        existing.quantity = newQty
+        existing.totalCost = newTotal
+        waSnapshotRepository.save(existing)
         return consumedCost
     }
 
     private fun avgWa(
         movement: StockMovement,
-        warehouseId: String,
+        warehouseId: java.util.UUID,
     ): BigDecimal {
         val existing =
             waSnapshotRepository

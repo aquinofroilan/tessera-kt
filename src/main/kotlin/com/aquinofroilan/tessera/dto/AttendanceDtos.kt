@@ -2,14 +2,13 @@ package com.aquinofroilan.tessera.dto
 
 import com.aquinofroilan.tessera.model.AttendanceRecord
 import com.aquinofroilan.tessera.model.AttendanceStatus
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class ClockRequest(
-    @field:NotBlank(message = "Employee ID is required")
-    val employeeId: String,
+    @field:NotNull(message = "Employee ID is required")
+    val employeeId: java.util.UUID,
 )
 
 /**
@@ -17,8 +16,8 @@ data class ClockRequest(
  * absence or fixing clock times). [status] defaults to PRESENT when omitted.
  */
 data class RecordAttendanceRequest(
-    @field:NotBlank(message = "Employee ID is required")
-    val employeeId: String,
+    @field:NotNull(message = "Employee ID is required")
+    val employeeId: java.util.UUID,
     @field:NotNull(message = "Work date is required")
     val workDate: LocalDate?,
     val clockIn: LocalDateTime? = null,
@@ -28,15 +27,15 @@ data class RecordAttendanceRequest(
 )
 
 data class AttendanceResponse(
-    val id: String,
-    val employeeId: String,
+    val id: java.util.UUID,
+    val employeeId: java.util.UUID,
     val workDate: String,
     val clockIn: String?,
     val clockOut: String?,
     val workedMinutes: Int?,
     val status: AttendanceStatus,
     val notes: String?,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val createdAt: String?,
     val updatedAt: String?,
 ) {

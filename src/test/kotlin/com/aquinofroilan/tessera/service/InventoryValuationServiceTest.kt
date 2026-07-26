@@ -15,7 +15,7 @@ class InventoryValuationServiceTest {
     private lateinit var stockMovementRepository: StockMovementRepository
     private lateinit var costingService: InventoryCostingService
 
-    private val orgId = "org-123"
+    private val orgId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
 
     @BeforeEach
     fun setup() {
@@ -29,12 +29,32 @@ class InventoryValuationServiceTest {
         `when`(costingService.costingMethodFor(orgId)).thenReturn(InventoryCostingMethod.WEIGHTED_AVERAGE)
         `when`(stockMovementRepository.onHandByProductWarehouse(orgId)).thenReturn(
             mapOf(
-                OnHandKey("p-1", "wh-1") to BigDecimal("10"),
-                OnHandKey("p-2", "wh-1") to BigDecimal("5"),
+                OnHandKey(
+                    java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                    java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                ) to
+                    BigDecimal("10"),
+                OnHandKey(
+                    java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"),
+                    java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                ) to
+                    BigDecimal("5"),
             ),
         )
-        `when`(costingService.valuationCost(orgId, "p-1", "wh-1")).thenReturn(BigDecimal("100"))
-        `when`(costingService.valuationCost(orgId, "p-2", "wh-1")).thenReturn(BigDecimal("25"))
+        `when`(
+            costingService.valuationCost(
+                orgId,
+                java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+            ),
+        ).thenReturn(BigDecimal("100"))
+        `when`(
+            costingService.valuationCost(
+                orgId,
+                java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"),
+                java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+            ),
+        ).thenReturn(BigDecimal("25"))
 
         val report = service.valuation(orgId)
 
@@ -48,16 +68,30 @@ class InventoryValuationServiceTest {
         `when`(costingService.costingMethodFor(orgId)).thenReturn(InventoryCostingMethod.FIFO)
         `when`(stockMovementRepository.onHandByProductWarehouse(orgId)).thenReturn(
             mapOf(
-                OnHandKey("p-1", "wh-1") to BigDecimal("0"),
-                OnHandKey("p-2", "wh-1") to BigDecimal("3"),
+                OnHandKey(
+                    java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"),
+                    java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                ) to
+                    BigDecimal("0"),
+                OnHandKey(
+                    java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"),
+                    java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+                ) to
+                    BigDecimal("3"),
             ),
         )
-        `when`(costingService.valuationCost(orgId, "p-2", "wh-1")).thenReturn(BigDecimal("9"))
+        `when`(
+            costingService.valuationCost(
+                orgId,
+                java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"),
+                java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
+            ),
+        ).thenReturn(BigDecimal("9"))
 
         val report = service.valuation(orgId)
 
         assertThat(report.lines).hasSize(1)
-        assertThat(report.lines[0].productId).isEqualTo("p-2")
+        assertThat(report.lines[0].productId).isEqualTo(java.util.UUID.fromString("85439c0c-f7b0-3e68-92c0-6195141662c1"))
         assertThat(report.totalValue).isEqualByComparingTo("9")
     }
 

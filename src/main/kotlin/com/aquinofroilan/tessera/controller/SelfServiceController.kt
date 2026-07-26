@@ -63,7 +63,7 @@ class SelfServiceController(
     @GetMapping("/leave-balance")
     @PreAuthorize("isAuthenticated()")
     fun myLeaveBalance(
-        @RequestParam leaveTypeId: String,
+        @RequestParam leaveTypeId: java.util.UUID,
         @RequestParam(required = false) year: Int?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()

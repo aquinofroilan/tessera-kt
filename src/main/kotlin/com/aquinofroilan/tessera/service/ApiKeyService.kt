@@ -20,8 +20,8 @@ class ApiKeyService(
     fun createApiKey(
         name: String,
         permissions: List<String>,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
         creatorPermissions: Set<String>,
         expiresAt: LocalDateTime? = null,
     ): Pair<ApiKey, String> {
@@ -54,15 +54,15 @@ class ApiKeyService(
         return saved to rawKey
     }
 
-    fun listApiKeys(organizationId: String): List<ApiKey> = apiKeyRepository.findByOrganizationIdAndIsActive(organizationId, true)
+    fun listApiKeys(organizationId: java.util.UUID): List<ApiKey> = apiKeyRepository.findByOrganizationIdAndIsActive(organizationId, true)
 
     @Transactional
     fun revokeApiKey(
-        keyId: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ) {
         val apiKey =
-            apiKeyRepository.findById(keyId).orElseThrow {
+            apiKeyRepository.findById(id).orElseThrow {
                 ResourceNotFoundException("API key not found")
             }
         if (apiKey.organizationId != organizationId) {
@@ -71,7 +71,8 @@ class ApiKeyService(
         if (!apiKey.isActive) {
             throw BusinessRuleException("API key is already revoked")
         }
-        apiKeyRepository.save(apiKey.copy(isActive = false))
+        apiKey.isActive = false
+        apiKeyRepository.save(apiKey)
     }
 
     @Transactional
@@ -83,7 +84,8 @@ class ApiKeyService(
         val expiresAt = apiKey.expiresAt
         if (expiresAt != null && !expiresAt.isAfter(LocalDateTime.now(ZoneOffset.UTC))) return null
 
-        apiKeyRepository.save(apiKey.copy(lastUsedAt = LocalDateTime.now(ZoneOffset.UTC)))
+        apiKey.lastUsedAt = LocalDateTime.now(ZoneOffset.UTC)
+        apiKeyRepository.save(apiKey)
 
         return apiKey
     }

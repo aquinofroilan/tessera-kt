@@ -31,11 +31,11 @@ enum class BomStatus {
 data class BomLine(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: java.util.UUID = java.util.UUID.randomUUID(),
     @Column(name = "line_number")
     val lineNumber: Int,
     @Column(name = "component_product_id", columnDefinition = "uuid")
-    val componentProductId: String,
+    val componentProductId: java.util.UUID,
     @Column(name = "component_sku")
     val componentSku: String,
     @Column(name = "component_name")
@@ -53,11 +53,11 @@ data class BomLine(
 data class BillOfMaterials(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: java.util.UUID = java.util.UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     @Column(name = "product_id", columnDefinition = "uuid")
-    val productId: String,
+    val productId: java.util.UUID,
     val code: String,
     val name: String,
     val version: Int = 1,
@@ -75,15 +75,15 @@ data class BillOfMaterials(
     @OrderBy("lineNumber ASC")
     val lines: List<BomLine>,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    val createdBy: java.util.UUID,
     @Column(name = "activated_at")
     val activatedAt: LocalDateTime? = null,
     @Column(name = "activated_by", columnDefinition = "uuid")
-    val activatedBy: String? = null,
+    val activatedBy: java.util.UUID? = null,
     @Column(name = "obsoleted_at")
     val obsoletedAt: LocalDateTime? = null,
     @Column(name = "obsoleted_by", columnDefinition = "uuid")
-    val obsoletedBy: String? = null,
+    val obsoletedBy: java.util.UUID? = null,
     @CreatedDate
     @Column(name = "created_at")
     val createdAt: LocalDateTime? = null,

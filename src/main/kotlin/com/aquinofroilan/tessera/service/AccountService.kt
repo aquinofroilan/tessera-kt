@@ -22,7 +22,7 @@ class AccountService(
     @Transactional
     fun createAccount(
         request: CreateAccountRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Account {
         val type =
             try {
@@ -64,9 +64,9 @@ class AccountService(
 
     @Transactional
     fun updateAccount(
-        accountId: String,
+        accountId: java.util.UUID,
         request: UpdateAccountRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Account {
         val account =
             accountRepository.findById(accountId).orElseThrow {
@@ -79,17 +79,16 @@ class AccountService(
             throw BusinessRuleException("Account name must not be blank")
         }
 
-        val updated =
-            account.copy(
-                name = request.name ?: account.name,
-                description = request.description ?: account.description,
-            )
-        return accountRepository.save(updated)
+        account.apply {
+            name = request.name ?: account.name
+            description = request.description ?: account.description
+        }
+        return accountRepository.save(account)
     }
 
     fun getAccount(
-        accountId: String,
-        organizationId: String,
+        accountId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Account {
         val account =
             accountRepository.findById(accountId).orElseThrow {
@@ -102,9 +101,9 @@ class AccountService(
     }
 
     fun listAccounts(
-        organizationId: String,
+        organizationId: java.util.UUID,
         type: AccountType? = null,
-        parentId: String? = null,
+        parentId: java.util.UUID? = null,
     ): List<Account> =
         when {
             type != null && parentId != null ->
@@ -116,8 +115,8 @@ class AccountService(
 
     @Transactional
     fun deleteAccount(
-        accountId: String,
-        organizationId: String,
+        accountId: java.util.UUID,
+        organizationId: java.util.UUID,
     ) {
         val account =
             accountRepository.findById(accountId).orElseThrow {
@@ -132,11 +131,12 @@ class AccountService(
         if (accountRepository.existsByOrganizationIdAndParentIdAndIsActive(organizationId, accountId, true)) {
             throw BusinessRuleException("Cannot delete account with child accounts")
         }
-        accountRepository.save(account.copy(isActive = false))
+        account.isActive = false
+        accountRepository.save(account)
     }
 
     @Transactional
-    fun seedDefaultAccounts(organizationId: String) {
+    fun seedDefaultAccounts(organizationId: java.util.UUID) {
         val defaults =
             listOf(
                 Account(code = "1000", name = "Cash", type = AccountType.ASSET, organizationId = organizationId, isSystemAccount = true),
@@ -296,7 +296,7 @@ class AccountService(
         log.info("Seeded {} default accounts for org: {}", defaults.size, organizationId)
     }
 
-    private fun seedMissingTaxAccounts(organizationId: String) {
+    private fun seedMissingTaxAccounts(organizationId: java.util.UUID) {
         val missing = mutableListOf<Account>()
 
         if (!accountRepository.existsByOrganizationIdAndCode(organizationId, "2300")) {

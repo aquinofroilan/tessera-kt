@@ -22,22 +22,22 @@ enum class InvitationStatus {
 @Entity
 @Table(name = "invitations")
 @EntityListeners(AuditingEntityListener::class)
-data class Invitation(
+class Invitation(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
-    val email: String,
+    var id: java.util.UUID = UUID.randomUUID(),
+    var email: String,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
-    val role: String,
+    var organizationId: java.util.UUID,
+    var role: String,
     @Column(name = "token_hash")
-    val tokenHash: String,
+    var tokenHash: String,
     @Column(name = "invited_by", columnDefinition = "uuid")
-    val invitedBy: String,
+    var invitedBy: java.util.UUID,
     @Enumerated(EnumType.STRING)
-    val status: InvitationStatus = InvitationStatus.PENDING,
+    var status: InvitationStatus = InvitationStatus.PENDING,
     @Column(name = "expiry_at")
-    val expiryAt: LocalDateTime,
+    var expiryAt: LocalDateTime,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

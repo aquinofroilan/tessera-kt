@@ -5,16 +5,16 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface TaxGroupRepository : JpaRepository<TaxGroup, String> {
-    fun findByOrganizationId(organizationId: String): List<TaxGroup>
+interface TaxGroupRepository : JpaRepository<TaxGroup, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<TaxGroup>
 
     fun findByOrganizationIdAndIsActive(
-        organizationId: String,
+        organizationId: java.util.UUID,
         isActive: Boolean,
     ): List<TaxGroup>
 
     fun findByOrganizationIdAndTaxRateIdsContaining(
-        organizationId: String,
-        taxRateId: String,
+        organizationId: java.util.UUID,
+        taxRateId: java.util.UUID,
     ): List<TaxGroup>
 }

@@ -82,7 +82,7 @@ class InvitationController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('invitation:write')")
     fun revokeInvitation(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val (_, sessionContext) = extractUserAndContext() ?: return authContext.unauthorized()
 

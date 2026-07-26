@@ -3,7 +3,6 @@ package com.aquinofroilan.tessera.dto
 import com.aquinofroilan.tessera.model.SalesOrder
 import com.aquinofroilan.tessera.model.SalesOrderStatus
 import jakarta.validation.Valid
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
@@ -11,8 +10,8 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 data class CreateSalesOrderLineRequest(
-    @field:NotBlank(message = "Product ID is required")
-    val productId: String,
+    @field:NotNull(message = "Product ID is required")
+    val productId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
     val quantity: BigDecimal?,
@@ -22,10 +21,10 @@ data class CreateSalesOrderLineRequest(
 )
 
 data class CreateSalesOrderRequest(
-    @field:NotBlank(message = "Customer ID is required")
-    val customerId: String,
-    @field:NotBlank(message = "Warehouse ID is required")
-    val warehouseId: String,
+    @field:NotNull(message = "Customer ID is required")
+    val customerId: java.util.UUID,
+    @field:NotNull(message = "Warehouse ID is required")
+    val warehouseId: java.util.UUID,
     @field:NotNull(message = "Order date is required")
     val orderDate: LocalDate?,
     val expectedDate: LocalDate? = null,
@@ -36,8 +35,8 @@ data class CreateSalesOrderRequest(
 )
 
 data class FulfillSalesOrderLine(
-    @field:NotBlank(message = "Line ID is required")
-    val lineId: String,
+    @field:NotNull(message = "Line ID is required")
+    val lineId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
     val quantity: BigDecimal?,
@@ -49,8 +48,8 @@ data class FulfillSalesOrderRequest(
 )
 
 data class GenerateInvoiceLine(
-    @field:NotBlank(message = "Line ID is required")
-    val lineId: String,
+    @field:NotNull(message = "Line ID is required")
+    val lineId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
     val quantity: BigDecimal?,
@@ -63,9 +62,9 @@ data class GenerateInvoiceRequest(
 )
 
 data class SalesOrderLineResponse(
-    val id: String,
+    val id: java.util.UUID,
     val lineNumber: Int,
-    val productId: String,
+    val productId: java.util.UUID,
     val productSku: String,
     val productName: String,
     val quantity: BigDecimal,
@@ -77,19 +76,19 @@ data class SalesOrderLineResponse(
 )
 
 data class SalesOrderResponse(
-    val id: String,
+    val id: java.util.UUID,
     val soNumber: String,
-    val customerId: String,
+    val customerId: java.util.UUID,
     val customerName: String,
-    val warehouseId: String,
+    val warehouseId: java.util.UUID,
     val orderDate: String,
     val expectedDate: String?,
     val referenceNumber: String?,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val status: SalesOrderStatus,
     val lines: List<SalesOrderLineResponse>,
     val totalAmount: BigDecimal,
-    val createdBy: String,
+    val createdBy: java.util.UUID,
     val approvedAt: String?,
     val fulfilledAt: String?,
     val cancelledAt: String?,

@@ -17,7 +17,7 @@ class VendorService(
     @Transactional
     fun createVendor(
         request: CreateVendorRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Vendor {
         val vendor =
             Vendor(
@@ -41,8 +41,8 @@ class VendorService(
     }
 
     fun getVendor(
-        vendorId: String,
-        organizationId: String,
+        vendorId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Vendor {
         val vendor =
             vendorRepository.findById(vendorId).orElseThrow {
@@ -54,13 +54,13 @@ class VendorService(
         return vendor
     }
 
-    fun listVendors(organizationId: String): List<Vendor> = vendorRepository.findByOrganizationIdAndIsActive(organizationId, true)
+    fun listVendors(organizationId: java.util.UUID): List<Vendor> = vendorRepository.findByOrganizationIdAndIsActive(organizationId, true)
 
     @Transactional
     fun updateVendor(
-        vendorId: String,
+        vendorId: java.util.UUID,
         request: UpdateVendorRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Vendor {
         val vendor = getVendor(vendorId, organizationId)
 
@@ -72,21 +72,19 @@ class VendorService(
             throw BusinessRuleException("Vendor name cannot be blank")
         }
 
-        val updated =
-            vendor.copy(
-                name = request.name ?: vendor.name,
-                contactName = request.contactName ?: vendor.contactName,
-                contactEmail = request.contactEmail ?: vendor.contactEmail,
-                contactPhone = request.contactPhone ?: vendor.contactPhone,
-                paymentTermDays = request.paymentTermDays ?: vendor.paymentTermDays,
-                defaultExpenseAccountId = request.defaultExpenseAccountId ?: vendor.defaultExpenseAccountId,
-            )
-
+        vendor.apply {
+            name = request.name ?: vendor.name
+            contactName = request.contactName ?: vendor.contactName
+            contactEmail = request.contactEmail ?: vendor.contactEmail
+            contactPhone = request.contactPhone ?: vendor.contactPhone
+            paymentTermDays = request.paymentTermDays ?: vendor.paymentTermDays
+            defaultExpenseAccountId = request.defaultExpenseAccountId ?: vendor.defaultExpenseAccountId
+        }
         return try {
-            vendorRepository.save(updated)
+            vendorRepository.save(vendor)
         } catch (e: DuplicateKeyException) {
             throw BusinessRuleException(
-                "Vendor '${updated.name}' already exists in this organization",
+                "Vendor '${vendor.name}' already exists in this organization",
                 e,
             )
         }
@@ -94,8 +92,8 @@ class VendorService(
 
     @Transactional
     fun deleteVendor(
-        vendorId: String,
-        organizationId: String,
+        vendorId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Vendor {
         val vendor = getVendor(vendorId, organizationId)
 
@@ -103,6 +101,7 @@ class VendorService(
             throw BusinessRuleException("Vendor is already inactive")
         }
 
-        return vendorRepository.save(vendor.copy(isActive = false))
+        vendor.isActive = false
+        return vendorRepository.save(vendor)
     }
 }

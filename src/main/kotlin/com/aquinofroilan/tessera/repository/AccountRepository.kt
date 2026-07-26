@@ -7,49 +7,49 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface AccountRepository : JpaRepository<Account, String> {
+interface AccountRepository : JpaRepository<Account, java.util.UUID> {
     fun findByOrganizationIdAndIsActive(
-        organizationId: String,
+        organizationId: java.util.UUID,
         isActive: Boolean,
     ): List<Account>
 
     fun findByOrganizationIdAndTypeAndIsActive(
-        organizationId: String,
+        organizationId: java.util.UUID,
         type: AccountType,
         isActive: Boolean,
     ): List<Account>
 
     fun findByOrganizationIdAndParentIdAndIsActive(
-        organizationId: String,
-        parentId: String,
+        organizationId: java.util.UUID,
+        parentId: java.util.UUID,
         isActive: Boolean,
     ): List<Account>
 
     fun findByOrganizationIdAndTypeAndParentIdAndIsActive(
-        organizationId: String,
+        organizationId: java.util.UUID,
         type: AccountType,
-        parentId: String,
+        parentId: java.util.UUID,
         isActive: Boolean,
     ): List<Account>
 
     fun findByOrganizationIdAndCode(
-        organizationId: String,
+        organizationId: java.util.UUID,
         code: String,
     ): Optional<Account>
 
     fun existsByOrganizationIdAndCode(
-        organizationId: String,
+        organizationId: java.util.UUID,
         code: String,
     ): Boolean
 
     fun existsByOrganizationIdAndParentId(
-        organizationId: String,
-        parentId: String,
+        organizationId: java.util.UUID,
+        parentId: java.util.UUID,
     ): Boolean
 
     fun existsByOrganizationIdAndParentIdAndIsActive(
-        organizationId: String,
-        parentId: String,
+        organizationId: java.util.UUID,
+        parentId: java.util.UUID,
         isActive: Boolean,
     ): Boolean
 }

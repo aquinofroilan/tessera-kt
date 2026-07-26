@@ -3,7 +3,7 @@ package com.aquinofroilan.tessera.dto
 import java.math.BigDecimal
 
 data class ReportAccountLine(
-    val accountId: String,
+    val accountId: java.util.UUID,
     val accountCode: String,
     val accountName: String,
     val amount: BigDecimal,
@@ -13,6 +13,7 @@ data class ReportAccountLine(
 
 object SyntheticAccountIds {
     const val CURRENT_PERIOD_EARNINGS = "__current_period_earnings__"
+    val CURRENT_PERIOD_EARNINGS_ID = java.util.UUID.nameUUIDFromBytes("__current_period_earnings__".toByteArray())
 }
 
 data class ComparativePeriodMeta(

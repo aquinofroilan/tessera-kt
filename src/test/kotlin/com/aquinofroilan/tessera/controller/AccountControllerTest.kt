@@ -93,38 +93,42 @@ class AccountControllerTest {
 
     private val testUser =
         User(
-            uuid = "user-123",
+            uuid = java.util.UUID.fromString("bc17c97c-3d89-7d43-b7e0-7ca0266eafa8"),
             username = "testuser",
             email = "test@example.com",
             firstName = "Test",
             lastName = "User",
             passwordHash = "encoded",
-            organizationId = "org-123",
-            roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
+            organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
+            roleAssignments = listOf(RoleAssignment("OWNER", java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"))),
         )
 
     @BeforeEach
     fun setup() {
         setupAuthWithPermissions("account:create", "account:read", "account:update", "account:delete")
-        `when`(authenticationContext.organizationId()).thenReturn("org-123")
-        `when`(authenticationContext.userId()).thenReturn("user-123")
+        `when`(authenticationContext.organizationId()).thenReturn(java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"))
+        `when`(authenticationContext.userId()).thenReturn(java.util.UUID.fromString("bc17c97c-3d89-7d43-b7e0-7ca0266eafa8"))
     }
 
     private fun setupAuthWithPermissions(vararg permissions: String) {
         val roleAuthorities = testUser.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
         val permissionAuthorities = permissions.map { SimpleGrantedAuthority(it) }
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
-        authentication.details = SessionContext(sessionId = "session-123", organizationId = "org-123")
+        authentication.details =
+            SessionContext(
+                sessionId = java.util.UUID.fromString("79c5ca4c-8e48-a8f8-6ffc-5b3271a250aa"),
+                organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
+            )
         SecurityContextHolder.getContext().authentication = authentication
     }
 
     private fun createMockAccount() =
         Account(
-            id = "acc-123",
+            id = java.util.UUID.fromString("12a14436-99e0-5e9d-9396-3a670fc505c0"),
             code = "1000",
             name = "Cash",
             type = AccountType.ASSET,
-            organizationId = "org-123",
+            organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
             isSystemAccount = false,
         )
 
@@ -139,11 +143,11 @@ class AccountControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"code": "1000", "name": "Cash", "type": "ASSET"}"""),
             ).andExpect(status().isCreated)
-            .andExpect(jsonPath("$.id").value("acc-123"))
+            .andExpect(jsonPath("$.id").value("12a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(jsonPath("$.code").value("1000"))
             .andExpect(jsonPath("$.name").value("Cash"))
             .andExpect(jsonPath("$.type").value("ASSET"))
-            .andExpect(jsonPath("$.organizationId").value("org-123"))
+            .andExpect(jsonPath("$.organizationId").value("4abe9f6d-6df3-6e5c-953e-3695db9a5216"))
             .andExpect(jsonPath("$.systemAccount").value(false))
     }
 
@@ -180,7 +184,7 @@ class AccountControllerTest {
             .perform(get("/finance/accounts"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].id").value("acc-123"))
+            .andExpect(jsonPath("$[0].id").value("12a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(jsonPath("$[0].code").value("1000"))
             .andExpect(jsonPath("$[0].name").value("Cash"))
             .andExpect(jsonPath("$[0].type").value("ASSET"))
@@ -192,9 +196,9 @@ class AccountControllerTest {
         `when`(accountService.getAccount(any(), any())).thenReturn(account)
 
         mockMvc
-            .perform(get("/finance/accounts/acc-123"))
+            .perform(get("/finance/accounts/12a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value("acc-123"))
+            .andExpect(jsonPath("$.id").value("12a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(jsonPath("$.code").value("1000"))
             .andExpect(jsonPath("$.name").value("Cash"))
             .andExpect(jsonPath("$.type").value("ASSET"))
@@ -206,30 +210,30 @@ class AccountControllerTest {
             .thenThrow(ResourceNotFoundException("Account not found"))
 
         mockMvc
-            .perform(get("/finance/accounts/nonexistent"))
+            .perform(get("/finance/accounts/00000000-0000-0000-0000-000000000000"))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.error").value("Account not found"))
     }
 
     @Test
     fun `PUT accounts should return 200 when updated`() {
-        val account = createMockAccount().copy(name = "Updated Cash")
+        val account = createMockAccount().apply { name = "Updated Cash" }
         `when`(accountService.updateAccount(any(), any(), any())).thenReturn(account)
 
         mockMvc
             .perform(
-                put("/finance/accounts/acc-123")
+                put("/finance/accounts/12a14436-99e0-5e9d-9396-3a670fc505c0")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"name": "Updated Cash"}"""),
             ).andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value("acc-123"))
+            .andExpect(jsonPath("$.id").value("12a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(jsonPath("$.name").value("Updated Cash"))
     }
 
     @Test
     fun `DELETE accounts should return 200 when deactivated`() {
         mockMvc
-            .perform(delete("/finance/accounts/acc-123"))
+            .perform(delete("/finance/accounts/12a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("Account deactivated"))
     }
@@ -240,7 +244,7 @@ class AccountControllerTest {
             .thenThrow(BusinessRuleException("System accounts cannot be deleted"))
 
         mockMvc
-            .perform(delete("/finance/accounts/acc-123"))
+            .perform(delete("/finance/accounts/12a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("System accounts cannot be deleted"))
     }
@@ -262,7 +266,7 @@ class AccountControllerTest {
         setupAuthWithPermissions("account:read")
 
         mockMvc
-            .perform(delete("/finance/accounts/acc-123"))
+            .perform(delete("/finance/accounts/12a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isForbidden)
     }
 

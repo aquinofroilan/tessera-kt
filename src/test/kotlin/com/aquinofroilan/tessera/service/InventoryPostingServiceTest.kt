@@ -34,7 +34,7 @@ class InventoryPostingServiceTest {
     private lateinit var journalEntryRepository: JournalEntryRepository
     private lateinit var service: InventoryPostingService
 
-    private val orgId = "org-1"
+    private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
 
     @BeforeEach
     fun setup() {
@@ -70,7 +70,7 @@ class InventoryPostingServiceTest {
         stubOrg(enabled = true)
 
         service.postMovement(
-            movement(StockMovementType.TRANSFER, BigDecimal("3"), transferTo = "wh-2"),
+            movement(StockMovementType.TRANSFER, BigDecimal("3"), transferTo = java.util.UUID.randomUUID()),
             BigDecimal("30.00"),
         )
 
@@ -193,15 +193,15 @@ class InventoryPostingServiceTest {
     private fun movement(
         type: StockMovementType,
         quantity: BigDecimal,
-        transferTo: String? = null,
+        transferTo: java.util.UUID? = null,
     ) = StockMovement(
         organizationId = orgId,
         type = type,
-        productId = "prod-1",
-        warehouseId = "wh-1",
+        productId = java.util.UUID.fromString("dbf2a095-ce0d-371a-bd21-a52d4a5a29c9"),
+        warehouseId = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
         transferToWarehouseId = transferTo,
         quantity = quantity,
         occurredAt = LocalDateTime.of(2026, 5, 1, 0, 0),
-        createdBy = "user-1",
+        createdBy = java.util.UUID.fromString("1db2395f-13ba-3d37-9d2b-f77d3eb3aa2e"),
     )
 }
