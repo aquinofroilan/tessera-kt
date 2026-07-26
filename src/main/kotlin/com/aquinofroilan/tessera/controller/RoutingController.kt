@@ -35,8 +35,8 @@ class RoutingController(
     fun create(
         @Valid @RequestBody request: CreateRoutingRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val userId = authContext.userId()?.toString() ?: "api-key"
         val routing = routingService.createRouting(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(RoutingResponse.from(routing))
     }
@@ -47,7 +47,7 @@ class RoutingController(
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) productId: String?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
         val parsed =
             if (status != null) {
                 try {
@@ -66,7 +66,7 @@ class RoutingController(
     fun get(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
         return ResponseEntity.ok(RoutingResponse.from(routingService.getRouting(id, orgId)))
     }
 
@@ -76,7 +76,7 @@ class RoutingController(
         @PathVariable id: String,
         @Valid @RequestBody request: UpdateRoutingRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
         return ResponseEntity.ok(RoutingResponse.from(routingService.updateRouting(id, request, orgId)))
     }
 
@@ -86,8 +86,8 @@ class RoutingController(
         @PathVariable id: String,
         @RequestParam(required = false, defaultValue = "false") makeDefault: Boolean,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val userId = authContext.userId()?.toString() ?: "api-key"
         return ResponseEntity.ok(RoutingResponse.from(routingService.activateRouting(id, orgId, userId, makeDefault)))
     }
 
@@ -96,8 +96,8 @@ class RoutingController(
     fun obsolete(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val userId = authContext.userId()?.toString() ?: "api-key"
         return ResponseEntity.ok(RoutingResponse.from(routingService.obsoleteRouting(id, orgId, userId)))
     }
 
@@ -106,7 +106,7 @@ class RoutingController(
     fun delete(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
         routingService.deleteRouting(id, orgId)
         return ResponseEntity.noContent().build()
     }

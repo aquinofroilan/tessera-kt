@@ -25,10 +25,10 @@ class RoutingServiceTest {
     private lateinit var workCenterService: WorkCenterService
     private lateinit var service: RoutingService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
-    private val productId = "prod-1"
-    private val wcId = "wc-1"
+    private val orgId = "550e8400-e29b-41d4-a716-446655440000"
+    private val userId = "550e8400-e29b-41d4-a716-446655440001"
+    private val productId = "550e8400-e29b-41d4-a716-446655440002"
+    private val wcId = "550e8400-e29b-41d4-a716-446655440003"
 
     @BeforeEach
     fun setup() {
@@ -40,14 +40,14 @@ class RoutingServiceTest {
         whenever(repository.findByOrganizationIdAndProductId(any(), any())).thenReturn(emptyList())
         whenever(repository.findByOrganizationIdAndProductIdAndIsDefaultTrue(any(), any()))
             .thenReturn(Optional.empty())
-        whenever(productService.getProduct(productId, orgId)).thenReturn(
+        whenever(productService.getProduct(java.util.UUID.fromString(productId), java.util.UUID.fromString(orgId))).thenReturn(
             Product(
-                id = productId,
+                id = java.util.UUID.fromString(productId),
                 sku = "SKU",
                 name = "Widget",
                 listPrice = BigDecimal.ONE,
                 priceCurrency = "USD",
-                organizationId = orgId,
+                organizationId = java.util.UUID.fromString(orgId),
                 isActive = true,
             ),
         )

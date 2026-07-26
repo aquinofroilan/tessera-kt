@@ -27,7 +27,7 @@ class WorkCenterService(
             throw BusinessRuleException("Work center with code '$code' already exists")
         }
         if (request.warehouseId != null) {
-            warehouseService.getWarehouse(request.warehouseId, organizationId)
+            warehouseService.getWarehouse(java.util.UUID.fromString(request.warehouseId), java.util.UUID.fromString(organizationId))
         }
         val wc =
             WorkCenter(
@@ -80,7 +80,7 @@ class WorkCenterService(
     ): WorkCenter {
         val wc = getWorkCenter(id, organizationId)
         if (request.warehouseId != null) {
-            warehouseService.getWarehouse(request.warehouseId, organizationId)
+            warehouseService.getWarehouse(java.util.UUID.fromString(request.warehouseId), java.util.UUID.fromString(organizationId))
         }
         return workCenterRepository.save(
             wc.copy(
