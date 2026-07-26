@@ -30,46 +30,46 @@ enum class InvoiceStatus {
 
 @Entity
 @Table(name = "invoice_lines")
-data class InvoiceLine(
+class InvoiceLine(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "line_number")
-    val lineNumber: Int = 0,
+    var lineNumber: Int = 0,
     @Column(name = "account_id", columnDefinition = "uuid")
-    val accountId: String,
+    var accountId: java.util.UUID,
     @Column(name = "account_code")
-    val accountCode: String,
+    var accountCode: String,
     @Column(name = "account_name")
-    val accountName: String,
-    val amount: BigDecimal,
-    val description: String? = null,
+    var accountName: String,
+    var amount: BigDecimal,
+    var description: String? = null,
 )
 
 @Entity
 @Table(name = "invoices")
 @EntityListeners(AuditingEntityListener::class)
-data class Invoice(
+class Invoice(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "invoice_number")
-    val invoiceNumber: String,
+    var invoiceNumber: String,
     @Column(name = "customer_id", columnDefinition = "uuid")
-    val customerId: String,
+    var customerId: java.util.UUID,
     @Column(name = "customer_name")
-    val customerName: String,
-    val date: LocalDate,
+    var customerName: String,
+    var date: LocalDate,
     @Column(name = "due_date")
-    val dueDate: LocalDate,
+    var dueDate: LocalDate,
     @Column(name = "reference_number")
-    val referenceNumber: String? = null,
+    var referenceNumber: String? = null,
     @Column(name = "tax_group_id", columnDefinition = "uuid")
-    val taxGroupId: String? = null,
+    var taxGroupId: java.util.UUID? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Enumerated(EnumType.STRING)
-    val status: InvoiceStatus = InvoiceStatus.DRAFT,
+    var status: InvoiceStatus = InvoiceStatus.DRAFT,
     @OneToMany(
         cascade = [CascadeType.ALL],
         orphanRemoval = true,
@@ -77,39 +77,39 @@ data class Invoice(
     )
     @JoinColumn(name = "invoice_id")
     @OrderBy("lineNumber ASC")
-    val lines: List<InvoiceLine>,
+    var lines: List<InvoiceLine>,
     @Column(name = "total_amount")
-    val totalAmount: BigDecimal,
+    var totalAmount: BigDecimal,
     @Column(name = "tax_amount")
-    val taxAmount: BigDecimal = BigDecimal.ZERO,
+    var taxAmount: BigDecimal = BigDecimal.ZERO,
     @Column(name = "amount_received")
-    val amountReceived: BigDecimal = BigDecimal.ZERO,
+    var amountReceived: BigDecimal = BigDecimal.ZERO,
     @Column(name = "currency_code", columnDefinition = "char(3)")
-    val currencyCode: String = "USD",
+    var currencyCode: String = "USD",
     @Column(name = "exchange_rate")
-    val exchangeRate: BigDecimal = BigDecimal.ONE,
+    var exchangeRate: BigDecimal = BigDecimal.ONE,
     @Column(name = "base_currency_amount")
-    val baseCurrencyAmount: BigDecimal = totalAmount,
+    var baseCurrencyAmount: BigDecimal = totalAmount,
     @Column(name = "base_currency_tax_amount")
-    val baseCurrencyTaxAmount: BigDecimal = taxAmount,
+    var baseCurrencyTaxAmount: BigDecimal = taxAmount,
     @Column(name = "base_currency_amount_received")
-    val baseCurrencyAmountReceived: BigDecimal = amountReceived,
+    var baseCurrencyAmountReceived: BigDecimal = amountReceived,
     @Column(name = "journal_entry_id", columnDefinition = "uuid")
-    val journalEntryId: String? = null,
+    var journalEntryId: java.util.UUID? = null,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    var createdBy: java.util.UUID,
     @Column(name = "approved_at")
-    val approvedAt: LocalDateTime? = null,
+    var approvedAt: LocalDateTime? = null,
     @Column(name = "approved_by", columnDefinition = "uuid")
-    val approvedBy: String? = null,
+    var approvedBy: java.util.UUID? = null,
     @Column(name = "paid_at")
-    val paidAt: LocalDateTime? = null,
+    var paidAt: LocalDateTime? = null,
     @Column(name = "voided_at")
-    val voidedAt: LocalDateTime? = null,
+    var voidedAt: LocalDateTime? = null,
     @Column(name = "voided_by", columnDefinition = "uuid")
-    val voidedBy: String? = null,
+    var voidedBy: java.util.UUID? = null,
     @Column(name = "void_reason")
-    val voidReason: String? = null,
+    var voidReason: String? = null,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

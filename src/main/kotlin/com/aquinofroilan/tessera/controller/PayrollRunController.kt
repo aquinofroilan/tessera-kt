@@ -33,7 +33,7 @@ class PayrollRunController(
         @Valid @RequestBody request: CreatePayrollRunRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val createdBy = authContext.userId() ?: "api-key"
+        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val run = payrollRunService.createPayrollRun(request, orgId, createdBy)
         return ResponseEntity.status(HttpStatus.CREATED).body(PayrollRunResponse.from(run))
     }
@@ -60,7 +60,7 @@ class PayrollRunController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:read')")
     fun getPayrollRun(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(PayrollRunResponse.from(payrollRunService.getPayrollRun(id, orgId)))
@@ -69,27 +69,27 @@ class PayrollRunController(
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasAuthority('hr:approve')")
     fun approvePayrollRun(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val approvedBy = authContext.userId() ?: "api-key"
+        val approvedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         return ResponseEntity.ok(PayrollRunResponse.from(payrollRunService.approvePayrollRun(id, orgId, approvedBy)))
     }
 
     @PostMapping("/{id}/pay")
     @PreAuthorize("hasAuthority('hr:approve')")
     fun payPayrollRun(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val paidBy = authContext.userId() ?: "api-key"
+        val paidBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         return ResponseEntity.ok(PayrollRunResponse.from(payrollRunService.payPayrollRun(id, orgId, paidBy)))
     }
 
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('hr:write')")
     fun cancelPayrollRun(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(PayrollRunResponse.from(payrollRunService.cancelPayrollRun(id, orgId)))

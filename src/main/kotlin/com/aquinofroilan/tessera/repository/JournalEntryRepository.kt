@@ -8,72 +8,72 @@ import java.time.LocalDate
 
 @Repository
 interface JournalEntryRepository :
-    JpaRepository<JournalEntry, String>,
+    JpaRepository<JournalEntry, java.util.UUID>,
     JournalEntryAggregations {
-    fun findByOrganizationId(organizationId: String): List<JournalEntry>
+    fun findByOrganizationId(organizationId: java.util.UUID): List<JournalEntry>
 
     fun findByOrganizationIdAndStatus(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: JournalEntryStatus,
     ): List<JournalEntry>
 
     fun findByOrganizationIdAndDateBetween(
-        organizationId: String,
+        organizationId: java.util.UUID,
         startDate: LocalDate,
         endDate: LocalDate,
     ): List<JournalEntry>
 
     fun findByOrganizationIdAndStatusAndDateBetween(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: JournalEntryStatus,
         startDate: LocalDate,
         endDate: LocalDate,
     ): List<JournalEntry>
 
     fun findByOrganizationIdAndStatusAndDateLessThanEqual(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: JournalEntryStatus,
         date: LocalDate,
     ): List<JournalEntry>
 
     fun findByOrganizationIdAndDateGreaterThanEqual(
-        organizationId: String,
+        organizationId: java.util.UUID,
         date: LocalDate,
     ): List<JournalEntry>
 
     fun findByOrganizationIdAndDateLessThanEqual(
-        organizationId: String,
+        organizationId: java.util.UUID,
         date: LocalDate,
     ): List<JournalEntry>
 
     fun findByOrganizationIdAndStatusAndDateGreaterThanEqual(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: JournalEntryStatus,
         date: LocalDate,
     ): List<JournalEntry>
 
     fun findByOrganizationIdAndStatusIn(
-        organizationId: String,
+        organizationId: java.util.UUID,
         statuses: List<JournalEntryStatus>,
     ): List<JournalEntry>
 
     fun findByOrganizationIdAndStatusInAndDateBetween(
-        organizationId: String,
+        organizationId: java.util.UUID,
         statuses: List<JournalEntryStatus>,
         startDate: LocalDate,
         endDate: LocalDate,
     ): List<JournalEntry>
 
     fun findByOrganizationIdAndStatusInAndDateLessThanEqual(
-        organizationId: String,
+        organizationId: java.util.UUID,
         statuses: List<JournalEntryStatus>,
         date: LocalDate,
     ): List<JournalEntry>
 
-    fun countByOrganizationId(organizationId: String): Long
+    fun countByOrganizationId(organizationId: java.util.UUID): Long
 
     fun existsByOrganizationIdAndSourceReference(
-        organizationId: String,
+        organizationId: java.util.UUID,
         sourceReference: String,
     ): Boolean
 }

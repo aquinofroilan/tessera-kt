@@ -4,8 +4,8 @@ import com.aquinofroilan.tessera.model.StockMovementType
 import java.math.BigDecimal
 
 data class StockOnHandLineResponse(
-    val productId: String,
-    val warehouseId: String,
+    val productId: java.util.UUID,
+    val warehouseId: java.util.UUID,
     val quantity: BigDecimal,
 )
 
@@ -15,11 +15,11 @@ data class StockOnHandReportResponse(
 )
 
 data class MovementHistoryLineResponse(
-    val id: String,
+    val id: java.util.UUID,
     val type: StockMovementType,
-    val productId: String,
-    val warehouseId: String,
-    val transferToWarehouseId: String?,
+    val productId: java.util.UUID,
+    val warehouseId: java.util.UUID,
+    val transferToWarehouseId: java.util.UUID?,
     val quantity: BigDecimal,
     val unitCost: BigDecimal?,
     val occurredAt: String,
@@ -27,8 +27,8 @@ data class MovementHistoryLineResponse(
 )
 
 data class MovementHistoryResponse(
-    val productId: String?,
-    val warehouseId: String?,
+    val productId: java.util.UUID?,
+    val warehouseId: java.util.UUID?,
     val from: String?,
     val to: String?,
     val lines: List<MovementHistoryLineResponse>,

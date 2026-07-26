@@ -6,14 +6,14 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface RefreshTokenRepository : JpaRepository<RefreshToken, String> {
+interface RefreshTokenRepository : JpaRepository<RefreshToken, java.util.UUID> {
     fun findByTokenHash(tokenHash: String): Optional<RefreshToken>
 
     fun deleteByTokenHash(tokenHash: String)
 
-    fun deleteBySessionTokenId(sessionTokenId: String)
+    fun deleteBySessionTokenId(sessionTokenId: java.util.UUID)
 
-    fun deleteBySessionTokenIdIn(sessionTokenIds: List<String>)
+    fun deleteBySessionTokenIdIn(sessionTokenIds: List<java.util.UUID>)
 
-    fun deleteByUserId(userId: String)
+    fun deleteByUserId(userId: java.util.UUID)
 }

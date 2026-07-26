@@ -25,7 +25,15 @@ class RolePermissionCache(
         }
     }
 
-    fun getPermissions(roleName: String): Set<String> = cache.get(roleName)
+    fun getPermissions(roleName: String): Set<String> {
+        val cached = cache.getIfPresent(roleName)
+        if (cached != null) {
+            return cached
+        }
+        val permissions = roleRepository.findByName(roleName).map { it.permissions.toSet() }.orElse(emptySet())
+        cache.put(roleName, permissions)
+        return permissions
+    }
 
     fun refresh() {
         cache.invalidateAll()

@@ -14,8 +14,8 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 data class CreateBomLineRequest(
-    @field:NotBlank(message = "Component product ID is required")
-    val componentProductId: String,
+    @field:NotNull(message = "Component product ID is required")
+    val componentProductId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
     val quantity: BigDecimal?,
@@ -26,8 +26,8 @@ data class CreateBomLineRequest(
 )
 
 data class CreateBomRequest(
-    @field:NotBlank(message = "Product ID is required")
-    val productId: String,
+    @field:NotNull(message = "Product ID is required")
+    val productId: java.util.UUID,
     @field:NotBlank(message = "BOM code is required")
     @field:Size(max = 64)
     val code: String,
@@ -53,9 +53,9 @@ data class UpdateBomRequest(
 )
 
 data class BomLineResponse(
-    val id: String,
+    val id: java.util.UUID,
     val lineNumber: Int,
-    val componentProductId: String,
+    val componentProductId: java.util.UUID,
     val componentSku: String,
     val componentName: String,
     val quantity: BigDecimal,
@@ -80,8 +80,8 @@ data class BomLineResponse(
 }
 
 data class BomResponse(
-    val id: String,
-    val productId: String,
+    val id: java.util.UUID,
+    val productId: java.util.UUID,
     val code: String,
     val name: String,
     val version: Int,

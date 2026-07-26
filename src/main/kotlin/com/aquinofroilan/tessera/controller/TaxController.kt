@@ -58,7 +58,7 @@ class TaxController(
     @GetMapping("/rates/{id}")
     @PreAuthorize("hasAuthority('tax:read')")
     fun getTaxRate(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val taxRate = taxRateService.getTaxRate(id, orgId)
@@ -68,7 +68,7 @@ class TaxController(
     @PutMapping("/rates/{id}")
     @PreAuthorize("hasAuthority('tax:create')")
     fun updateTaxRate(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateTaxRateRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -79,7 +79,7 @@ class TaxController(
     @DeleteMapping("/rates/{id}")
     @PreAuthorize("hasAuthority('tax:delete')")
     fun deleteTaxRate(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         taxRateService.deleteTaxRate(id, orgId)
@@ -128,7 +128,7 @@ class TaxController(
     @GetMapping("/groups/{id}")
     @PreAuthorize("hasAuthority('tax:read')")
     fun getTaxGroup(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val (taxGroup, rates) = taxGroupService.getTaxGroupWithRates(id, orgId)
@@ -138,7 +138,7 @@ class TaxController(
     @PutMapping("/groups/{id}")
     @PreAuthorize("hasAuthority('tax:create')")
     fun updateTaxGroup(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateTaxGroupRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -150,7 +150,7 @@ class TaxController(
     @DeleteMapping("/groups/{id}")
     @PreAuthorize("hasAuthority('tax:delete')")
     fun deleteTaxGroup(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         taxGroupService.deleteTaxGroup(id, orgId)

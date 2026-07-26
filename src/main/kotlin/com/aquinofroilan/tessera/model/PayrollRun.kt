@@ -29,68 +29,68 @@ enum class PayrollRunStatus {
 
 @Entity
 @Table(name = "payroll_run_lines")
-data class PayrollRunLine(
+class PayrollRunLine(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "line_number")
-    val lineNumber: Int = 0,
+    var lineNumber: Int = 0,
     @Column(name = "employee_id", columnDefinition = "uuid")
-    val employeeId: String,
+    var employeeId: java.util.UUID,
     @Column(name = "employee_number")
-    val employeeNumber: String,
+    var employeeNumber: String,
     @Column(name = "employee_name")
-    val employeeName: String,
+    var employeeName: String,
     @Column(name = "compensation_id", columnDefinition = "uuid")
-    val compensationId: String,
+    var compensationId: java.util.UUID,
     @Column(name = "gross_amount")
-    val grossAmount: BigDecimal,
+    var grossAmount: BigDecimal,
 )
 
 @Entity
 @Table(name = "payroll_runs")
 @EntityListeners(AuditingEntityListener::class)
-data class PayrollRun(
+class PayrollRun(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "run_number")
-    val runNumber: String,
+    var runNumber: String,
     @Column(name = "period_start")
-    val periodStart: LocalDate,
+    var periodStart: LocalDate,
     @Column(name = "period_end")
-    val periodEnd: LocalDate,
+    var periodEnd: LocalDate,
     @Column(name = "pay_date")
-    val payDate: LocalDate,
+    var payDate: LocalDate,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Enumerated(EnumType.STRING)
-    val status: PayrollRunStatus = PayrollRunStatus.DRAFT,
+    var status: PayrollRunStatus = PayrollRunStatus.DRAFT,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "payroll_run_id")
     @OrderBy("lineNumber ASC")
-    val lines: List<PayrollRunLine>,
+    var lines: List<PayrollRunLine>,
     @Column(name = "total_gross")
-    val totalGross: BigDecimal,
-    val currency: String,
+    var totalGross: BigDecimal,
+    var currency: String,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    var createdBy: java.util.UUID,
     @Column(name = "accrual_journal_entry_id", columnDefinition = "uuid")
-    val accrualJournalEntryId: String? = null,
+    var accrualJournalEntryId: java.util.UUID? = null,
     @Column(name = "payment_journal_entry_id", columnDefinition = "uuid")
-    val paymentJournalEntryId: String? = null,
+    var paymentJournalEntryId: java.util.UUID? = null,
     @Column(name = "approved_at")
-    val approvedAt: LocalDateTime? = null,
+    var approvedAt: LocalDateTime? = null,
     @Column(name = "approved_by", columnDefinition = "uuid")
-    val approvedBy: String? = null,
+    var approvedBy: java.util.UUID? = null,
     @Column(name = "paid_at")
-    val paidAt: LocalDateTime? = null,
+    var paidAt: LocalDateTime? = null,
     @Column(name = "cancelled_at")
-    val cancelledAt: LocalDateTime? = null,
+    var cancelledAt: LocalDateTime? = null,
     @CreatedDate
     @Column(name = "created_at")
-    val createdAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     @Column(name = "updated_at")
-    val updatedAt: LocalDateTime? = null,
+    var updatedAt: LocalDateTime? = null,
 )

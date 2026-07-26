@@ -31,7 +31,7 @@ class SelfServiceGraphqlController(
     @QueryMapping
     @PreAuthorize("isAuthenticated()")
     fun myLeaveBalance(
-        @Argument leaveTypeId: String,
+        @Argument leaveTypeId: java.util.UUID,
         @Argument year: Int?,
     ): Any = support.unwrap(selfServiceController.myLeaveBalance(leaveTypeId, year))
 

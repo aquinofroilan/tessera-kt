@@ -17,7 +17,7 @@ class CustomerService(
     @Transactional
     fun createCustomer(
         request: CreateCustomerRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Customer {
         val customer =
             Customer(
@@ -41,8 +41,8 @@ class CustomerService(
     }
 
     fun getCustomer(
-        customerId: String,
-        organizationId: String,
+        customerId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Customer {
         val customer =
             customerRepository.findById(customerId).orElseThrow {
@@ -54,13 +54,14 @@ class CustomerService(
         return customer
     }
 
-    fun listCustomers(organizationId: String): List<Customer> = customerRepository.findByOrganizationIdAndIsActive(organizationId, true)
+    fun listCustomers(organizationId: java.util.UUID): List<Customer> =
+        customerRepository.findByOrganizationIdAndIsActive(organizationId, true)
 
     @Transactional
     fun updateCustomer(
-        customerId: String,
+        customerId: java.util.UUID,
         request: UpdateCustomerRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Customer {
         val customer = getCustomer(customerId, organizationId)
 
@@ -72,21 +73,19 @@ class CustomerService(
             throw BusinessRuleException("Customer name cannot be blank")
         }
 
-        val updated =
-            customer.copy(
-                name = request.name ?: customer.name,
-                contactName = request.contactName ?: customer.contactName,
-                contactEmail = request.contactEmail ?: customer.contactEmail,
-                contactPhone = request.contactPhone ?: customer.contactPhone,
-                paymentTermDays = request.paymentTermDays ?: customer.paymentTermDays,
-                defaultRevenueAccountId = request.defaultRevenueAccountId ?: customer.defaultRevenueAccountId,
-            )
-
+        customer.apply {
+            name = request.name ?: customer.name
+            contactName = request.contactName ?: customer.contactName
+            contactEmail = request.contactEmail ?: customer.contactEmail
+            contactPhone = request.contactPhone ?: customer.contactPhone
+            paymentTermDays = request.paymentTermDays ?: customer.paymentTermDays
+            defaultRevenueAccountId = request.defaultRevenueAccountId ?: customer.defaultRevenueAccountId
+        }
         return try {
-            customerRepository.save(updated)
+            customerRepository.save(customer)
         } catch (e: DuplicateKeyException) {
             throw BusinessRuleException(
-                "Customer '${updated.name}' already exists in this organization",
+                "Customer '${customer.name}' already exists in this organization",
                 e,
             )
         }
@@ -94,8 +93,8 @@ class CustomerService(
 
     @Transactional
     fun deleteCustomer(
-        customerId: String,
-        organizationId: String,
+        customerId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Customer {
         val customer = getCustomer(customerId, organizationId)
 
@@ -103,6 +102,7 @@ class CustomerService(
             throw BusinessRuleException("Customer is already inactive")
         }
 
-        return customerRepository.save(customer.copy(isActive = false))
+        customer.isActive = false
+        return customerRepository.save(customer)
     }
 }

@@ -13,7 +13,7 @@ data class CreateVendorRequest(
     val contactPhone: String? = null,
     @field:Min(value = 0, message = "Payment term days must be zero or positive")
     val paymentTermDays: Int = 30,
-    val defaultExpenseAccountId: String? = null,
+    val defaultExpenseAccountId: java.util.UUID? = null,
 )
 
 data class UpdateVendorRequest(
@@ -24,18 +24,18 @@ data class UpdateVendorRequest(
     val contactPhone: String? = null,
     @field:Min(value = 0, message = "Payment term days must be zero or positive")
     val paymentTermDays: Int? = null,
-    val defaultExpenseAccountId: String? = null,
+    val defaultExpenseAccountId: java.util.UUID? = null,
 )
 
 data class VendorResponse(
-    val id: String,
+    val id: java.util.UUID,
     val name: String,
     val contactName: String?,
     val contactEmail: String?,
     val contactPhone: String?,
     val paymentTermDays: Int,
-    val defaultExpenseAccountId: String?,
-    val organizationId: String,
+    val defaultExpenseAccountId: java.util.UUID?,
+    val organizationId: java.util.UUID,
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,

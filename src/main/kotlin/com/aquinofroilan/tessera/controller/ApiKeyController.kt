@@ -86,7 +86,7 @@ class ApiKeyController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('apikey:manage')")
     fun revokeApiKey(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val (_, sessionContext) = extractUserAndContext() ?: return authContext.unauthorized()
 

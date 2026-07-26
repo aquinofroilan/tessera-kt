@@ -27,7 +27,7 @@ class GraphqlBridgeSupport(
 
     fun unwrap(response: ResponseEntity<*>): Any {
         if (response.statusCode.is2xxSuccessful) {
-            return response.body ?: emptyMap<String, Any>()
+            return response.body ?: emptyMap<java.util.UUID, Any>()
         }
 
         val message =

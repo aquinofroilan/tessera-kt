@@ -49,7 +49,7 @@ class PositionController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:read')")
     fun getPosition(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(PositionResponse.from(positionService.getPosition(id, orgId)))
@@ -58,7 +58,7 @@ class PositionController(
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:write')")
     fun updatePosition(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdatePositionRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -68,7 +68,7 @@ class PositionController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:write')")
     fun deactivatePosition(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(PositionResponse.from(positionService.deactivatePosition(id, orgId)))

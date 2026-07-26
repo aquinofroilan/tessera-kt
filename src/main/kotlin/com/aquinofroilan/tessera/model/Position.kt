@@ -14,24 +14,24 @@ import java.util.UUID
 @Entity
 @Table(name = "positions")
 @EntityListeners(AuditingEntityListener::class)
-data class Position(
+class Position(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
-    val code: String,
-    val title: String,
+    var id: java.util.UUID = UUID.randomUUID(),
+    var code: String,
+    var title: String,
     @Column(name = "department_id", columnDefinition = "uuid")
-    val departmentId: String? = null,
+    var departmentId: java.util.UUID? = null,
     @Column(name = "pay_grade")
-    val payGrade: String? = null,
+    var payGrade: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "is_active")
-    val isActive: Boolean = true,
+    var isActive: Boolean = true,
     @CreatedDate
     @Column(name = "created_at")
-    val createdAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     @Column(name = "updated_at")
-    val updatedAt: LocalDateTime? = null,
+    var updatedAt: LocalDateTime? = null,
 )

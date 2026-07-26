@@ -9,12 +9,12 @@ import java.util.UUID
 @Entity
 @Table(name = "user_role_assignments")
 class RoleAssignment(
-    val role: String,
+    var role: String,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String? = null,
+    var organizationId: java.util.UUID? = null,
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

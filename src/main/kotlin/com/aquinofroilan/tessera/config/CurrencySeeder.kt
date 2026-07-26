@@ -39,10 +39,19 @@ class CurrencySeeder(
                         throw e
                     }
                 }
-            } else if (existing.get() != currency) {
+            } else if (!sameCurrency(existing.get(), currency)) {
                 currencyRepository.save(currency)
                 log.info("Updated currency: {}", currency.code)
             }
         }
     }
+
+    private fun sameCurrency(
+        left: Currency,
+        right: Currency,
+    ): Boolean =
+        left.code == right.code &&
+            left.name == right.name &&
+            left.symbol == right.symbol &&
+            left.decimalPlaces == right.decimalPlaces
 }

@@ -17,7 +17,7 @@ class WarehouseService(
     @Transactional
     fun createWarehouse(
         request: CreateWarehouseRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Warehouse {
         val warehouse =
             Warehouse(
@@ -41,8 +41,8 @@ class WarehouseService(
     }
 
     fun getWarehouse(
-        warehouseId: String,
-        organizationId: String,
+        warehouseId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Warehouse {
         val warehouse =
             warehouseRepository.findById(warehouseId).orElseThrow {
@@ -55,43 +55,43 @@ class WarehouseService(
     }
 
     fun listWarehouses(
-        organizationId: String,
+        organizationId: java.util.UUID,
         isActive: Boolean = true,
         search: String? = null,
     ): List<Warehouse> = warehouseRepository.search(organizationId, isActive, search)
 
     @Transactional
     fun updateWarehouse(
-        warehouseId: String,
+        warehouseId: java.util.UUID,
         request: UpdateWarehouseRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Warehouse {
         val existing = getWarehouse(warehouseId, organizationId)
         if (!existing.isActive) {
             throw BusinessRuleException("Cannot update inactive warehouse")
         }
-        val updated =
-            existing.copy(
-                name = request.name ?: existing.name,
-                description = request.description ?: existing.description,
-                addressLine = request.addressLine ?: existing.addressLine,
-                city = request.city ?: existing.city,
-                country = request.country ?: existing.country,
-                allowNegativeStock = request.allowNegativeStock ?: existing.allowNegativeStock,
-            )
-        return warehouseRepository.save(updated)
+        existing.apply {
+            name = request.name ?: existing.name
+            description = request.description ?: existing.description
+            addressLine = request.addressLine ?: existing.addressLine
+            city = request.city ?: existing.city
+            country = request.country ?: existing.country
+            allowNegativeStock = request.allowNegativeStock ?: existing.allowNegativeStock
+        }
+        return warehouseRepository.save(existing)
     }
 
     @Transactional
     fun deleteWarehouse(
-        warehouseId: String,
-        organizationId: String,
+        warehouseId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Warehouse {
         val warehouse = getWarehouse(warehouseId, organizationId)
         if (!warehouse.isActive) {
             throw BusinessRuleException("Warehouse is already inactive")
         }
         // TODO: when #41 lands, block soft delete if warehouse has open stock or movements.
-        return warehouseRepository.save(warehouse.copy(isActive = false))
+        warehouse.isActive = false
+        return warehouseRepository.save(warehouse)
     }
 }

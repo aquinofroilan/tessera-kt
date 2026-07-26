@@ -15,18 +15,18 @@ import java.util.UUID
 @Entity
 @Table(name = "tax_rates")
 @EntityListeners(AuditingEntityListener::class)
-data class TaxRate(
+class TaxRate(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
-    val name: String,
-    val code: String,
-    val percentage: BigDecimal,
-    val authority: String,
+    var id: java.util.UUID = UUID.randomUUID(),
+    var name: String,
+    var code: String,
+    var percentage: BigDecimal,
+    var authority: String,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "is_active")
-    val isActive: Boolean = true,
+    var isActive: Boolean = true,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

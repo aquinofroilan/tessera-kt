@@ -140,7 +140,7 @@ class RestGraphqlController(
     @MutationMapping
     @PreAuthorize("hasRole('SUPER_ADMIN') or hasAuthority('session:delete')")
     fun revokeSession(
-        @Argument sessionId: String,
+        @Argument sessionId: java.util.UUID,
         env: DataFetchingEnvironment,
     ): Any = support.unwrap(sessionController.revokeSession(authHeader(env).orEmpty(), sessionId))
 
@@ -172,7 +172,7 @@ class RestGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('invitation:write')")
     fun revokeInvitation(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(invitationController.revokeInvitation(id))
 
     @MutationMapping
@@ -188,7 +188,7 @@ class RestGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('apikey:manage')")
     fun revokeApiKey(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(apiKeyController.revokeApiKey(id))
 
     @MutationMapping
@@ -201,32 +201,32 @@ class RestGraphqlController(
     @PreAuthorize("hasAuthority('account:read')")
     fun accounts(
         @Argument type: String?,
-        @Argument parentId: String?,
+        @Argument parentId: java.util.UUID?,
     ): Any = support.unwrap(accountController.listAccounts(type, parentId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('account:read')")
     fun account(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(accountController.getAccount(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('account:update')")
     fun updateAccount(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(accountController.updateAccount(id, support.toRequest<UpdateAccountRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('account:delete')")
     fun deleteAccount(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(accountController.deleteAccount(id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('account:read')")
     fun accountBalance(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument asOfDate: String?,
     ): Any = support.unwrap(accountController.getAccountBalance(id, asOfDate?.let(LocalDate::parse)))
 
@@ -243,27 +243,27 @@ class RestGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('fiscal:read')")
     fun fiscalYear(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(fiscalYearController.getFiscalYear(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('fiscal:close')")
     fun closePeriod(
-        @Argument id: String,
-        @Argument periodId: String,
+        @Argument id: java.util.UUID,
+        @Argument periodId: java.util.UUID,
     ): Any = support.unwrap(fiscalYearController.closePeriod(id, periodId))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('fiscal:close')")
     fun reopenPeriod(
-        @Argument id: String,
-        @Argument periodId: String,
+        @Argument id: java.util.UUID,
+        @Argument periodId: java.util.UUID,
     ): Any = support.unwrap(fiscalYearController.reopenPeriod(id, periodId))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('fiscal:close')")
     fun closeYear(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(fiscalYearController.closeYear(id))
 
     @MutationMapping
@@ -290,19 +290,19 @@ class RestGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('journal:read')")
     fun journalEntry(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(journalEntryController.getJournalEntry(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('journal:post')")
     fun postJournalEntry(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(journalEntryController.postJournalEntry(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('journal:void')")
     fun voidJournalEntry(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(journalEntryController.voidJournalEntry(id, support.toRequest<VoidJournalEntryRequest>(input)))
 
@@ -370,20 +370,20 @@ class RestGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('tax:read')")
     fun taxRate(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(taxController.getTaxRate(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('tax:create')")
     fun updateTaxRate(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(taxController.updateTaxRate(id, support.toRequest<UpdateTaxRateRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('tax:delete')")
     fun deleteTaxRate(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(taxController.deleteTaxRate(id))
 
     @MutationMapping
@@ -401,20 +401,20 @@ class RestGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('tax:read')")
     fun taxGroup(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(taxController.getTaxGroup(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('tax:create')")
     fun updateTaxGroup(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(taxController.updateTaxGroup(id, support.toRequest<UpdateTaxGroupRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('tax:delete')")
     fun deleteTaxGroup(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(taxController.deleteTaxGroup(id))
 
     @QueryMapping
@@ -437,20 +437,20 @@ class RestGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('ap:read')")
     fun vendor(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(vendorController.getVendor(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ap:create')")
     fun updateVendor(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(vendorController.updateVendor(id, support.toRequest<UpdateVendorRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ap:create')")
     fun deleteVendor(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(vendorController.deleteVendor(id))
 
     @MutationMapping
@@ -463,39 +463,39 @@ class RestGraphqlController(
     @PreAuthorize("hasAuthority('ap:read')")
     fun bills(
         @Argument status: String?,
-        @Argument vendorId: String?,
+        @Argument vendorId: java.util.UUID?,
     ): Any = support.unwrap(billController.listBills(status, vendorId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ap:read')")
     fun bill(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(billController.getBill(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ap:approve')")
     fun approveBill(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(billController.approveBill(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ap:void')")
     fun voidBill(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(billController.voidBill(id, support.toRequest<VoidBillRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ap:pay')")
     fun recordBillPayment(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(billController.recordPayment(id, support.toRequest<RecordPaymentRequest>(input)))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ap:read')")
     fun billPayments(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(billController.listPayments(id))
 
     @QueryMapping
@@ -514,39 +514,39 @@ class RestGraphqlController(
     @PreAuthorize("hasAuthority('ar:read')")
     fun invoices(
         @Argument status: String?,
-        @Argument customerId: String?,
+        @Argument customerId: java.util.UUID?,
     ): Any = support.unwrap(invoiceController.listInvoices(status, customerId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ar:read')")
     fun invoice(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(invoiceController.getInvoice(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ar:approve')")
     fun approveInvoice(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(invoiceController.approveInvoice(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ar:void')")
     fun voidInvoice(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(invoiceController.voidInvoice(id, support.toRequest<VoidInvoiceRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ar:receive')")
     fun recordInvoiceReceipt(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(invoiceController.recordReceipt(id, support.toRequest<RecordReceiptRequest>(input)))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ar:read')")
     fun invoiceReceipts(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(invoiceController.listReceipts(id))
 
     @QueryMapping
