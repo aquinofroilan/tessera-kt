@@ -32,8 +32,8 @@ class WorkOrderController(
     fun create(
         @Valid @RequestBody request: CreateWorkOrderRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val userId = authContext.userId()?.toString() ?: "api-key"
         val wo = workOrderService.createWorkOrder(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(WorkOrderResponse.from(wo))
     }
@@ -44,7 +44,7 @@ class WorkOrderController(
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) productId: String?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
         val parsed =
             if (status != null) {
                 try {
@@ -64,7 +64,7 @@ class WorkOrderController(
     fun get(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
         return ResponseEntity.ok(WorkOrderResponse.from(workOrderService.getWorkOrder(id, orgId)))
     }
 
@@ -73,8 +73,8 @@ class WorkOrderController(
     fun release(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val userId = authContext.userId()?.toString() ?: "api-key"
         return ResponseEntity.ok(WorkOrderResponse.from(workOrderService.releaseWorkOrder(id, orgId, userId)))
     }
 
@@ -83,8 +83,8 @@ class WorkOrderController(
     fun cancel(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val userId = authContext.userId()?.toString() ?: "api-key"
         return ResponseEntity.ok(WorkOrderResponse.from(workOrderService.cancelWorkOrder(id, orgId, userId)))
     }
 }
