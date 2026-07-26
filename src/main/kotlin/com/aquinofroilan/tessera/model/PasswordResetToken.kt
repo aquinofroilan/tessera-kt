@@ -10,16 +10,16 @@ import java.util.UUID
 
 @Entity
 @Table(name = "password_reset_tokens")
-data class PasswordResetToken(
+class PasswordResetToken(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "token_hash")
-    val tokenHash: String,
+    var tokenHash: String,
     @Column(name = "user_id", columnDefinition = "uuid")
-    val userId: String,
+    var userId: java.util.UUID,
     @Column(name = "expiry_at")
-    val expiryAt: LocalDateTime,
+    var expiryAt: LocalDateTime,
     @Column(name = "created_at")
-    val createdAt: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC),
+    var createdAt: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC),
 )

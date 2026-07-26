@@ -33,7 +33,7 @@ class WorkCenterController(
     fun create(
         @Valid @RequestBody request: CreateWorkCenterRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
         val wc = workCenterService.createWorkCenter(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(WorkCenterResponse.from(wc))
     }
@@ -43,7 +43,7 @@ class WorkCenterController(
     fun list(
         @RequestParam(required = false, defaultValue = "true") activeOnly: Boolean,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
         return ResponseEntity.ok(workCenterService.listWorkCenters(orgId, activeOnly).map { WorkCenterResponse.from(it) })
     }
 
@@ -52,7 +52,7 @@ class WorkCenterController(
     fun get(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
         return ResponseEntity.ok(WorkCenterResponse.from(workCenterService.getWorkCenter(id, orgId)))
     }
 
@@ -62,7 +62,7 @@ class WorkCenterController(
         @PathVariable id: String,
         @Valid @RequestBody request: UpdateWorkCenterRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
         return ResponseEntity.ok(WorkCenterResponse.from(workCenterService.updateWorkCenter(id, request, orgId)))
     }
 
@@ -71,7 +71,7 @@ class WorkCenterController(
     fun deactivate(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
         return ResponseEntity.ok(WorkCenterResponse.from(workCenterService.deactivateWorkCenter(id, orgId)))
     }
 }

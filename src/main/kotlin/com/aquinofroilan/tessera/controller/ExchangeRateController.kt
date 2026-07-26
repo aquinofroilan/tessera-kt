@@ -73,7 +73,7 @@ class ExchangeRateController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('fx:create')")
     fun deleteRate(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         exchangeRateService.deleteRate(id, orgId)

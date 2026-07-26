@@ -17,30 +17,30 @@ import java.util.UUID
 @Entity
 @Table(name = "invoice_receipts")
 @EntityListeners(AuditingEntityListener::class)
-data class InvoiceReceipt(
+class InvoiceReceipt(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "invoice_id", columnDefinition = "uuid")
-    val invoiceId: String,
+    var invoiceId: java.util.UUID,
     @Column(name = "receipt_date")
-    val receiptDate: LocalDate,
-    val amount: BigDecimal,
+    var receiptDate: LocalDate,
+    var amount: BigDecimal,
     @Column(name = "base_currency_amount")
-    val baseCurrencyAmount: BigDecimal = amount,
+    var baseCurrencyAmount: BigDecimal = amount,
     @Column(name = "exchange_rate")
-    val exchangeRate: BigDecimal = BigDecimal.ONE,
+    var exchangeRate: BigDecimal = BigDecimal.ONE,
     @Column(name = "payment_method")
     @Enumerated(EnumType.STRING)
-    val paymentMethod: PaymentMethod,
+    var paymentMethod: PaymentMethod,
     @Column(name = "reference_number")
-    val referenceNumber: String? = null,
+    var referenceNumber: String? = null,
     @Column(name = "journal_entry_id", columnDefinition = "uuid")
-    val journalEntryId: String? = null,
+    var journalEntryId: java.util.UUID? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    var createdBy: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

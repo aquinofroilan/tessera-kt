@@ -17,9 +17,9 @@ class InventoryReportsService(
     private val stockMovementRepository: StockMovementRepository,
 ) {
     fun stockOnHand(
-        organizationId: String,
-        productId: String?,
-        warehouseId: String?,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID?,
+        warehouseId: java.util.UUID?,
         asOfDate: LocalDateTime?,
     ): StockOnHandReportResponse {
         val totals: Map<OnHandKey, BigDecimal> =
@@ -45,9 +45,9 @@ class InventoryReportsService(
     }
 
     fun movementHistory(
-        organizationId: String,
-        productId: String?,
-        warehouseId: String?,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID?,
+        warehouseId: java.util.UUID?,
         from: LocalDateTime?,
         to: LocalDateTime?,
     ): MovementHistoryResponse {
@@ -88,7 +88,7 @@ class InventoryReportsService(
     }
 
     private fun replayOnHand(
-        organizationId: String,
+        organizationId: java.util.UUID,
         asOfDate: LocalDateTime,
     ): Map<OnHandKey, BigDecimal> {
         val all =
@@ -110,8 +110,8 @@ class InventoryReportsService(
 
     private fun primaryAffectedWarehouse(
         movement: StockMovement,
-        filterWarehouseId: String?,
-    ): String {
+        filterWarehouseId: java.util.UUID?,
+    ): java.util.UUID {
         val destId = movement.transferToWarehouseId
         return if (movement.type == StockMovementType.TRANSFER &&
             filterWarehouseId != null &&
@@ -125,7 +125,7 @@ class InventoryReportsService(
 
     private fun signedQuantity(
         movement: StockMovement,
-        forWarehouseId: String,
+        forWarehouseId: java.util.UUID,
     ): BigDecimal {
         val q = movement.quantity
         return when (movement.type) {

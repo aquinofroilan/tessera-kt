@@ -1,0 +1,8 @@
+extend type Query {
+  projectBudgets(projectId: ID!): JSON!
+  projectBudgetVsActual(projectId: ID!): JSON!
+}
+
+extend type Mutation {
+  setProjectBudget(projectId: ID!, input: JSON!): JSON!
+}

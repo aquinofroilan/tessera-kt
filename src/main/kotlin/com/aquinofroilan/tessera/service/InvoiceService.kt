@@ -43,8 +43,8 @@ class InvoiceService(
     @Transactional
     fun createInvoice(
         request: CreateInvoiceRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): Invoice {
         val customer = customerService.getCustomer(request.customerId, organizationId)
         if (!customer.isActive) {
@@ -135,7 +135,7 @@ class InvoiceService(
         }
     }
 
-    private fun getBaseCurrency(organizationId: String): String =
+    private fun getBaseCurrency(organizationId: java.util.UUID): String =
         organizationRepository
             .findById(organizationId)
             .orElseThrow {
@@ -143,8 +143,8 @@ class InvoiceService(
             }.baseCurrency
 
     fun getInvoice(
-        invoiceId: String,
-        organizationId: String,
+        invoiceId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Invoice {
         val invoice =
             invoiceRepository.findById(invoiceId).orElseThrow {
@@ -157,9 +157,9 @@ class InvoiceService(
     }
 
     fun listInvoices(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: InvoiceStatus? = null,
-        customerId: String? = null,
+        customerId: java.util.UUID? = null,
     ): List<Invoice> =
         when {
             status != null && customerId != null ->
@@ -174,9 +174,9 @@ class InvoiceService(
 
     @Transactional
     fun approveInvoice(
-        invoiceId: String,
-        organizationId: String,
-        approvedBy: String,
+        invoiceId: java.util.UUID,
+        organizationId: java.util.UUID,
+        approvedBy: java.util.UUID,
     ): Invoice {
         val invoice = getInvoice(invoiceId, organizationId)
 
@@ -252,22 +252,19 @@ class InvoiceService(
             )
 
         val now = LocalDateTime.now(ZoneOffset.UTC)
-        return invoiceRepository.save(
-            invoice.copy(
-                status = InvoiceStatus.APPROVED,
-                journalEntryId = journalEntry.id,
-                approvedAt = now,
-                approvedBy = approvedBy,
-            ),
-        )
+        invoice.status = InvoiceStatus.APPROVED
+        invoice.journalEntryId = journalEntry.id
+        invoice.approvedAt = now
+        invoice.approvedBy = approvedBy
+        return invoiceRepository.save(invoice)
     }
 
     @Transactional
     fun voidInvoice(
-        invoiceId: String,
-        organizationId: String,
+        invoiceId: java.util.UUID,
+        organizationId: java.util.UUID,
         reason: String,
-        voidedBy: String,
+        voidedBy: java.util.UUID,
     ): Invoice {
         val invoice = getInvoice(invoiceId, organizationId)
 
@@ -278,14 +275,11 @@ class InvoiceService(
         val now = LocalDateTime.now(ZoneOffset.UTC)
 
         if (invoice.status == InvoiceStatus.DRAFT) {
-            return invoiceRepository.save(
-                invoice.copy(
-                    status = InvoiceStatus.VOID,
-                    voidedAt = now,
-                    voidedBy = voidedBy,
-                    voidReason = reason,
-                ),
-            )
+            invoice.status = InvoiceStatus.VOID
+            invoice.voidedAt = now
+            invoice.voidedBy = voidedBy
+            invoice.voidReason = reason
+            return invoiceRepository.save(invoice)
         }
 
         if (invoice.amountReceived.compareTo(BigDecimal.ZERO) != 0) {
@@ -301,22 +295,19 @@ class InvoiceService(
             )
         }
 
-        return invoiceRepository.save(
-            invoice.copy(
-                status = InvoiceStatus.VOID,
-                voidedAt = now,
-                voidedBy = voidedBy,
-                voidReason = reason,
-            ),
-        )
+        invoice.status = InvoiceStatus.VOID
+        invoice.voidedAt = now
+        invoice.voidedBy = voidedBy
+        invoice.voidReason = reason
+        return invoiceRepository.save(invoice)
     }
 
     @Transactional
     fun recordReceipt(
-        invoiceId: String,
+        invoiceId: java.util.UUID,
         request: RecordReceiptRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): InvoiceReceipt {
         val invoice = getInvoice(invoiceId, organizationId)
 
@@ -338,7 +329,7 @@ class InvoiceService(
         val arAccount = getArAccount(organizationId)
         val cashAccount = getCashAccount(organizationId)
 
-        val receiptId = UUID.randomUUID().toString()
+        val receiptId = UUID.randomUUID()
         val baseDecimals = currencyService.getCurrency(getBaseCurrency(organizationId)).decimalPlaces
         val newAmountReceived = invoice.amountReceived.add(request.amount)
         val fullyPaid = newAmountReceived.compareTo(invoice.totalAmount) >= 0
@@ -397,28 +388,25 @@ class InvoiceService(
         val newBaseAmountReceived = invoice.baseCurrencyAmountReceived.add(receiptBaseAmount)
         val newStatus = if (fullyPaid) InvoiceStatus.PAID else InvoiceStatus.PARTIALLY_PAID
 
-        invoiceRepository.save(
-            invoice.copy(
-                amountReceived = newAmountReceived,
-                baseCurrencyAmountReceived = newBaseAmountReceived,
-                status = newStatus,
-                paidAt = if (fullyPaid) LocalDateTime.now(ZoneOffset.UTC) else null,
-            ),
-        )
+        invoice.amountReceived = newAmountReceived
+        invoice.baseCurrencyAmountReceived = newBaseAmountReceived
+        invoice.status = newStatus
+        invoice.paidAt = if (fullyPaid) LocalDateTime.now(ZoneOffset.UTC) else null
+        invoiceRepository.save(invoice)
 
         return receipt
     }
 
     fun getReceipts(
-        invoiceId: String,
-        organizationId: String,
+        invoiceId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): List<InvoiceReceipt> {
         getInvoice(invoiceId, organizationId)
         return invoiceReceiptRepository.findByInvoiceIdAndOrganizationId(invoiceId, organizationId)
     }
 
     fun getAgingReport(
-        organizationId: String,
+        organizationId: java.util.UUID,
         asOfDate: LocalDate = LocalDate.now(ZoneOffset.UTC),
     ): ArAgingReportResponse {
         val outstandingStatuses =
@@ -508,13 +496,13 @@ class InvoiceService(
             val line = mutable[i]
             val applied =
                 if (remaining.signum() < 0) remaining.max(line.credit.negate()) else remaining
-            mutable[i] = line.copy(credit = line.credit.add(applied))
+            mutable[i] = line.apply { credit = line.credit.add(applied) }
             remaining = remaining.subtract(applied)
         }
         return mutable
     }
 
-    private fun getArAccount(organizationId: String): Account {
+    private fun getArAccount(organizationId: java.util.UUID): Account {
         val account =
             accountRepository.findByOrganizationIdAndCode(organizationId, "1100").orElseThrow {
                 IllegalStateException("Accounts Receivable account (1100) not found")
@@ -525,7 +513,7 @@ class InvoiceService(
         return account
     }
 
-    private fun getCashAccount(organizationId: String): Account {
+    private fun getCashAccount(organizationId: java.util.UUID): Account {
         val account =
             accountRepository.findByOrganizationIdAndCode(organizationId, "1000").orElseThrow {
                 IllegalStateException("Cash account (1000) not found")
@@ -536,7 +524,7 @@ class InvoiceService(
         return account
     }
 
-    private fun getTaxPayableAccount(organizationId: String): Account {
+    private fun getTaxPayableAccount(organizationId: java.util.UUID): Account {
         val account =
             accountRepository.findByOrganizationIdAndCode(organizationId, "2300").orElseThrow {
                 IllegalStateException("Sales Tax Payable account (2300) not found")
@@ -548,7 +536,7 @@ class InvoiceService(
     }
 
     private fun saveInvoiceWithRetry(
-        organizationId: String,
+        organizationId: java.util.UUID,
         maxRetries: Int = 3,
         buildInvoice: (String) -> Invoice,
     ): Invoice {

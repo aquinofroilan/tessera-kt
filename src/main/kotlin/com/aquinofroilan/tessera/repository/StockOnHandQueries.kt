@@ -14,17 +14,17 @@ interface StockOnHandQueries {
      * both succeed past a negative-stock boundary.
      */
     fun applyDelta(
-        organizationId: String,
-        productId: String,
-        warehouseId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
         delta: BigDecimal,
         allowNegative: Boolean,
     ): Boolean
 
     fun get(
-        organizationId: String,
-        productId: String,
-        warehouseId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
     ): BigDecimal
 }
 
@@ -32,9 +32,9 @@ open class StockOnHandQueriesImpl(
     private val jdbc: JdbcTemplate,
 ) : StockOnHandQueries {
     override fun applyDelta(
-        organizationId: String,
-        productId: String,
-        warehouseId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
         delta: BigDecimal,
         allowNegative: Boolean,
     ): Boolean {
@@ -69,7 +69,7 @@ open class StockOnHandQueriesImpl(
         val updated =
             jdbc.update(
                 sql,
-                UUID.randomUUID().toString(),
+                UUID.randomUUID(),
                 organizationId,
                 productId,
                 warehouseId,
@@ -79,9 +79,9 @@ open class StockOnHandQueriesImpl(
     }
 
     override fun get(
-        organizationId: String,
-        productId: String,
-        warehouseId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
     ): BigDecimal {
         val sql =
             """

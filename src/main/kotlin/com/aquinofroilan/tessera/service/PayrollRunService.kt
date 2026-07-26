@@ -34,8 +34,8 @@ class PayrollRunService(
     @Transactional
     fun createPayrollRun(
         request: CreatePayrollRunRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): PayrollRun {
         val periodStart = request.periodStart ?: throw BusinessRuleException("Period start is required")
         val periodEnd = request.periodEnd ?: throw BusinessRuleException("Period end is required")
@@ -94,8 +94,8 @@ class PayrollRunService(
     }
 
     fun getPayrollRun(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): PayrollRun {
         val run =
             payrollRunRepository.findById(id).orElseThrow {
@@ -108,7 +108,7 @@ class PayrollRunService(
     }
 
     fun listPayrollRuns(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: PayrollRunStatus? = null,
     ): List<PayrollRun> =
         if (status != null) {
@@ -119,9 +119,9 @@ class PayrollRunService(
 
     @Transactional
     fun approvePayrollRun(
-        id: String,
-        organizationId: String,
-        approvedBy: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        approvedBy: java.util.UUID,
     ): PayrollRun {
         val run = getPayrollRun(id, organizationId)
         if (run.status != PayrollRunStatus.DRAFT) {
@@ -142,21 +142,18 @@ class PayrollRunService(
                 sourceReference = "PAYROLL-ACCRUAL-${run.id}",
                 createdBy = approvedBy,
             )
-        return payrollRunRepository.save(
-            run.copy(
-                status = PayrollRunStatus.APPROVED,
-                accrualJournalEntryId = entry.id,
-                approvedAt = LocalDateTime.now(ZoneOffset.UTC),
-                approvedBy = approvedBy,
-            ),
-        )
+        run.status = PayrollRunStatus.APPROVED
+        run.accrualJournalEntryId = entry.id
+        run.approvedAt = LocalDateTime.now(ZoneOffset.UTC)
+        run.approvedBy = approvedBy
+        return payrollRunRepository.save(run)
     }
 
     @Transactional
     fun payPayrollRun(
-        id: String,
-        organizationId: String,
-        paidBy: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        paidBy: java.util.UUID,
     ): PayrollRun {
         val run = getPayrollRun(id, organizationId)
         if (run.status != PayrollRunStatus.APPROVED) {
@@ -177,31 +174,28 @@ class PayrollRunService(
                 sourceReference = "PAYROLL-PAYMENT-${run.id}",
                 createdBy = paidBy,
             )
-        return payrollRunRepository.save(
-            run.copy(
-                status = PayrollRunStatus.PAID,
-                paymentJournalEntryId = entry.id,
-                paidAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        run.status = PayrollRunStatus.PAID
+        run.paymentJournalEntryId = entry.id
+        run.paidAt = LocalDateTime.now(ZoneOffset.UTC)
+        return payrollRunRepository.save(run)
     }
 
     @Transactional
     fun cancelPayrollRun(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): PayrollRun {
         val run = getPayrollRun(id, organizationId)
         if (run.status != PayrollRunStatus.DRAFT) {
             throw BusinessRuleException("Only draft payroll runs can be cancelled; approved runs have posted to the ledger")
         }
-        return payrollRunRepository.save(
-            run.copy(status = PayrollRunStatus.CANCELLED, cancelledAt = LocalDateTime.now(ZoneOffset.UTC)),
-        )
+        run.status = PayrollRunStatus.CANCELLED
+        run.cancelledAt = LocalDateTime.now(ZoneOffset.UTC)
+        return payrollRunRepository.save(run)
     }
 
     private fun account(
-        organizationId: String,
+        organizationId: java.util.UUID,
         code: String,
     ): Account {
         val account =
@@ -240,7 +234,7 @@ class PayrollRunService(
         }
 
     private fun saveWithRetry(
-        organizationId: String,
+        organizationId: java.util.UUID,
         maxRetries: Int = 3,
         build: (String) -> PayrollRun,
     ): PayrollRun {

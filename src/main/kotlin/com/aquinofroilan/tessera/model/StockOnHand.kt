@@ -15,17 +15,17 @@ import java.util.UUID
 @Entity
 @Table(name = "stock_on_hand")
 @EntityListeners(AuditingEntityListener::class)
-data class StockOnHand(
+class StockOnHand(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "product_id", columnDefinition = "uuid")
-    val productId: String,
+    var productId: java.util.UUID,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
-    val warehouseId: String,
-    val quantity: BigDecimal = BigDecimal.ZERO,
+    var warehouseId: java.util.UUID,
+    var quantity: BigDecimal = BigDecimal.ZERO,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

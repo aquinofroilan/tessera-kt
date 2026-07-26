@@ -32,45 +32,45 @@ enum class FiscalPeriodStatus {
 
 @Entity
 @Table(name = "fiscal_periods")
-data class FiscalPeriod(
+class FiscalPeriod(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = UUID.randomUUID(),
     @Column(name = "period_number")
-    val periodNumber: Int,
-    val name: String,
+    var periodNumber: Int,
+    var name: String,
     @Column(name = "start_date")
-    val startDate: LocalDate,
+    var startDate: LocalDate,
     @Column(name = "end_date")
-    val endDate: LocalDate,
+    var endDate: LocalDate,
     @Enumerated(EnumType.STRING)
-    val status: FiscalPeriodStatus = FiscalPeriodStatus.OPEN,
+    var status: FiscalPeriodStatus = FiscalPeriodStatus.OPEN,
     @Column(name = "closed_at")
-    val closedAt: LocalDateTime? = null,
+    var closedAt: LocalDateTime? = null,
     @Column(name = "closed_by", columnDefinition = "uuid")
-    val closedBy: String? = null,
+    var closedBy: java.util.UUID? = null,
     @Column(name = "reopened_at")
-    val reopenedAt: LocalDateTime? = null,
+    var reopenedAt: LocalDateTime? = null,
     @Column(name = "reopened_by", columnDefinition = "uuid")
-    val reopenedBy: String? = null,
+    var reopenedBy: java.util.UUID? = null,
 )
 
 @Entity
 @Table(name = "fiscal_years")
 @EntityListeners(AuditingEntityListener::class)
-data class FiscalYear(
+class FiscalYear(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
-    val name: String,
+    var id: java.util.UUID = UUID.randomUUID(),
+    var name: String,
     @Column(name = "start_date")
-    val startDate: LocalDate,
+    var startDate: LocalDate,
     @Column(name = "end_date")
-    val endDate: LocalDate,
+    var endDate: LocalDate,
     @Enumerated(EnumType.STRING)
-    val status: FiscalYearStatus = FiscalYearStatus.ACTIVE,
+    var status: FiscalYearStatus = FiscalYearStatus.ACTIVE,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @OneToMany(
         cascade = [CascadeType.ALL],
         orphanRemoval = true,
@@ -78,13 +78,13 @@ data class FiscalYear(
     )
     @JoinColumn(name = "fiscal_year_id")
     @OrderBy("periodNumber ASC")
-    val periods: List<FiscalPeriod> = emptyList(),
+    var periods: List<FiscalPeriod> = emptyList(),
     @Column(name = "closed_at")
-    val closedAt: LocalDateTime? = null,
+    var closedAt: LocalDateTime? = null,
     @Column(name = "closed_by", columnDefinition = "uuid")
-    val closedBy: String? = null,
+    var closedBy: java.util.UUID? = null,
     @Column(name = "closing_entry_id", columnDefinition = "uuid")
-    val closingEntryId: String? = null,
+    var closingEntryId: java.util.UUID? = null,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

@@ -42,7 +42,7 @@ class BillController(
         @Valid @RequestBody request: CreateBillRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val createdBy = authContext.userId() ?: "api-key"
+        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
 
         val bill = billService.createBill(request, orgId, createdBy)
         return ResponseEntity.status(HttpStatus.CREATED).body(bill.toResponse())
@@ -52,7 +52,7 @@ class BillController(
     @PreAuthorize("hasAuthority('ap:read')")
     fun listBills(
         @RequestParam(required = false) status: String?,
-        @RequestParam(required = false) vendorId: String?,
+        @RequestParam(required = false) vendorId: java.util.UUID?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
@@ -76,7 +76,7 @@ class BillController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ap:read')")
     fun getBill(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
@@ -87,10 +87,10 @@ class BillController(
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasAuthority('ap:approve')")
     fun approveBill(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
 
         val bill = billService.approveBill(id, orgId, userId)
         return ResponseEntity.ok(bill.toResponse())
@@ -99,11 +99,11 @@ class BillController(
     @PostMapping("/{id}/void")
     @PreAuthorize("hasAuthority('ap:void')")
     fun voidBill(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: VoidBillRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
 
         val bill = billService.voidBill(id, orgId, request.reason, userId)
         return ResponseEntity.ok(bill.toResponse())
@@ -112,11 +112,11 @@ class BillController(
     @PostMapping("/{id}/payments")
     @PreAuthorize("hasAuthority('ap:pay')")
     fun recordPayment(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: RecordPaymentRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val createdBy = authContext.userId() ?: "api-key"
+        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
 
         val payment = billService.recordPayment(id, request, orgId, createdBy)
         return ResponseEntity.status(HttpStatus.CREATED).body(payment.toResponse())
@@ -125,7 +125,7 @@ class BillController(
     @GetMapping("/{id}/payments")
     @PreAuthorize("hasAuthority('ap:read')")
     fun listPayments(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 

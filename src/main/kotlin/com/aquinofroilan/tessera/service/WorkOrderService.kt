@@ -31,16 +31,24 @@ class WorkOrderService(
         organizationId: String,
         createdBy: String,
     ): WorkOrder {
-        val product = productService.getProduct(request.productId, organizationId)
+        val product = productService.getProduct(java.util.UUID.fromString(request.productId), java.util.UUID.fromString(organizationId))
         if (!product.isActive) {
             throw BusinessRuleException("Product '${product.sku}' is inactive")
         }
         val quantity = request.quantity ?: throw BusinessRuleException("Quantity is required")
         if (quantity.signum() <= 0) throw BusinessRuleException("Quantity must be positive")
 
-        val source = warehouseService.getWarehouse(request.sourceWarehouseId, organizationId)
+        val source =
+            warehouseService.getWarehouse(
+                java.util.UUID.fromString(request.sourceWarehouseId),
+                java.util.UUID.fromString(organizationId),
+            )
         if (!source.isActive) throw BusinessRuleException("Source warehouse is inactive")
-        val target = warehouseService.getWarehouse(request.targetWarehouseId, organizationId)
+        val target =
+            warehouseService.getWarehouse(
+                java.util.UUID.fromString(request.targetWarehouseId),
+                java.util.UUID.fromString(organizationId),
+            )
         if (!target.isActive) throw BusinessRuleException("Target warehouse is inactive")
         if (request.plannedEnd != null &&
             request.plannedStart != null &&
@@ -49,16 +57,16 @@ class WorkOrderService(
             throw BusinessRuleException("Planned end must be on or after planned start")
         }
 
-        val bom = resolveBom(request.bomId, organizationId, product.id)
+        val bom = resolveBom(request.bomId, organizationId, product.id.toString())
         val routing =
-            request.routingId?.let { resolveRouting(it, organizationId, product.id) }
-                ?: resolveDefaultRouting(organizationId, product.id)
+            request.routingId?.let { resolveRouting(it, organizationId, product.id.toString()) }
+                ?: resolveDefaultRouting(organizationId, product.id.toString())
 
         val components =
             bom.lines.map { line ->
                 WorkOrderComponent(
                     lineNumber = line.lineNumber,
-                    componentProductId = line.componentProductId,
+                    componentProductId = line.componentProductId.toString(),
                     componentSku = line.componentSku,
                     componentName = line.componentName,
                     plannedQuantity = scaleComponentQuantity(line.quantity, line.scrapPct, quantity),
@@ -82,14 +90,14 @@ class WorkOrderService(
             WorkOrder(
                 organizationId = organizationId,
                 woNumber = woNumber,
-                productId = product.id,
+                productId = product.id.toString(),
                 productSku = product.sku,
                 productName = product.name,
-                bomId = bom.id,
+                bomId = bom.id.toString(),
                 routingId = routing?.id,
                 quantity = quantity,
-                sourceWarehouseId = source.id,
-                targetWarehouseId = target.id,
+                sourceWarehouseId = source.id.toString(),
+                targetWarehouseId = target.id.toString(),
                 status = WorkOrderStatus.DRAFT,
                 plannedStart = request.plannedStart,
                 plannedEnd = request.plannedEnd,
@@ -172,14 +180,14 @@ class WorkOrderService(
     ): com.aquinofroilan.tessera.model.BillOfMaterials {
         val bom =
             if (bomId != null) {
-                bomService.getBom(bomId, organizationId)
+                bomService.getBom(java.util.UUID.fromString(bomId), java.util.UUID.fromString(organizationId))
             } else {
                 bomService
-                    .listBoms(organizationId, BomStatus.ACTIVE, productId)
+                    .listBoms(java.util.UUID.fromString(organizationId), BomStatus.ACTIVE, java.util.UUID.fromString(productId))
                     .firstOrNull { it.isDefault }
                     ?: throw BusinessRuleException("No default ACTIVE BOM exists for product $productId")
             }
-        if (bom.productId != productId) {
+        if (bom.productId.toString() != productId) {
             throw BusinessRuleException("BOM '${bom.code}' is not for product $productId")
         }
         if (bom.status != BomStatus.ACTIVE) {

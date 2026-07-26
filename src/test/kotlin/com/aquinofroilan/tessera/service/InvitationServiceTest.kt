@@ -33,6 +33,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.Optional
+import java.util.UUID
 
 class InvitationServiceTest {
     private lateinit var invitationService: InvitationService
@@ -186,7 +187,7 @@ class InvitationServiceTest {
     @Test
     fun `validateInvitation should return existingUser true when email registered`() {
         val invitation = createMockInvitation()
-        val existingUser = createMockUser().copy(email = invitation.email)
+        val existingUser = createMockUser().apply { email = invitation.email }
 
         `when`(invitationRepository.findByTokenHash("hashed-valid-token")).thenReturn(Optional.of(invitation))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.of(existingUser))
@@ -215,7 +216,7 @@ class InvitationServiceTest {
                 lastName = "User",
             )
         val invitation = createMockInvitation()
-        val accepted = invitation.copy(status = InvitationStatus.ACCEPTED)
+        val accepted = invitation.apply { status = InvitationStatus.ACCEPTED }
 
         `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
         `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(accepted))
@@ -240,17 +241,23 @@ class InvitationServiceTest {
     fun `acceptInvitation should add role to existing user with only token`() {
         val request = AcceptInvitationRequest(token = "raw-token")
         val invitation = createMockInvitation(role = "ADMIN")
-        val accepted = invitation.copy(status = InvitationStatus.ACCEPTED)
+        val accepted = invitation.apply { status = InvitationStatus.ACCEPTED }
         val existingUser =
             User(
-                uuid = "existing-user",
+                uuid = java.util.UUID.fromString("a5e1c214-a202-3e30-807d-048adc806677"),
                 username = "existinguser",
                 email = invitation.email,
                 firstName = "Existing",
                 lastName = "User",
-                passwordHash = "existingHash",
-                organizationId = "other-org",
-                roleAssignments = listOf(RoleAssignment("MEMBER", "other-org")),
+                passwordHash = "hash",
+                organizationId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"),
+                roleAssignments =
+                    listOf(
+                        RoleAssignment(
+                            "fd77e00b-9d47-330b-92f4-a64820025f7d",
+                            java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                        ),
+                    ),
             )
 
         `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
@@ -289,7 +296,7 @@ class InvitationServiceTest {
         val invitation = createMockInvitation()
 
         `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
-        `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(invitation.copy(status = InvitationStatus.ACCEPTED)))
+        `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(invitation.apply { status = InvitationStatus.ACCEPTED }))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
 
         val exception = assertThrows<BusinessRuleException> { invitationService.acceptInvitation(request) }
@@ -309,7 +316,7 @@ class InvitationServiceTest {
         val invitation = createMockInvitation()
 
         `when`(jdbcTemplate.update(any<String>(), anyVararg<Any>())).thenReturn(1)
-        `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(invitation.copy(status = InvitationStatus.ACCEPTED)))
+        `when`(invitationRepository.findByTokenHash(any())).thenReturn(Optional.of(invitation.apply { status = InvitationStatus.ACCEPTED }))
         `when`(userRepository.findByEmail(invitation.email)).thenReturn(Optional.empty())
         `when`(passwordEncoder.encode("SecurePass123!")).thenReturn("encodedPassword")
         `when`(userRepository.save(any<User>()))
@@ -326,7 +333,7 @@ class InvitationServiceTest {
         `when`(invitationRepository.findById(invitation.id)).thenReturn(Optional.of(invitation))
         `when`(invitationRepository.save(any<Invitation>())).thenAnswer { it.arguments[0] }
 
-        invitationService.revokeInvitation(invitation.id, "org-123")
+        invitationService.revokeInvitation(invitation.id, java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
 
         val captor = argumentCaptor<Invitation>()
         verify(invitationRepository).save(captor.capture())
@@ -335,13 +342,13 @@ class InvitationServiceTest {
 
     @Test
     fun `revokeInvitation should throw when invitation not in same org`() {
-        val invitation = createMockInvitation(organizationId = "other-org")
+        val invitation = createMockInvitation(organizationId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"))
 
         `when`(invitationRepository.findById(invitation.id)).thenReturn(Optional.of(invitation))
 
         val exception =
             assertThrows<ResourceNotFoundException> {
-                invitationService.revokeInvitation(invitation.id, "org-123")
+                invitationService.revokeInvitation(invitation.id, java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
             }
         assertThat(exception.message).isEqualTo("Invitation not found")
     }
@@ -354,7 +361,7 @@ class InvitationServiceTest {
 
         val exception =
             assertThrows<BusinessRuleException> {
-                invitationService.revokeInvitation(invitation.id, "org-123")
+                invitationService.revokeInvitation(invitation.id, java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
             }
         assertThat(exception.message).isEqualTo("Invitation is not pending")
     }
@@ -363,39 +370,50 @@ class InvitationServiceTest {
     fun `listInvitations should return pending invitations for org`() {
         val invitations = listOf(createMockInvitation(), createMockInvitation(email = "other@example.com"))
 
-        `when`(invitationRepository.findByOrganizationIdAndStatusAndExpiryAtAfter(eq("org-123"), eq(InvitationStatus.PENDING), any()))
-            .thenReturn(invitations)
+        `when`(
+            invitationRepository.findByOrganizationIdAndStatusAndExpiryAtAfter(
+                eq(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")),
+                eq(InvitationStatus.PENDING),
+                any(),
+            ),
+        ).thenReturn(invitations)
 
-        val result = invitationService.listInvitations("org-123")
+        val result = invitationService.listInvitations(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
 
         assertThat(result.size).isEqualTo(2)
     }
 
     private fun createMockUser() =
         User(
-            uuid = "user-123",
+            uuid = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9"),
             username = "testuser",
             email = "test@example.com",
             firstName = "Test",
             lastName = "User",
-            passwordHash = "encodedPassword",
-            organizationId = "org-123",
-            roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
+            passwordHash = "hash",
+            organizationId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+            roleAssignments =
+                listOf(
+                    RoleAssignment(
+                        "fd77e00b-9d47-330b-92f4-a64820025f7d",
+                        java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
+                    ),
+                ),
         )
 
     private fun createMockInvitation(
         email: String = "invited@example.com",
         role: String = "MEMBER",
-        organizationId: String = "org-123",
+        organizationId: UUID = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"),
         status: InvitationStatus = InvitationStatus.PENDING,
         expiryAt: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC).plusHours(72),
     ) = Invitation(
-        id = "inv-123",
+        id = java.util.UUID.fromString("c065d6b7-6bc0-3834-937c-c5f22333dee6"),
         email = email,
         organizationId = organizationId,
         role = role,
         tokenHash = "hashed-token",
-        invitedBy = "user-123",
+        invitedBy = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9"),
         status = status,
         expiryAt = expiryAt,
     )

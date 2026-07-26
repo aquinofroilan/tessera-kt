@@ -30,11 +30,11 @@ class EmployeeCompensationController(
     @PostMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun addCompensation(
-        @PathVariable employeeId: String,
+        @PathVariable employeeId: java.util.UUID,
         @Valid @RequestBody request: CreateEmployeeCompensationRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val createdBy = authContext.userId() ?: "api-key"
+        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val comp = compensationService.addCompensation(employeeId, request, orgId, createdBy)
         return ResponseEntity.status(HttpStatus.CREATED).body(EmployeeCompensationResponse.from(comp))
     }
@@ -42,7 +42,7 @@ class EmployeeCompensationController(
     @GetMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun listCompensation(
-        @PathVariable employeeId: String,
+        @PathVariable employeeId: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(compensationService.listCompensation(employeeId, orgId).map { EmployeeCompensationResponse.from(it) })
@@ -51,7 +51,7 @@ class EmployeeCompensationController(
     @GetMapping("/current")
     @PreAuthorize("hasAuthority('hr:read')")
     fun currentCompensation(
-        @PathVariable employeeId: String,
+        @PathVariable employeeId: java.util.UUID,
         @RequestParam(required = false) asOf: LocalDate?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()

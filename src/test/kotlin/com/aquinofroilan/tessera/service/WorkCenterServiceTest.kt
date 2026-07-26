@@ -20,7 +20,7 @@ class WorkCenterServiceTest {
     private lateinit var warehouseService: WarehouseService
     private lateinit var service: WorkCenterService
 
-    private val orgId = "org-1"
+    private val orgId = "550e8400-e29b-41d4-a716-446655440000"
 
     @BeforeEach
     fun setup() {
@@ -29,7 +29,13 @@ class WorkCenterServiceTest {
         whenever(repository.save(any<WorkCenter>())).thenAnswer { it.arguments[0] }
         whenever(repository.findByOrganizationIdAndCode(any(), any())).thenReturn(Optional.empty())
         whenever(warehouseService.getWarehouse(any(), any())).thenReturn(
-            Warehouse(id = "wh1", code = "MAIN", name = "Main", organizationId = orgId, isActive = true),
+            Warehouse(
+                id = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440009"),
+                code = "MAIN",
+                name = "Main",
+                organizationId = java.util.UUID.fromString(orgId),
+                isActive = true,
+            ),
         )
         service = WorkCenterService(repository, warehouseService)
     }

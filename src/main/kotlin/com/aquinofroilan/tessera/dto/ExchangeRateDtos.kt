@@ -16,8 +16,8 @@ data class CreateExchangeRateRequest(
 )
 
 data class ExchangeRateResponse(
-    val id: String,
-    val organizationId: String,
+    val id: java.util.UUID,
+    val organizationId: java.util.UUID,
     val fromCurrency: String,
     val toCurrency: String,
     val rate: BigDecimal,

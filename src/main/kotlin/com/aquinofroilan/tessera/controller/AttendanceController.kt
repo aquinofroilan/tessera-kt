@@ -59,7 +59,7 @@ class AttendanceController(
     @GetMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun listTimesheet(
-        @RequestParam(required = false) employeeId: String?,
+        @RequestParam(required = false) employeeId: java.util.UUID?,
         @RequestParam(required = false) from: LocalDate?,
         @RequestParam(required = false) to: LocalDate?,
     ): ResponseEntity<Any> {
@@ -72,7 +72,7 @@ class AttendanceController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:read')")
     fun getAttendance(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(AttendanceResponse.from(attendanceService.getAttendance(id, orgId)))

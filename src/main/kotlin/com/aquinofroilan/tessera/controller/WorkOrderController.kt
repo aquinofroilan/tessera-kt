@@ -2,13 +2,10 @@ package com.aquinofroilan.tessera.controller
 
 import com.aquinofroilan.tessera.annotation.LogLevel
 import com.aquinofroilan.tessera.annotation.Loggable
-import com.aquinofroilan.tessera.dto.CompleteWorkOrderRequest
 import com.aquinofroilan.tessera.dto.CreateWorkOrderRequest
-import com.aquinofroilan.tessera.dto.IssueMaterialRequest
 import com.aquinofroilan.tessera.dto.WorkOrderResponse
 import com.aquinofroilan.tessera.model.WorkOrderStatus
 import com.aquinofroilan.tessera.security.AuthenticationContext
-import com.aquinofroilan.tessera.service.WorkOrderExecutionService
 import com.aquinofroilan.tessera.service.WorkOrderService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -36,8 +33,8 @@ class WorkOrderController(
     fun create(
         @Valid @RequestBody request: CreateWorkOrderRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val userId = authContext.userId()?.toString() ?: "api-key"
         val wo = workOrderService.createWorkOrder(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(WorkOrderResponse.from(wo))
     }
@@ -48,7 +45,7 @@ class WorkOrderController(
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) productId: String?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
         val parsed =
             if (status != null) {
                 try {
@@ -68,7 +65,7 @@ class WorkOrderController(
     fun get(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
         return ResponseEntity.ok(WorkOrderResponse.from(workOrderService.getWorkOrder(id, orgId)))
     }
 
@@ -77,8 +74,8 @@ class WorkOrderController(
     fun release(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val userId = authContext.userId()?.toString() ?: "api-key"
         return ResponseEntity.ok(WorkOrderResponse.from(workOrderService.releaseWorkOrder(id, orgId, userId)))
     }
 
@@ -87,32 +84,8 @@ class WorkOrderController(
     fun cancel(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val userId = authContext.userId()?.toString() ?: "api-key"
         return ResponseEntity.ok(WorkOrderResponse.from(workOrderService.cancelWorkOrder(id, orgId, userId)))
-    }
-
-    @PostMapping("/{id}/issue-material")
-    @PreAuthorize("hasAuthority('mfg:write')")
-    fun issueMaterial(
-        @PathVariable id: String,
-        @Valid @RequestBody request: IssueMaterialRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
-        val wo = workOrderExecutionService.issueMaterial(id, request, orgId, userId)
-        return ResponseEntity.ok(WorkOrderResponse.from(wo))
-    }
-
-    @PostMapping("/{id}/complete")
-    @PreAuthorize("hasAuthority('mfg:approve')")
-    fun complete(
-        @PathVariable id: String,
-        @Valid @RequestBody request: CompleteWorkOrderRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
-        val wo = workOrderExecutionService.completeProduction(id, request, orgId, userId)
-        return ResponseEntity.ok(WorkOrderResponse.from(wo))
     }
 }

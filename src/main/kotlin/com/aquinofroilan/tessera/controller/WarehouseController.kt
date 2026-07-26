@@ -53,7 +53,7 @@ class WarehouseController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun getWarehouse(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val warehouse = warehouseService.getWarehouse(id, orgId)
@@ -63,7 +63,7 @@ class WarehouseController(
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun updateWarehouse(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateWarehouseRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -74,7 +74,7 @@ class WarehouseController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun deleteWarehouse(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val warehouse = warehouseService.deleteWarehouse(id, orgId)

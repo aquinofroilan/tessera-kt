@@ -29,13 +29,13 @@ class WorkOrderServiceTest {
     private lateinit var routingService: RoutingService
     private lateinit var service: WorkOrderService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
-    private val productId = "prod-1"
-    private val componentId = "comp-1"
-    private val bomId = "bom-1"
-    private val sourceWh = "wh-src"
-    private val targetWh = "wh-tgt"
+    private val orgId = "550e8400-e29b-41d4-a716-446655440000"
+    private val userId = "550e8400-e29b-41d4-a716-446655440001"
+    private val productId = "550e8400-e29b-41d4-a716-446655440002"
+    private val componentId = "550e8400-e29b-41d4-a716-446655440003"
+    private val bomId = "550e8400-e29b-41d4-a716-446655440004"
+    private val sourceWh = "550e8400-e29b-41d4-a716-446655440005"
+    private val targetWh = "550e8400-e29b-41d4-a716-446655440006"
 
     @BeforeEach
     fun setup() {
@@ -46,10 +46,18 @@ class WorkOrderServiceTest {
         routingService = mock(RoutingService::class.java)
         whenever(repository.save(any<WorkOrder>())).thenAnswer { it.arguments[0] }
         whenever(repository.countByOrganizationId(orgId)).thenReturn(0)
-        whenever(productService.getProduct(productId, orgId)).thenReturn(product(productId, "PARENT"))
-        whenever(warehouseService.getWarehouse(sourceWh, orgId)).thenReturn(warehouse(sourceWh, "SRC"))
-        whenever(warehouseService.getWarehouse(targetWh, orgId)).thenReturn(warehouse(targetWh, "TGT"))
-        whenever(bomService.listBoms(orgId, BomStatus.ACTIVE, productId)).thenReturn(listOf(activeBom(isDefault = true)))
+        whenever(
+            productService.getProduct(java.util.UUID.fromString(productId), java.util.UUID.fromString(orgId)),
+        ).thenReturn(product(productId, "PARENT"))
+        whenever(
+            warehouseService.getWarehouse(java.util.UUID.fromString(sourceWh), java.util.UUID.fromString(orgId)),
+        ).thenReturn(warehouse(sourceWh, "SRC"))
+        whenever(
+            warehouseService.getWarehouse(java.util.UUID.fromString(targetWh), java.util.UUID.fromString(orgId)),
+        ).thenReturn(warehouse(targetWh, "TGT"))
+        whenever(
+            bomService.listBoms(java.util.UUID.fromString(orgId), BomStatus.ACTIVE, java.util.UUID.fromString(productId)),
+        ).thenReturn(listOf(activeBom(isDefault = true)))
         whenever(routingService.listRoutings(orgId, RoutingStatus.ACTIVE, productId)).thenReturn(emptyList())
         service = WorkOrderService(repository, productService, warehouseService, bomService, routingService)
     }
@@ -79,7 +87,9 @@ class WorkOrderServiceTest {
 
     @Test
     fun `create rejects when no default ACTIVE bom and none specified`() {
-        whenever(bomService.listBoms(orgId, BomStatus.ACTIVE, productId)).thenReturn(emptyList())
+        whenever(
+            bomService.listBoms(java.util.UUID.fromString(orgId), BomStatus.ACTIVE, java.util.UUID.fromString(productId)),
+        ).thenReturn(emptyList())
         val req =
             CreateWorkOrderRequest(
                 productId = productId,
@@ -129,9 +139,9 @@ class WorkOrderServiceTest {
 
     private fun activeBom(isDefault: Boolean) =
         BillOfMaterials(
-            id = bomId,
-            organizationId = orgId,
-            productId = productId,
+            id = java.util.UUID.fromString(bomId),
+            organizationId = java.util.UUID.fromString(orgId),
+            productId = java.util.UUID.fromString(productId),
             code = "BOM",
             name = "BOM",
             status = BomStatus.ACTIVE,
@@ -140,14 +150,14 @@ class WorkOrderServiceTest {
                 listOf(
                     BomLine(
                         lineNumber = 1,
-                        componentProductId = componentId,
+                        componentProductId = java.util.UUID.fromString(componentId),
                         componentSku = "COMP",
                         componentName = "Component",
                         quantity = BigDecimal("2.0"),
                         scrapPct = BigDecimal("5"),
                     ),
                 ),
-            createdBy = userId,
+            createdBy = java.util.UUID.fromString(userId),
         )
 
     private fun draftWO() =
@@ -173,17 +183,23 @@ class WorkOrderServiceTest {
         id: String,
         sku: String,
     ) = Product(
-        id = id,
+        id = java.util.UUID.fromString(id),
         sku = sku,
         name = sku,
         listPrice = BigDecimal.ONE,
         priceCurrency = "USD",
-        organizationId = orgId,
+        organizationId = java.util.UUID.fromString(orgId),
         isActive = true,
     )
 
     private fun warehouse(
         id: String,
         code: String,
-    ) = Warehouse(id = id, code = code, name = code, organizationId = orgId, isActive = true)
+    ) = Warehouse(
+        id = java.util.UUID.fromString(id),
+        code = code,
+        name = code,
+        organizationId = java.util.UUID.fromString(orgId),
+        isActive = true,
+    )
 }

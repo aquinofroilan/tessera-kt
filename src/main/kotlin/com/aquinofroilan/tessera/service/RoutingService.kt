@@ -28,7 +28,7 @@ class RoutingService(
         organizationId: String,
         createdBy: String,
     ): Routing {
-        val product = productService.getProduct(request.productId, organizationId)
+        val product = productService.getProduct(java.util.UUID.fromString(request.productId), java.util.UUID.fromString(organizationId))
         if (!product.isActive) {
             throw BusinessRuleException("Product '${product.sku}' is inactive")
         }
@@ -40,10 +40,10 @@ class RoutingService(
         val routing =
             Routing(
                 organizationId = organizationId,
-                productId = product.id,
+                productId = product.id.toString(),
                 code = request.code,
                 name = request.name,
-                version = request.version ?: nextVersion(organizationId, product.id),
+                version = request.version ?: nextVersion(organizationId, product.id.toString()),
                 status = RoutingStatus.DRAFT,
                 effectiveFrom = request.effectiveFrom,
                 effectiveTo = request.effectiveTo,

@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface WarehouseRepository :
-    JpaRepository<Warehouse, String>,
+    JpaRepository<Warehouse, java.util.UUID>,
     WarehouseQueries

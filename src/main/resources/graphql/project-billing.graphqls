@@ -1,0 +1,3 @@
+extend type Mutation {
+  generateProjectInvoice(projectId: ID!, input: JSON): JSON!
+}

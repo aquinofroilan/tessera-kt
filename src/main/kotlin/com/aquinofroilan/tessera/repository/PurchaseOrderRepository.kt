@@ -6,24 +6,24 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface PurchaseOrderRepository : JpaRepository<PurchaseOrder, String> {
-    fun findByOrganizationId(organizationId: String): List<PurchaseOrder>
+interface PurchaseOrderRepository : JpaRepository<PurchaseOrder, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<PurchaseOrder>
 
     fun findByOrganizationIdAndStatus(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: PurchaseOrderStatus,
     ): List<PurchaseOrder>
 
     fun findByOrganizationIdAndVendorId(
-        organizationId: String,
-        vendorId: String,
+        organizationId: java.util.UUID,
+        vendorId: java.util.UUID,
     ): List<PurchaseOrder>
 
     fun findByOrganizationIdAndStatusAndVendorId(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: PurchaseOrderStatus,
-        vendorId: String,
+        vendorId: java.util.UUID,
     ): List<PurchaseOrder>
 
-    fun countByOrganizationId(organizationId: String): Long
+    fun countByOrganizationId(organizationId: java.util.UUID): Long
 }

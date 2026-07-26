@@ -5,11 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface InvoiceReceiptRepository : JpaRepository<InvoiceReceipt, String> {
+interface InvoiceReceiptRepository : JpaRepository<InvoiceReceipt, java.util.UUID> {
     fun findByInvoiceIdAndOrganizationId(
-        invoiceId: String,
-        organizationId: String,
+        invoiceId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): List<InvoiceReceipt>
 
-    fun findByOrganizationId(organizationId: String): List<InvoiceReceipt>
+    fun findByOrganizationId(organizationId: java.util.UUID): List<InvoiceReceipt>
 }
