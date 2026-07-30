@@ -472,7 +472,7 @@ class AccountServiceTest {
     }
 
     @Test
-    fun `seedDefaultAccounts should create 22 default accounts`() {
+    fun `seedDefaultAccounts should create default accounts`() {
         `when`(accountRepository.saveAll(any<List<Account>>())).thenAnswer { it.arguments[0] }
 
         accountService.seedDefaultAccounts(java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d"))
@@ -482,7 +482,7 @@ class AccountServiceTest {
         verify(accountRepository).saveAll(captor.capture())
 
         val savedAccounts = captor.firstValue
-        assertThat(savedAccounts).hasSize(22)
+        assertThat(savedAccounts).hasSize(23)
         assertThat(savedAccounts).allMatch { it.isSystemAccount }
         assertThat(savedAccounts).allMatch { it.organizationId == java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d") }
         assertThat(savedAccounts).allMatch { it.isActive }

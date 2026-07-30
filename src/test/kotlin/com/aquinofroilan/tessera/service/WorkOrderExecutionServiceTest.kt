@@ -27,8 +27,8 @@ class WorkOrderExecutionServiceTest {
     private lateinit var stockMovementService: StockMovementService
     private lateinit var service: WorkOrderExecutionService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
+    private val orgId = "550e8400-e29b-41d4-a716-446655440000"
+    private val userId = "550e8400-e29b-41d4-a716-446655440001"
 
     @BeforeEach
     fun setup() {
@@ -152,14 +152,14 @@ class WorkOrderExecutionServiceTest {
             id = "wo1",
             organizationId = orgId,
             woNumber = "WO-0001",
-            productId = "prod-1",
+            productId = "550e8400-e29b-41d4-a716-446655440005",
             productSku = "SKU",
             productName = "Widget",
-            bomId = "bom-1",
+            bomId = "550e8400-e29b-41d4-a716-446655440006",
             routingId = null,
             quantity = BigDecimal("10"),
-            sourceWarehouseId = "wh-src",
-            targetWarehouseId = "wh-tgt",
+            sourceWarehouseId = "550e8400-e29b-41d4-a716-446655440007",
+            targetWarehouseId = "550e8400-e29b-41d4-a716-446655440008",
             status = WorkOrderStatus.RELEASED,
             components = listOf(component("c1", planned = BigDecimal("10"), issued = BigDecimal.ZERO)),
             operations = emptyList(),
@@ -173,7 +173,7 @@ class WorkOrderExecutionServiceTest {
     ) = WorkOrderComponent(
         id = id,
         lineNumber = 1,
-        componentProductId = "comp-prod",
+        componentProductId = "550e8400-e29b-41d4-a716-446655440002",
         componentSku = "COMP",
         componentName = "Component",
         plannedQuantity = planned,
@@ -182,12 +182,12 @@ class WorkOrderExecutionServiceTest {
 
     private fun dummyMovement() =
         StockMovement(
-            organizationId = orgId,
+            organizationId = java.util.UUID.fromString(orgId),
             type = StockMovementType.WIP_ISSUE,
-            productId = "comp-prod",
-            warehouseId = "wh-src",
+            productId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440002"),
+            warehouseId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440003"),
             quantity = BigDecimal.ONE,
             occurredAt = LocalDateTime.now(),
-            createdBy = userId,
+            createdBy = java.util.UUID.fromString(userId),
         )
 }
