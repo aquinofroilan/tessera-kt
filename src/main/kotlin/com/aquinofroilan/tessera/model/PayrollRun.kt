@@ -32,7 +32,7 @@ enum class PayrollRunStatus {
 class PayrollRunLine(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "line_number")
     var lineNumber: Int = 0,
     @Column(name = "employee_id", columnDefinition = "uuid")
@@ -53,7 +53,7 @@ class PayrollRunLine(
 class PayrollRun(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "run_number")
     var runNumber: String,
     @Column(name = "period_start")

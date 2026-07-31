@@ -34,7 +34,7 @@ enum class PurchaseOrderStatus {
 class PurchaseOrderLine(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "line_number")
     var lineNumber: Int = 0,
     @Column(name = "product_id", columnDefinition = "uuid")
@@ -61,7 +61,7 @@ class PurchaseOrderLine(
 class PurchaseOrder(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "po_number")
     var poNumber: String,
     @Column(name = "vendor_id", columnDefinition = "uuid")

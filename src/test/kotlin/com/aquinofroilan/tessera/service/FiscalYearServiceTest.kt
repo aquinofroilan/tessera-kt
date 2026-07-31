@@ -678,7 +678,7 @@ class FiscalYearServiceTest {
     }
 
     private fun createFiscalYear(
-        id: java.util.UUID = java.util.UUID.randomUUID(),
+        id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         name: String = "FY 2026",
         startDate: LocalDate = LocalDate.of(2026, 1, 1),
         endDate: LocalDate = LocalDate.of(2026, 12, 31),

@@ -17,7 +17,7 @@ import java.util.UUID
 class Customer(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var name: String,
     @Column(name = "contact_name")
     var contactName: String? = null,

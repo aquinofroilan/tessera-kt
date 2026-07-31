@@ -326,7 +326,7 @@ class BillService(
         val apAccount = getApAccount(organizationId)
         val cashAccount = getCashAccount(organizationId)
 
-        val paymentId = UUID.randomUUID()
+        val paymentId = java.util.UUID.ofEpochMillis(System.currentTimeMillis())
         val baseDecimals = currencyService.getCurrency(getBaseCurrency(organizationId)).decimalPlaces
         val newAmountPaid = bill.amountPaid.add(request.amount)
         val fullyPaid = newAmountPaid.compareTo(bill.totalAmount) >= 0

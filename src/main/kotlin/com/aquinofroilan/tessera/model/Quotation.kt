@@ -34,7 +34,7 @@ enum class QuotationStatus {
 data class QuotationLine(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: java.util.UUID = java.util.UUID.randomUUID(),
+    val id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "line_number")
     val lineNumber: Int = 0,
     @Column(name = "product_id", columnDefinition = "uuid")
@@ -57,7 +57,7 @@ data class QuotationLine(
 data class Quotation(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: java.util.UUID = java.util.UUID.randomUUID(),
+    val id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "quote_number")
     val quoteNumber: String,
     @Column(name = "customer_id", columnDefinition = "uuid")

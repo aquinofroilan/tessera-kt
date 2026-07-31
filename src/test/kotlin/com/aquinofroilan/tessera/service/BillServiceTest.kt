@@ -162,7 +162,8 @@ class BillServiceTest {
     @Test
     fun `approve should post journal entry and update status`() {
         val bill = createBill()
-        val apAccount = createAccount(java.util.UUID.randomUUID(), "2000", "Accounts Payable", AccountType.LIABILITY)
+        val apAccount =
+            createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "2000", "Accounts Payable", AccountType.LIABILITY)
         val mockEntry =
             JournalEntry(
                 id = java.util.UUID.fromString("dea446cc-a162-314e-a549-c9aa550c0496"),
@@ -261,8 +262,9 @@ class BillServiceTest {
     @Test
     fun `recordPayment should create payment and update bill status`() {
         val bill = createBill(status = BillStatus.APPROVED)
-        val apAccount = createAccount(java.util.UUID.randomUUID(), "2000", "Accounts Payable", AccountType.LIABILITY)
-        val cashAccount = createAccount(java.util.UUID.randomUUID(), "1000", "Cash", AccountType.ASSET)
+        val apAccount =
+            createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "2000", "Accounts Payable", AccountType.LIABILITY)
+        val cashAccount = createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "1000", "Cash", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
         `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
@@ -296,8 +298,9 @@ class BillServiceTest {
     @Test
     fun `recordPayment should mark bill as PAID when fully paid`() {
         val bill = createBill(status = BillStatus.APPROVED)
-        val apAccount = createAccount(java.util.UUID.randomUUID(), "2000", "Accounts Payable", AccountType.LIABILITY)
-        val cashAccount = createAccount(java.util.UUID.randomUUID(), "1000", "Cash", AccountType.ASSET)
+        val apAccount =
+            createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "2000", "Accounts Payable", AccountType.LIABILITY)
+        val cashAccount = createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "1000", "Cash", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
         `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
@@ -453,8 +456,10 @@ class BillServiceTest {
                 totalAmount = BigDecimal("542.50"),
                 taxAmount = BigDecimal("42.50"),
             )
-        val apAccount = createAccount(java.util.UUID.randomUUID(), "2000", "Accounts Payable", AccountType.LIABILITY)
-        val taxInputAccount = createAccount(java.util.UUID.randomUUID(), "2310", "Tax Input Credits", AccountType.ASSET)
+        val apAccount =
+            createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "2000", "Accounts Payable", AccountType.LIABILITY)
+        val taxInputAccount =
+            createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "2310", "Tax Input Credits", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
         `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
@@ -493,7 +498,7 @@ class BillServiceTest {
     }
 
     private fun createVendor(
-        id: UUID = java.util.UUID.randomUUID(),
+        id: UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         isActive: Boolean = true,
     ) = Vendor(
         id = id,
@@ -505,7 +510,7 @@ class BillServiceTest {
     )
 
     private fun createAccount(
-        id: UUID = java.util.UUID.randomUUID(),
+        id: UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         code: String,
         name: String,
         type: AccountType,
@@ -621,7 +626,8 @@ class BillServiceTest {
                 exchangeRate = BigDecimal("0.018"),
                 baseCurrencyAmount = BigDecimal("180.00"),
             )
-        val apAccount = createAccount(java.util.UUID.randomUUID(), "2000", "Accounts Payable", AccountType.LIABILITY)
+        val apAccount =
+            createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "2000", "Accounts Payable", AccountType.LIABILITY)
         val mockEntry = createMockJournalEntry()
 
         `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
@@ -651,8 +657,9 @@ class BillServiceTest {
                 baseCurrencyAmount = BigDecimal("54.00"),
                 baseCurrencyAmountPaid = BigDecimal("36.01"),
             )
-        val apAccount = createAccount(java.util.UUID.randomUUID(), "2000", "Accounts Payable", AccountType.LIABILITY)
-        val cashAccount = createAccount(java.util.UUID.randomUUID(), "1000", "Cash", AccountType.ASSET)
+        val apAccount =
+            createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "2000", "Accounts Payable", AccountType.LIABILITY)
+        val cashAccount = createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "1000", "Cash", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
         `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))
@@ -690,8 +697,9 @@ class BillServiceTest {
                 exchangeRate = BigDecimal("0.018"),
                 baseCurrencyAmount = BigDecimal("180.00"),
             )
-        val apAccount = createAccount(java.util.UUID.randomUUID(), "2000", "Accounts Payable", AccountType.LIABILITY)
-        val cashAccount = createAccount(java.util.UUID.randomUUID(), "1000", "Cash", AccountType.ASSET)
+        val apAccount =
+            createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "2000", "Accounts Payable", AccountType.LIABILITY)
+        val cashAccount = createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "1000", "Cash", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
         `when`(billRepository.findById(java.util.UUID.fromString("479097cc-f290-3bdb-a7c2-238728591c3d"))).thenReturn(Optional.of(bill))

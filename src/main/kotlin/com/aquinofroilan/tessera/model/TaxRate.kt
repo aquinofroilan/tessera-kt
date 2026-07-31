@@ -18,7 +18,7 @@ import java.util.UUID
 class TaxRate(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var name: String,
     var code: String,
     var percentage: BigDecimal,

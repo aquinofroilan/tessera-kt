@@ -176,7 +176,7 @@ class InventoryReportsServiceTest {
         quantity: BigDecimal,
         warehouseId: UUID = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff"),
         transferTo: java.util.UUID? = null,
-        id: java.util.UUID = java.util.UUID.randomUUID(),
+        id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         occurredOffsetSec: Long = 0,
     ) = StockMovement(
         id = id,

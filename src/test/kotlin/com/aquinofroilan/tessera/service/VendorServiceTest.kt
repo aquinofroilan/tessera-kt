@@ -74,7 +74,7 @@ class VendorServiceTest {
 
     @Test
     fun `list should return active vendors`() {
-        val vendors = listOf(createVendor(), createVendor(id = java.util.UUID.randomUUID()))
+        val vendors = listOf(createVendor(), createVendor(id = java.util.UUID.ofEpochMillis(System.currentTimeMillis())))
         `when`(vendorRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(vendors)
 
         val result = vendorService.listVendors(orgId)
@@ -137,7 +137,7 @@ class VendorServiceTest {
     }
 
     private fun createVendor(
-        id: java.util.UUID = java.util.UUID.randomUUID(),
+        id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         name: String = "Acme Corp",
         orgId: java.util.UUID = this.orgId,
         isActive: Boolean = true,

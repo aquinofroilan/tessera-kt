@@ -20,7 +20,7 @@ import java.util.UUID
 class BillPayment(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "bill_id", columnDefinition = "uuid")
     var billId: java.util.UUID,
     @Column(name = "payment_date")

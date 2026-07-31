@@ -70,7 +70,7 @@ class InventoryPostingServiceTest {
         stubOrg(enabled = true)
 
         service.postMovement(
-            movement(StockMovementType.TRANSFER, BigDecimal("3"), transferTo = java.util.UUID.randomUUID()),
+            movement(StockMovementType.TRANSFER, BigDecimal("3"), transferTo = java.util.UUID.ofEpochMillis(System.currentTimeMillis())),
             BigDecimal("30.00"),
         )
 

@@ -27,7 +27,7 @@ enum class StockMovementType {
 class StockMovement(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
     var organizationId: java.util.UUID,
     @Enumerated(EnumType.STRING)

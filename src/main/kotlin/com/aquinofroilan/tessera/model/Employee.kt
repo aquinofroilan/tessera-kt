@@ -26,7 +26,7 @@ enum class EmploymentStatus {
 class Employee(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "employee_number")
     var employeeNumber: String,
     @Column(name = "first_name")

@@ -26,7 +26,7 @@ enum class PayPeriod {
 class EmployeeCompensation(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "employee_id", columnDefinition = "uuid")
     var employeeId: java.util.UUID,
     @Column(name = "position_id", columnDefinition = "uuid")

@@ -17,7 +17,7 @@ import java.util.UUID
 class Organizations(
     @Id
     @Column(name = "uuid", columnDefinition = "uuid")
-    var uuid: java.util.UUID = UUID.randomUUID(),
+    var uuid: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "org_slug")
     var orgSlug: String,
     var name: String,

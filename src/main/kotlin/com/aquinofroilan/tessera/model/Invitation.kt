@@ -25,7 +25,7 @@ enum class InvitationStatus {
 class Invitation(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var email: String,
     @Column(name = "organization_id", columnDefinition = "uuid")
     var organizationId: java.util.UUID,

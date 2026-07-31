@@ -241,7 +241,7 @@ class FinancialReportServiceTest {
     }
 
     private fun account(
-        id: UUID = java.util.UUID.randomUUID(),
+        id: UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         code: String,
         type: AccountType,
     ) = Account(
@@ -253,7 +253,7 @@ class FinancialReportServiceTest {
     )
 
     private fun entry(
-        id: UUID = java.util.UUID.randomUUID(),
+        id: UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         date: LocalDate,
         lines: List<JournalEntryLine>,
     ) = JournalEntry(

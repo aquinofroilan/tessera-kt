@@ -35,7 +35,7 @@ enum class FiscalPeriodStatus {
 class FiscalPeriod(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "period_number")
     var periodNumber: Int,
     var name: String,
@@ -61,7 +61,7 @@ class FiscalPeriod(
 class FiscalYear(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var name: String,
     @Column(name = "start_date")
     var startDate: LocalDate,

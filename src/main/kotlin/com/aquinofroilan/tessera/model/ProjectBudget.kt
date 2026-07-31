@@ -27,7 +27,7 @@ enum class ProjectCostCategory {
 class ProjectBudget(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "project_id", columnDefinition = "uuid")
     var projectId: java.util.UUID,
     @Enumerated(EnumType.STRING)
