@@ -31,7 +31,10 @@ enum class RoutingStatus {
 data class RoutingOperation(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: String =
+        java.util.UUID
+            .ofEpochMillis(System.currentTimeMillis())
+            .toString(),
     @Column(name = "operation_number")
     val operationNumber: Int,
     @Column(name = "work_center_id", columnDefinition = "uuid")
@@ -54,7 +57,10 @@ data class RoutingOperation(
 data class Routing(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: String =
+        java.util.UUID
+            .ofEpochMillis(System.currentTimeMillis())
+            .toString(),
     @Column(name = "organization_id", columnDefinition = "uuid")
     val organizationId: String,
     @Column(name = "product_id", columnDefinition = "uuid")

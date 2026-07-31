@@ -17,7 +17,7 @@ description = "Tessera an ERP System"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(26)
     }
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
@@ -50,6 +50,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-health:4.0.1")
     implementation("org.aspectj:aspectjweaver")
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
+    implementation("com.github.f4b6a3:uuid-creator:6.1.1")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-authorization-server")
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")

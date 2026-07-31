@@ -21,7 +21,7 @@ import java.util.UUID
 class User(
     @Id
     @Column(name = "uuid", columnDefinition = "uuid")
-    var uuid: java.util.UUID = UUID.randomUUID(),
+    var uuid: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var username: String,
     var email: String,
     @Column(name = "first_name")

@@ -69,7 +69,7 @@ open class StockOnHandQueriesImpl(
         val updated =
             jdbc.update(
                 sql,
-                UUID.randomUUID(),
+                java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
                 organizationId,
                 productId,
                 warehouseId,

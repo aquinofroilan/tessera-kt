@@ -161,14 +161,14 @@ class PayrollRunServiceTest {
                 eq(orgId),
                 any(),
             ),
-        ).thenReturn(comp(java.util.UUID.randomUUID(), "120000", PayPeriod.ANNUAL)) // → 10000/mo
+        ).thenReturn(comp(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "120000", PayPeriod.ANNUAL)) // → 10000/mo
         whenever(
             compensationService.currentCompensationOrNull(
                 eq(java.util.UUID.fromString("9c45c2f1-1761-3daa-ad31-1ff8703ae846")),
                 eq(orgId),
                 any(),
             ),
-        ).thenReturn(comp(java.util.UUID.randomUUID(), "5000", PayPeriod.MONTHLY)) // → 5000/mo
+        ).thenReturn(comp(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "5000", PayPeriod.MONTHLY)) // → 5000/mo
 
         val run = service.createPayrollRun(request(), orgId, java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"))
 
@@ -189,14 +189,21 @@ class PayrollRunServiceTest {
                 eq(orgId),
                 any(),
             ),
-        ).thenReturn(comp(java.util.UUID.randomUUID(), "8000", PayPeriod.MONTHLY, currency = "EUR")) // skipped (currency)
+        ).thenReturn(
+            comp(
+                java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
+                "8000",
+                PayPeriod.MONTHLY,
+                currency = "EUR",
+            ),
+        ) // skipped (currency)
         whenever(
             compensationService.currentCompensationOrNull(
                 eq(java.util.UUID.fromString("9c45c2f1-1761-3daa-ad31-1ff8703ae846")),
                 eq(orgId),
                 any(),
             ),
-        ).thenReturn(comp(java.util.UUID.randomUUID(), "50", PayPeriod.HOURLY)) // skipped (hourly)
+        ).thenReturn(comp(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "50", PayPeriod.HOURLY)) // skipped (hourly)
 
         assertThatThrownBy { service.createPayrollRun(request(), orgId, java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb")) }
             .isInstanceOf(BusinessRuleException::class.java)

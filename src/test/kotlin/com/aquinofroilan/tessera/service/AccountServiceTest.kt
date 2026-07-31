@@ -489,7 +489,7 @@ class AccountServiceTest {
     }
 
     private fun createMockAccount(
-        id: UUID = java.util.UUID.randomUUID(),
+        id: UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         code: String = "1000",
         name: String = "Cash",
         type: AccountType = AccountType.ASSET,

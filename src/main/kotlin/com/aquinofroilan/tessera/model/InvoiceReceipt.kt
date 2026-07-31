@@ -20,7 +20,7 @@ import java.util.UUID
 class InvoiceReceipt(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "invoice_id", columnDefinition = "uuid")
     var invoiceId: java.util.UUID,
     @Column(name = "receipt_date")

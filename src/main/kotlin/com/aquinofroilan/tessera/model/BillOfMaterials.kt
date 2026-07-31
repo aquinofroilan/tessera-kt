@@ -31,7 +31,7 @@ enum class BomStatus {
 data class BomLine(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: java.util.UUID = java.util.UUID.randomUUID(),
+    val id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "line_number")
     val lineNumber: Int,
     @Column(name = "component_product_id", columnDefinition = "uuid")
@@ -53,7 +53,7 @@ data class BomLine(
 data class BillOfMaterials(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: java.util.UUID = java.util.UUID.randomUUID(),
+    val id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
     val organizationId: java.util.UUID,
     @Column(name = "product_id", columnDefinition = "uuid")

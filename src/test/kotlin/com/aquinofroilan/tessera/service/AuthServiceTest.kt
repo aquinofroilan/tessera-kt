@@ -63,7 +63,11 @@ class AuthServiceTest {
         passwordEncoder = mock(PasswordEncoder::class.java)
 
         `when`(tokenHasher.hash(any())).thenAnswer { "hashed-${it.arguments[0]}" }
-        `when`(tokenHasher.generate(any())).thenAnswer { UUID.randomUUID().toString() }
+        `when`(tokenHasher.generate(any())).thenAnswer {
+            java.util.UUID
+                .ofEpochMillis(System.currentTimeMillis())
+                .toString()
+        }
 
         authService =
             AuthService(

@@ -17,7 +17,7 @@ import java.util.UUID
 class Position(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var code: String,
     var title: String,
     @Column(name = "department_id", columnDefinition = "uuid")

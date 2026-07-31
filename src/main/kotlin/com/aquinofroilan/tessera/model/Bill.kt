@@ -41,7 +41,7 @@ enum class PaymentMethod {
 class BillLine(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "line_number")
     var lineNumber: Int = 0,
     @Column(name = "account_id", columnDefinition = "uuid")
@@ -60,7 +60,7 @@ class BillLine(
 class Bill(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "bill_number")
     var billNumber: String,
     @Column(name = "vendor_id", columnDefinition = "uuid")

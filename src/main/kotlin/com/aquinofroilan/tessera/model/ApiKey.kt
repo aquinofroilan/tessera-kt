@@ -20,7 +20,7 @@ import java.util.UUID
 class ApiKey(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var name: String,
     @Column(name = "key_hash")
     var keyHash: String,

@@ -329,7 +329,7 @@ class InvoiceService(
         val arAccount = getArAccount(organizationId)
         val cashAccount = getCashAccount(organizationId)
 
-        val receiptId = UUID.randomUUID()
+        val receiptId = java.util.UUID.ofEpochMillis(System.currentTimeMillis())
         val baseDecimals = currencyService.getCurrency(getBaseCurrency(organizationId)).decimalPlaces
         val newAmountReceived = invoice.amountReceived.add(request.amount)
         val fullyPaid = newAmountReceived.compareTo(invoice.totalAmount) >= 0

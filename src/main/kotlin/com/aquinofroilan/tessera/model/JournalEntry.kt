@@ -36,7 +36,7 @@ enum class JournalEntrySource {
 class JournalEntryLine(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "line_number")
     var lineNumber: Int = 0,
     @Column(name = "account_id", columnDefinition = "uuid")
@@ -56,7 +56,7 @@ class JournalEntryLine(
 class JournalEntry(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "entry_number")
     var entryNumber: String,
     var date: LocalDate,

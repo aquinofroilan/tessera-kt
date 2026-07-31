@@ -27,7 +27,7 @@ enum class LeaveRequestStatus {
 class LeaveRequest(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "employee_id", columnDefinition = "uuid")
     var employeeId: java.util.UUID,
     @Column(name = "leave_type_id", columnDefinition = "uuid")

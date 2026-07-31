@@ -13,7 +13,7 @@ import java.util.UUID
 class RefreshToken(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "token_hash")
     var tokenHash: String,
     @Column(name = "user_id", columnDefinition = "uuid")

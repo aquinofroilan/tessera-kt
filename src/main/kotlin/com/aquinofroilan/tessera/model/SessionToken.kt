@@ -13,7 +13,7 @@ import java.util.UUID
 class SessionToken(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var token: String,
     @Column(name = "user_id", columnDefinition = "uuid")
     var userId: java.util.UUID,

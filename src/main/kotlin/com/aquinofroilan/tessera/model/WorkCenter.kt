@@ -28,7 +28,10 @@ enum class WorkCenterType {
 data class WorkCenter(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: String =
+        java.util.UUID
+            .ofEpochMillis(System.currentTimeMillis())
+            .toString(),
     @Column(name = "organization_id", columnDefinition = "uuid")
     val organizationId: String,
     val code: String,

@@ -18,7 +18,7 @@ import java.util.UUID
 class Product(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var sku: String,
     var name: String,
     var description: String? = null,

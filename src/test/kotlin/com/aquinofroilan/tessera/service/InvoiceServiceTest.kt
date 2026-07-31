@@ -161,7 +161,8 @@ class InvoiceServiceTest {
     @Test
     fun `approve should post journal entry and update status`() {
         val invoice = createInvoice()
-        val arAccount = createAccount(java.util.UUID.randomUUID(), "1100", "Accounts Receivable", AccountType.ASSET)
+        val arAccount =
+            createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "1100", "Accounts Receivable", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
         `when`(
@@ -265,8 +266,9 @@ class InvoiceServiceTest {
     @Test
     fun `recordReceipt should create receipt and update invoice status`() {
         val invoice = createInvoice(status = InvoiceStatus.APPROVED)
-        val arAccount = createAccount(java.util.UUID.randomUUID(), "1100", "Accounts Receivable", AccountType.ASSET)
-        val cashAccount = createAccount(java.util.UUID.randomUUID(), "1000", "Cash", AccountType.ASSET)
+        val arAccount =
+            createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "1100", "Accounts Receivable", AccountType.ASSET)
+        val cashAccount = createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "1000", "Cash", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
         `when`(
@@ -308,8 +310,9 @@ class InvoiceServiceTest {
     @Test
     fun `recordReceipt should mark invoice as PAID when fully paid`() {
         val invoice = createInvoice(status = InvoiceStatus.APPROVED)
-        val arAccount = createAccount(java.util.UUID.randomUUID(), "1100", "Accounts Receivable", AccountType.ASSET)
-        val cashAccount = createAccount(java.util.UUID.randomUUID(), "1000", "Cash", AccountType.ASSET)
+        val arAccount =
+            createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "1100", "Accounts Receivable", AccountType.ASSET)
+        val cashAccount = createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "1000", "Cash", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
         `when`(
@@ -483,8 +486,10 @@ class InvoiceServiceTest {
                 totalAmount = BigDecimal("2170.00"),
                 taxAmount = BigDecimal("170.00"),
             )
-        val arAccount = createAccount(java.util.UUID.randomUUID(), "1100", "Accounts Receivable", AccountType.ASSET)
-        val taxPayableAccount = createAccount(java.util.UUID.randomUUID(), "2300", "Sales Tax Payable", AccountType.LIABILITY)
+        val arAccount =
+            createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "1100", "Accounts Receivable", AccountType.ASSET)
+        val taxPayableAccount =
+            createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "2300", "Sales Tax Payable", AccountType.LIABILITY)
         val mockEntry = createMockJournalEntry()
 
         `when`(
@@ -525,7 +530,7 @@ class InvoiceServiceTest {
     }
 
     private fun createAccount(
-        id: UUID = java.util.UUID.randomUUID(),
+        id: UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         code: String,
         name: String,
         type: AccountType,
@@ -641,7 +646,8 @@ class InvoiceServiceTest {
                 exchangeRate = BigDecimal("0.018"),
                 baseCurrencyAmount = BigDecimal("180.00"),
             )
-        val arAccount = createAccount(java.util.UUID.randomUUID(), "1100", "Accounts Receivable", AccountType.ASSET)
+        val arAccount =
+            createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "1100", "Accounts Receivable", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
         `when`(
@@ -671,8 +677,9 @@ class InvoiceServiceTest {
                 exchangeRate = BigDecimal("0.018"),
                 baseCurrencyAmount = BigDecimal("180.00"),
             )
-        val arAccount = createAccount(java.util.UUID.randomUUID(), "1100", "Accounts Receivable", AccountType.ASSET)
-        val cashAccount = createAccount(java.util.UUID.randomUUID(), "1000", "Cash", AccountType.ASSET)
+        val arAccount =
+            createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "1100", "Accounts Receivable", AccountType.ASSET)
+        val cashAccount = createAccount(java.util.UUID.ofEpochMillis(System.currentTimeMillis()), "1000", "Cash", AccountType.ASSET)
         val mockEntry = createMockJournalEntry()
 
         `when`(

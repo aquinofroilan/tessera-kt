@@ -74,7 +74,7 @@ class ProjectBillingServiceTest {
         billable: Boolean = true,
         invoiced: Boolean = false,
     ) = TimeEntry(
-        id = java.util.UUID.randomUUID(),
+        id = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         employeeId = java.util.UUID.fromString("00262aa5-14d7-3a01-b098-d7e370f001b2"),
         projectId = projectId,
         entryDate = day,

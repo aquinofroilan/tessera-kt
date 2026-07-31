@@ -17,7 +17,7 @@ import java.util.UUID
 class Warehouse(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var code: String,
     var name: String,
     var description: String? = null,

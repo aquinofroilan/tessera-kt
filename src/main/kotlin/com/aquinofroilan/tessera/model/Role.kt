@@ -28,7 +28,7 @@ enum class RoleLevel {
 class Role(
     @Id
     @Column(name = "uuid", columnDefinition = "uuid")
-    var uuid: java.util.UUID = UUID.randomUUID(),
+    var uuid: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var name: String,
     var description: String,
     @Enumerated(EnumType.STRING)

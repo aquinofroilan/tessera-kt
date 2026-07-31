@@ -14,7 +14,7 @@ class RoleAssignment(
     var organizationId: java.util.UUID? = null,
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

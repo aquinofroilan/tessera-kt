@@ -61,7 +61,7 @@ class InventoryCostingServiceTest {
         unitCost: BigDecimal? = null,
         warehouse: java.util.UUID = warehouseId,
         transferTo: java.util.UUID? = null,
-        id: java.util.UUID = java.util.UUID.randomUUID(),
+        id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         occurredAt: LocalDateTime = LocalDateTime.now(),
     ) = StockMovement(
         id = id,
@@ -267,7 +267,7 @@ class InventoryCostingServiceTest {
         original: BigDecimal,
         remaining: BigDecimal,
         unitCost: BigDecimal,
-        id: java.util.UUID = java.util.UUID.randomUUID(),
+        id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         occurredOffsetSec: Long = 0,
     ) = InventoryCostLayer(
         id = id,

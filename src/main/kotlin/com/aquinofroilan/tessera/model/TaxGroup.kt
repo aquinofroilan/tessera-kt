@@ -22,7 +22,7 @@ import java.util.UUID
 class TaxGroup(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var name: String,
     var code: String,
     @ElementCollection(fetch = FetchType.EAGER)

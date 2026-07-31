@@ -7,7 +7,7 @@ on:
     branches: [ production, staging ]
 
 env:
-  JAVA_VERSION: '21'
+  JAVA_VERSION: '26'
   JAVA_DISTRIBUTION: 'temurin'
 
 jobs:

@@ -18,7 +18,7 @@ import java.util.UUID
 class StockOnHand(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
     var organizationId: java.util.UUID,
     @Column(name = "product_id", columnDefinition = "uuid")

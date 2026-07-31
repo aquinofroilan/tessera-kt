@@ -41,7 +41,10 @@ enum class WorkOrderOperationStatus {
 data class WorkOrderComponent(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: String =
+        java.util.UUID
+            .ofEpochMillis(System.currentTimeMillis())
+            .toString(),
     @Column(name = "line_number")
     val lineNumber: Int,
     @Column(name = "component_product_id", columnDefinition = "uuid")
@@ -64,7 +67,10 @@ data class WorkOrderComponent(
 data class WorkOrderOperation(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: String =
+        java.util.UUID
+            .ofEpochMillis(System.currentTimeMillis())
+            .toString(),
     @Column(name = "operation_number")
     val operationNumber: Int,
     @Column(name = "work_center_id", columnDefinition = "uuid")
@@ -88,7 +94,10 @@ data class WorkOrderOperation(
 data class WorkOrder(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: String =
+        java.util.UUID
+            .ofEpochMillis(System.currentTimeMillis())
+            .toString(),
     @Column(name = "organization_id", columnDefinition = "uuid")
     val organizationId: String,
     @Column(name = "wo_number")

@@ -34,7 +34,7 @@ enum class SalesOrderStatus {
 class SalesOrderLine(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "line_number")
     var lineNumber: Int = 0,
     @Column(name = "product_id", columnDefinition = "uuid")
@@ -61,7 +61,7 @@ class SalesOrderLine(
 class SalesOrder(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = UUID.randomUUID(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "so_number")
     var soNumber: String,
     @Column(name = "customer_id", columnDefinition = "uuid")

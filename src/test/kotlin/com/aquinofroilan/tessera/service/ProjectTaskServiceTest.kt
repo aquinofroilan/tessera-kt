@@ -154,7 +154,12 @@ class ProjectTaskServiceTest {
         whenever(
             repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")),
         ).thenReturn(
-            Optional.of(task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), project = java.util.UUID.randomUUID())),
+            Optional.of(
+                task(
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                    project = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
+                ),
+            ),
         )
         assertThatThrownBy { service.getTask(projectId, java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), orgId) }
             .isInstanceOf(ResourceNotFoundException::class.java)
