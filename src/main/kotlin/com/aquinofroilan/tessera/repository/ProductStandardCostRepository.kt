@@ -6,11 +6,11 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface ProductStandardCostRepository : JpaRepository<ProductStandardCost, String> {
+interface ProductStandardCostRepository : JpaRepository<ProductStandardCost, java.util.UUID> {
     fun findByOrganizationIdAndProductId(
-        organizationId: String,
-        productId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
     ): Optional<ProductStandardCost>
 
-    fun findByOrganizationId(organizationId: String): List<ProductStandardCost>
+    fun findByOrganizationId(organizationId: java.util.UUID): List<ProductStandardCost>
 }

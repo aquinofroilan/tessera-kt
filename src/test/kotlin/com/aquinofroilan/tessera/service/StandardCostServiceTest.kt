@@ -27,10 +27,10 @@ class StandardCostServiceTest {
     private lateinit var workCenterService: WorkCenterService
     private lateinit var service: StandardCostService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
-    private val parentId = "prod-parent"
-    private val compId = "prod-comp"
+    private val orgId  = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")
+    private val userId   = java.util.UUID.fromString("00000000-0000-0000-0000-000000000002")
+    private val parentId  = java.util.UUID.fromString("00000000-0000-0000-0000-000000000003")
+    private val compId  = java.util.UUID.fromString("00000000-0000-0000-0000-000000000004")
 
     @BeforeEach
     fun setup() {
@@ -54,7 +54,7 @@ class StandardCostServiceTest {
 
     @Test
     fun `rollup computes material cost including scrap`() {
-        val record = service.rollup(parentId, RollupRequest(), orgId, userId)
+        val record = service.rollup(parentId, RollupRequest(), orgId, userId.toString())
         // 4.00 (component standard) * 2.0 quantity * (1 + 5/100 scrap) = 8.4000
         assertThat(record.materialCost).isEqualByComparingTo(BigDecimal("8.4000"))
         assertThat(record.laborCost).isEqualByComparingTo(BigDecimal.ZERO)
@@ -64,7 +64,7 @@ class StandardCostServiceTest {
 
     @Test
     fun `rollup applies overhead rate`() {
-        val record = service.rollup(parentId, RollupRequest(overheadRatePct = BigDecimal("10")), orgId, userId)
+        val record = service.rollup(parentId, RollupRequest(overheadRatePct = BigDecimal("10")), orgId, userId.toString())
         // material 8.4 * 10% = 0.84 overhead, total 9.24
         assertThat(record.overheadCost).isEqualByComparingTo(BigDecimal("0.8400"))
         assertThat(record.totalCost).isEqualByComparingTo(BigDecimal("9.2400"))
@@ -73,7 +73,7 @@ class StandardCostServiceTest {
     @Test
     fun `rollup fails when a component has no standard cost`() {
         whenever(repository.findByOrganizationIdAndProductId(orgId, compId)).thenReturn(Optional.empty())
-        assertThatThrownBy { service.rollup(parentId, RollupRequest(), orgId, userId) }
+        assertThatThrownBy { service.rollup(parentId, RollupRequest(), orgId, userId.toString()) }
             .isInstanceOf(BusinessRuleException::class.java)
             .hasMessageContaining("roll it up first")
     }
@@ -89,7 +89,7 @@ class StandardCostServiceTest {
                     overheadCost = BigDecimal("1"),
                 ),
                 orgId,
-                userId,
+                userId.toString(),
             )
         assertThat(record.source).isEqualTo("manual")
         assertThat(record.bomId).isNull()
@@ -98,7 +98,7 @@ class StandardCostServiceTest {
 
     private fun defaultBom() =
         BillOfMaterials(
-            id = "bom-1",
+            id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000012"),
             organizationId = orgId,
             productId = parentId,
             code = "BOM-1",
@@ -125,11 +125,11 @@ class StandardCostServiceTest {
             productId = compId,
             materialCost = total,
             totalCost = total,
-            calculatedBy = userId,
+            calculatedBy = userId.toString(),
         )
 
     private fun product(
-        id: String,
+        id: java.util.UUID,
         sku: String,
     ) = Product(
         id = id,

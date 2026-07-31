@@ -28,11 +28,11 @@ class StandardCostController(
     @PostMapping("/{productId}/cost-rollup")
     @PreAuthorize("hasAuthority('mfg:approve')")
     fun rollup(
-        @PathVariable productId: String,
+        @PathVariable productId: java.util.UUID,
         @Valid @RequestBody(required = false) request: RollupRequest?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId()?.toString() ?: "api-key"
         val record = standardCostService.rollup(productId, request ?: RollupRequest(), orgId, userId)
         return ResponseEntity.ok(StandardCostResponse.from(record))
     }
@@ -40,11 +40,11 @@ class StandardCostController(
     @PutMapping("/{productId}/standard-cost")
     @PreAuthorize("hasAuthority('mfg:approve')")
     fun setManual(
-        @PathVariable productId: String,
+        @PathVariable productId: java.util.UUID,
         @Valid @RequestBody request: ManualStandardCostRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId()?.toString() ?: "api-key"
         val record = standardCostService.setManual(productId, request, orgId, userId)
         return ResponseEntity.ok(StandardCostResponse.from(record))
     }
@@ -52,7 +52,7 @@ class StandardCostController(
     @GetMapping("/{productId}/standard-cost")
     @PreAuthorize("hasAuthority('mfg:read')")
     fun get(
-        @PathVariable productId: String,
+        @PathVariable productId: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(StandardCostResponse.from(standardCostService.getStandardCost(productId, orgId)))

@@ -468,11 +468,11 @@ class AuthServiceTest {
 
     @Test
     fun `listSessions should return only non-expired sessions`() {
-        val userId = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
+        val userId  = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
         val activeSession =
             SessionToken(
                 id = java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"),
-                token = "t1",
+                token = "00000000-0000-0000-0000-000000000041",
                 userId = userId,
                 expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12),
             )
@@ -486,11 +486,11 @@ class AuthServiceTest {
 
     @Test
     fun `revokeSession should delete session and its refresh token`() {
-        val userId = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
+        val userId  = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
         val session =
             SessionToken(
                 id = java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"),
-                token = "t1",
+                token = "00000000-0000-0000-0000-000000000041",
                 userId = userId,
                 expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12),
             )
@@ -514,7 +514,7 @@ class AuthServiceTest {
         val session =
             SessionToken(
                 id = java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"),
-                token = "t1",
+                token = "00000000-0000-0000-0000-000000000041",
                 userId = java.util.UUID.fromString("10a8c040-b348-34f9-b495-1d1c714ae089"),
                 expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12),
             )
@@ -536,7 +536,7 @@ class AuthServiceTest {
 
     @Test
     fun `revokeSession should throw when attempting to revoke the current session`() {
-        val userId = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
+        val userId  = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
         val currentToken = "current-token"
         val session =
             SessionToken(
@@ -559,7 +559,7 @@ class AuthServiceTest {
 
     @Test
     fun `revokeOtherSessions should keep current session and delete others in bulk`() {
-        val userId = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
+        val userId  = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
         val currentToken = "current-token"
         val otherSessions =
             listOf(

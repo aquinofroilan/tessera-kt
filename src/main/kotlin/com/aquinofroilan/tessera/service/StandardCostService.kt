@@ -36,9 +36,9 @@ class StandardCostService(
 ) {
     @Transactional
     fun rollup(
-        productId: String,
+        productId: java.util.UUID,
         request: RollupRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
         userId: String,
     ): ProductStandardCost {
         val product = productService.getProduct(productId, organizationId)
@@ -116,9 +116,9 @@ class StandardCostService(
 
     @Transactional
     fun setManual(
-        productId: String,
+        productId: java.util.UUID,
         request: ManualStandardCostRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
         userId: String,
     ): ProductStandardCost {
         val product = productService.getProduct(productId, organizationId)
@@ -159,19 +159,20 @@ class StandardCostService(
     }
 
     fun getStandardCost(
-        productId: String,
-        organizationId: String,
+        productId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): ProductStandardCost =
         standardCostRepository.findByOrganizationIdAndProductId(organizationId, productId).orElseThrow {
             ResourceNotFoundException("No standard cost recorded for product $productId")
         }
 
-    fun listStandardCosts(organizationId: String): List<ProductStandardCost> = standardCostRepository.findByOrganizationId(organizationId)
+    fun listStandardCosts(organizationId: java.util.UUID): List<ProductStandardCost> =
+        standardCostRepository.findByOrganizationId(organizationId)
 
     private fun resolveBom(
-        bomId: String?,
-        organizationId: String,
-        productId: String,
+        bomId: java.util.UUID?,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
     ) = if (bomId != null) {
         bomService.getBom(bomId, organizationId).also {
             if (it.productId != productId) throw BusinessRuleException("BOM '${it.code}' is not for product $productId")
@@ -183,17 +184,17 @@ class StandardCostService(
     }
 
     private fun resolveRouting(
-        routingId: String,
-        organizationId: String,
-        productId: String,
+        routingId: java.util.UUID,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
     ) = routingService.getRouting(routingId, organizationId).also {
         if (it.productId != productId) throw BusinessRuleException("Routing '${it.code}' is not for product $productId")
         if (it.status != RoutingStatus.ACTIVE) throw BusinessRuleException("Routing '${it.code}' is ${it.status}")
     }
 
     private fun lookupCost(
-        organizationId: String,
-        componentProductId: String,
+        organizationId: java.util.UUID,
+        componentProductId: java.util.UUID,
     ): BigDecimal =
         standardCostRepository
             .findByOrganizationIdAndProductId(organizationId, componentProductId)
@@ -203,8 +204,8 @@ class StandardCostService(
             }
 
     private fun workCenterCostPerHour(
-        organizationId: String,
-        workCenterId: String,
+        organizationId: java.util.UUID,
+        workCenterId: java.util.UUID,
     ): BigDecimal {
         val wc =
             try {

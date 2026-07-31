@@ -6,16 +6,16 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface WorkCenterRepository : JpaRepository<WorkCenter, String> {
-    fun findByOrganizationId(organizationId: String): List<WorkCenter>
+interface WorkCenterRepository : JpaRepository<WorkCenter, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<WorkCenter>
 
     fun findByOrganizationIdAndIsActive(
-        organizationId: String,
+        organizationId: java.util.UUID,
         isActive: Boolean,
     ): List<WorkCenter>
 
     fun findByOrganizationIdAndCode(
-        organizationId: String,
+        organizationId: java.util.UUID,
         code: String,
     ): Optional<WorkCenter>
 }

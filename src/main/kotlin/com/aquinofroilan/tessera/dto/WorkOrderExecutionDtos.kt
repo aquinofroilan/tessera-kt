@@ -10,7 +10,7 @@ import java.math.BigDecimal
 
 data class IssueMaterialLineRequest(
     @field:NotBlank(message = "Component line ID is required")
-    val componentLineId: String,
+    val componentLineId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
     val quantity: BigDecimal?,

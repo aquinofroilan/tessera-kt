@@ -33,7 +33,7 @@ class WorkCenterController(
     fun create(
         @Valid @RequestBody request: CreateWorkCenterRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val wc = workCenterService.createWorkCenter(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(WorkCenterResponse.from(wc))
     }
@@ -43,35 +43,35 @@ class WorkCenterController(
     fun list(
         @RequestParam(required = false, defaultValue = "true") activeOnly: Boolean,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(workCenterService.listWorkCenters(orgId, activeOnly).map { WorkCenterResponse.from(it) })
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:read')")
     fun get(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(WorkCenterResponse.from(workCenterService.getWorkCenter(id, orgId)))
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun update(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateWorkCenterRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(WorkCenterResponse.from(workCenterService.updateWorkCenter(id, request, orgId)))
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun deactivate(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(WorkCenterResponse.from(workCenterService.deactivateWorkCenter(id, orgId)))
     }
 }

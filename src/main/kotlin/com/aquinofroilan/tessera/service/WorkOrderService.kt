@@ -28,10 +28,10 @@ class WorkOrderService(
     @Transactional
     fun createWorkOrder(
         request: CreateWorkOrderRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
         createdBy: String,
     ): WorkOrder {
-        val product = productService.getProduct(java.util.UUID.fromString(request.productId), java.util.UUID.fromString(organizationId))
+        val product = productService.getProduct(request.productId, organizationId)
         if (!product.isActive) {
             throw BusinessRuleException("Product '${product.sku}' is inactive")
         }
@@ -40,14 +40,14 @@ class WorkOrderService(
 
         val source =
             warehouseService.getWarehouse(
-                java.util.UUID.fromString(request.sourceWarehouseId),
-                java.util.UUID.fromString(organizationId),
+                request.sourceWarehouseId,
+                organizationId,
             )
         if (!source.isActive) throw BusinessRuleException("Source warehouse is inactive")
         val target =
             warehouseService.getWarehouse(
-                java.util.UUID.fromString(request.targetWarehouseId),
-                java.util.UUID.fromString(organizationId),
+                request.targetWarehouseId,
+                organizationId,
             )
         if (!target.isActive) throw BusinessRuleException("Target warehouse is inactive")
         if (request.plannedEnd != null &&
@@ -57,16 +57,16 @@ class WorkOrderService(
             throw BusinessRuleException("Planned end must be on or after planned start")
         }
 
-        val bom = resolveBom(request.bomId, organizationId, product.id.toString())
+        val bom = resolveBom(request.bomId, organizationId, product.id)
         val routing =
-            request.routingId?.let { resolveRouting(it, organizationId, product.id.toString()) }
-                ?: resolveDefaultRouting(organizationId, product.id.toString())
+            request.routingId?.let { resolveRouting(it, organizationId, product.id) }
+                ?: resolveDefaultRouting(organizationId, product.id)
 
         val components =
             bom.lines.map { line ->
                 WorkOrderComponent(
                     lineNumber = line.lineNumber,
-                    componentProductId = line.componentProductId.toString(),
+                    componentProductId = line.componentProductId,
                     componentSku = line.componentSku,
                     componentName = line.componentName,
                     plannedQuantity = scaleComponentQuantity(line.quantity, line.scrapPct, quantity),
@@ -90,14 +90,14 @@ class WorkOrderService(
             WorkOrder(
                 organizationId = organizationId,
                 woNumber = woNumber,
-                productId = product.id.toString(),
+                productId = product.id,
                 productSku = product.sku,
                 productName = product.name,
-                bomId = bom.id.toString(),
+                bomId = bom.id,
                 routingId = routing?.id,
                 quantity = quantity,
-                sourceWarehouseId = source.id.toString(),
-                targetWarehouseId = target.id.toString(),
+                sourceWarehouseId = source.id,
+                targetWarehouseId = target.id,
                 status = WorkOrderStatus.DRAFT,
                 plannedStart = request.plannedStart,
                 plannedEnd = request.plannedEnd,
@@ -110,8 +110,8 @@ class WorkOrderService(
     }
 
     fun getWorkOrder(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): WorkOrder {
         val wo =
             workOrderRepository.findById(id).orElseThrow {
@@ -124,9 +124,9 @@ class WorkOrderService(
     }
 
     fun listWorkOrders(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: WorkOrderStatus?,
-        productId: String?,
+        productId: java.util.UUID?,
     ): List<WorkOrder> =
         when {
             status != null -> workOrderRepository.findByOrganizationIdAndStatus(organizationId, status)
@@ -136,8 +136,8 @@ class WorkOrderService(
 
     @Transactional
     fun releaseWorkOrder(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
         userId: String,
     ): WorkOrder {
         val wo = getWorkOrder(id, organizationId)
@@ -155,8 +155,8 @@ class WorkOrderService(
 
     @Transactional
     fun cancelWorkOrder(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
         userId: String,
     ): WorkOrder {
         val wo = getWorkOrder(id, organizationId)
@@ -174,20 +174,20 @@ class WorkOrderService(
     }
 
     private fun resolveBom(
-        bomId: String?,
-        organizationId: String,
-        productId: String,
+        bomId: java.util.UUID?,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
     ): com.aquinofroilan.tessera.model.BillOfMaterials {
         val bom =
             if (bomId != null) {
-                bomService.getBom(java.util.UUID.fromString(bomId), java.util.UUID.fromString(organizationId))
+                bomService.getBom(bomId, organizationId)
             } else {
                 bomService
-                    .listBoms(java.util.UUID.fromString(organizationId), BomStatus.ACTIVE, java.util.UUID.fromString(productId))
+                    .listBoms(organizationId, BomStatus.ACTIVE, productId)
                     .firstOrNull { it.isDefault }
                     ?: throw BusinessRuleException("No default ACTIVE BOM exists for product $productId")
             }
-        if (bom.productId.toString() != productId) {
+        if (bom.productId != productId) {
             throw BusinessRuleException("BOM '${bom.code}' is not for product $productId")
         }
         if (bom.status != BomStatus.ACTIVE) {
@@ -197,9 +197,9 @@ class WorkOrderService(
     }
 
     private fun resolveRouting(
-        routingId: String,
-        organizationId: String,
-        productId: String,
+        routingId: java.util.UUID,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
     ): com.aquinofroilan.tessera.model.Routing {
         val routing = routingService.getRouting(routingId, organizationId)
         if (routing.productId != productId) {
@@ -212,8 +212,8 @@ class WorkOrderService(
     }
 
     private fun resolveDefaultRouting(
-        organizationId: String,
-        productId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
     ): com.aquinofroilan.tessera.model.Routing? =
         routingService
             .listRoutings(organizationId, RoutingStatus.ACTIVE, productId)
@@ -231,7 +231,7 @@ class WorkOrderService(
     }
 
     private fun saveWithGeneratedNumber(
-        organizationId: String,
+        organizationId: java.util.UUID,
         maxRetries: Int = 3,
         build: (String) -> WorkOrder,
     ): WorkOrder {

@@ -34,7 +34,7 @@ class StockMovementServiceTest {
     private lateinit var inventoryPostingService: InventoryPostingService
 
     private val orgId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
-    private val userId = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
+    private val userId  = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
     private val productId = java.util.UUID.fromString("dbf2a095-ce0d-371a-bd21-a52d4a5a29c9")
     private val warehouseId = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")
     private val otherWarehouseId = java.util.UUID.fromString("1d0e273c-e8f6-3c81-aa83-af17bdd332f5")

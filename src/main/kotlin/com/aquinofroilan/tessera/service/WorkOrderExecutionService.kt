@@ -29,9 +29,9 @@ class WorkOrderExecutionService(
 ) {
     @Transactional
     fun issueMaterial(
-        workOrderId: String,
+        workOrderId: java.util.UUID,
         request: IssueMaterialRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
         userId: String,
     ): WorkOrder {
         val wo = workOrderService.getWorkOrder(workOrderId, organizationId)
@@ -56,14 +56,14 @@ class WorkOrderExecutionService(
                         stockMovementService.createMovementCapturingCost(
                             CreateStockMovementRequest(
                                 type = StockMovementType.WIP_ISSUE,
-                                productId = java.util.UUID.fromString(component.componentProductId),
-                                warehouseId = java.util.UUID.fromString(wo.sourceWarehouseId),
+                                productId = component.componentProductId,
+                                warehouseId = wo.sourceWarehouseId,
                                 quantity = qty,
                                 reference = "WO-${wo.woNumber}-ISSUE",
                                 notes = request.notes,
                             ),
-                            java.util.UUID.fromString(organizationId),
-                            java.util.UUID.fromString(userId),
+                            organizationId,
+                            if (userId == "api-key") java.util.UUID(0, 0) else java.util.UUID.fromString(userId),
                         )
                     val idx = mutable.indexOfFirst { it.id == component.id }
                     mutable[idx] =
@@ -89,9 +89,9 @@ class WorkOrderExecutionService(
 
     @Transactional
     fun completeProduction(
-        workOrderId: String,
+        workOrderId: java.util.UUID,
         request: CompleteWorkOrderRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
         userId: String,
     ): WorkOrder {
         val wo = workOrderService.getWorkOrder(workOrderId, organizationId)
@@ -117,15 +117,15 @@ class WorkOrderExecutionService(
                 stockMovementService.createMovementCapturingCost(
                     CreateStockMovementRequest(
                         type = StockMovementType.WIP_RECEIPT,
-                        productId = java.util.UUID.fromString(wo.productId),
-                        warehouseId = java.util.UUID.fromString(wo.targetWarehouseId),
+                        productId = wo.productId,
+                        warehouseId = wo.targetWarehouseId,
                         quantity = completed,
                         unitCost = unitCost,
                         reference = "WO-${wo.woNumber}-COMPLETE",
                         notes = request.notes,
                     ),
-                    java.util.UUID.fromString(organizationId),
-                    java.util.UUID.fromString(userId),
+                    organizationId,
+                    if (userId == "api-key") java.util.UUID(0, 0) else java.util.UUID.fromString(userId),
                 )
             receiptCost = cost
         }

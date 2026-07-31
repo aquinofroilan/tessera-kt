@@ -13,15 +13,15 @@ import java.util.UUID
 data class ProductStandardCost(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     @Column(name = "product_id", columnDefinition = "uuid")
-    val productId: String,
+    val productId: java.util.UUID,
     @Column(name = "bom_id", columnDefinition = "uuid")
-    val bomId: String? = null,
+    val bomId: java.util.UUID? = null,
     @Column(name = "routing_id", columnDefinition = "uuid")
-    val routingId: String? = null,
+    val routingId: java.util.UUID? = null,
     @Column(name = "material_cost")
     val materialCost: BigDecimal = BigDecimal.ZERO,
     @Column(name = "labor_cost")

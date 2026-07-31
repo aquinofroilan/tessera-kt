@@ -16,7 +16,7 @@ data class CreateWorkCenterRequest(
     val name: String,
     val description: String? = null,
     val type: WorkCenterType = WorkCenterType.MACHINE,
-    val warehouseId: String? = null,
+    val warehouseId: java.util.UUID? = null,
     @field:Positive(message = "Capacity must be positive")
     val capacityPerHour: BigDecimal? = null,
     @field:PositiveOrZero(message = "Cost cannot be negative")
@@ -29,7 +29,7 @@ data class UpdateWorkCenterRequest(
     val name: String? = null,
     val description: String? = null,
     val type: WorkCenterType? = null,
-    val warehouseId: String? = null,
+    val warehouseId: java.util.UUID? = null,
     @field:Positive
     val capacityPerHour: BigDecimal? = null,
     @field:PositiveOrZero
@@ -40,12 +40,12 @@ data class UpdateWorkCenterRequest(
 )
 
 data class WorkCenterResponse(
-    val id: String,
+    val id: java.util.UUID,
     val code: String,
     val name: String,
     val description: String?,
     val type: WorkCenterType,
-    val warehouseId: String?,
+    val warehouseId: java.util.UUID?,
     val capacityPerHour: BigDecimal,
     val costPerHour: BigDecimal,
     val efficiencyPct: BigDecimal,

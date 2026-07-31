@@ -26,7 +26,7 @@ class BillOfMaterialsServiceTest {
     private lateinit var service: BillOfMaterialsService
 
     private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
-    private val userId = java.util.UUID.fromString("1db2395f-13ba-3d37-9d2b-f77d3eb3aa2e")
+    private val userId  = java.util.UUID.fromString("1db2395f-13ba-3d37-9d2b-f77d3eb3aa2e")
     private val parentId = java.util.UUID.fromString("8460eb67-cc2b-3de5-bdba-6c4320d2c3de")
     private val compAId = java.util.UUID.fromString("97c02c2b-db1d-3201-b200-5645c65c4ecc")
     private val compBId = java.util.UUID.fromString("f411ffb7-66f2-3534-92de-46af447dbec3")

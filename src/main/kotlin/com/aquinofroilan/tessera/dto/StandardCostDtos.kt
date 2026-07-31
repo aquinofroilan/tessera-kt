@@ -6,8 +6,8 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 
 data class RollupRequest(
-    val bomId: String? = null,
-    val routingId: String? = null,
+    val bomId: java.util.UUID? = null,
+    val routingId: java.util.UUID? = null,
     @field:PositiveOrZero(message = "Overhead rate cannot be negative")
     val overheadRatePct: BigDecimal? = null,
     val notes: String? = null,
@@ -24,10 +24,10 @@ data class ManualStandardCostRequest(
 )
 
 data class StandardCostResponse(
-    val id: String,
-    val productId: String,
-    val bomId: String?,
-    val routingId: String?,
+    val id: java.util.UUID,
+    val productId: java.util.UUID,
+    val bomId: java.util.UUID?,
+    val routingId: java.util.UUID?,
     val materialCost: BigDecimal,
     val laborCost: BigDecimal,
     val overheadCost: BigDecimal,

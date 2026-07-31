@@ -19,7 +19,7 @@ class WorkCenterService(
     @Transactional
     fun createWorkCenter(
         request: CreateWorkCenterRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): WorkCenter {
         val code = request.code.trim().uppercase()
         if (code.isBlank()) throw BusinessRuleException("Code cannot be blank")
@@ -27,7 +27,7 @@ class WorkCenterService(
             throw BusinessRuleException("Work center with code '$code' already exists")
         }
         if (request.warehouseId != null) {
-            warehouseService.getWarehouse(java.util.UUID.fromString(request.warehouseId), java.util.UUID.fromString(organizationId))
+            warehouseService.getWarehouse(request.warehouseId, organizationId)
         }
         val wc =
             WorkCenter(
@@ -49,8 +49,8 @@ class WorkCenterService(
     }
 
     fun getWorkCenter(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): WorkCenter {
         val wc =
             workCenterRepository.findById(id).orElseThrow {
@@ -63,7 +63,7 @@ class WorkCenterService(
     }
 
     fun listWorkCenters(
-        organizationId: String,
+        organizationId: java.util.UUID,
         activeOnly: Boolean,
     ): List<WorkCenter> =
         if (activeOnly) {
@@ -74,13 +74,13 @@ class WorkCenterService(
 
     @Transactional
     fun updateWorkCenter(
-        id: String,
+        id: java.util.UUID,
         request: UpdateWorkCenterRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): WorkCenter {
         val wc = getWorkCenter(id, organizationId)
         if (request.warehouseId != null) {
-            warehouseService.getWarehouse(java.util.UUID.fromString(request.warehouseId), java.util.UUID.fromString(organizationId))
+            warehouseService.getWarehouse(request.warehouseId, organizationId)
         }
         return workCenterRepository.save(
             wc.copy(
@@ -98,8 +98,8 @@ class WorkCenterService(
 
     @Transactional
     fun deactivateWorkCenter(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): WorkCenter {
         val wc = getWorkCenter(id, organizationId)
         if (!wc.isActive) {

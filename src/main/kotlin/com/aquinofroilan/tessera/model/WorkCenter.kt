@@ -28,19 +28,18 @@ enum class WorkCenterType {
 data class WorkCenter(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String =
+    val id: java.util.UUID =
         java.util.UUID
-            .ofEpochMillis(System.currentTimeMillis())
-            .toString(),
+            .ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val code: String,
     val name: String,
     val description: String? = null,
     @Enumerated(EnumType.STRING)
     val type: WorkCenterType = WorkCenterType.MACHINE,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
-    val warehouseId: String? = null,
+    val warehouseId: java.util.UUID? = null,
     @Column(name = "capacity_per_hour")
     val capacityPerHour: BigDecimal = BigDecimal.ONE,
     @Column(name = "cost_per_hour")
