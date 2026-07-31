@@ -62,6 +62,55 @@ class StockMovementService(
         return saved
     }
 
+    /**
+     * Like [createMovement] but also returns the total cost that the costing
+     * engine computed for the movement (sum of unit_cost × quantity, derived
+     * from the FIFO layers / weighted-average snapshot for outbound moves, or
+     * the supplied unit cost for inbound moves).
+     *
+     * Manufacturing execution uses this to capture WIP-issue cost so it can
+     * roll into the WIP-receipt unit cost at completion.
+     */
+    @Transactional
+    fun createMovementCapturingCost(
+        request: CreateStockMovementRequest,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
+    ): Pair<StockMovement, BigDecimal> {
+        val type = request.type ?: throw BusinessRuleException("Movement type is required")
+        val quantity = request.quantity ?: throw BusinessRuleException("Quantity is required")
+        validateQuantitySign(type, quantity)
+        validateUnitCost(type, request.unitCost)
+        validateTransferShape(type, request.warehouseId, request.transferToWarehouseId)
+        val sourceWarehouse = loadActiveWarehouse(request.warehouseId, organizationId)
+        val destWarehouse =
+            if (type == StockMovementType.TRANSFER && request.transferToWarehouseId != null) {
+                loadActiveWarehouse(request.transferToWarehouseId, organizationId)
+            } else {
+                null
+            }
+        applyToCounter(type, request, organizationId, quantity, sourceWarehouse, destWarehouse)
+        val saved =
+            stockMovementRepository.save(
+                StockMovement(
+                    organizationId = organizationId,
+                    type = type,
+                    productId = request.productId,
+                    warehouseId = request.warehouseId,
+                    transferToWarehouseId = request.transferToWarehouseId,
+                    quantity = quantity,
+                    unitCost = request.unitCost,
+                    reference = request.reference,
+                    notes = request.notes,
+                    occurredAt = request.occurredAt ?: LocalDateTime.now(),
+                    createdBy = userId,
+                ),
+            )
+        val cost = inventoryCostingService.apply(saved)
+        inventoryPostingService.postMovement(saved, cost)
+        return saved to cost
+    }
+
     @Transactional
     fun reverseMovement(
         movementId: java.util.UUID,
@@ -110,8 +159,11 @@ class StockMovementService(
             when (original.type) {
                 StockMovementType.RECEIPT,
                 StockMovementType.OPENING_BALANCE,
+                StockMovementType.WIP_RECEIPT,
                 -> original.quantity.negate()
-                StockMovementType.ISSUE -> original.quantity
+                StockMovementType.ISSUE,
+                StockMovementType.WIP_ISSUE,
+                -> original.quantity
                 StockMovementType.ADJUSTMENT -> original.quantity.negate()
                 StockMovementType.TRANSFER -> throw BusinessRuleException("unreachable")
             }
@@ -164,6 +216,8 @@ class StockMovementService(
             StockMovementType.ISSUE,
             StockMovementType.TRANSFER,
             StockMovementType.OPENING_BALANCE,
+            StockMovementType.WIP_ISSUE,
+            StockMovementType.WIP_RECEIPT,
             ->
                 if (quantity.signum() <= 0) {
                     throw BusinessRuleException("Quantity must be positive for $type movements")
@@ -179,7 +233,10 @@ class StockMovementService(
         type: StockMovementType,
         unitCost: BigDecimal?,
     ) {
-        val inbound = type == StockMovementType.RECEIPT || type == StockMovementType.OPENING_BALANCE
+        val inbound =
+            type == StockMovementType.RECEIPT ||
+                type == StockMovementType.OPENING_BALANCE ||
+                type == StockMovementType.WIP_RECEIPT
         if (inbound) {
             if (unitCost == null || unitCost.signum() < 0) {
                 throw BusinessRuleException("unitCost is required and must be zero or positive for $type movements")
@@ -267,9 +324,11 @@ class StockMovementService(
         when (type) {
             StockMovementType.RECEIPT,
             StockMovementType.OPENING_BALANCE,
+            StockMovementType.WIP_RECEIPT,
             -> quantity
             StockMovementType.ISSUE,
             StockMovementType.TRANSFER,
+            StockMovementType.WIP_ISSUE,
             -> quantity.negate()
             StockMovementType.ADJUSTMENT -> quantity
         }

@@ -131,9 +131,11 @@ class InventoryReportsService(
         return when (movement.type) {
             StockMovementType.RECEIPT,
             StockMovementType.OPENING_BALANCE,
+            StockMovementType.WIP_RECEIPT,
             -> if (movement.warehouseId == forWarehouseId) q else BigDecimal.ZERO
-            StockMovementType.ISSUE ->
-                if (movement.warehouseId == forWarehouseId) q.negate() else BigDecimal.ZERO
+            StockMovementType.ISSUE,
+            StockMovementType.WIP_ISSUE,
+            -> if (movement.warehouseId == forWarehouseId) q.negate() else BigDecimal.ZERO
             StockMovementType.ADJUSTMENT ->
                 if (movement.warehouseId == forWarehouseId) q else BigDecimal.ZERO
             StockMovementType.TRANSFER ->

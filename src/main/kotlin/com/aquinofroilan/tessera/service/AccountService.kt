@@ -155,6 +155,13 @@ class AccountService(
                     isSystemAccount = true,
                 ),
                 Account(
+                    code = "1250",
+                    name = "Work-in-Process Inventory",
+                    type = AccountType.ASSET,
+                    organizationId = organizationId,
+                    isSystemAccount = true,
+                ),
+                Account(
                     code = "1300",
                     name = "Prepaid Expenses",
                     type = AccountType.ASSET,

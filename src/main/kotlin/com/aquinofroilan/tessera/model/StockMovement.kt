@@ -19,6 +19,8 @@ enum class StockMovementType {
     TRANSFER,
     ADJUSTMENT,
     OPENING_BALANCE,
+    WIP_ISSUE,
+    WIP_RECEIPT,
 }
 
 @Entity

@@ -153,7 +153,7 @@ class SalesOrderService(
                     .associate { it.id to it.quantity.subtract(it.fulfilledQuantity) }
                     .filterValues { it.signum() > 0 }
             } else {
-                request.lines!!.associate { it.lineId to (it.quantity ?: throw BusinessRuleException("Quantity is required")) }
+                request!!.lines.associate { it.lineId to (it.quantity ?: throw BusinessRuleException("Quantity is required")) }
             }
         requested.keys.forEach { if (it !in byId) throw BusinessRuleException("Unknown sales order line '$it'") }
         if (requested.isEmpty()) {

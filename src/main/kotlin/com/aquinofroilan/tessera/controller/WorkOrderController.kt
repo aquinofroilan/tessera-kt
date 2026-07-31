@@ -6,6 +6,7 @@ import com.aquinofroilan.tessera.dto.CreateWorkOrderRequest
 import com.aquinofroilan.tessera.dto.WorkOrderResponse
 import com.aquinofroilan.tessera.model.WorkOrderStatus
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.service.WorkOrderExecutionService
 import com.aquinofroilan.tessera.service.WorkOrderService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -25,6 +26,7 @@ import java.util.Locale
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
 class WorkOrderController(
     private val workOrderService: WorkOrderService,
+    private val workOrderExecutionService: WorkOrderExecutionService,
     private val authContext: AuthenticationContext,
 ) {
     @PostMapping

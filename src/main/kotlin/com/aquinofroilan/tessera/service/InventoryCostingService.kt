@@ -66,8 +66,11 @@ class InventoryCostingService(
         return when (movement.type) {
             StockMovementType.RECEIPT,
             StockMovementType.OPENING_BALANCE,
+            StockMovementType.WIP_RECEIPT,
             -> addLayer(movement, q, movement.unitCost ?: BigDecimal.ZERO)
-            StockMovementType.ISSUE -> consumeFifo(movement, movement.warehouseId, q)
+            StockMovementType.ISSUE,
+            StockMovementType.WIP_ISSUE,
+            -> consumeFifo(movement, movement.warehouseId, q)
             StockMovementType.ADJUSTMENT ->
                 if (q.signum() > 0) {
                     addLayer(movement, q, movement.unitCost ?: currentAverageOrZero(movement))
@@ -171,8 +174,11 @@ class InventoryCostingService(
         return when (movement.type) {
             StockMovementType.RECEIPT,
             StockMovementType.OPENING_BALANCE,
+            StockMovementType.WIP_RECEIPT,
             -> addToWa(movement, movement.warehouseId, q, movement.unitCost ?: BigDecimal.ZERO)
-            StockMovementType.ISSUE -> consumeWa(movement, movement.warehouseId, q)
+            StockMovementType.ISSUE,
+            StockMovementType.WIP_ISSUE,
+            -> consumeWa(movement, movement.warehouseId, q)
             StockMovementType.ADJUSTMENT ->
                 if (q.signum() > 0) {
                     addToWa(movement, movement.warehouseId, q, movement.unitCost ?: avgWa(movement, movement.warehouseId))
