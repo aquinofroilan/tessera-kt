@@ -1,5 +1,6 @@
 package com.aquinofroilan.tessera.model
 
+import com.github.f4b6a3.uuid.UuidCreator
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
@@ -28,11 +29,11 @@ enum class MpsStatus {
 data class MpsEntry(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: UUID = UuidCreator.getTimeOrderedEpoch(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: UUID,
     @Column(name = "product_id", columnDefinition = "uuid")
-    val productId: String,
+    val productId: java.util.UUID,
     @Column(name = "product_sku")
     val productSku: String,
     @Column(name = "product_name")

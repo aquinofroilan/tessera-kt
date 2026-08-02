@@ -31,7 +31,7 @@ class CrpService(
     private val workCenterService: WorkCenterService,
 ) {
     fun run(
-        organizationId: String,
+        organizationId: java.util.UUID,
         horizonEnd: LocalDate?,
         capacityHoursPerWorkingDay: BigDecimal,
     ): CrpRunResponse {
@@ -49,7 +49,7 @@ class CrpService(
             var requiredMinutes: BigDecimal,
             val code: String,
         )
-        val load = mutableMapOf<String, Load>()
+        val load = mutableMapOf<java.util.UUID, Load>()
         for (mps in entries) {
             val routing =
                 routingService
@@ -109,7 +109,7 @@ class CrpService(
     }
 
     private fun loadEntries(
-        organizationId: String,
+        organizationId: java.util.UUID,
         horizonEnd: LocalDate?,
     ): List<MpsEntry> {
         val statuses = listOf(MpsStatus.PLANNED, MpsStatus.FIRM)

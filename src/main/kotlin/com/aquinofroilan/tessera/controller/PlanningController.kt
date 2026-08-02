@@ -43,7 +43,7 @@ class PlanningController(
         @Valid @RequestBody request: CreateMpsEntryRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId()?.toString() ?: "api-key"
         val entry = mpsService.create(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(MpsEntryResponse.from(entry))
     }
@@ -70,7 +70,7 @@ class PlanningController(
     @GetMapping("/mps/{id}")
     @PreAuthorize("hasAuthority('mfg:read')")
     fun getMps(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(MpsEntryResponse.from(mpsService.get(id, orgId)))
@@ -79,7 +79,7 @@ class PlanningController(
     @PutMapping("/mps/{id}")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun updateMps(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateMpsEntryRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -89,7 +89,7 @@ class PlanningController(
     @DeleteMapping("/mps/{id}")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun deleteMps(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         mpsService.delete(id, orgId)

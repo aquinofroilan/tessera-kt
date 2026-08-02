@@ -10,7 +10,7 @@ import java.time.LocalDate
 
 data class CreateMpsEntryRequest(
     @field:NotBlank(message = "Product ID is required")
-    val productId: String,
+    val productId: java.util.UUID,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
     val quantity: BigDecimal?,
@@ -29,8 +29,8 @@ data class UpdateMpsEntryRequest(
 )
 
 data class MpsEntryResponse(
-    val id: String,
-    val productId: String,
+    val id: java.util.UUID,
+    val productId: java.util.UUID,
     val productSku: String,
     val productName: String,
     val quantity: BigDecimal,
@@ -54,7 +54,7 @@ data class MpsEntryResponse(
 }
 
 data class MrpRequirementLine(
-    val productId: String,
+    val productId: java.util.UUID,
     val productSku: String,
     val productName: String,
     val grossRequirement: BigDecimal,
@@ -71,7 +71,7 @@ data class MrpRunResponse(
 )
 
 data class CrpLoadLine(
-    val workCenterId: String,
+    val workCenterId: java.util.UUID,
     val workCenterCode: String,
     val requiredMinutes: BigDecimal,
     val capacityMinutes: BigDecimal,

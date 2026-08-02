@@ -22,9 +22,9 @@ class MrpServiceTest {
     private lateinit var sohRepository: StockOnHandRepository
     private lateinit var service: MrpService
 
-    private val orgId = "org-1"
-    private val parentId = "prod-parent"
-    private val compId = "prod-comp"
+    private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")
+    private val parentId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000002")
+    private val compId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000003")
 
     @BeforeEach
     fun setup() {
@@ -47,13 +47,26 @@ class MrpServiceTest {
         val mps =
             listOf(
                 mpsEntry(productId = parentId, qty = BigDecimal("10"), date = LocalDate.of(2026, 7, 1)),
-                mpsEntry(productId = "prod-orphan", qty = BigDecimal("5"), date = LocalDate.of(2026, 7, 5)),
+                mpsEntry(
+                    productId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000004"),
+                    qty = BigDecimal("5"),
+                    date = LocalDate.of(2026, 7, 5),
+                ),
             )
         whenever(mpsRepository.findByOrganizationIdOrderByRequiredByAsc(orgId)).thenReturn(mps)
         whenever(bomService.listBoms(orgId, BomStatus.ACTIVE, parentId)).thenReturn(listOf(bom()))
-        whenever(bomService.listBoms(orgId, BomStatus.ACTIVE, "prod-orphan")).thenReturn(emptyList())
+        whenever(
+            bomService.listBoms(orgId, BomStatus.ACTIVE, java.util.UUID.fromString("00000000-0000-0000-0000-000000000004")),
+        ).thenReturn(emptyList())
         whenever(sohRepository.findByOrganizationId(orgId)).thenReturn(
-            listOf(StockOnHand(organizationId = orgId, productId = compId, warehouseId = "wh1", quantity = BigDecimal("8"))),
+            listOf(
+                StockOnHand(
+                    organizationId = orgId,
+                    productId = compId,
+                    warehouseId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000006"),
+                    quantity = BigDecimal("8"),
+                ),
+            ),
         )
 
         val plan = service.run(orgId, null)
@@ -69,14 +82,14 @@ class MrpServiceTest {
     }
 
     private fun mpsEntry(
-        productId: String,
+        productId: java.util.UUID,
         qty: BigDecimal,
         date: LocalDate,
     ) = MpsEntry(
         organizationId = orgId,
         productId = productId,
-        productSku = productId,
-        productName = productId,
+        productSku = productId.toString(),
+        productName = productId.toString(),
         quantity = qty,
         requiredBy = date,
         status = MpsStatus.PLANNED,
@@ -85,7 +98,7 @@ class MrpServiceTest {
 
     private fun bom() =
         BillOfMaterials(
-            id = "bom-1",
+            id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000005"),
             organizationId = orgId,
             productId = parentId,
             code = "BOM-1",
@@ -103,6 +116,6 @@ class MrpServiceTest {
                         scrapPct = BigDecimal("5"),
                     ),
                 ),
-            createdBy = "u",
+            createdBy = java.util.UUID.fromString("00000000-0000-0000-0000-000000000007"),
         )
 }

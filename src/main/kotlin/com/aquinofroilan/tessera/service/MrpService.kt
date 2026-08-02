@@ -31,7 +31,7 @@ class MrpService(
     private val stockOnHandRepository: StockOnHandRepository,
 ) {
     fun run(
-        organizationId: String,
+        organizationId: java.util.UUID,
         horizonEnd: LocalDate?,
     ): MrpRunResponse {
         val entries = loadEntries(organizationId, horizonEnd)
@@ -50,7 +50,7 @@ class MrpService(
             val sku: String,
             val name: String,
         )
-        val acc = mutableMapOf<String, Accum>()
+        val acc = mutableMapOf<java.util.UUID, Accum>()
         val unresolved = mutableListOf<String>()
         for (mps in entries) {
             val bom =
@@ -108,7 +108,7 @@ class MrpService(
     }
 
     private fun loadEntries(
-        organizationId: String,
+        organizationId: java.util.UUID,
         horizonEnd: LocalDate?,
     ): List<MpsEntry> {
         val statuses = listOf(MpsStatus.PLANNED, MpsStatus.FIRM)

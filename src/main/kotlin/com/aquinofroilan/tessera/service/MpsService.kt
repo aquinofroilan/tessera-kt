@@ -18,7 +18,7 @@ class MpsService(
     @Transactional
     fun create(
         request: CreateMpsEntryRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
         userId: String,
     ): MpsEntry {
         val product = productService.getProduct(request.productId, organizationId)
@@ -43,7 +43,7 @@ class MpsService(
     }
 
     fun list(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: MpsStatus?,
     ): List<MpsEntry> =
         if (status != null) {
@@ -53,8 +53,8 @@ class MpsService(
         }
 
     fun get(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): MpsEntry {
         val e = mpsRepository.findById(id).orElseThrow { ResourceNotFoundException("MPS entry not found: $id") }
         if (e.organizationId != organizationId) {
@@ -65,9 +65,9 @@ class MpsService(
 
     @Transactional
     fun update(
-        id: String,
+        id: java.util.UUID,
         request: UpdateMpsEntryRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): MpsEntry {
         val e = get(id, organizationId)
         if (e.status == MpsStatus.RELEASED || e.status == MpsStatus.CANCELLED) {
@@ -85,8 +85,8 @@ class MpsService(
 
     @Transactional
     fun delete(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ) {
         val e = get(id, organizationId)
         if (e.status == MpsStatus.RELEASED) {
