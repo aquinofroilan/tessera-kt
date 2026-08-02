@@ -29,13 +29,13 @@ class WorkOrderServiceTest {
     private lateinit var routingService: RoutingService
     private lateinit var service: WorkOrderService
 
-    private val orgId  = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
-    private val userId   = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440001")
-    private val productId  = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440002")
+    private val orgId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
+    private val userId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440001")
+    private val productId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440002")
     private val componentId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440003")
-    private val bomId  = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440004")
-    private val sourceWh  = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440005")
-    private val targetWh  = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440006")
+    private val bomId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440004")
+    private val sourceWh = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440005")
+    private val targetWh = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440006")
 
     @BeforeEach
     fun setup() {
@@ -117,16 +117,26 @@ class WorkOrderServiceTest {
     fun `release rejects non-DRAFT work orders`() {
         val released = draftWO().copy(status = WorkOrderStatus.RELEASED)
         whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"))).thenReturn(Optional.of(released))
-        assertThatThrownBy { service.releaseWorkOrder(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"), orgId, userId.toString()) }
-            .isInstanceOf(BusinessRuleException::class.java)
+        assertThatThrownBy {
+            service.releaseWorkOrder(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
+                orgId,
+                userId.toString(),
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `cancel rejects COMPLETED work orders`() {
         val done = draftWO().copy(status = WorkOrderStatus.COMPLETED)
         whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"))).thenReturn(Optional.of(done))
-        assertThatThrownBy { service.cancelWorkOrder(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"), orgId, userId.toString()) }
-            .isInstanceOf(BusinessRuleException::class.java)
+        assertThatThrownBy {
+            service.cancelWorkOrder(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
+                orgId,
+                userId.toString(),
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test

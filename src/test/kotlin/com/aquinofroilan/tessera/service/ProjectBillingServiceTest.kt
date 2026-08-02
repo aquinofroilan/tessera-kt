@@ -32,7 +32,7 @@ class ProjectBillingServiceTest {
 
     private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
     private val projectId = java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89")
-    private val userId  = java.util.UUID.fromString("1fd9446c-9f04-31e6-941e-53b391d01cab")
+    private val userId = java.util.UUID.fromString("1fd9446c-9f04-31e6-941e-53b391d01cab")
     private val day = LocalDate.of(2026, 5, 1)
 
     @BeforeEach

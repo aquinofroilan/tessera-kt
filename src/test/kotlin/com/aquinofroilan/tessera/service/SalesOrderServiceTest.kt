@@ -41,7 +41,7 @@ class SalesOrderServiceTest {
     private lateinit var service: SalesOrderService
 
     private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
-    private val userId  = java.util.UUID.fromString("1db2395f-13ba-3d37-9d2b-f77d3eb3aa2e")
+    private val userId = java.util.UUID.fromString("1db2395f-13ba-3d37-9d2b-f77d3eb3aa2e")
 
     @BeforeEach
     fun setup() {

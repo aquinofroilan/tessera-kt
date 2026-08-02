@@ -27,10 +27,10 @@ class StandardCostServiceTest {
     private lateinit var workCenterService: WorkCenterService
     private lateinit var service: StandardCostService
 
-    private val orgId  = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")
-    private val userId   = java.util.UUID.fromString("00000000-0000-0000-0000-000000000002")
-    private val parentId  = java.util.UUID.fromString("00000000-0000-0000-0000-000000000003")
-    private val compId  = java.util.UUID.fromString("00000000-0000-0000-0000-000000000004")
+    private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")
+    private val userId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000002")
+    private val parentId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000003")
+    private val compId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000004")
 
     @BeforeEach
     fun setup() {

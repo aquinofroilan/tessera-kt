@@ -27,8 +27,8 @@ class WorkOrderExecutionServiceTest {
     private lateinit var stockMovementService: StockMovementService
     private lateinit var service: WorkOrderExecutionService
 
-    private val orgId  = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
-    private val userId   = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440001")
+    private val orgId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
+    private val userId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440001")
 
     @BeforeEach
     fun setup() {
@@ -49,7 +49,12 @@ class WorkOrderExecutionServiceTest {
         val updated =
             service.issueMaterial(
                 java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
-                IssueMaterialRequest(lines = listOf(IssueMaterialLineRequest(java.util.UUID.fromString("00000000-0000-0000-0000-000000000031"), BigDecimal("5")))),
+                IssueMaterialRequest(
+                    lines =
+                        listOf(
+                            IssueMaterialLineRequest(java.util.UUID.fromString("00000000-0000-0000-0000-000000000031"), BigDecimal("5")),
+                        ),
+                ),
                 orgId,
                 userId.toString(),
             )
@@ -66,7 +71,11 @@ class WorkOrderExecutionServiceTest {
             released().copy(
                 components =
                     listOf(
-                        component(java.util.UUID.fromString("00000000-0000-0000-0000-000000000031"), planned = BigDecimal("10"), issued = BigDecimal("8")),
+                        component(
+                            java.util.UUID.fromString("00000000-0000-0000-0000-000000000031"),
+                            planned = BigDecimal("10"),
+                            issued = BigDecimal("8"),
+                        ),
                     ),
             )
         whenever(workOrderService.getWorkOrder(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"), orgId)).thenReturn(wo)
@@ -74,7 +83,12 @@ class WorkOrderExecutionServiceTest {
         assertThatThrownBy {
             service.issueMaterial(
                 java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
-                IssueMaterialRequest(lines = listOf(IssueMaterialLineRequest(java.util.UUID.fromString("00000000-0000-0000-0000-000000000031"), BigDecimal("3")))),
+                IssueMaterialRequest(
+                    lines =
+                        listOf(
+                            IssueMaterialLineRequest(java.util.UUID.fromString("00000000-0000-0000-0000-000000000031"), BigDecimal("3")),
+                        ),
+                ),
                 orgId,
                 userId.toString(),
             )
@@ -126,7 +140,10 @@ class WorkOrderExecutionServiceTest {
         assertThatThrownBy {
             service.completeProduction(
                 java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
-                CompleteWorkOrderRequest(quantityCompleted = BigDecimal.ZERO, quantityScrapped = BigDecimal.ZERO),
+                CompleteWorkOrderRequest(
+                    quantityCompleted = BigDecimal.ZERO,
+                    quantityScrapped = BigDecimal.ZERO,
+                ),
                 orgId,
                 userId.toString(),
             )
@@ -140,7 +157,15 @@ class WorkOrderExecutionServiceTest {
         assertThatThrownBy {
             service.issueMaterial(
                 java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
-                IssueMaterialRequest(lines = listOf(IssueMaterialLineRequest(java.util.UUID.fromString("00000000-0000-0000-0000-000000000031"), BigDecimal.ONE))),
+                IssueMaterialRequest(
+                    lines =
+                        listOf(
+                            IssueMaterialLineRequest(
+                                java.util.UUID.fromString("00000000-0000-0000-0000-000000000031"),
+                                BigDecimal.ONE,
+                            ),
+                        ),
+                ),
                 orgId,
                 userId.toString(),
             )
@@ -161,7 +186,14 @@ class WorkOrderExecutionServiceTest {
             sourceWarehouseId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440007"),
             targetWarehouseId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440008"),
             status = WorkOrderStatus.RELEASED,
-            components = listOf(component(java.util.UUID.fromString("00000000-0000-0000-0000-000000000031"), planned = BigDecimal("10"), issued = BigDecimal.ZERO)),
+            components =
+                listOf(
+                    component(
+                        java.util.UUID.fromString("00000000-0000-0000-0000-000000000031"),
+                        planned = BigDecimal("10"),
+                        issued = BigDecimal.ZERO,
+                    ),
+                ),
             operations = emptyList(),
             createdBy = userId.toString().toString(),
         )

@@ -25,7 +25,7 @@ class SelfServiceServiceTest {
     private lateinit var service: SelfServiceService
 
     private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
-    private val userId  = java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb")
+    private val userId = java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb")
 
     @BeforeEach
     fun setup() {

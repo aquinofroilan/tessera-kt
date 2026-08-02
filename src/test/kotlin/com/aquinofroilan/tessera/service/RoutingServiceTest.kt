@@ -25,10 +25,10 @@ class RoutingServiceTest {
     private lateinit var workCenterService: WorkCenterService
     private lateinit var service: RoutingService
 
-    private val orgId  = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
-    private val userId   = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440001")
-    private val productId  = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440002")
-    private val wcId  = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440003")
+    private val orgId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
+    private val userId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440001")
+    private val productId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440002")
+    private val wcId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440003")
 
     @BeforeEach
     fun setup() {
@@ -116,7 +116,11 @@ class RoutingServiceTest {
             )
         whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"))).thenReturn(Optional.of(active))
         assertThatThrownBy {
-            service.updateRouting(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"), UpdateRoutingRequest(name = "renamed"), orgId)
+            service.updateRouting(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"),
+                UpdateRoutingRequest(name = "renamed"),
+                orgId,
+            )
         }.isInstanceOf(BusinessRuleException::class.java)
     }
 
