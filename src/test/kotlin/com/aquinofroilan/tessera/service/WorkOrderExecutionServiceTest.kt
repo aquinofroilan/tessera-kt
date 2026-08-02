@@ -27,8 +27,8 @@ class WorkOrderExecutionServiceTest {
     private lateinit var stockMovementService: StockMovementService
     private lateinit var service: WorkOrderExecutionService
 
-    private val orgId = "550e8400-e29b-41d4-a716-446655440000"
-    private val userId = "550e8400-e29b-41d4-a716-446655440001"
+    private val orgId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
+    private val userId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440001")
 
     @BeforeEach
     fun setup() {
@@ -42,16 +42,21 @@ class WorkOrderExecutionServiceTest {
     @Test
     fun `issueMaterial transitions RELEASED to IN_PROGRESS and stamps issued cost`() {
         val wo = released()
-        whenever(workOrderService.getWorkOrder("wo1", orgId)).thenReturn(wo)
+        whenever(workOrderService.getWorkOrder(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"), orgId)).thenReturn(wo)
         whenever(stockMovementService.createMovementCapturingCost(any<CreateStockMovementRequest>(), any(), any()))
             .thenReturn(dummyMovement() to BigDecimal("50.00"))
 
         val updated =
             service.issueMaterial(
-                "wo1",
-                IssueMaterialRequest(lines = listOf(IssueMaterialLineRequest("c1", BigDecimal("5")))),
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
+                IssueMaterialRequest(
+                    lines =
+                        listOf(
+                            IssueMaterialLineRequest(java.util.UUID.fromString("00000000-0000-0000-0000-000000000031"), BigDecimal("5")),
+                        ),
+                ),
                 orgId,
-                userId,
+                userId.toString(),
             )
 
         assertThat(updated.status).isEqualTo(WorkOrderStatus.IN_PROGRESS)
@@ -66,17 +71,26 @@ class WorkOrderExecutionServiceTest {
             released().copy(
                 components =
                     listOf(
-                        component("c1", planned = BigDecimal("10"), issued = BigDecimal("8")),
+                        component(
+                            java.util.UUID.fromString("00000000-0000-0000-0000-000000000031"),
+                            planned = BigDecimal("10"),
+                            issued = BigDecimal("8"),
+                        ),
                     ),
             )
-        whenever(workOrderService.getWorkOrder("wo1", orgId)).thenReturn(wo)
+        whenever(workOrderService.getWorkOrder(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"), orgId)).thenReturn(wo)
 
         assertThatThrownBy {
             service.issueMaterial(
-                "wo1",
-                IssueMaterialRequest(lines = listOf(IssueMaterialLineRequest("c1", BigDecimal("3")))),
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
+                IssueMaterialRequest(
+                    lines =
+                        listOf(
+                            IssueMaterialLineRequest(java.util.UUID.fromString("00000000-0000-0000-0000-000000000031"), BigDecimal("3")),
+                        ),
+                ),
                 orgId,
-                userId,
+                userId.toString(),
             )
         }.isInstanceOf(BusinessRuleException::class.java)
             .hasMessageContaining("only")
@@ -85,35 +99,35 @@ class WorkOrderExecutionServiceTest {
     @Test
     fun `complete with full quantity flips status to COMPLETED and stamps audit`() {
         val wo = released().copy(status = WorkOrderStatus.IN_PROGRESS, totalIssuedCost = BigDecimal("100.00"))
-        whenever(workOrderService.getWorkOrder("wo1", orgId)).thenReturn(wo)
+        whenever(workOrderService.getWorkOrder(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"), orgId)).thenReturn(wo)
         whenever(stockMovementService.createMovementCapturingCost(any<CreateStockMovementRequest>(), any(), any()))
             .thenReturn(dummyMovement() to BigDecimal("100.00"))
 
         val updated =
             service.completeProduction(
-                "wo1",
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
                 CompleteWorkOrderRequest(quantityCompleted = BigDecimal("10")),
                 orgId,
-                userId,
+                userId.toString(),
             )
 
         assertThat(updated.status).isEqualTo(WorkOrderStatus.COMPLETED)
         assertThat(updated.quantityCompleted).isEqualByComparingTo(BigDecimal("10"))
-        assertThat(updated.completedBy).isEqualTo(userId)
+        assertThat(updated.completedBy).isEqualTo(userId.toString())
         assertThat(updated.totalCompletedCost).isEqualByComparingTo(BigDecimal("100.00"))
     }
 
     @Test
     fun `complete rejects when completed + scrap exceeds planned`() {
         val wo = released().copy(quantityCompleted = BigDecimal("8"))
-        whenever(workOrderService.getWorkOrder("wo1", orgId)).thenReturn(wo)
+        whenever(workOrderService.getWorkOrder(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"), orgId)).thenReturn(wo)
 
         assertThatThrownBy {
             service.completeProduction(
-                "wo1",
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
                 CompleteWorkOrderRequest(quantityCompleted = BigDecimal("3")),
                 orgId,
-                userId,
+                userId.toString(),
             )
         }.isInstanceOf(BusinessRuleException::class.java)
     }
@@ -121,14 +135,17 @@ class WorkOrderExecutionServiceTest {
     @Test
     fun `complete with both 0 quantityCompleted and 0 scrapped is rejected`() {
         val wo = released()
-        whenever(workOrderService.getWorkOrder("wo1", orgId)).thenReturn(wo)
+        whenever(workOrderService.getWorkOrder(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"), orgId)).thenReturn(wo)
 
         assertThatThrownBy {
             service.completeProduction(
-                "wo1",
-                CompleteWorkOrderRequest(quantityCompleted = BigDecimal.ZERO, quantityScrapped = BigDecimal.ZERO),
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
+                CompleteWorkOrderRequest(
+                    quantityCompleted = BigDecimal.ZERO,
+                    quantityScrapped = BigDecimal.ZERO,
+                ),
                 orgId,
-                userId,
+                userId.toString(),
             )
         }.isInstanceOf(BusinessRuleException::class.java)
     }
@@ -136,44 +153,59 @@ class WorkOrderExecutionServiceTest {
     @Test
     fun `cannot issue material on a COMPLETED work order`() {
         val wo = released().copy(status = WorkOrderStatus.COMPLETED)
-        whenever(workOrderService.getWorkOrder("wo1", orgId)).thenReturn(wo)
+        whenever(workOrderService.getWorkOrder(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"), orgId)).thenReturn(wo)
         assertThatThrownBy {
             service.issueMaterial(
-                "wo1",
-                IssueMaterialRequest(lines = listOf(IssueMaterialLineRequest("c1", BigDecimal.ONE))),
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
+                IssueMaterialRequest(
+                    lines =
+                        listOf(
+                            IssueMaterialLineRequest(
+                                java.util.UUID.fromString("00000000-0000-0000-0000-000000000031"),
+                                BigDecimal.ONE,
+                            ),
+                        ),
+                ),
                 orgId,
-                userId,
+                userId.toString(),
             )
         }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     private fun released() =
         WorkOrder(
-            id = "wo1",
+            id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
             organizationId = orgId,
             woNumber = "WO-0001",
-            productId = "550e8400-e29b-41d4-a716-446655440005",
+            productId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440005"),
             productSku = "SKU",
             productName = "Widget",
-            bomId = "550e8400-e29b-41d4-a716-446655440006",
+            bomId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440006"),
             routingId = null,
             quantity = BigDecimal("10"),
-            sourceWarehouseId = "550e8400-e29b-41d4-a716-446655440007",
-            targetWarehouseId = "550e8400-e29b-41d4-a716-446655440008",
+            sourceWarehouseId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440007"),
+            targetWarehouseId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440008"),
             status = WorkOrderStatus.RELEASED,
-            components = listOf(component("c1", planned = BigDecimal("10"), issued = BigDecimal.ZERO)),
+            components =
+                listOf(
+                    component(
+                        java.util.UUID.fromString("00000000-0000-0000-0000-000000000031"),
+                        planned = BigDecimal("10"),
+                        issued = BigDecimal.ZERO,
+                    ),
+                ),
             operations = emptyList(),
-            createdBy = userId,
+            createdBy = userId.toString().toString(),
         )
 
     private fun component(
-        id: String,
+        id: java.util.UUID,
         planned: BigDecimal,
         issued: BigDecimal,
     ) = WorkOrderComponent(
         id = id,
         lineNumber = 1,
-        componentProductId = "550e8400-e29b-41d4-a716-446655440002",
+        componentProductId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440002"),
         componentSku = "COMP",
         componentName = "Component",
         plannedQuantity = planned,
@@ -182,12 +214,12 @@ class WorkOrderExecutionServiceTest {
 
     private fun dummyMovement() =
         StockMovement(
-            organizationId = java.util.UUID.fromString(orgId),
+            organizationId = orgId,
             type = StockMovementType.WIP_ISSUE,
             productId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440002"),
             warehouseId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440003"),
             quantity = BigDecimal.ONE,
             occurredAt = LocalDateTime.now(),
-            createdBy = java.util.UUID.fromString(userId),
+            createdBy = userId,
         )
 }

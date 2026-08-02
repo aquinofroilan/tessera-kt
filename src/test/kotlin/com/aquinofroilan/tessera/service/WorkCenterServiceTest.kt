@@ -20,7 +20,7 @@ class WorkCenterServiceTest {
     private lateinit var warehouseService: WarehouseService
     private lateinit var service: WorkCenterService
 
-    private val orgId = "550e8400-e29b-41d4-a716-446655440000"
+    private val orgId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
 
     @BeforeEach
     fun setup() {
@@ -33,7 +33,7 @@ class WorkCenterServiceTest {
                 id = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440009"),
                 code = "MAIN",
                 name = "Main",
-                organizationId = java.util.UUID.fromString(orgId),
+                organizationId = orgId,
                 isActive = true,
             ),
         )
@@ -63,10 +63,18 @@ class WorkCenterServiceTest {
 
     @Test
     fun `deactivate rejects double-deactivation`() {
-        whenever(repository.findById("wc1")).thenReturn(
-            Optional.of(WorkCenter(id = "wc1", code = "C", name = "C", organizationId = orgId, isActive = false)),
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000071"))).thenReturn(
+            Optional.of(
+                WorkCenter(
+                    id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000071"),
+                    code = "C",
+                    name = "C",
+                    organizationId = orgId,
+                    isActive = false,
+                ),
+            ),
         )
-        assertThatThrownBy { service.deactivateWorkCenter("wc1", orgId) }
+        assertThatThrownBy { service.deactivateWorkCenter(java.util.UUID.fromString("00000000-0000-0000-0000-000000000071"), orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 }

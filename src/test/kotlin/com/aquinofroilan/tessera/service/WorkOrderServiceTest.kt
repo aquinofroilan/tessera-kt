@@ -29,13 +29,13 @@ class WorkOrderServiceTest {
     private lateinit var routingService: RoutingService
     private lateinit var service: WorkOrderService
 
-    private val orgId = "550e8400-e29b-41d4-a716-446655440000"
-    private val userId = "550e8400-e29b-41d4-a716-446655440001"
-    private val productId = "550e8400-e29b-41d4-a716-446655440002"
-    private val componentId = "550e8400-e29b-41d4-a716-446655440003"
-    private val bomId = "550e8400-e29b-41d4-a716-446655440004"
-    private val sourceWh = "550e8400-e29b-41d4-a716-446655440005"
-    private val targetWh = "550e8400-e29b-41d4-a716-446655440006"
+    private val orgId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
+    private val userId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440001")
+    private val productId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440002")
+    private val componentId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440003")
+    private val bomId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440004")
+    private val sourceWh = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440005")
+    private val targetWh = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440006")
 
     @BeforeEach
     fun setup() {
@@ -47,16 +47,16 @@ class WorkOrderServiceTest {
         whenever(repository.save(any<WorkOrder>())).thenAnswer { it.arguments[0] }
         whenever(repository.countByOrganizationId(orgId)).thenReturn(0)
         whenever(
-            productService.getProduct(java.util.UUID.fromString(productId), java.util.UUID.fromString(orgId)),
+            productService.getProduct(productId, orgId),
         ).thenReturn(product(productId, "PARENT"))
         whenever(
-            warehouseService.getWarehouse(java.util.UUID.fromString(sourceWh), java.util.UUID.fromString(orgId)),
+            warehouseService.getWarehouse(sourceWh, orgId),
         ).thenReturn(warehouse(sourceWh, "SRC"))
         whenever(
-            warehouseService.getWarehouse(java.util.UUID.fromString(targetWh), java.util.UUID.fromString(orgId)),
+            warehouseService.getWarehouse(targetWh, orgId),
         ).thenReturn(warehouse(targetWh, "TGT"))
         whenever(
-            bomService.listBoms(java.util.UUID.fromString(orgId), BomStatus.ACTIVE, java.util.UUID.fromString(productId)),
+            bomService.listBoms(orgId, BomStatus.ACTIVE, productId),
         ).thenReturn(listOf(activeBom(isDefault = true)))
         whenever(routingService.listRoutings(orgId, RoutingStatus.ACTIVE, productId)).thenReturn(emptyList())
         service = WorkOrderService(repository, productService, warehouseService, bomService, routingService)
@@ -75,7 +75,7 @@ class WorkOrderServiceTest {
                     targetWarehouseId = targetWh,
                 ),
                 orgId,
-                userId,
+                userId.toString(),
             )
 
         assertThat(wo.woNumber).isEqualTo("WO-0001")
@@ -88,7 +88,7 @@ class WorkOrderServiceTest {
     @Test
     fun `create rejects when no default ACTIVE bom and none specified`() {
         whenever(
-            bomService.listBoms(java.util.UUID.fromString(orgId), BomStatus.ACTIVE, java.util.UUID.fromString(productId)),
+            bomService.listBoms(orgId, BomStatus.ACTIVE, productId),
         ).thenReturn(emptyList())
         val req =
             CreateWorkOrderRequest(
@@ -99,7 +99,7 @@ class WorkOrderServiceTest {
                 sourceWarehouseId = sourceWh,
                 targetWarehouseId = targetWh,
             )
-        assertThatThrownBy { service.createWorkOrder(req, orgId, userId) }
+        assertThatThrownBy { service.createWorkOrder(req, orgId, userId.toString()) }
             .isInstanceOf(BusinessRuleException::class.java)
             .hasMessageContaining("default ACTIVE BOM")
     }
@@ -107,41 +107,51 @@ class WorkOrderServiceTest {
     @Test
     fun `release flips DRAFT to RELEASED and stamps audit fields`() {
         val draft = draftWO()
-        whenever(repository.findById("wo1")).thenReturn(Optional.of(draft))
-        val released = service.releaseWorkOrder("wo1", orgId, userId)
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"))).thenReturn(Optional.of(draft))
+        val released = service.releaseWorkOrder(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"), orgId, userId.toString())
         assertThat(released.status).isEqualTo(WorkOrderStatus.RELEASED)
-        assertThat(released.releasedBy).isEqualTo(userId)
+        assertThat(released.releasedBy).isEqualTo(userId.toString())
     }
 
     @Test
     fun `release rejects non-DRAFT work orders`() {
         val released = draftWO().copy(status = WorkOrderStatus.RELEASED)
-        whenever(repository.findById("wo1")).thenReturn(Optional.of(released))
-        assertThatThrownBy { service.releaseWorkOrder("wo1", orgId, userId) }
-            .isInstanceOf(BusinessRuleException::class.java)
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"))).thenReturn(Optional.of(released))
+        assertThatThrownBy {
+            service.releaseWorkOrder(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
+                orgId,
+                userId.toString(),
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `cancel rejects COMPLETED work orders`() {
         val done = draftWO().copy(status = WorkOrderStatus.COMPLETED)
-        whenever(repository.findById("wo1")).thenReturn(Optional.of(done))
-        assertThatThrownBy { service.cancelWorkOrder("wo1", orgId, userId) }
-            .isInstanceOf(BusinessRuleException::class.java)
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"))).thenReturn(Optional.of(done))
+        assertThatThrownBy {
+            service.cancelWorkOrder(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
+                orgId,
+                userId.toString(),
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `cancel is idempotent for already-cancelled`() {
         val cancelled = draftWO().copy(status = WorkOrderStatus.CANCELLED)
-        whenever(repository.findById("wo1")).thenReturn(Optional.of(cancelled))
-        val result = service.cancelWorkOrder("wo1", orgId, userId)
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"))).thenReturn(Optional.of(cancelled))
+        val result = service.cancelWorkOrder(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"), orgId, userId.toString())
         assertThat(result.status).isEqualTo(WorkOrderStatus.CANCELLED)
     }
 
     private fun activeBom(isDefault: Boolean) =
         BillOfMaterials(
-            id = java.util.UUID.fromString(bomId),
-            organizationId = java.util.UUID.fromString(orgId),
-            productId = java.util.UUID.fromString(productId),
+            id = bomId,
+            organizationId = orgId,
+            productId = productId,
             code = "BOM",
             name = "BOM",
             status = BomStatus.ACTIVE,
@@ -150,19 +160,19 @@ class WorkOrderServiceTest {
                 listOf(
                     BomLine(
                         lineNumber = 1,
-                        componentProductId = java.util.UUID.fromString(componentId),
+                        componentProductId = componentId,
                         componentSku = "COMP",
                         componentName = "Component",
                         quantity = BigDecimal("2.0"),
                         scrapPct = BigDecimal("5"),
                     ),
                 ),
-            createdBy = java.util.UUID.fromString(userId),
+            createdBy = userId,
         )
 
     private fun draftWO() =
         WorkOrder(
-            id = "wo1",
+            id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
             organizationId = orgId,
             woNumber = "WO-0001",
             productId = productId,
@@ -176,30 +186,30 @@ class WorkOrderServiceTest {
             status = WorkOrderStatus.DRAFT,
             components = emptyList(),
             operations = emptyList(),
-            createdBy = userId,
+            createdBy = userId.toString(),
         )
 
     private fun product(
-        id: String,
+        id: java.util.UUID,
         sku: String,
     ) = Product(
-        id = java.util.UUID.fromString(id),
+        id = id,
         sku = sku,
         name = sku,
         listPrice = BigDecimal.ONE,
         priceCurrency = "USD",
-        organizationId = java.util.UUID.fromString(orgId),
+        organizationId = orgId,
         isActive = true,
     )
 
     private fun warehouse(
-        id: String,
+        id: java.util.UUID,
         code: String,
     ) = Warehouse(
-        id = java.util.UUID.fromString(id),
+        id = id,
         code = code,
         name = code,
-        organizationId = java.util.UUID.fromString(orgId),
+        organizationId = orgId,
         isActive = true,
     )
 }

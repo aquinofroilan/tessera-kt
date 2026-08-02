@@ -25,10 +25,10 @@ class RoutingServiceTest {
     private lateinit var workCenterService: WorkCenterService
     private lateinit var service: RoutingService
 
-    private val orgId = "550e8400-e29b-41d4-a716-446655440000"
-    private val userId = "550e8400-e29b-41d4-a716-446655440001"
-    private val productId = "550e8400-e29b-41d4-a716-446655440002"
-    private val wcId = "550e8400-e29b-41d4-a716-446655440003"
+    private val orgId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
+    private val userId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440001")
+    private val productId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440002")
+    private val wcId = java.util.UUID.fromString("550e8400-e29b-41d4-a716-446655440003")
 
     @BeforeEach
     fun setup() {
@@ -40,14 +40,14 @@ class RoutingServiceTest {
         whenever(repository.findByOrganizationIdAndProductId(any(), any())).thenReturn(emptyList())
         whenever(repository.findByOrganizationIdAndProductIdAndIsDefaultTrue(any(), any()))
             .thenReturn(Optional.empty())
-        whenever(productService.getProduct(java.util.UUID.fromString(productId), java.util.UUID.fromString(orgId))).thenReturn(
+        whenever(productService.getProduct(productId, orgId)).thenReturn(
             Product(
-                id = java.util.UUID.fromString(productId),
+                id = productId,
                 sku = "SKU",
                 name = "Widget",
                 listPrice = BigDecimal.ONE,
                 priceCurrency = "USD",
-                organizationId = java.util.UUID.fromString(orgId),
+                organizationId = orgId,
                 isActive = true,
             ),
         )
@@ -73,7 +73,7 @@ class RoutingServiceTest {
                         ),
                 ),
                 orgId,
-                userId,
+                userId.toString(),
             )
         assertThat(routing.operations.map { it.operationNumber }).containsExactly(10, 20, 30)
         assertThat(routing.status).isEqualTo(RoutingStatus.DRAFT)
@@ -97,7 +97,7 @@ class RoutingServiceTest {
                         ),
                     ),
             )
-        assertThatThrownBy { service.createRouting(req, orgId, userId) }
+        assertThatThrownBy { service.createRouting(req, orgId, userId.toString()) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 
@@ -105,18 +105,22 @@ class RoutingServiceTest {
     fun `update is rejected when routing is not DRAFT`() {
         val active =
             Routing(
-                id = "r1",
+                id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"),
                 organizationId = orgId,
                 productId = productId,
                 code = "RT-1",
                 name = "n",
                 status = RoutingStatus.ACTIVE,
                 operations = emptyList(),
-                createdBy = userId,
+                createdBy = userId.toString(),
             )
-        whenever(repository.findById("r1")).thenReturn(Optional.of(active))
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"))).thenReturn(Optional.of(active))
         assertThatThrownBy {
-            service.updateRouting("r1", UpdateRoutingRequest(name = "renamed"), orgId)
+            service.updateRouting(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"),
+                UpdateRoutingRequest(name = "renamed"),
+                orgId,
+            )
         }.isInstanceOf(BusinessRuleException::class.java)
     }
 

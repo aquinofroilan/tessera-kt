@@ -41,14 +41,13 @@ enum class WorkOrderOperationStatus {
 data class WorkOrderComponent(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String =
+    val id: java.util.UUID =
         java.util.UUID
-            .ofEpochMillis(System.currentTimeMillis())
-            .toString(),
+            .ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "line_number")
     val lineNumber: Int,
     @Column(name = "component_product_id", columnDefinition = "uuid")
-    val componentProductId: String,
+    val componentProductId: java.util.UUID,
     @Column(name = "component_sku")
     val componentSku: String,
     @Column(name = "component_name")
@@ -69,14 +68,13 @@ data class WorkOrderComponent(
 data class WorkOrderOperation(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String =
+    val id: java.util.UUID =
         java.util.UUID
-            .ofEpochMillis(System.currentTimeMillis())
-            .toString(),
+            .ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "operation_number")
     val operationNumber: Int,
     @Column(name = "work_center_id", columnDefinition = "uuid")
-    val workCenterId: String,
+    val workCenterId: java.util.UUID,
     @Column(name = "work_center_code")
     val workCenterCode: String,
     val description: String,
@@ -96,24 +94,23 @@ data class WorkOrderOperation(
 data class WorkOrder(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String =
+    val id: java.util.UUID =
         java.util.UUID
-            .ofEpochMillis(System.currentTimeMillis())
-            .toString(),
+            .ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     @Column(name = "wo_number")
     val woNumber: String,
     @Column(name = "product_id", columnDefinition = "uuid")
-    val productId: String,
+    val productId: java.util.UUID,
     @Column(name = "product_sku")
     val productSku: String,
     @Column(name = "product_name")
     val productName: String,
     @Column(name = "bom_id", columnDefinition = "uuid")
-    val bomId: String,
+    val bomId: java.util.UUID,
     @Column(name = "routing_id", columnDefinition = "uuid")
-    val routingId: String? = null,
+    val routingId: java.util.UUID? = null,
     val quantity: BigDecimal,
     @Column(name = "quantity_completed")
     val quantityCompleted: BigDecimal = BigDecimal.ZERO,
@@ -124,9 +121,9 @@ data class WorkOrder(
     @Column(name = "total_completed_cost")
     val totalCompletedCost: BigDecimal = BigDecimal.ZERO,
     @Column(name = "source_warehouse_id", columnDefinition = "uuid")
-    val sourceWarehouseId: String,
+    val sourceWarehouseId: java.util.UUID,
     @Column(name = "target_warehouse_id", columnDefinition = "uuid")
-    val targetWarehouseId: String,
+    val targetWarehouseId: java.util.UUID,
     @Enumerated(EnumType.STRING)
     val status: WorkOrderStatus = WorkOrderStatus.DRAFT,
     @Column(name = "planned_start")

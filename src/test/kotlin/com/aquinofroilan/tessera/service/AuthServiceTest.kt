@@ -472,7 +472,7 @@ class AuthServiceTest {
         val activeSession =
             SessionToken(
                 id = java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"),
-                token = "t1",
+                token = "00000000-0000-0000-0000-000000000041",
                 userId = userId,
                 expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12),
             )
@@ -490,7 +490,7 @@ class AuthServiceTest {
         val session =
             SessionToken(
                 id = java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"),
-                token = "t1",
+                token = "00000000-0000-0000-0000-000000000041",
                 userId = userId,
                 expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12),
             )
@@ -514,7 +514,7 @@ class AuthServiceTest {
         val session =
             SessionToken(
                 id = java.util.UUID.fromString("9a95230c-f3ef-320a-9d34-fc4c73ce5ce3"),
-                token = "t1",
+                token = "00000000-0000-0000-0000-000000000041",
                 userId = java.util.UUID.fromString("10a8c040-b348-34f9-b495-1d1c714ae089"),
                 expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12),
             )

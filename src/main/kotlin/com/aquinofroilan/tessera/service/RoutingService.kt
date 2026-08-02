@@ -25,10 +25,10 @@ class RoutingService(
     @Transactional
     fun createRouting(
         request: CreateRoutingRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
         createdBy: String,
     ): Routing {
-        val product = productService.getProduct(java.util.UUID.fromString(request.productId), java.util.UUID.fromString(organizationId))
+        val product = productService.getProduct(request.productId, organizationId)
         if (!product.isActive) {
             throw BusinessRuleException("Product '${product.sku}' is inactive")
         }
@@ -40,10 +40,10 @@ class RoutingService(
         val routing =
             Routing(
                 organizationId = organizationId,
-                productId = product.id.toString(),
+                productId = product.id,
                 code = request.code,
                 name = request.name,
-                version = request.version ?: nextVersion(organizationId, product.id.toString()),
+                version = request.version ?: nextVersion(organizationId, product.id),
                 status = RoutingStatus.DRAFT,
                 effectiveFrom = request.effectiveFrom,
                 effectiveTo = request.effectiveTo,
@@ -59,8 +59,8 @@ class RoutingService(
     }
 
     fun getRouting(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Routing {
         val r =
             routingRepository.findById(id).orElseThrow {
@@ -73,9 +73,9 @@ class RoutingService(
     }
 
     fun listRoutings(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: RoutingStatus?,
-        productId: String?,
+        productId: java.util.UUID?,
     ): List<Routing> =
         when {
             status != null && productId != null ->
@@ -87,9 +87,9 @@ class RoutingService(
 
     @Transactional
     fun updateRouting(
-        id: String,
+        id: java.util.UUID,
         request: UpdateRoutingRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Routing {
         val routing = getRouting(id, organizationId)
         if (routing.status != RoutingStatus.DRAFT) {
@@ -114,8 +114,8 @@ class RoutingService(
 
     @Transactional
     fun activateRouting(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
         userId: String,
         makeDefault: Boolean,
     ): Routing {
@@ -147,8 +147,8 @@ class RoutingService(
 
     @Transactional
     fun obsoleteRouting(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
         userId: String,
     ): Routing {
         val routing = getRouting(id, organizationId)
@@ -167,8 +167,8 @@ class RoutingService(
 
     @Transactional
     fun deleteRouting(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ) {
         val routing = getRouting(id, organizationId)
         if (routing.status != RoutingStatus.DRAFT) {
@@ -179,7 +179,7 @@ class RoutingService(
 
     private fun buildOperations(
         requests: List<CreateRoutingOperationRequest>,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): List<RoutingOperation> {
         if (requests.isEmpty()) {
             throw BusinessRuleException("Routing must have at least one operation")
@@ -212,8 +212,8 @@ class RoutingService(
     }
 
     private fun nextVersion(
-        organizationId: String,
-        productId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
     ): Int {
         val existing = routingRepository.findByOrganizationIdAndProductId(organizationId, productId)
         return (existing.maxOfOrNull { it.version } ?: 0) + 1

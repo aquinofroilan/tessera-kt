@@ -31,14 +31,13 @@ enum class RoutingStatus {
 data class RoutingOperation(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String =
+    val id: java.util.UUID =
         java.util.UUID
-            .ofEpochMillis(System.currentTimeMillis())
-            .toString(),
+            .ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "operation_number")
     val operationNumber: Int,
     @Column(name = "work_center_id", columnDefinition = "uuid")
-    val workCenterId: String,
+    val workCenterId: java.util.UUID,
     @Column(name = "work_center_code")
     val workCenterCode: String,
     val description: String,
@@ -57,14 +56,13 @@ data class RoutingOperation(
 data class Routing(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String =
+    val id: java.util.UUID =
         java.util.UUID
-            .ofEpochMillis(System.currentTimeMillis())
-            .toString(),
+            .ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     @Column(name = "product_id", columnDefinition = "uuid")
-    val productId: String,
+    val productId: java.util.UUID,
     val code: String,
     val name: String,
     val version: Int = 1,

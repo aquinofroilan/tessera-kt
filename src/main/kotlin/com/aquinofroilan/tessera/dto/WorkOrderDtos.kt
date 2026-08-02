@@ -13,25 +13,25 @@ import java.time.LocalDate
 
 data class CreateWorkOrderRequest(
     @field:NotBlank(message = "Product ID is required")
-    val productId: String,
-    val bomId: String? = null,
-    val routingId: String? = null,
+    val productId: java.util.UUID,
+    val bomId: java.util.UUID? = null,
+    val routingId: java.util.UUID? = null,
     @field:NotNull(message = "Quantity is required")
     @field:Positive(message = "Quantity must be positive")
     val quantity: BigDecimal?,
     @field:NotBlank(message = "Source warehouse is required")
-    val sourceWarehouseId: String,
+    val sourceWarehouseId: java.util.UUID,
     @field:NotBlank(message = "Target warehouse is required")
-    val targetWarehouseId: String,
+    val targetWarehouseId: java.util.UUID,
     val plannedStart: LocalDate? = null,
     val plannedEnd: LocalDate? = null,
     val notes: String? = null,
 )
 
 data class WorkOrderComponentResponse(
-    val id: String,
+    val id: java.util.UUID,
     val lineNumber: Int,
-    val componentProductId: String,
+    val componentProductId: java.util.UUID,
     val componentSku: String,
     val componentName: String,
     val plannedQuantity: BigDecimal,
@@ -58,9 +58,9 @@ data class WorkOrderComponentResponse(
 }
 
 data class WorkOrderOperationResponse(
-    val id: String,
+    val id: java.util.UUID,
     val operationNumber: Int,
-    val workCenterId: String,
+    val workCenterId: java.util.UUID,
     val workCenterCode: String,
     val description: String,
     val plannedSetupMinutes: BigDecimal,
@@ -85,20 +85,20 @@ data class WorkOrderOperationResponse(
 }
 
 data class WorkOrderResponse(
-    val id: String,
+    val id: java.util.UUID,
     val woNumber: String,
-    val productId: String,
+    val productId: java.util.UUID,
     val productSku: String,
     val productName: String,
-    val bomId: String,
-    val routingId: String?,
+    val bomId: java.util.UUID,
+    val routingId: java.util.UUID?,
     val quantity: BigDecimal,
     val quantityCompleted: BigDecimal,
     val quantityScrapped: BigDecimal,
     val totalIssuedCost: BigDecimal,
     val totalCompletedCost: BigDecimal,
-    val sourceWarehouseId: String,
-    val targetWarehouseId: String,
+    val sourceWarehouseId: java.util.UUID,
+    val targetWarehouseId: java.util.UUID,
     val status: WorkOrderStatus,
     val plannedStart: LocalDate?,
     val plannedEnd: LocalDate?,

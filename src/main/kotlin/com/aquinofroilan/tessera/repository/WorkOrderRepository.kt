@@ -6,18 +6,18 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface WorkOrderRepository : JpaRepository<WorkOrder, String> {
-    fun findByOrganizationId(organizationId: String): List<WorkOrder>
+interface WorkOrderRepository : JpaRepository<WorkOrder, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<WorkOrder>
 
     fun findByOrganizationIdAndStatus(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: WorkOrderStatus,
     ): List<WorkOrder>
 
     fun findByOrganizationIdAndProductId(
-        organizationId: String,
-        productId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
     ): List<WorkOrder>
 
-    fun countByOrganizationId(organizationId: String): Long
+    fun countByOrganizationId(organizationId: java.util.UUID): Long
 }

@@ -35,7 +35,7 @@ class RoutingController(
     fun create(
         @Valid @RequestBody request: CreateRoutingRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId()?.toString() ?: "api-key"
         val routing = routingService.createRouting(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(RoutingResponse.from(routing))
@@ -45,9 +45,9 @@ class RoutingController(
     @PreAuthorize("hasAuthority('mfg:read')")
     fun list(
         @RequestParam(required = false) status: String?,
-        @RequestParam(required = false) productId: String?,
+        @RequestParam(required = false) productId: java.util.UUID?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val parsed =
             if (status != null) {
                 try {
@@ -64,29 +64,29 @@ class RoutingController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:read')")
     fun get(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(RoutingResponse.from(routingService.getRouting(id, orgId)))
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun update(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateRoutingRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(RoutingResponse.from(routingService.updateRouting(id, request, orgId)))
     }
 
     @PostMapping("/{id}/activate")
     @PreAuthorize("hasAuthority('mfg:approve')")
     fun activate(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @RequestParam(required = false, defaultValue = "false") makeDefault: Boolean,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId()?.toString() ?: "api-key"
         return ResponseEntity.ok(RoutingResponse.from(routingService.activateRouting(id, orgId, userId, makeDefault)))
     }
@@ -94,9 +94,9 @@ class RoutingController(
     @PostMapping("/{id}/obsolete")
     @PreAuthorize("hasAuthority('mfg:approve')")
     fun obsolete(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId()?.toString() ?: "api-key"
         return ResponseEntity.ok(RoutingResponse.from(routingService.obsoleteRouting(id, orgId, userId)))
     }
@@ -104,9 +104,9 @@ class RoutingController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun delete(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId()?.toString() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         routingService.deleteRouting(id, orgId)
         return ResponseEntity.noContent().build()
     }

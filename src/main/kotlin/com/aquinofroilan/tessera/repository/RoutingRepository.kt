@@ -7,32 +7,32 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface RoutingRepository : JpaRepository<Routing, String> {
-    fun findByOrganizationId(organizationId: String): List<Routing>
+interface RoutingRepository : JpaRepository<Routing, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<Routing>
 
     fun findByOrganizationIdAndStatus(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: RoutingStatus,
     ): List<Routing>
 
     fun findByOrganizationIdAndProductId(
-        organizationId: String,
-        productId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
     ): List<Routing>
 
     fun findByOrganizationIdAndProductIdAndStatus(
-        organizationId: String,
-        productId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
         status: RoutingStatus,
     ): List<Routing>
 
     fun findByOrganizationIdAndProductIdAndIsDefaultTrue(
-        organizationId: String,
-        productId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
     ): Optional<Routing>
 
     fun findByOrganizationIdAndCode(
-        organizationId: String,
+        organizationId: java.util.UUID,
         code: String,
     ): Optional<Routing>
 }

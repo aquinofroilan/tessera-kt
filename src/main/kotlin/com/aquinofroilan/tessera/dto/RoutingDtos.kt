@@ -13,7 +13,7 @@ import java.time.LocalDate
 
 data class CreateRoutingOperationRequest(
     @field:NotBlank(message = "Work center ID is required")
-    val workCenterId: String,
+    val workCenterId: java.util.UUID,
     @field:NotBlank(message = "Description is required")
     val description: String,
     @field:PositiveOrZero(message = "Setup minutes cannot be negative")
@@ -27,7 +27,7 @@ data class CreateRoutingOperationRequest(
 
 data class CreateRoutingRequest(
     @field:NotBlank(message = "Product ID is required")
-    val productId: String,
+    val productId: java.util.UUID,
     @field:NotBlank(message = "Routing code is required")
     @field:Size(max = 64)
     val code: String,
@@ -52,9 +52,9 @@ data class UpdateRoutingRequest(
 )
 
 data class RoutingOperationResponse(
-    val id: String,
+    val id: java.util.UUID,
     val operationNumber: Int,
-    val workCenterId: String,
+    val workCenterId: java.util.UUID,
     val workCenterCode: String,
     val description: String,
     val setupMinutes: BigDecimal,
@@ -79,8 +79,8 @@ data class RoutingOperationResponse(
 }
 
 data class RoutingResponse(
-    val id: String,
-    val productId: String,
+    val id: java.util.UUID,
+    val productId: java.util.UUID,
     val code: String,
     val name: String,
     val version: Int,
