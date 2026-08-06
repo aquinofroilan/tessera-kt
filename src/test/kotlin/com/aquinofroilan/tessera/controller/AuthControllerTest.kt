@@ -45,6 +45,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.util.UUID
 
 @WebMvcTest(controllers = [AuthController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)

@@ -44,6 +44,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.util.UUID
 
 @WebMvcTest(controllers = [AccountController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
