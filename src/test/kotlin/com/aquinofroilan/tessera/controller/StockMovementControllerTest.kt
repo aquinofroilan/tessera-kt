@@ -191,8 +191,11 @@ class StockMovementControllerTest {
     fun `GET stock-on-hand should return quantity`() {
         `when`(stockMovementService.onHand(any(), any(), any())).thenReturn(BigDecimal("42"))
         mockMvc
-            .perform(get("/inventory/stock-on-hand").param("productId", "00000000-0000-0000-0000-000000000199").param("warehouseId", "00000000-0000-0000-0000-000000000199"))
-            .andExpect(status().isOk)
+            .perform(
+                get("/inventory/stock-on-hand")
+                    .param("productId", "00000000-0000-0000-0000-000000000199")
+                    .param("warehouseId", "00000000-0000-0000-0000-000000000199"),
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.productId").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.warehouseId").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.quantity").value(42))
