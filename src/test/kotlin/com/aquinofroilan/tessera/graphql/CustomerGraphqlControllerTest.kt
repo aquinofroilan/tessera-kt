@@ -1,5 +1,6 @@
 package com.aquinofroilan.tessera.graphql
 
+import java.util.UUID
 import com.aquinofroilan.tessera.config.TestSecurityConfig
 import com.aquinofroilan.tessera.dto.CreateCustomerRequest
 import com.aquinofroilan.tessera.model.Customer

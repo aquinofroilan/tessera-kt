@@ -1,5 +1,6 @@
 package com.aquinofroilan.tessera.graphql
 
+import java.util.UUID
 import com.aquinofroilan.tessera.config.TestSecurityConfig
 import com.aquinofroilan.tessera.controller.AccountController
 import com.aquinofroilan.tessera.controller.ApiKeyController
