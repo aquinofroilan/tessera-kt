@@ -1,6 +1,5 @@
 package com.aquinofroilan.tessera.graphql
 
-import java.util.UUID
 import com.aquinofroilan.tessera.config.TestSecurityConfig
 import com.aquinofroilan.tessera.controller.ProjectTaskController
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
@@ -13,6 +12,7 @@ import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.http.ResponseEntity
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import java.util.UUID
 
 @GraphQlTest(controllers = [ProjectTaskGraphqlController::class])
 @Import(

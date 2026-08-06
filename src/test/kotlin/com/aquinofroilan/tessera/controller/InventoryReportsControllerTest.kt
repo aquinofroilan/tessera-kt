@@ -1,6 +1,5 @@
 package com.aquinofroilan.tessera.controller
 
-import java.util.UUID
 import com.aquinofroilan.tessera.aspect.LoggingAspect
 import com.aquinofroilan.tessera.config.TestSecurityConfig
 import com.aquinofroilan.tessera.dto.MovementHistoryLineResponse
@@ -50,6 +49,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 @WebMvcTest(controllers = [InventoryReportsController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
@@ -128,7 +128,11 @@ class InventoryReportsControllerTest {
         val roleAuthorities = testUser.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
         val permissionAuthorities = permissions.map { SimpleGrantedAuthority(it) }
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
-        authentication.details = SessionContext(sessionId = UUID.fromString("00000000-0000-0000-0000-000000000125"), organizationId = UUID.fromString("00000000-0000-0000-0000-000000000124"))
+        authentication.details =
+            SessionContext(
+                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000125"),
+                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000124"),
+            )
         SecurityContextHolder.getContext().authentication = authentication
     }
 
@@ -137,7 +141,15 @@ class InventoryReportsControllerTest {
         `when`(inventoryValuationService.valuation(any())).thenReturn(
             ValuationReportResponse(
                 costingMethod = InventoryCostingMethod.WEIGHTED_AVERAGE,
-                lines = listOf(ValuationLineResponse(UUID.fromString("00000000-0000-0000-0000-000000000999"), UUID.fromString("00000000-0000-0000-0000-000000000999"), BigDecimal("10"), BigDecimal("50"))),
+                lines =
+                    listOf(
+                        ValuationLineResponse(
+                            UUID.fromString("00000000-0000-0000-0000-000000000999"),
+                            UUID.fromString("00000000-0000-0000-0000-000000000999"),
+                            BigDecimal("10"),
+                            BigDecimal("50"),
+                        ),
+                    ),
                 totalValue = BigDecimal("50"),
             ),
         )
@@ -163,8 +175,16 @@ class InventoryReportsControllerTest {
                 asOfDate = null,
                 lines =
                     listOf(
-                        StockOnHandLineResponse(UUID.fromString("00000000-0000-0000-0000-000000000999"), UUID.fromString("00000000-0000-0000-0000-000000000999"), BigDecimal("10")),
-                        StockOnHandLineResponse(UUID.fromString("00000000-0000-0000-0000-000000000998"), UUID.fromString("00000000-0000-0000-0000-000000000999"), BigDecimal("5")),
+                        StockOnHandLineResponse(
+                            UUID.fromString("00000000-0000-0000-0000-000000000999"),
+                            UUID.fromString("00000000-0000-0000-0000-000000000999"),
+                            BigDecimal("10"),
+                        ),
+                        StockOnHandLineResponse(
+                            UUID.fromString("00000000-0000-0000-0000-000000000998"),
+                            UUID.fromString("00000000-0000-0000-0000-000000000999"),
+                            BigDecimal("5"),
+                        ),
                     ),
             ),
         )
@@ -179,7 +199,14 @@ class InventoryReportsControllerTest {
         `when`(inventoryReportsService.stockOnHand(any(), any(), any(), any())).thenReturn(
             StockOnHandReportResponse(
                 asOfDate = "2026-05-01T00:00:00",
-                lines = listOf(StockOnHandLineResponse(UUID.fromString("00000000-0000-0000-0000-000000000999"), UUID.fromString("00000000-0000-0000-0000-000000000999"), BigDecimal("10"))),
+                lines =
+                    listOf(
+                        StockOnHandLineResponse(
+                            UUID.fromString("00000000-0000-0000-0000-000000000999"),
+                            UUID.fromString("00000000-0000-0000-0000-000000000999"),
+                            BigDecimal("10"),
+                        ),
+                    ),
             ),
         )
         mockMvc

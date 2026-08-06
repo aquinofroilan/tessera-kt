@@ -1,6 +1,5 @@
 package com.aquinofroilan.tessera.graphql
 
-import java.util.UUID
 import com.aquinofroilan.tessera.config.TestSecurityConfig
 import com.aquinofroilan.tessera.dto.CreateCustomerRequest
 import com.aquinofroilan.tessera.model.Customer
@@ -22,6 +21,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import java.util.UUID
 
 @GraphQlTest(controllers = [CustomerGraphqlController::class])
 @Import(TestSecurityConfig::class, TesseraPermissionEvaluator::class, GraphqlExceptionResolver::class, GraphqlScalarConfig::class)

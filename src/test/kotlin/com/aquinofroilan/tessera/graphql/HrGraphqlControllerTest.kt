@@ -1,6 +1,5 @@
 package com.aquinofroilan.tessera.graphql
 
-import java.util.UUID
 import com.aquinofroilan.tessera.config.TestSecurityConfig
 import com.aquinofroilan.tessera.controller.DepartmentController
 import com.aquinofroilan.tessera.controller.EmployeeCompensationController
@@ -19,6 +18,7 @@ import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.http.ResponseEntity
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import java.util.UUID
 
 @GraphQlTest(controllers = [HrGraphqlController::class])
 @Import(
@@ -78,7 +78,12 @@ class HrGraphqlControllerTest {
         `when`(departmentController.getOrgChart())
             .thenReturn(
                 ResponseEntity.ok(
-                    listOf(mapOf("id" to "00000000-0000-0000-0000-000000000199", "children" to listOf(mapOf("id" to "00000000-0000-0000-0000-000000000199", "children" to emptyList<Any>())))),
+                    listOf(
+                        mapOf(
+                            "id" to "00000000-0000-0000-0000-000000000199",
+                            "children" to listOf(mapOf("id" to "00000000-0000-0000-0000-000000000199", "children" to emptyList<Any>())),
+                        ),
+                    ),
                 ),
             )
 

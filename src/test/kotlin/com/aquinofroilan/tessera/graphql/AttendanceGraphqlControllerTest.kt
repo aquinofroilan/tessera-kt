@@ -1,6 +1,5 @@
 package com.aquinofroilan.tessera.graphql
 
-import java.util.UUID
 import com.aquinofroilan.tessera.config.TestSecurityConfig
 import com.aquinofroilan.tessera.controller.AttendanceController
 import com.aquinofroilan.tessera.dto.ClockRequest

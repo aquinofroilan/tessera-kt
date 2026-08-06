@@ -1,6 +1,5 @@
 package com.aquinofroilan.tessera.controller
 
-import java.util.UUID
 import com.aquinofroilan.tessera.aspect.LoggingAspect
 import com.aquinofroilan.tessera.config.TestSecurityConfig
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -47,6 +46,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 @WebMvcTest(controllers = [ProductController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
@@ -120,7 +120,11 @@ class ProductControllerTest {
         val roleAuthorities = testUser.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
         val permissionAuthorities = permissions.map { SimpleGrantedAuthority(it) }
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
-        authentication.details = SessionContext(sessionId = UUID.fromString("00000000-0000-0000-0000-000000000125"), organizationId = UUID.fromString("00000000-0000-0000-0000-000000000124"))
+        authentication.details =
+            SessionContext(
+                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000125"),
+                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000124"),
+            )
         SecurityContextHolder.getContext().authentication = authentication
     }
 

@@ -1,6 +1,5 @@
 package com.aquinofroilan.tessera.controller
 
-import java.util.UUID
 import com.aquinofroilan.tessera.aspect.LoggingAspect
 import com.aquinofroilan.tessera.config.TestSecurityConfig
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -39,6 +38,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.util.UUID
 
 @WebMvcTest(controllers = [SessionController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
