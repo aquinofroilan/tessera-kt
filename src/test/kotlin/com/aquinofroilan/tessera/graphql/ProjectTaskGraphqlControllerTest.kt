@@ -39,7 +39,7 @@ class ProjectTaskGraphqlControllerTest {
             .document(
                 """
                 query {
-                  projectTasks(projectId: "p1")
+                  projectTasks(projectId: "00000000-0000-0000-0000-000000000199")
                 }
                 """.trimIndent(),
             ).execute()
@@ -55,7 +55,7 @@ class ProjectTaskGraphqlControllerTest {
             .document(
                 """
                 mutation(${'$'}input: JSON!) {
-                  createProjectTask(projectId: "p1", input: ${'$'}input)
+                  createProjectTask(projectId: "00000000-0000-0000-0000-000000000199", input: ${'$'}input)
                 }
                 """.trimIndent(),
             ).variable("input", mapOf("name" to "Design"))

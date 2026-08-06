@@ -176,15 +176,15 @@ class JournalEntryControllerTest {
                             "date": "2026-01-15",
                             "description": "Test entry",
                             "lines": [
-                                {"accountId": "acc-1", "debit": 100.00, "credit": 0},
-                                {"accountId": "acc-2", "debit": 0, "credit": 100.00}
+                                {"accountId": "00000000-0000-0000-0000-000000000999", "debit": 100.00, "credit": 0},
+                                {"accountId": "00000000-0000-0000-0000-000000000999", "debit": 0, "credit": 100.00}
                             ]
                         }
                         """.trimIndent(),
                     ),
             ).andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000126"))
-            .andExpect(jsonPath("$.entryNumber").value(UUID.fromString("00000000-0000-0000-0000-000000000199")))
+            .andExpect(jsonPath("$.entryNumber").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.date").value("2026-01-15"))
             .andExpect(jsonPath("$.description").value("Test entry"))
             .andExpect(jsonPath("$.organizationId").value("00000000-0000-0000-0000-000000000124"))
@@ -209,8 +209,8 @@ class JournalEntryControllerTest {
                             "date": "2026-01-15",
                             "description": "Unbalanced entry",
                             "lines": [
-                                {"accountId": "acc-1", "debit": 100.00, "credit": 0},
-                                {"accountId": "acc-2", "debit": 0, "credit": 50.00}
+                                {"accountId": "00000000-0000-0000-0000-000000000999", "debit": 100.00, "credit": 0},
+                                {"accountId": "00000000-0000-0000-0000-000000000999", "debit": 0, "credit": 50.00}
                             ]
                         }
                         """.trimIndent(),
@@ -229,7 +229,7 @@ class JournalEntryControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].id").value("00000000-0000-0000-0000-000000000126"))
-            .andExpect(jsonPath("$[0].entryNumber").value(UUID.fromString("00000000-0000-0000-0000-000000000199")))
+            .andExpect(jsonPath("$[0].entryNumber").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$[0].status").value("DRAFT"))
             .andExpect(jsonPath("$[0].lines.length()").value(2))
     }
@@ -243,7 +243,7 @@ class JournalEntryControllerTest {
             .perform(get("/finance/journal/je-123"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000126"))
-            .andExpect(jsonPath("$.entryNumber").value(UUID.fromString("00000000-0000-0000-0000-000000000199")))
+            .andExpect(jsonPath("$.entryNumber").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.date").value("2026-01-15"))
             .andExpect(jsonPath("$.description").value("Test entry"))
             .andExpect(jsonPath("$.status").value("DRAFT"))
@@ -346,8 +346,8 @@ class JournalEntryControllerTest {
                             "date": "2026-01-15",
                             "description": "Test entry",
                             "lines": [
-                                {"accountId": "acc-1", "debit": 100.00, "credit": 0},
-                                {"accountId": "acc-2", "debit": 0, "credit": 100.00}
+                                {"accountId": "00000000-0000-0000-0000-000000000999", "debit": 100.00, "credit": 0},
+                                {"accountId": "00000000-0000-0000-0000-000000000999", "debit": 0, "credit": 100.00}
                             ]
                         }
                         """.trimIndent(),

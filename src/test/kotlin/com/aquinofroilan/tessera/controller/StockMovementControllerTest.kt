@@ -149,8 +149,8 @@ class StockMovementControllerTest {
                     .content(
                         """{
                             "type": "RECEIPT",
-                            "productId": "prod-1",
-                            "warehouseId": "wh-1",
+                            "productId": "00000000-0000-0000-0000-000000000199",
+                            "warehouseId": "00000000-0000-0000-0000-000000000199",
                             "quantity": "10",
                             "unitCost": "5"
                         }""",
@@ -169,7 +169,7 @@ class StockMovementControllerTest {
                         """{
                             "type": "RECEIPT",
                             "productId": "",
-                            "warehouseId": "wh-1",
+                            "warehouseId": "00000000-0000-0000-0000-000000000199",
                             "quantity": "10",
                             "unitCost": "5"
                         }""",
@@ -191,10 +191,10 @@ class StockMovementControllerTest {
     fun `GET stock-on-hand should return quantity`() {
         `when`(stockMovementService.onHand(any(), any(), any())).thenReturn(BigDecimal("42"))
         mockMvc
-            .perform(get("/inventory/stock-on-hand").param("productId", "prod-1").param("warehouseId", "wh-1"))
+            .perform(get("/inventory/stock-on-hand").param("productId", "00000000-0000-0000-0000-000000000199").param("warehouseId", "00000000-0000-0000-0000-000000000199"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.productId").value(UUID.fromString("00000000-0000-0000-0000-000000000199")))
-            .andExpect(jsonPath("$.warehouseId").value(UUID.fromString("00000000-0000-0000-0000-000000000199")))
+            .andExpect(jsonPath("$.productId").value("00000000-0000-0000-0000-000000000199"))
+            .andExpect(jsonPath("$.warehouseId").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.quantity").value(42))
     }
 
@@ -208,8 +208,8 @@ class StockMovementControllerTest {
                     .content(
                         """{
                             "type": "RECEIPT",
-                            "productId": "prod-1",
-                            "warehouseId": "wh-1",
+                            "productId": "00000000-0000-0000-0000-000000000199",
+                            "warehouseId": "00000000-0000-0000-0000-000000000199",
                             "quantity": "10",
                             "unitCost": "5"
                         }""",

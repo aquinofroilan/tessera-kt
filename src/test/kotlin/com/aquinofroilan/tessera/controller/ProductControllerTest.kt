@@ -227,7 +227,7 @@ class ProductControllerTest {
         val captor = org.mockito.ArgumentCaptor.forClass(Boolean::class.javaObjectType)
         org.mockito.Mockito
             .verify(productService)
-            .listProducts(any(), org.mockito.kotlin.anyOrNull(), captor.capture(), org.mockito.kotlin.anyOrNull())
+            .listProducts(any(), anyOrNull(), captor.capture(), anyOrNull())
         org.assertj.core.api.Assertions
             .assertThat(captor.value)
             .isTrue()
@@ -272,10 +272,10 @@ class ProductControllerTest {
         `when`(productService.getProduct(any(), any())).thenReturn(product)
 
         mockMvc
-            .perform(get("/inventory/products/prod-123"))
+            .perform(get("/inventory/products/00000000-0000-0000-0000-000000000199"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000127"))
-            .andExpect(jsonPath("$.sku").value(UUID.fromString("00000000-0000-0000-0000-000000000199")))
+            .andExpect(jsonPath("$.sku").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.name").value("Widget"))
     }
 
@@ -297,7 +297,7 @@ class ProductControllerTest {
 
         mockMvc
             .perform(
-                patch("/inventory/products/prod-123")
+                patch("/inventory/products/00000000-0000-0000-0000-000000000199")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"name": "Updated Widget"}"""),
             ).andExpect(status().isOk)
@@ -312,7 +312,7 @@ class ProductControllerTest {
 
         mockMvc
             .perform(
-                patch("/inventory/products/prod-123")
+                patch("/inventory/products/00000000-0000-0000-0000-000000000199")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"listPrice": "149.99"}"""),
             ).andExpect(status().isOk)
@@ -325,7 +325,7 @@ class ProductControllerTest {
         `when`(productService.deleteProduct(any(), any())).thenReturn(deleted)
 
         mockMvc
-            .perform(delete("/inventory/products/prod-123"))
+            .perform(delete("/inventory/products/00000000-0000-0000-0000-000000000199"))
             .andExpect(status().isOk)
     }
 
@@ -362,7 +362,7 @@ class ProductControllerTest {
 
         mockMvc
             .perform(
-                patch("/inventory/products/prod-123")
+                patch("/inventory/products/00000000-0000-0000-0000-000000000199")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"name": "Updated Widget"}"""),
             ).andExpect(status().isForbidden)
@@ -373,7 +373,7 @@ class ProductControllerTest {
         setupAuthWithPermissions("inventory:read")
 
         mockMvc
-            .perform(delete("/inventory/products/prod-123"))
+            .perform(delete("/inventory/products/00000000-0000-0000-0000-000000000199"))
             .andExpect(status().isForbidden)
     }
 }

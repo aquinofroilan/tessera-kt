@@ -97,7 +97,7 @@ class HrGraphqlControllerTest {
             ).execute()
             .path("departmentOrgChart[0].children[0].id")
             .entity(String::class.java)
-            .isEqualTo("d2")
+            .isEqualTo("00000000-0000-0000-0000-000000000199")
     }
 
     @Test

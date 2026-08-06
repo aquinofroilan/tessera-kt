@@ -41,7 +41,7 @@ class ProjectBillingGraphqlControllerTest {
             .document(
                 """
                 mutation {
-                  generateProjectInvoice(projectId: "p1")
+                  generateProjectInvoice(projectId: "00000000-0000-0000-0000-000000000199")
                 }
                 """.trimIndent(),
             ).execute()
@@ -57,7 +57,7 @@ class ProjectBillingGraphqlControllerTest {
             .document(
                 """
                 mutation {
-                  generateProjectInvoice(projectId: "p1")
+                  generateProjectInvoice(projectId: "00000000-0000-0000-0000-000000000199")
                 }
                 """.trimIndent(),
             ).execute()

@@ -39,7 +39,7 @@ class ProjectBudgetGraphqlControllerTest {
             .document(
                 """
                 query {
-                  projectBudgets(projectId: "p1")
+                  projectBudgets(projectId: "00000000-0000-0000-0000-000000000199")
                 }
                 """.trimIndent(),
             ).execute()
@@ -55,7 +55,7 @@ class ProjectBudgetGraphqlControllerTest {
             .document(
                 """
                 mutation(${'$'}input: JSON!) {
-                  setProjectBudget(projectId: "p1", input: ${'$'}input)
+                  setProjectBudget(projectId: "00000000-0000-0000-0000-000000000199", input: ${'$'}input)
                 }
                 """.trimIndent(),
             ).variable("input", mapOf("category" to "LABOR", "budgetAmount" to "1000"))
