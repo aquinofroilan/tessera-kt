@@ -108,20 +108,20 @@ class InventoryReportsControllerTest {
 
     private val testUser =
         User(
-            uuid = UUID.fromString("00000000-0000-0000-0000-000000000123"),
+            uuid = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             username = "testuser",
             email = "test@example.com",
             firstName = "Test",
             lastName = "User",
             passwordHash = "encoded",
-            organizationId = UUID.fromString("00000000-0000-0000-0000-000000000124"),
-            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000124"))),
+            organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000199"))),
         )
 
     @BeforeEach
     fun setup() {
         setupAuthWithPermissions("inventory:read")
-        `when`(authenticationContext.organizationId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000124"))
+        `when`(authenticationContext.organizationId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
     }
 
     private fun setupAuthWithPermissions(vararg permissions: String) {
@@ -130,8 +130,8 @@ class InventoryReportsControllerTest {
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
         authentication.details =
             SessionContext(
-                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000125"),
-                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000124"),
+                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             )
         SecurityContextHolder.getContext().authentication = authentication
     }
@@ -212,8 +212,8 @@ class InventoryReportsControllerTest {
         mockMvc
             .perform(
                 get("/inventory/reports/stock-on-hand")
-                    .param("productId", "p-1")
-                    .param("warehouseId", "wh-1")
+                    .param("productId", "00000000-0000-0000-0000-000000000199")
+                    .param("warehouseId", "00000000-0000-0000-0000-000000000199")
                     .param("asOfDate", "2026-05-01T00:00:00"),
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$.lines[0].productId").value("00000000-0000-0000-0000-000000000999"))

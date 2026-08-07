@@ -106,14 +106,14 @@ class ProductControllerTest {
             lastName = "User",
             passwordHash = "encoded",
             organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
-            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000124"))),
+            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000199"))),
         )
 
     @BeforeEach
     fun setup() {
         setupAuthWithPermissions("inventory:read", "inventory:write")
-        `when`(authenticationContext.organizationId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000124"))
-        `when`(authenticationContext.userId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000123"))
+        `when`(authenticationContext.organizationId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
+        `when`(authenticationContext.userId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
     }
 
     private fun setupAuthWithPermissions(vararg permissions: String) {
@@ -122,8 +122,8 @@ class ProductControllerTest {
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
         authentication.details =
             SessionContext(
-                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000125"),
-                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000124"),
+                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             )
         SecurityContextHolder.getContext().authentication = authentication
     }
@@ -163,7 +163,7 @@ class ProductControllerTest {
                             "imageUrl": "https://example.com/image.jpg",
                             "listPrice": "99.99",
                             "priceCurrency": "USD",
-                            "taxGroupId": "00000000-0000-0000-0000-000000000128"
+                            "taxGroupId": "00000000-0000-0000-0000-000000000199"
                         }""",
                     ),
             ).andExpect(status().isCreated)
@@ -274,8 +274,8 @@ class ProductControllerTest {
         mockMvc
             .perform(get("/inventory/products/00000000-0000-0000-0000-000000000199"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000127"))
-            .andExpect(jsonPath("$.sku").value("00000000-0000-0000-0000-000000000199"))
+            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000199"))
+            .andExpect(jsonPath("$.sku").value("WIDGET-001"))
             .andExpect(jsonPath("$.name").value("Widget"))
     }
 
@@ -285,7 +285,7 @@ class ProductControllerTest {
             .thenThrow(ResourceNotFoundException("Product not found"))
 
         mockMvc
-            .perform(get("/inventory/products/nonexistent"))
+            .perform(get("/inventory/products/00000000-0000-0000-0000-000000000000"))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.error").value("Product not found"))
     }
@@ -301,7 +301,7 @@ class ProductControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"name": "Updated Widget"}"""),
             ).andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000127"))
+            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.name").value("Updated Widget"))
     }
 

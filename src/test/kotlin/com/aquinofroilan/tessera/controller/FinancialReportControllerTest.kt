@@ -95,21 +95,21 @@ class FinancialReportControllerTest {
 
     private val testUser =
         User(
-            uuid = UUID.fromString("00000000-0000-0000-0000-000000000123"),
+            uuid = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             username = "testuser",
             email = "test@example.com",
             firstName = "Test",
             lastName = "User",
             passwordHash = "encoded",
-            organizationId = UUID.fromString("00000000-0000-0000-0000-000000000124"),
-            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000124"))),
+            organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000199"))),
         )
 
     @BeforeEach
     fun setup() {
         setupAuthWithPermissions("journal:read")
-        `when`(authenticationContext.organizationId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000124"))
-        `when`(authenticationContext.userId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000123"))
+        `when`(authenticationContext.organizationId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
+        `when`(authenticationContext.userId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
     }
 
     private fun setupAuthWithPermissions(vararg permissions: String) {
@@ -118,8 +118,8 @@ class FinancialReportControllerTest {
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
         authentication.details =
             SessionContext(
-                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000125"),
-                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000124"),
+                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             )
         SecurityContextHolder.getContext().authentication = authentication
     }
@@ -164,7 +164,7 @@ class FinancialReportControllerTest {
             )
         `when`(
             financialReportService.getIncomeStatement(
-                eq(UUID.fromString("00000000-0000-0000-0000-000000000124")),
+                eq(UUID.fromString("00000000-0000-0000-0000-000000000199")),
                 eq(LocalDate.of(2026, 3, 1)),
                 eq(LocalDate.of(2026, 3, 31)),
                 anyOrNull(),
@@ -226,7 +226,7 @@ class FinancialReportControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.balanced").value(true))
             .andExpect(jsonPath("$.equity[0].synthetic").value(true))
-            .andExpect(jsonPath("$.equity[0].accountId").value(SyntheticAccountIds.CURRENT_PERIOD_EARNINGS))
+            .andExpect(jsonPath("$.equity[0].accountId").value(SyntheticAccountIds.CURRENT_PERIOD_EARNINGS_ID.toString()))
     }
 
     @Test

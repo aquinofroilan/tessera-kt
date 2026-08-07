@@ -103,14 +103,14 @@ class StockMovementControllerTest {
             lastName = "User",
             passwordHash = "encoded",
             organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
-            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000124"))),
+            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000199"))),
         )
 
     @BeforeEach
     fun setup() {
         setupAuthWithPermissions("inventory:read", "inventory:write")
-        `when`(authenticationContext.organizationId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000124"))
-        `when`(authenticationContext.userId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000123"))
+        `when`(authenticationContext.organizationId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
+        `when`(authenticationContext.userId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
     }
 
     private fun setupAuthWithPermissions(vararg permissions: String) {
@@ -119,8 +119,8 @@ class StockMovementControllerTest {
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
         authentication.details =
             SessionContext(
-                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000125"),
-                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000124"),
+                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             )
         SecurityContextHolder.getContext().authentication = authentication
     }

@@ -110,14 +110,14 @@ class JournalEntryControllerTest {
             lastName = "User",
             passwordHash = "encoded",
             organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
-            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000124"))),
+            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000199"))),
         )
 
     @BeforeEach
     fun setup() {
         setupAuthWithPermissions("journal:create", "journal:read", "journal:post", "journal:void", "account:read")
-        `when`(authenticationContext.organizationId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000124"))
-        `when`(authenticationContext.userId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000123"))
+        `when`(authenticationContext.organizationId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
+        `when`(authenticationContext.userId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
     }
 
     private fun setupAuthWithPermissions(vararg permissions: String) {
@@ -126,8 +126,8 @@ class JournalEntryControllerTest {
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
         authentication.details =
             SessionContext(
-                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000125"),
-                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000124"),
+                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             )
         SecurityContextHolder.getContext().authentication = authentication
     }
@@ -183,15 +183,15 @@ class JournalEntryControllerTest {
                         """.trimIndent(),
                     ),
             ).andExpect(status().isCreated)
-            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000126"))
-            .andExpect(jsonPath("$.entryNumber").value("00000000-0000-0000-0000-000000000199"))
+            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000199"))
+            .andExpect(jsonPath("$.entryNumber").value("JE-0001"))
             .andExpect(jsonPath("$.date").value("2026-01-15"))
             .andExpect(jsonPath("$.description").value("Test entry"))
-            .andExpect(jsonPath("$.organizationId").value("00000000-0000-0000-0000-000000000124"))
+            .andExpect(jsonPath("$.organizationId").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.status").value("DRAFT"))
             .andExpect(jsonPath("$.source").value("MANUAL"))
             .andExpect(jsonPath("$.lines.length()").value(2))
-            .andExpect(jsonPath("$.createdBy").value("00000000-0000-0000-0000-000000000123"))
+            .andExpect(jsonPath("$.createdBy").value("00000000-0000-0000-0000-000000000199"))
     }
 
     @Test
@@ -228,8 +228,8 @@ class JournalEntryControllerTest {
             .perform(get("/finance/journal"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].id").value("00000000-0000-0000-0000-000000000126"))
-            .andExpect(jsonPath("$[0].entryNumber").value("00000000-0000-0000-0000-000000000199"))
+            .andExpect(jsonPath("$[0].id").value("00000000-0000-0000-0000-000000000199"))
+            .andExpect(jsonPath("$[0].entryNumber").value("JE-0001"))
             .andExpect(jsonPath("$[0].status").value("DRAFT"))
             .andExpect(jsonPath("$[0].lines.length()").value(2))
     }
@@ -240,10 +240,10 @@ class JournalEntryControllerTest {
         `when`(journalEntryService.getJournalEntry(any(), any())).thenReturn(entry)
 
         mockMvc
-            .perform(get("/finance/journal/je-123"))
+            .perform(get("/finance/journal/00000000-0000-0000-0000-000000000199"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000126"))
-            .andExpect(jsonPath("$.entryNumber").value("00000000-0000-0000-0000-000000000199"))
+            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000199"))
+            .andExpect(jsonPath("$.entryNumber").value("JE-0001"))
             .andExpect(jsonPath("$.date").value("2026-01-15"))
             .andExpect(jsonPath("$.description").value("Test entry"))
             .andExpect(jsonPath("$.status").value("DRAFT"))
@@ -255,7 +255,7 @@ class JournalEntryControllerTest {
             .thenThrow(ResourceNotFoundException("Journal entry not found"))
 
         mockMvc
-            .perform(get("/finance/journal/nonexistent"))
+            .perform(get("/finance/journal/00000000-0000-0000-0000-000000000000"))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.error").value("Journal entry not found"))
     }
@@ -266,9 +266,9 @@ class JournalEntryControllerTest {
         `when`(journalEntryService.postJournalEntry(any(), any())).thenReturn(entry)
 
         mockMvc
-            .perform(post("/finance/journal/je-123/post"))
+            .perform(post("/finance/journal/00000000-0000-0000-0000-000000000199/post"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000126"))
+            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.status").value("POSTED"))
     }
 
@@ -279,11 +279,11 @@ class JournalEntryControllerTest {
 
         mockMvc
             .perform(
-                post("/finance/journal/je-123/void")
+                post("/finance/journal/00000000-0000-0000-0000-000000000199/void")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"reason": "Error correction"}"""),
             ).andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000126"))
+            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.status").value("VOIDED"))
     }
 

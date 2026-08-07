@@ -89,7 +89,7 @@ class SessionControllerTest {
             lastName = "User",
             passwordHash = "encoded",
             organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
-            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000124"))),
+            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000199"))),
         )
 
     private val currentToken = "current-bearer-token"
@@ -135,10 +135,10 @@ class SessionControllerTest {
                     .header("Authorization", "Bearer $currentToken"),
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(2))
-            .andExpect(jsonPath("$[0].id").value(UUID.fromString("00000000-0000-0000-0000-000000000199")))
+            .andExpect(jsonPath("$[0].id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$[0].current").value(true))
             .andExpect(jsonPath("$[0].ipAddress").value("127.0.0.1"))
-            .andExpect(jsonPath("$[1].id").value("s2"))
+            .andExpect(jsonPath("$[1].id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$[1].current").value(false))
     }
 
@@ -158,7 +158,7 @@ class SessionControllerTest {
     fun `DELETE session by id should return 200 on success`() {
         mockMvc
             .perform(
-                delete("/auth/sessions/s2")
+                delete("/auth/sessions/00000000-0000-0000-0000-000000000199")
                     .header("Authorization", "Bearer $currentToken"),
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("Session revoked"))
@@ -171,7 +171,7 @@ class SessionControllerTest {
 
         mockMvc
             .perform(
-                delete("/auth/sessions/non-existent")
+                delete("/auth/sessions/00000000-0000-0000-0000-000000000000")
                     .header("Authorization", "Bearer $currentToken"),
             ).andExpect(status().isNotFound)
             .andExpect(jsonPath("$.error").value("Session not found"))
@@ -184,7 +184,7 @@ class SessionControllerTest {
 
         mockMvc
             .perform(
-                delete("/auth/sessions/s1")
+                delete("/auth/sessions/00000000-0000-0000-0000-000000000199")
                     .header("Authorization", "Bearer $currentToken"),
             ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Cannot revoke the current session"))
@@ -217,7 +217,7 @@ class SessionControllerTest {
 
         mockMvc
             .perform(
-                delete("/auth/sessions/s2")
+                delete("/auth/sessions/00000000-0000-0000-0000-000000000199")
                     .header("Authorization", "Bearer $currentToken"),
             ).andExpect(status().isForbidden)
     }
