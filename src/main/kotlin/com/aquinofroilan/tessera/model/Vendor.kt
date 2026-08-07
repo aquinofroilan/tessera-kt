@@ -17,7 +17,7 @@ import java.util.UUID
 class Vendor(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var name: String,
     @Column(name = "contact_name")
     var contactName: String? = null,
@@ -28,9 +28,9 @@ class Vendor(
     @Column(name = "payment_term_days")
     var paymentTermDays: Int = 30,
     @Column(name = "default_expense_account_id", columnDefinition = "uuid")
-    var defaultExpenseAccountId: String? = null,
+    var defaultExpenseAccountId: java.util.UUID? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "is_active")
     var isActive: Boolean = true,
     @CreatedDate

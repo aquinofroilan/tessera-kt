@@ -26,11 +26,11 @@ enum class PayPeriod {
 class EmployeeCompensation(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "employee_id", columnDefinition = "uuid")
-    var employeeId: String,
+    var employeeId: java.util.UUID,
     @Column(name = "position_id", columnDefinition = "uuid")
-    var positionId: String? = null,
+    var positionId: java.util.UUID? = null,
     @Column(name = "pay_rate")
     var payRate: BigDecimal,
     var currency: String,
@@ -40,9 +40,9 @@ class EmployeeCompensation(
     @Column(name = "effective_date")
     var effectiveDate: LocalDate,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "created_by", columnDefinition = "uuid")
-    var createdBy: String,
+    var createdBy: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

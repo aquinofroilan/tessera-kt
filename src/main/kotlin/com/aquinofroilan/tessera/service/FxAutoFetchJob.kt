@@ -62,7 +62,7 @@ class FxAutoFetchJob(
     }
 
     private fun upsertAuto(
-        organizationId: String,
+        organizationId: java.util.UUID,
         fromCurrency: String,
         toCurrency: String,
         rate: java.math.BigDecimal,
@@ -100,7 +100,7 @@ class FxAutoFetchJob(
     }
 
     private fun saveAuto(
-        organizationId: String,
+        organizationId: java.util.UUID,
         fromCurrency: String,
         toCurrency: String,
         rate: java.math.BigDecimal,

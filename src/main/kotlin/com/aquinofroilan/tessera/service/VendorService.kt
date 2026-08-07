@@ -17,7 +17,7 @@ class VendorService(
     @Transactional
     fun createVendor(
         request: CreateVendorRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Vendor {
         val vendor =
             Vendor(
@@ -41,8 +41,8 @@ class VendorService(
     }
 
     fun getVendor(
-        vendorId: String,
-        organizationId: String,
+        vendorId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Vendor {
         val vendor =
             vendorRepository.findById(vendorId).orElseThrow {
@@ -54,13 +54,13 @@ class VendorService(
         return vendor
     }
 
-    fun listVendors(organizationId: String): List<Vendor> = vendorRepository.findByOrganizationIdAndIsActive(organizationId, true)
+    fun listVendors(organizationId: java.util.UUID): List<Vendor> = vendorRepository.findByOrganizationIdAndIsActive(organizationId, true)
 
     @Transactional
     fun updateVendor(
-        vendorId: String,
+        vendorId: java.util.UUID,
         request: UpdateVendorRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Vendor {
         val vendor = getVendor(vendorId, organizationId)
 
@@ -92,8 +92,8 @@ class VendorService(
 
     @Transactional
     fun deleteVendor(
-        vendorId: String,
-        organizationId: String,
+        vendorId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Vendor {
         val vendor = getVendor(vendorId, organizationId)
 

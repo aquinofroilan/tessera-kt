@@ -11,40 +11,40 @@ data class CreateFiscalYearRequest(
 )
 
 data class FiscalPeriodResponse(
-    val id: String,
+    val id: java.util.UUID,
     val periodNumber: Int,
     val name: String,
     val startDate: String,
     val endDate: String,
     val status: String,
     val closedAt: String?,
-    val closedBy: String?,
+    val closedBy: java.util.UUID?,
     val reopenedAt: String?,
-    val reopenedBy: String?,
+    val reopenedBy: java.util.UUID?,
 )
 
 data class FiscalYearResponse(
-    val id: String,
+    val id: java.util.UUID,
     val name: String,
     val startDate: String,
     val endDate: String,
     val status: String,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val periods: List<FiscalPeriodResponse>,
     val closedAt: String?,
-    val closedBy: String?,
-    val closingEntryId: String?,
+    val closedBy: java.util.UUID?,
+    val closingEntryId: java.util.UUID?,
     val createdAt: String?,
     val updatedAt: String?,
 )
 
 data class FiscalYearSummaryResponse(
-    val id: String,
+    val id: java.util.UUID,
     val name: String,
     val startDate: String,
     val endDate: String,
     val status: String,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val createdAt: String?,
     val updatedAt: String?,
 )

@@ -21,7 +21,7 @@ import java.util.UUID
 class User(
     @Id
     @Column(name = "uuid", columnDefinition = "uuid")
-    var uuid: String = UUID.randomUUID().toString(),
+    var uuid: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var username: String,
     var email: String,
     @Column(name = "first_name")
@@ -33,7 +33,7 @@ class User(
     @Column(name = "is_active")
     var isActive: Boolean = true,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @OneToMany(
         cascade = [CascadeType.ALL],
         orphanRemoval = true,
@@ -51,6 +51,6 @@ class User(
 
 fun User.effectiveRoleNames(): List<String> = roleAssignments.map { it.role }.distinct()
 
-fun User.orgRoleNames(orgId: String): List<String> = roleAssignments.filter { it.organizationId == orgId }.map { it.role }
+fun User.orgRoleNames(orgId: java.util.UUID): List<String> = roleAssignments.filter { it.organizationId == orgId }.map { it.role }
 
 fun User.systemRoleNames(): List<String> = roleAssignments.filter { it.organizationId == null }.map { it.role }

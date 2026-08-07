@@ -25,8 +25,8 @@ class AttendanceServiceTest {
     private lateinit var employeeService: EmployeeService
     private lateinit var service: AttendanceService
 
-    private val orgId = "org-1"
-    private val empId = "e1"
+    private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
+    private val empId = java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4")
 
     @BeforeEach
     fun setup() {
@@ -140,17 +140,17 @@ class AttendanceServiceTest {
 
     @Test
     fun `get rejects cross-org access`() {
-        whenever(repository.findById("a1"))
+        whenever(repository.findById(java.util.UUID.fromString("ba6b0aee-5057-3bc0-aeaf-c385b47e239d")))
             .thenReturn(
                 Optional.of(
                     record(clockIn = null).apply {
-                        id = "a1"
-                        organizationId = "other"
+                        id = java.util.UUID.fromString("ba6b0aee-5057-3bc0-aeaf-c385b47e239d")
+                        organizationId = java.util.UUID.fromString("f022a845-ae01-3e07-ae04-7fc0ffb096a8")
                     },
                 ),
             )
 
-        assertThatThrownBy { service.getAttendance("a1", orgId) }
+        assertThatThrownBy { service.getAttendance(java.util.UUID.fromString("ba6b0aee-5057-3bc0-aeaf-c385b47e239d"), orgId) }
             .isInstanceOf(ResourceNotFoundException::class.java)
     }
 

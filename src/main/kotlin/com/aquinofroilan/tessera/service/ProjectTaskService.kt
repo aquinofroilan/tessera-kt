@@ -18,9 +18,9 @@ class ProjectTaskService(
 ) {
     @Transactional
     fun createTask(
-        projectId: String,
+        projectId: java.util.UUID,
         request: CreateProjectTaskRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): ProjectTask {
         projectService.getProject(projectId, organizationId)
         request.assigneeEmployeeId?.let { employeeService.getEmployee(it, organizationId) }
@@ -39,9 +39,9 @@ class ProjectTaskService(
     }
 
     fun getTask(
-        projectId: String,
-        taskId: String,
-        organizationId: String,
+        projectId: java.util.UUID,
+        taskId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): ProjectTask {
         val task =
             projectTaskRepository.findById(taskId).orElseThrow {
@@ -54,8 +54,8 @@ class ProjectTaskService(
     }
 
     fun listTasks(
-        projectId: String,
-        organizationId: String,
+        projectId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): List<ProjectTask> {
         projectService.getProject(projectId, organizationId)
         return projectTaskRepository.findByOrganizationIdAndProjectId(organizationId, projectId)
@@ -63,8 +63,8 @@ class ProjectTaskService(
 
     /** Builds the work-breakdown tree for a project: root tasks with nested children. */
     fun getTaskTree(
-        projectId: String,
-        organizationId: String,
+        projectId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): List<ProjectTaskTreeNode> {
         val all = listTasks(projectId, organizationId)
         val childrenByParent = all.groupBy { it.parentTaskId }
@@ -79,10 +79,10 @@ class ProjectTaskService(
 
     @Transactional
     fun updateTask(
-        projectId: String,
-        taskId: String,
+        projectId: java.util.UUID,
+        taskId: java.util.UUID,
         request: UpdateProjectTaskRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): ProjectTask {
         val task = getTask(projectId, taskId, organizationId)
         request.assigneeEmployeeId?.let { employeeService.getEmployee(it, organizationId) }
@@ -102,10 +102,10 @@ class ProjectTaskService(
      */
     @Transactional
     fun setParent(
-        projectId: String,
-        taskId: String,
-        parentTaskId: String?,
-        organizationId: String,
+        projectId: java.util.UUID,
+        taskId: java.util.UUID,
+        parentTaskId: java.util.UUID?,
+        organizationId: java.util.UUID,
     ): ProjectTask {
         val task = getTask(projectId, taskId, organizationId)
         if (parentTaskId == null) {
@@ -124,21 +124,21 @@ class ProjectTaskService(
     }
 
     private fun requireTaskInProject(
-        taskId: String,
-        projectId: String,
-        organizationId: String,
+        taskId: java.util.UUID,
+        projectId: java.util.UUID,
+        organizationId: java.util.UUID,
     ) {
         getTask(projectId, taskId, organizationId)
     }
 
     private fun descendantIds(
-        taskId: String,
-        projectId: String,
-        organizationId: String,
-    ): Set<String> {
+        taskId: java.util.UUID,
+        projectId: java.util.UUID,
+        organizationId: java.util.UUID,
+    ): Set<java.util.UUID> {
         val childrenByParent =
             projectTaskRepository.findByOrganizationIdAndProjectId(organizationId, projectId).groupBy { it.parentTaskId }
-        val descendants = mutableSetOf<String>()
+        val descendants = mutableSetOf<java.util.UUID>()
         val queue = ArrayDeque(childrenByParent[taskId].orEmpty().map { it.id })
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()

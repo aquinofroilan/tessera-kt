@@ -22,7 +22,7 @@ import java.util.UUID
 class TaxGroup(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var name: String,
     var code: String,
     @ElementCollection(fetch = FetchType.EAGER)
@@ -31,11 +31,11 @@ class TaxGroup(
         joinColumns = [JoinColumn(name = "tax_group_id")],
     )
     @Column(name = "tax_rate_id", columnDefinition = "uuid")
-    var taxRateIds: List<String>,
+    var taxRateIds: List<java.util.UUID>,
     @Column(name = "combined_rate")
     var combinedRate: BigDecimal,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "is_active")
     var isActive: Boolean = true,
     @CreatedDate

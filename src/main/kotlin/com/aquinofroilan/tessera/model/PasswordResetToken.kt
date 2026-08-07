@@ -13,11 +13,11 @@ import java.util.UUID
 class PasswordResetToken(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "token_hash")
     var tokenHash: String,
     @Column(name = "user_id", columnDefinition = "uuid")
-    var userId: String,
+    var userId: java.util.UUID,
     @Column(name = "expiry_at")
     var expiryAt: LocalDateTime,
     @Column(name = "created_at")

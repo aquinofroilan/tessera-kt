@@ -34,8 +34,8 @@ class SalesOrderService(
     @Transactional
     fun createSalesOrder(
         request: CreateSalesOrderRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): SalesOrder {
         val customer = customerService.getCustomer(request.customerId, organizationId)
         if (!customer.isActive) {
@@ -92,8 +92,8 @@ class SalesOrderService(
     }
 
     fun getSalesOrder(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): SalesOrder {
         val so =
             salesOrderRepository.findById(id).orElseThrow {
@@ -106,9 +106,9 @@ class SalesOrderService(
     }
 
     fun listSalesOrders(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: SalesOrderStatus? = null,
-        customerId: String? = null,
+        customerId: java.util.UUID? = null,
     ): List<SalesOrder> =
         when {
             status != null && customerId != null ->
@@ -120,9 +120,9 @@ class SalesOrderService(
 
     @Transactional
     fun approveSalesOrder(
-        id: String,
-        organizationId: String,
-        approvedBy: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        approvedBy: java.util.UUID,
     ): SalesOrder {
         val so = getSalesOrder(id, organizationId)
         if (so.status != SalesOrderStatus.DRAFT) {
@@ -136,10 +136,10 @@ class SalesOrderService(
 
     @Transactional
     fun fulfillSalesOrder(
-        id: String,
+        id: java.util.UUID,
         request: FulfillSalesOrderRequest?,
-        organizationId: String,
-        userId: String,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): SalesOrder {
         val so = getSalesOrder(id, organizationId)
         if (so.status != SalesOrderStatus.APPROVED && so.status != SalesOrderStatus.PARTIALLY_FULFILLED) {
@@ -153,7 +153,7 @@ class SalesOrderService(
                     .associate { it.id to it.quantity.subtract(it.fulfilledQuantity) }
                     .filterValues { it.signum() > 0 }
             } else {
-                request.lines!!.associate { it.lineId to (it.quantity ?: throw BusinessRuleException("Quantity is required")) }
+                request!!.lines.associate { it.lineId to (it.quantity ?: throw BusinessRuleException("Quantity is required")) }
             }
         requested.keys.forEach { if (it !in byId) throw BusinessRuleException("Unknown sales order line '$it'") }
         if (requested.isEmpty()) {
@@ -191,10 +191,10 @@ class SalesOrderService(
 
     @Transactional
     fun generateInvoice(
-        id: String,
+        id: java.util.UUID,
         request: GenerateInvoiceRequest?,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): Invoice {
         val so = getSalesOrder(id, organizationId)
         if (so.status != SalesOrderStatus.PARTIALLY_FULFILLED && so.status != SalesOrderStatus.FULFILLED) {
@@ -264,8 +264,8 @@ class SalesOrderService(
 
     @Transactional
     fun closeSalesOrder(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): SalesOrder {
         val so = getSalesOrder(id, organizationId)
         if (so.status != SalesOrderStatus.FULFILLED) {
@@ -277,9 +277,9 @@ class SalesOrderService(
 
     @Transactional
     fun cancelSalesOrder(
-        id: String,
-        organizationId: String,
-        userId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): SalesOrder {
         val so = getSalesOrder(id, organizationId)
         if (so.status == SalesOrderStatus.CANCELLED || so.status == SalesOrderStatus.CLOSED) {
@@ -301,7 +301,7 @@ class SalesOrderService(
     }
 
     private fun saveWithRetry(
-        organizationId: String,
+        organizationId: java.util.UUID,
         maxRetries: Int = 3,
         build: (String) -> SalesOrder,
     ): SalesOrder {

@@ -311,13 +311,13 @@ class AuthService(
         refreshTokenRepository.deleteByUserId(user.uuid)
     }
 
-    fun listSessions(userId: String): List<SessionToken> =
+    fun listSessions(userId: java.util.UUID): List<SessionToken> =
         sessionTokenRepository.findByUserIdAndExpiryAtAfter(userId, LocalDateTime.now(ZoneOffset.UTC))
 
     @Transactional
     fun revokeSession(
-        userId: String,
-        sessionId: String,
+        userId: java.util.UUID,
+        sessionId: java.util.UUID,
         currentToken: String,
     ) {
         val session =
@@ -336,7 +336,7 @@ class AuthService(
 
     @Transactional
     fun revokeOtherSessions(
-        userId: String,
+        userId: java.util.UUID,
         currentToken: String,
     ) {
         val otherSessions = sessionTokenRepository.findByUserIdAndTokenNot(userId, currentToken)
@@ -350,7 +350,7 @@ class AuthService(
     @Transactional
     fun switchOrganization(
         user: User,
-        targetOrgId: String,
+        targetOrgId: java.util.UUID,
         ipAddress: String? = null,
         userAgent: String? = null,
     ): AuthResponse {
@@ -407,7 +407,7 @@ class AuthService(
 
     fun listUserOrganizations(
         user: User,
-        currentOrgId: String,
+        currentOrgId: java.util.UUID,
     ): List<UserOrganizationResponse> {
         val orgIds =
             user.roleAssignments

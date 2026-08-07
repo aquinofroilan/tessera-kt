@@ -20,14 +20,14 @@ import java.util.UUID
 class ApiKey(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var name: String,
     @Column(name = "key_hash")
     var keyHash: String,
     @Column(name = "key_prefix")
     var keyPrefix: String,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
         name = "api_key_permissions",
@@ -36,7 +36,7 @@ class ApiKey(
     @Column(name = "permission")
     var permissions: List<String>,
     @Column(name = "created_by", columnDefinition = "uuid")
-    var createdBy: String,
+    var createdBy: java.util.UUID,
     @Column(name = "is_active")
     var isActive: Boolean = true,
     @Column(name = "last_used_at")

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface RoleRepository : JpaRepository<Role, String> {
+interface RoleRepository : JpaRepository<Role, java.util.UUID> {
     fun findByName(name: String): Optional<Role>
 
     fun findByLevel(level: RoleLevel): List<Role>

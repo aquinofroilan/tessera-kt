@@ -33,11 +33,11 @@ enum class InvoiceStatus {
 class InvoiceLine(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "line_number")
     var lineNumber: Int = 0,
     @Column(name = "account_id", columnDefinition = "uuid")
-    var accountId: String,
+    var accountId: java.util.UUID,
     @Column(name = "account_code")
     var accountCode: String,
     @Column(name = "account_name")
@@ -52,11 +52,11 @@ class InvoiceLine(
 class Invoice(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "invoice_number")
     var invoiceNumber: String,
     @Column(name = "customer_id", columnDefinition = "uuid")
-    var customerId: String,
+    var customerId: java.util.UUID,
     @Column(name = "customer_name")
     var customerName: String,
     var date: LocalDate,
@@ -65,9 +65,9 @@ class Invoice(
     @Column(name = "reference_number")
     var referenceNumber: String? = null,
     @Column(name = "tax_group_id", columnDefinition = "uuid")
-    var taxGroupId: String? = null,
+    var taxGroupId: java.util.UUID? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Enumerated(EnumType.STRING)
     var status: InvoiceStatus = InvoiceStatus.DRAFT,
     @OneToMany(
@@ -95,19 +95,19 @@ class Invoice(
     @Column(name = "base_currency_amount_received")
     var baseCurrencyAmountReceived: BigDecimal = amountReceived,
     @Column(name = "journal_entry_id", columnDefinition = "uuid")
-    var journalEntryId: String? = null,
+    var journalEntryId: java.util.UUID? = null,
     @Column(name = "created_by", columnDefinition = "uuid")
-    var createdBy: String,
+    var createdBy: java.util.UUID,
     @Column(name = "approved_at")
     var approvedAt: LocalDateTime? = null,
     @Column(name = "approved_by", columnDefinition = "uuid")
-    var approvedBy: String? = null,
+    var approvedBy: java.util.UUID? = null,
     @Column(name = "paid_at")
     var paidAt: LocalDateTime? = null,
     @Column(name = "voided_at")
     var voidedAt: LocalDateTime? = null,
     @Column(name = "voided_by", columnDefinition = "uuid")
-    var voidedBy: String? = null,
+    var voidedBy: java.util.UUID? = null,
     @Column(name = "void_reason")
     var voidReason: String? = null,
     @CreatedDate

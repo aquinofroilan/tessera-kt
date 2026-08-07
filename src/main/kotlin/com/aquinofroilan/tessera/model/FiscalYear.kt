@@ -35,7 +35,7 @@ enum class FiscalPeriodStatus {
 class FiscalPeriod(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "period_number")
     var periodNumber: Int,
     var name: String,
@@ -48,11 +48,11 @@ class FiscalPeriod(
     @Column(name = "closed_at")
     var closedAt: LocalDateTime? = null,
     @Column(name = "closed_by", columnDefinition = "uuid")
-    var closedBy: String? = null,
+    var closedBy: java.util.UUID? = null,
     @Column(name = "reopened_at")
     var reopenedAt: LocalDateTime? = null,
     @Column(name = "reopened_by", columnDefinition = "uuid")
-    var reopenedBy: String? = null,
+    var reopenedBy: java.util.UUID? = null,
 )
 
 @Entity
@@ -61,7 +61,7 @@ class FiscalPeriod(
 class FiscalYear(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var name: String,
     @Column(name = "start_date")
     var startDate: LocalDate,
@@ -70,7 +70,7 @@ class FiscalYear(
     @Enumerated(EnumType.STRING)
     var status: FiscalYearStatus = FiscalYearStatus.ACTIVE,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @OneToMany(
         cascade = [CascadeType.ALL],
         orphanRemoval = true,
@@ -82,9 +82,9 @@ class FiscalYear(
     @Column(name = "closed_at")
     var closedAt: LocalDateTime? = null,
     @Column(name = "closed_by", columnDefinition = "uuid")
-    var closedBy: String? = null,
+    var closedBy: java.util.UUID? = null,
     @Column(name = "closing_entry_id", columnDefinition = "uuid")
-    var closingEntryId: String? = null,
+    var closingEntryId: java.util.UUID? = null,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

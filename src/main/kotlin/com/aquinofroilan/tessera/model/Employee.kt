@@ -26,7 +26,7 @@ enum class EmploymentStatus {
 class Employee(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "employee_number")
     var employeeNumber: String,
     @Column(name = "first_name")
@@ -37,9 +37,9 @@ class Employee(
     @Column(name = "job_title")
     var jobTitle: String? = null,
     @Column(name = "department_id", columnDefinition = "uuid")
-    var departmentId: String? = null,
+    var departmentId: java.util.UUID? = null,
     @Column(name = "user_id", columnDefinition = "uuid")
-    var userId: String? = null,
+    var userId: java.util.UUID? = null,
     @Column(name = "hire_date")
     var hireDate: LocalDate,
     @Enumerated(EnumType.STRING)
@@ -47,7 +47,7 @@ class Employee(
     @Column(name = "termination_date")
     var terminationDate: LocalDate? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

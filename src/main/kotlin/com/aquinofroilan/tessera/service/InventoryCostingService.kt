@@ -36,9 +36,9 @@ class InventoryCostingService(
         }
 
     fun valuationCost(
-        organizationId: String,
-        productId: String,
-        warehouseId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
     ): BigDecimal =
         when (costingMethodFor(organizationId)) {
             InventoryCostingMethod.FIFO ->
@@ -55,7 +55,7 @@ class InventoryCostingService(
                     .orElse(BigDecimal.ZERO)
         }
 
-    fun costingMethodFor(organizationId: String): InventoryCostingMethod =
+    fun costingMethodFor(organizationId: java.util.UUID): InventoryCostingMethod =
         organizationRepository
             .findById(organizationId)
             .orElseThrow { ResourceNotFoundException("Organization not found") }
@@ -66,8 +66,11 @@ class InventoryCostingService(
         return when (movement.type) {
             StockMovementType.RECEIPT,
             StockMovementType.OPENING_BALANCE,
+            StockMovementType.WIP_RECEIPT,
             -> addLayer(movement, q, movement.unitCost ?: BigDecimal.ZERO)
-            StockMovementType.ISSUE -> consumeFifo(movement, movement.warehouseId, q)
+            StockMovementType.ISSUE,
+            StockMovementType.WIP_ISSUE,
+            -> consumeFifo(movement, movement.warehouseId, q)
             StockMovementType.ADJUSTMENT ->
                 if (q.signum() > 0) {
                     addLayer(movement, q, movement.unitCost ?: currentAverageOrZero(movement))
@@ -124,7 +127,7 @@ class InventoryCostingService(
 
     private fun consumeFifo(
         movement: StockMovement,
-        warehouseId: String,
+        warehouseId: java.util.UUID,
         quantity: BigDecimal,
     ): BigDecimal {
         var remaining = quantity
@@ -171,8 +174,11 @@ class InventoryCostingService(
         return when (movement.type) {
             StockMovementType.RECEIPT,
             StockMovementType.OPENING_BALANCE,
+            StockMovementType.WIP_RECEIPT,
             -> addToWa(movement, movement.warehouseId, q, movement.unitCost ?: BigDecimal.ZERO)
-            StockMovementType.ISSUE -> consumeWa(movement, movement.warehouseId, q)
+            StockMovementType.ISSUE,
+            StockMovementType.WIP_ISSUE,
+            -> consumeWa(movement, movement.warehouseId, q)
             StockMovementType.ADJUSTMENT ->
                 if (q.signum() > 0) {
                     addToWa(movement, movement.warehouseId, q, movement.unitCost ?: avgWa(movement, movement.warehouseId))
@@ -194,7 +200,7 @@ class InventoryCostingService(
 
     private fun addToWa(
         movement: StockMovement,
-        warehouseId: String,
+        warehouseId: java.util.UUID,
         quantity: BigDecimal,
         unitCost: BigDecimal,
     ): BigDecimal {
@@ -228,7 +234,7 @@ class InventoryCostingService(
 
     private fun consumeWa(
         movement: StockMovement,
-        warehouseId: String,
+        warehouseId: java.util.UUID,
         quantity: BigDecimal,
     ): BigDecimal {
         val existing =
@@ -255,7 +261,7 @@ class InventoryCostingService(
 
     private fun avgWa(
         movement: StockMovement,
-        warehouseId: String,
+        warehouseId: java.util.UUID,
     ): BigDecimal {
         val existing =
             waSnapshotRepository

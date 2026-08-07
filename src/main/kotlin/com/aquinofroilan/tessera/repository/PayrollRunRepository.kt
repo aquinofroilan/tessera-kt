@@ -6,13 +6,13 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface PayrollRunRepository : JpaRepository<PayrollRun, String> {
-    fun findByOrganizationId(organizationId: String): List<PayrollRun>
+interface PayrollRunRepository : JpaRepository<PayrollRun, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<PayrollRun>
 
     fun findByOrganizationIdAndStatus(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: PayrollRunStatus,
     ): List<PayrollRun>
 
-    fun countByOrganizationId(organizationId: String): Long
+    fun countByOrganizationId(organizationId: java.util.UUID): Long
 }

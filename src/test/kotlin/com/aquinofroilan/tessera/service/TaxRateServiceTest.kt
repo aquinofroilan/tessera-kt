@@ -24,7 +24,7 @@ class TaxRateServiceTest {
     private lateinit var taxRateRepository: TaxRateRepository
     private lateinit var taxGroupRepository: TaxGroupRepository
 
-    private val orgId = "org-123"
+    private val orgId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
 
     @BeforeEach
     fun setup() {
@@ -56,11 +56,11 @@ class TaxRateServiceTest {
 
     @Test
     fun `get should throw ResourceNotFoundException for wrong org`() {
-        val rate = createTaxRate(orgId = "other-org")
-        `when`(taxRateRepository.findById("tr-1")).thenReturn(Optional.of(rate))
+        val rate = createTaxRate(orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000099"))
+        `when`(taxRateRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(rate))
 
         assertThrows<ResourceNotFoundException> {
-            taxRateService.getTaxRate("tr-1", orgId)
+            taxRateService.getTaxRate(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), orgId)
         }
     }
 
@@ -69,57 +69,72 @@ class TaxRateServiceTest {
         val rate = createTaxRate()
         val group =
             TaxGroup(
-                id = "tg-1",
+                id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"),
                 name = "Combined",
                 code = "COMB",
-                taxRateIds = listOf("tr-1"),
+                taxRateIds = listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")),
                 combinedRate = BigDecimal("8.00"),
                 organizationId = orgId,
             )
         val updatedRate = createTaxRate(percentage = BigDecimal("10.00"))
 
-        `when`(taxRateRepository.findById("tr-1")).thenReturn(Optional.of(rate))
+        `when`(taxRateRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(rate))
         `when`(taxRateRepository.save(any<TaxRate>())).thenReturn(updatedRate)
-        `when`(taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(orgId, "tr-1"))
-            .thenReturn(listOf(group))
-        `when`(taxRateRepository.findAllById(listOf("tr-1"))).thenReturn(listOf(updatedRate))
+        `when`(
+            taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(
+                orgId,
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+            ),
+        ).thenReturn(listOf(group))
+        `when`(
+            taxRateRepository.findAllById(listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))),
+        ).thenReturn(listOf(updatedRate))
         `when`(taxGroupRepository.save(any<TaxGroup>())).thenAnswer { it.arguments[0] }
 
-        taxRateService.updateTaxRate("tr-1", UpdateTaxRateRequest(percentage = BigDecimal("10.00")), orgId)
+        taxRateService.updateTaxRate(
+            java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+            UpdateTaxRateRequest(percentage = BigDecimal("10.00")),
+            orgId,
+        )
 
         verify(taxGroupRepository).save(any<TaxGroup>())
     }
 
     @Test
     fun `update percentage should fail-fast when cascade encounters missing rate`() {
+        val orphanId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000999")
         val rate = createTaxRate()
         val group =
             TaxGroup(
-                id = "tg-1",
+                id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"),
                 name = "Combined",
                 code = "COMB",
-                taxRateIds = listOf("tr-1", "tr-orphan"),
+                taxRateIds = listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), orphanId),
                 combinedRate = BigDecimal("12.00"),
                 organizationId = orgId,
             )
         val updatedRate = createTaxRate(percentage = BigDecimal("10.00"))
 
-        `when`(taxRateRepository.findById("tr-1")).thenReturn(Optional.of(rate))
+        `when`(taxRateRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(rate))
         `when`(taxRateRepository.save(any<TaxRate>())).thenReturn(updatedRate)
-        `when`(taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(orgId, "tr-1"))
-            .thenReturn(listOf(group))
-        `when`(taxRateRepository.findAllById(listOf("tr-1", "tr-orphan")))
+        `when`(
+            taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(
+                orgId,
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+            ),
+        ).thenReturn(listOf(group))
+        `when`(taxRateRepository.findAllById(listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), orphanId)))
             .thenReturn(listOf(updatedRate))
 
         val exception =
             assertThrows<BusinessRuleException> {
                 taxRateService.updateTaxRate(
-                    "tr-1",
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
                     UpdateTaxRateRequest(percentage = BigDecimal("10.00")),
                     orgId,
                 )
             }
-        assertThat(exception.message).contains("tr-orphan")
+        assertThat(exception.message).contains(orphanId.toString())
     }
 
     @Test
@@ -127,21 +142,25 @@ class TaxRateServiceTest {
         val rate = createTaxRate()
         val activeGroup =
             TaxGroup(
-                id = "tg-1",
+                id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"),
                 name = "Combined",
                 code = "COMB",
-                taxRateIds = listOf("tr-1"),
+                taxRateIds = listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")),
                 combinedRate = BigDecimal("8.00"),
                 organizationId = orgId,
             )
 
-        `when`(taxRateRepository.findById("tr-1")).thenReturn(Optional.of(rate))
-        `when`(taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(orgId, "tr-1"))
-            .thenReturn(listOf(activeGroup))
+        `when`(taxRateRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(rate))
+        `when`(
+            taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(
+                orgId,
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+            ),
+        ).thenReturn(listOf(activeGroup))
 
         val exception =
             assertThrows<BusinessRuleException> {
-                taxRateService.deleteTaxRate("tr-1", orgId)
+                taxRateService.deleteTaxRate(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), orgId)
             }
         assertThat(exception.message).contains("active tax groups")
     }
@@ -150,19 +169,23 @@ class TaxRateServiceTest {
     fun `delete should soft-delete when not in any group`() {
         val rate = createTaxRate()
 
-        `when`(taxRateRepository.findById("tr-1")).thenReturn(Optional.of(rate))
-        `when`(taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(orgId, "tr-1"))
-            .thenReturn(emptyList())
+        `when`(taxRateRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))).thenReturn(Optional.of(rate))
+        `when`(
+            taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(
+                orgId,
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+            ),
+        ).thenReturn(emptyList())
         `when`(taxRateRepository.save(any<TaxRate>())).thenAnswer { it.arguments[0] }
 
-        val result = taxRateService.deleteTaxRate("tr-1", orgId)
+        val result = taxRateService.deleteTaxRate(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), orgId)
         assertThat(result.isActive).isFalse()
     }
 
     private fun createTaxRate(
-        id: String = "tr-1",
+        id: java.util.UUID = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
         percentage: BigDecimal = BigDecimal("8.00"),
-        orgId: String = this.orgId,
+        orgId: java.util.UUID = this.orgId,
     ) = TaxRate(
         id = id,
         name = "State Sales Tax",

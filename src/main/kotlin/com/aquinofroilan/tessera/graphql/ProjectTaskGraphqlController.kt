@@ -23,42 +23,42 @@ class ProjectTaskGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('projects:read')")
     fun projectTasks(
-        @Argument projectId: String,
+        @Argument projectId: java.util.UUID,
     ): Any = support.unwrap(projectTaskController.listTasks(projectId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('projects:read')")
     fun projectTaskTree(
-        @Argument projectId: String,
+        @Argument projectId: java.util.UUID,
     ): Any = support.unwrap(projectTaskController.taskTree(projectId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('projects:read')")
     fun projectTask(
-        @Argument projectId: String,
-        @Argument taskId: String,
+        @Argument projectId: java.util.UUID,
+        @Argument taskId: java.util.UUID,
     ): Any = support.unwrap(projectTaskController.getTask(projectId, taskId))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun createProjectTask(
-        @Argument projectId: String,
+        @Argument projectId: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(projectTaskController.createTask(projectId, support.toRequest<CreateProjectTaskRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun updateProjectTask(
-        @Argument projectId: String,
-        @Argument taskId: String,
+        @Argument projectId: java.util.UUID,
+        @Argument taskId: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(projectTaskController.updateTask(projectId, taskId, support.toRequest<UpdateProjectTaskRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun setProjectTaskParent(
-        @Argument projectId: String,
-        @Argument taskId: String,
+        @Argument projectId: java.util.UUID,
+        @Argument taskId: java.util.UUID,
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<SetTaskParentRequest>(it) } ?: SetTaskParentRequest()

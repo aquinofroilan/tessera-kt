@@ -27,16 +27,16 @@ enum class ProjectCostCategory {
 class ProjectBudget(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "project_id", columnDefinition = "uuid")
-    var projectId: String,
+    var projectId: java.util.UUID,
     @Enumerated(EnumType.STRING)
     var category: ProjectCostCategory,
     @Column(name = "budget_amount")
     var budgetAmount: BigDecimal,
     var currency: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

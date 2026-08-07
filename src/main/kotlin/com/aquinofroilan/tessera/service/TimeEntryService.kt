@@ -22,7 +22,7 @@ class TimeEntryService(
     @Transactional
     fun createTimeEntry(
         request: CreateTimeEntryRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): TimeEntry {
         val hours = request.hours ?: throw BusinessRuleException("Hours are required")
         if (hours.signum() <= 0) {
@@ -52,8 +52,8 @@ class TimeEntryService(
     }
 
     fun getTimeEntry(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): TimeEntry {
         val entry =
             timeEntryRepository.findById(id).orElseThrow {
@@ -66,9 +66,9 @@ class TimeEntryService(
     }
 
     fun listTimeEntries(
-        organizationId: String,
-        employeeId: String? = null,
-        projectId: String? = null,
+        organizationId: java.util.UUID,
+        employeeId: java.util.UUID? = null,
+        projectId: java.util.UUID? = null,
         status: TimeEntryStatus? = null,
     ): List<TimeEntry> =
         when {
@@ -82,9 +82,9 @@ class TimeEntryService(
 
     @Transactional
     fun updateTimeEntry(
-        id: String,
+        id: java.util.UUID,
         request: UpdateTimeEntryRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): TimeEntry {
         val entry = getTimeEntry(id, organizationId)
         if (entry.status != TimeEntryStatus.DRAFT) {
@@ -105,8 +105,8 @@ class TimeEntryService(
 
     @Transactional
     fun submitTimeEntry(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): TimeEntry {
         val entry = getTimeEntry(id, organizationId)
         if (entry.status != TimeEntryStatus.DRAFT) {
@@ -118,9 +118,9 @@ class TimeEntryService(
 
     @Transactional
     fun approveTimeEntry(
-        id: String,
-        organizationId: String,
-        approvedBy: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        approvedBy: java.util.UUID,
     ): TimeEntry {
         val entry = getTimeEntry(id, organizationId)
         if (entry.status != TimeEntryStatus.SUBMITTED) {
@@ -134,9 +134,9 @@ class TimeEntryService(
 
     @Transactional
     fun rejectTimeEntry(
-        id: String,
-        organizationId: String,
-        decidedBy: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        decidedBy: java.util.UUID,
     ): TimeEntry {
         val entry = getTimeEntry(id, organizationId)
         if (entry.status != TimeEntryStatus.SUBMITTED) {

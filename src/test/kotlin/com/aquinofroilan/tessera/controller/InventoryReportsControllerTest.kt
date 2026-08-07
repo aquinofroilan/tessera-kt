@@ -49,6 +49,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 @WebMvcTest(controllers = [InventoryReportsController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
@@ -107,27 +108,31 @@ class InventoryReportsControllerTest {
 
     private val testUser =
         User(
-            uuid = "user-123",
+            uuid = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             username = "testuser",
             email = "test@example.com",
             firstName = "Test",
             lastName = "User",
             passwordHash = "encoded",
-            organizationId = "org-123",
-            roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
+            organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000199"))),
         )
 
     @BeforeEach
     fun setup() {
         setupAuthWithPermissions("inventory:read")
-        `when`(authenticationContext.organizationId()).thenReturn("org-123")
+        `when`(authenticationContext.organizationId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
     }
 
     private fun setupAuthWithPermissions(vararg permissions: String) {
         val roleAuthorities = testUser.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
         val permissionAuthorities = permissions.map { SimpleGrantedAuthority(it) }
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
-        authentication.details = SessionContext(sessionId = "session-123", organizationId = "org-123")
+        authentication.details =
+            SessionContext(
+                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+            )
         SecurityContextHolder.getContext().authentication = authentication
     }
 
@@ -136,7 +141,15 @@ class InventoryReportsControllerTest {
         `when`(inventoryValuationService.valuation(any())).thenReturn(
             ValuationReportResponse(
                 costingMethod = InventoryCostingMethod.WEIGHTED_AVERAGE,
-                lines = listOf(ValuationLineResponse("p-1", "wh-1", BigDecimal("10"), BigDecimal("50"))),
+                lines =
+                    listOf(
+                        ValuationLineResponse(
+                            UUID.fromString("00000000-0000-0000-0000-000000000999"),
+                            UUID.fromString("00000000-0000-0000-0000-000000000999"),
+                            BigDecimal("10"),
+                            BigDecimal("50"),
+                        ),
+                    ),
                 totalValue = BigDecimal("50"),
             ),
         )
@@ -162,8 +175,16 @@ class InventoryReportsControllerTest {
                 asOfDate = null,
                 lines =
                     listOf(
-                        StockOnHandLineResponse("p-1", "wh-1", BigDecimal("10")),
-                        StockOnHandLineResponse("p-2", "wh-1", BigDecimal("5")),
+                        StockOnHandLineResponse(
+                            UUID.fromString("00000000-0000-0000-0000-000000000999"),
+                            UUID.fromString("00000000-0000-0000-0000-000000000999"),
+                            BigDecimal("10"),
+                        ),
+                        StockOnHandLineResponse(
+                            UUID.fromString("00000000-0000-0000-0000-000000000998"),
+                            UUID.fromString("00000000-0000-0000-0000-000000000999"),
+                            BigDecimal("5"),
+                        ),
                     ),
             ),
         )
@@ -178,17 +199,24 @@ class InventoryReportsControllerTest {
         `when`(inventoryReportsService.stockOnHand(any(), any(), any(), any())).thenReturn(
             StockOnHandReportResponse(
                 asOfDate = "2026-05-01T00:00:00",
-                lines = listOf(StockOnHandLineResponse("p-1", "wh-1", BigDecimal("10"))),
+                lines =
+                    listOf(
+                        StockOnHandLineResponse(
+                            UUID.fromString("00000000-0000-0000-0000-000000000999"),
+                            UUID.fromString("00000000-0000-0000-0000-000000000999"),
+                            BigDecimal("10"),
+                        ),
+                    ),
             ),
         )
         mockMvc
             .perform(
                 get("/inventory/reports/stock-on-hand")
-                    .param("productId", "p-1")
-                    .param("warehouseId", "wh-1")
+                    .param("productId", "00000000-0000-0000-0000-000000000199")
+                    .param("warehouseId", "00000000-0000-0000-0000-000000000199")
                     .param("asOfDate", "2026-05-01T00:00:00"),
             ).andExpect(status().isOk)
-            .andExpect(jsonPath("$.lines[0].productId").value("p-1"))
+            .andExpect(jsonPath("$.lines[0].productId").value("00000000-0000-0000-0000-000000000999"))
     }
 
     @Test
@@ -204,10 +232,10 @@ class InventoryReportsControllerTest {
                 lines =
                     listOf(
                         MovementHistoryLineResponse(
-                            id = "m-1",
+                            id = UUID.fromString("00000000-0000-0000-0000-000000000999"),
                             type = StockMovementType.RECEIPT,
-                            productId = "p-1",
-                            warehouseId = "wh-1",
+                            productId = UUID.fromString("00000000-0000-0000-0000-000000000999"),
+                            warehouseId = UUID.fromString("00000000-0000-0000-0000-000000000999"),
                             transferToWarehouseId = null,
                             quantity = BigDecimal("10"),
                             unitCost = BigDecimal("5"),

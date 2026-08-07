@@ -12,6 +12,7 @@ import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.http.ResponseEntity
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import java.util.UUID
 
 @GraphQlTest(controllers = [ProjectBudgetGraphqlController::class])
 @Import(
@@ -31,14 +32,14 @@ class ProjectBudgetGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["projects:read"])
     fun `projectBudgets query should return json payload`() {
-        `when`(projectBudgetController.listBudgets("p1"))
+        `when`(projectBudgetController.listBudgets(UUID.fromString("00000000-0000-0000-0000-000000000199")))
             .thenReturn(ResponseEntity.ok(listOf(mapOf("category" to "LABOR", "budgetAmount" to "1000"))))
 
         graphQlTester
             .document(
                 """
                 query {
-                  projectBudgets(projectId: "p1")
+                  projectBudgets(projectId: "00000000-0000-0000-0000-000000000199")
                 }
                 """.trimIndent(),
             ).execute()
@@ -54,7 +55,7 @@ class ProjectBudgetGraphqlControllerTest {
             .document(
                 """
                 mutation(${'$'}input: JSON!) {
-                  setProjectBudget(projectId: "p1", input: ${'$'}input)
+                  setProjectBudget(projectId: "00000000-0000-0000-0000-000000000199", input: ${'$'}input)
                 }
                 """.trimIndent(),
             ).variable("input", mapOf("category" to "LABOR", "budgetAmount" to "1000"))

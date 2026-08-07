@@ -31,16 +31,16 @@ data class ValidateInvitationRequest(
 data class ValidateInvitationResponse(
     val email: String,
     val role: String,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val existingUser: Boolean,
 )
 
 data class InvitationResponse(
-    val id: String,
+    val id: java.util.UUID,
     val email: String,
     val role: String,
     val status: String,
-    val invitedBy: String,
+    val invitedBy: java.util.UUID,
     val expiresAt: String,
     val createdAt: String?,
 )

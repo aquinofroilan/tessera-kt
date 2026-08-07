@@ -25,15 +25,15 @@ enum class InvitationStatus {
 class Invitation(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var email: String,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     var role: String,
     @Column(name = "token_hash")
     var tokenHash: String,
     @Column(name = "invited_by", columnDefinition = "uuid")
-    var invitedBy: String,
+    var invitedBy: java.util.UUID,
     @Enumerated(EnumType.STRING)
     var status: InvitationStatus = InvitationStatus.PENDING,
     @Column(name = "expiry_at")

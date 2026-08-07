@@ -45,6 +45,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.util.UUID
 
 @WebMvcTest(controllers = [AuthController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
@@ -109,13 +110,13 @@ class AuthControllerTest {
 
         val savedUser =
             User(
-                uuid = "user-123",
+                uuid = java.util.UUID.fromString("bc17c97c-3d89-7d43-b7e0-7ca0266eafa8"),
                 username = "newuser",
                 email = "newuser@example.com",
                 firstName = "New",
                 lastName = "User",
                 passwordHash = "encodedPassword",
-                organizationId = "org-123",
+                organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
             )
 
         `when`(authService.register(any<RegisterRequest>())).thenReturn(savedUser)
@@ -127,7 +128,7 @@ class AuthControllerTest {
                     .content(requestJson),
             ).andExpect(status().isCreated)
             .andExpect(jsonPath("$.message").value("User registered successfully"))
-            .andExpect(jsonPath("$.userId").value(savedUser.uuid))
+            .andExpect(jsonPath("$.userId").value(savedUser.uuid.toString()))
     }
 
     @Test
@@ -294,7 +295,7 @@ class AuthControllerTest {
                 refreshToken = "generated-refresh-token-123",
                 username = "testuser",
                 roles = listOf("OWNER"),
-                organizationId = "org-123",
+                organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
                 expiresAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(24).toString(),
                 refreshTokenExpiresAt = LocalDateTime.now(ZoneOffset.UTC).plusDays(30).toString(),
             )
@@ -408,7 +409,7 @@ class AuthControllerTest {
                 refreshToken = "new-refresh-token-789",
                 username = "testuser",
                 roles = listOf("OWNER"),
-                organizationId = "org-123",
+                organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
                 expiresAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(24).toString(),
                 refreshTokenExpiresAt = LocalDateTime.now(ZoneOffset.UTC).plusDays(30).toString(),
             )
@@ -646,22 +647,26 @@ class AuthControllerTest {
     fun `GET organizations should return org list for authenticated user`() {
         val user =
             User(
-                uuid = "user-123",
+                uuid = java.util.UUID.fromString("bc17c97c-3d89-7d43-b7e0-7ca0266eafa8"),
                 username = "testuser",
                 email = "test@example.com",
                 firstName = "Test",
                 lastName = "User",
                 passwordHash = "encoded",
-                organizationId = "org-123",
-                roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
+                organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
+                roleAssignments = listOf(RoleAssignment("OWNER", java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"))),
             )
-        val session = SessionContext(sessionId = "session-123", organizationId = "org-123")
+        val session =
+            SessionContext(
+                sessionId = java.util.UUID.fromString("79c5ca4c-8e48-a8f8-6ffc-5b3271a250aa"),
+                organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
+            )
         setupAuth(user, session)
 
         val orgs =
             listOf(
                 UserOrganizationResponse(
-                    organizationId = "org-123",
+                    organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
                     name = "Test Org",
                     orgSlug = "test-org",
                     roles = listOf("OWNER"),
@@ -675,7 +680,7 @@ class AuthControllerTest {
             .perform(get("/auth/organizations"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].organizationId").value("org-123"))
+            .andExpect(jsonPath("$[0].organizationId").value("4abe9f6d-6df3-6e5c-953e-3695db9a5216"))
             .andExpect(jsonPath("$[0].current").value(true))
             .andExpect(jsonPath("$[0].active").value(true))
     }
@@ -684,20 +689,24 @@ class AuthControllerTest {
     fun `POST organizations switch should return new token pair`() {
         val user =
             User(
-                uuid = "user-123",
+                uuid = java.util.UUID.fromString("bc17c97c-3d89-7d43-b7e0-7ca0266eafa8"),
                 username = "testuser",
                 email = "test@example.com",
                 firstName = "Test",
                 lastName = "User",
                 passwordHash = "encoded",
-                organizationId = "org-123",
+                organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
                 roleAssignments =
                     listOf(
-                        RoleAssignment("OWNER", "org-123"),
-                        RoleAssignment("MEMBER", "org-456"),
+                        RoleAssignment("OWNER", java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216")),
+                        RoleAssignment("MEMBER", java.util.UUID.fromString("040b1958-b04e-e825-c7e5-7819150449fc")),
                     ),
             )
-        val session = SessionContext(sessionId = "session-123", organizationId = "org-123")
+        val session =
+            SessionContext(
+                sessionId = java.util.UUID.fromString("79c5ca4c-8e48-a8f8-6ffc-5b3271a250aa"),
+                organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
+            )
         setupAuth(user, session)
 
         val switchResponse =
@@ -706,7 +715,7 @@ class AuthControllerTest {
                 refreshToken = "new-refresh",
                 username = "testuser",
                 roles = listOf("MEMBER"),
-                organizationId = "org-456",
+                organizationId = java.util.UUID.fromString("040b1958-b04e-e825-c7e5-7819150449fc"),
                 expiresAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(24).toString(),
                 refreshTokenExpiresAt = LocalDateTime.now(ZoneOffset.UTC).plusDays(30).toString(),
             )
@@ -716,9 +725,9 @@ class AuthControllerTest {
             .perform(
                 post("/auth/organizations/switch")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"organizationId": "org-456"}"""),
+                    .content("""{"organizationId": "040b1958-b04e-e825-c7e5-7819150449fc"}"""),
             ).andExpect(status().isOk)
-            .andExpect(jsonPath("$.organizationId").value("org-456"))
+            .andExpect(jsonPath("$.organizationId").value("040b1958-b04e-e825-c7e5-7819150449fc"))
             .andExpect(jsonPath("$.roles[0]").value("MEMBER"))
             .andExpect(jsonPath("$.accessToken").value("new-token"))
     }
@@ -727,16 +736,20 @@ class AuthControllerTest {
     fun `POST organizations switch should return 400 for unauthorized org`() {
         val user =
             User(
-                uuid = "user-123",
+                uuid = java.util.UUID.fromString("bc17c97c-3d89-7d43-b7e0-7ca0266eafa8"),
                 username = "testuser",
                 email = "test@example.com",
                 firstName = "Test",
                 lastName = "User",
                 passwordHash = "encoded",
-                organizationId = "org-123",
-                roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
+                organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
+                roleAssignments = listOf(RoleAssignment("OWNER", java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"))),
             )
-        val session = SessionContext(sessionId = "session-123", organizationId = "org-123")
+        val session =
+            SessionContext(
+                sessionId = java.util.UUID.fromString("79c5ca4c-8e48-a8f8-6ffc-5b3271a250aa"),
+                organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
+            )
         setupAuth(user, session)
 
         `when`(authService.switchOrganization(any(), any(), anyOrNull(), anyOrNull()))
@@ -746,7 +759,7 @@ class AuthControllerTest {
             .perform(
                 post("/auth/organizations/switch")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"organizationId": "org-999"}"""),
+                    .content("""{"organizationId": "595d3c91-ee25-67cc-6522-f2f3b0e0ffb2"}"""),
             ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("You do not have access to this organization"))
     }

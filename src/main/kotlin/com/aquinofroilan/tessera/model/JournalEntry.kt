@@ -36,11 +36,11 @@ enum class JournalEntrySource {
 class JournalEntryLine(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "line_number")
     var lineNumber: Int = 0,
     @Column(name = "account_id", columnDefinition = "uuid")
-    var accountId: String,
+    var accountId: java.util.UUID,
     @Column(name = "account_code")
     var accountCode: String,
     @Column(name = "account_name")
@@ -56,13 +56,13 @@ class JournalEntryLine(
 class JournalEntry(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "entry_number")
     var entryNumber: String,
     var date: LocalDate,
     var description: String,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Enumerated(EnumType.STRING)
     var status: JournalEntryStatus = JournalEntryStatus.DRAFT,
     @Enumerated(EnumType.STRING)
@@ -78,7 +78,7 @@ class JournalEntry(
     @OrderBy("lineNumber ASC")
     var lines: List<JournalEntryLine>,
     @Column(name = "created_by", columnDefinition = "uuid")
-    var createdBy: String,
+    var createdBy: java.util.UUID,
     @Column(name = "posted_at")
     var postedAt: LocalDateTime? = null,
     @Column(name = "voided_at")

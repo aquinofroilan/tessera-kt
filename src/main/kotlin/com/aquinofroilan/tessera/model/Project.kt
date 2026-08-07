@@ -34,15 +34,15 @@ enum class ProjectBillingType {
 class Project(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "project_number")
     var projectNumber: String,
     var name: String,
     var description: String? = null,
     @Column(name = "customer_id", columnDefinition = "uuid")
-    var customerId: String? = null,
+    var customerId: java.util.UUID? = null,
     @Column(name = "manager_employee_id", columnDefinition = "uuid")
-    var managerEmployeeId: String? = null,
+    var managerEmployeeId: java.util.UUID? = null,
     @Column(name = "start_date")
     var startDate: LocalDate,
     @Column(name = "end_date")
@@ -53,7 +53,7 @@ class Project(
     @Column(name = "billing_type")
     var billingType: ProjectBillingType = ProjectBillingType.TIME_AND_MATERIALS,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

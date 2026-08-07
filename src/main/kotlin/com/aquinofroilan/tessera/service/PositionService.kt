@@ -17,7 +17,7 @@ class PositionService(
     @Transactional
     fun createPosition(
         request: CreatePositionRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Position {
         val code = request.code.trim()
         if (positionRepository.findByOrganizationIdAndCode(organizationId, code).isPresent) {
@@ -36,8 +36,8 @@ class PositionService(
     }
 
     fun getPosition(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Position {
         val position =
             positionRepository.findById(id).orElseThrow {
@@ -50,7 +50,7 @@ class PositionService(
     }
 
     fun listPositions(
-        organizationId: String,
+        organizationId: java.util.UUID,
         activeOnly: Boolean = false,
     ): List<Position> =
         if (activeOnly) {
@@ -61,9 +61,9 @@ class PositionService(
 
     @Transactional
     fun updatePosition(
-        id: String,
+        id: java.util.UUID,
         request: UpdatePositionRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Position {
         val position = getPosition(id, organizationId)
         request.departmentId?.let { departmentService.getDepartment(it, organizationId) }
@@ -77,8 +77,8 @@ class PositionService(
 
     @Transactional
     fun deactivatePosition(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Position {
         val position = getPosition(id, organizationId)
         if (!position.isActive) {

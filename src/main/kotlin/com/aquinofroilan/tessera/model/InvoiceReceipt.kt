@@ -20,9 +20,9 @@ import java.util.UUID
 class InvoiceReceipt(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "invoice_id", columnDefinition = "uuid")
-    var invoiceId: String,
+    var invoiceId: java.util.UUID,
     @Column(name = "receipt_date")
     var receiptDate: LocalDate,
     var amount: BigDecimal,
@@ -36,11 +36,11 @@ class InvoiceReceipt(
     @Column(name = "reference_number")
     var referenceNumber: String? = null,
     @Column(name = "journal_entry_id", columnDefinition = "uuid")
-    var journalEntryId: String? = null,
+    var journalEntryId: java.util.UUID? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "created_by", columnDefinition = "uuid")
-    var createdBy: String,
+    var createdBy: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

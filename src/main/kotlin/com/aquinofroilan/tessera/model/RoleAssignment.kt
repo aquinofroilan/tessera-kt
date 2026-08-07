@@ -11,10 +11,10 @@ import java.util.UUID
 class RoleAssignment(
     var role: String,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String? = null,
+    var organizationId: java.util.UUID? = null,
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

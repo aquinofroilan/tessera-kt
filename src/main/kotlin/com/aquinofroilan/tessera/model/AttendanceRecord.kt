@@ -26,9 +26,9 @@ enum class AttendanceStatus {
 class AttendanceRecord(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "employee_id", columnDefinition = "uuid")
-    var employeeId: String,
+    var employeeId: java.util.UUID,
     @Column(name = "work_date")
     var workDate: LocalDate,
     @Column(name = "clock_in")
@@ -41,7 +41,7 @@ class AttendanceRecord(
     var status: AttendanceStatus = AttendanceStatus.PRESENT,
     var notes: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

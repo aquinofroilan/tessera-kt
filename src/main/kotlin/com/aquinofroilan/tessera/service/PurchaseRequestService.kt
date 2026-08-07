@@ -29,8 +29,8 @@ class PurchaseRequestService(
     @Transactional
     fun createPurchaseRequest(
         request: CreatePurchaseRequestRequest,
-        organizationId: String,
-        requestedBy: String,
+        organizationId: java.util.UUID,
+        requestedBy: java.util.UUID,
     ): PurchaseRequest {
         request.suggestedVendorId?.let { vendorService.getVendor(it, organizationId) }
         request.warehouseId?.let { warehouseService.getWarehouse(it, organizationId) }
@@ -73,8 +73,8 @@ class PurchaseRequestService(
     }
 
     fun getPurchaseRequest(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): PurchaseRequest {
         val pr =
             purchaseRequestRepository.findById(id).orElseThrow {
@@ -87,9 +87,9 @@ class PurchaseRequestService(
     }
 
     fun listPurchaseRequests(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: PurchaseRequestStatus? = null,
-        requestedBy: String? = null,
+        requestedBy: java.util.UUID? = null,
     ): List<PurchaseRequest> =
         when {
             status != null -> purchaseRequestRepository.findByOrganizationIdAndStatus(organizationId, status)
@@ -99,8 +99,8 @@ class PurchaseRequestService(
 
     @Transactional
     fun submitPurchaseRequest(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): PurchaseRequest {
         val pr = getPurchaseRequest(id, organizationId)
         if (pr.status != PurchaseRequestStatus.DRAFT) {
@@ -112,9 +112,9 @@ class PurchaseRequestService(
 
     @Transactional
     fun approvePurchaseRequest(
-        id: String,
-        organizationId: String,
-        decidedBy: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        decidedBy: java.util.UUID,
     ): PurchaseRequest {
         val pr = getPurchaseRequest(id, organizationId)
         if (pr.status != PurchaseRequestStatus.SUBMITTED) {
@@ -128,10 +128,10 @@ class PurchaseRequestService(
 
     @Transactional
     fun rejectPurchaseRequest(
-        id: String,
+        id: java.util.UUID,
         reason: String?,
-        organizationId: String,
-        decidedBy: String,
+        organizationId: java.util.UUID,
+        decidedBy: java.util.UUID,
     ): PurchaseRequest {
         val pr = getPurchaseRequest(id, organizationId)
         if (pr.status != PurchaseRequestStatus.SUBMITTED) {
@@ -146,8 +146,8 @@ class PurchaseRequestService(
 
     @Transactional
     fun cancelPurchaseRequest(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): PurchaseRequest {
         val pr = getPurchaseRequest(id, organizationId)
         if (pr.status == PurchaseRequestStatus.CONVERTED) {
@@ -169,10 +169,10 @@ class PurchaseRequestService(
      */
     @Transactional
     fun convertToPurchaseOrder(
-        id: String,
+        id: java.util.UUID,
         request: ConvertPurchaseRequestRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): PurchaseOrder {
         val pr = getPurchaseRequest(id, organizationId)
         if (pr.status != PurchaseRequestStatus.APPROVED) {
@@ -220,7 +220,7 @@ class PurchaseRequestService(
     }
 
     private fun saveWithRetry(
-        organizationId: String,
+        organizationId: java.util.UUID,
         maxRetries: Int = 3,
         build: (String) -> PurchaseRequest,
     ): PurchaseRequest {

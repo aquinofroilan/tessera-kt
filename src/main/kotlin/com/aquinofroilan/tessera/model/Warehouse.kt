@@ -17,7 +17,7 @@ import java.util.UUID
 class Warehouse(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var code: String,
     var name: String,
     var description: String? = null,
@@ -28,7 +28,7 @@ class Warehouse(
     @Column(name = "allow_negative_stock")
     var allowNegativeStock: Boolean = false,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "is_active")
     var isActive: Boolean = true,
     @CreatedDate

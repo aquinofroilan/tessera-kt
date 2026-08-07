@@ -13,12 +13,12 @@ import java.util.UUID
 class SessionToken(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var token: String,
     @Column(name = "user_id", columnDefinition = "uuid")
-    var userId: String,
+    var userId: java.util.UUID,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String? = null,
+    var organizationId: java.util.UUID? = null,
     @Column(name = "expiry_at")
     var expiryAt: LocalDateTime,
     @Column(name = "ip_address")

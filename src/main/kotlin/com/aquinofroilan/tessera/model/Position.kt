@@ -17,15 +17,15 @@ import java.util.UUID
 class Position(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     var code: String,
     var title: String,
     @Column(name = "department_id", columnDefinition = "uuid")
-    var departmentId: String? = null,
+    var departmentId: java.util.UUID? = null,
     @Column(name = "pay_grade")
     var payGrade: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "is_active")
     var isActive: Boolean = true,
     @CreatedDate

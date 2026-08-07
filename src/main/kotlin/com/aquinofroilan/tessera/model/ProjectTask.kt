@@ -27,21 +27,21 @@ enum class TaskStatus {
 class ProjectTask(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "project_id", columnDefinition = "uuid")
-    var projectId: String,
+    var projectId: java.util.UUID,
     @Column(name = "parent_task_id", columnDefinition = "uuid")
-    var parentTaskId: String? = null,
+    var parentTaskId: java.util.UUID? = null,
     var name: String,
     var description: String? = null,
     @Column(name = "assignee_employee_id", columnDefinition = "uuid")
-    var assigneeEmployeeId: String? = null,
+    var assigneeEmployeeId: java.util.UUID? = null,
     @Column(name = "estimated_hours")
     var estimatedHours: BigDecimal? = null,
     @Enumerated(EnumType.STRING)
     var status: TaskStatus = TaskStatus.TODO,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

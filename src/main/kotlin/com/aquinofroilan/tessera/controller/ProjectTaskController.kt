@@ -31,7 +31,7 @@ class ProjectTaskController(
     @PostMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun createTask(
-        @PathVariable projectId: String,
+        @PathVariable projectId: java.util.UUID,
         @Valid @RequestBody request: CreateProjectTaskRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -42,7 +42,7 @@ class ProjectTaskController(
     @GetMapping
     @PreAuthorize("hasAuthority('projects:read')")
     fun listTasks(
-        @PathVariable projectId: String,
+        @PathVariable projectId: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(projectTaskService.listTasks(projectId, orgId).map { ProjectTaskResponse.from(it) })
@@ -51,7 +51,7 @@ class ProjectTaskController(
     @GetMapping("/tree")
     @PreAuthorize("hasAuthority('projects:read')")
     fun taskTree(
-        @PathVariable projectId: String,
+        @PathVariable projectId: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(projectTaskService.getTaskTree(projectId, orgId))
@@ -60,8 +60,8 @@ class ProjectTaskController(
     @GetMapping("/{taskId}")
     @PreAuthorize("hasAuthority('projects:read')")
     fun getTask(
-        @PathVariable projectId: String,
-        @PathVariable taskId: String,
+        @PathVariable projectId: java.util.UUID,
+        @PathVariable taskId: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(ProjectTaskResponse.from(projectTaskService.getTask(projectId, taskId, orgId)))
@@ -70,8 +70,8 @@ class ProjectTaskController(
     @PatchMapping("/{taskId}")
     @PreAuthorize("hasAuthority('projects:write')")
     fun updateTask(
-        @PathVariable projectId: String,
-        @PathVariable taskId: String,
+        @PathVariable projectId: java.util.UUID,
+        @PathVariable taskId: java.util.UUID,
         @Valid @RequestBody request: UpdateProjectTaskRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -81,8 +81,8 @@ class ProjectTaskController(
     @PutMapping("/{taskId}/parent")
     @PreAuthorize("hasAuthority('projects:write')")
     fun setParent(
-        @PathVariable projectId: String,
-        @PathVariable taskId: String,
+        @PathVariable projectId: java.util.UUID,
+        @PathVariable taskId: java.util.UUID,
         @Valid @RequestBody request: SetTaskParentRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()

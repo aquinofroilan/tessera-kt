@@ -24,8 +24,8 @@ class LeaveRequestService(
     @Transactional
     fun createLeaveRequest(
         request: CreateLeaveRequestRequest,
-        organizationId: String,
-        requestedBy: String,
+        organizationId: java.util.UUID,
+        requestedBy: java.util.UUID,
     ): LeaveRequest {
         val start = request.startDate ?: throw BusinessRuleException("Start date is required")
         val end = request.endDate ?: throw BusinessRuleException("End date is required")
@@ -56,8 +56,8 @@ class LeaveRequestService(
     }
 
     fun getLeaveRequest(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): LeaveRequest {
         val req =
             leaveRequestRepository.findById(id).orElseThrow {
@@ -70,8 +70,8 @@ class LeaveRequestService(
     }
 
     fun listLeaveRequests(
-        organizationId: String,
-        employeeId: String? = null,
+        organizationId: java.util.UUID,
+        employeeId: java.util.UUID? = null,
         status: LeaveRequestStatus? = null,
     ): List<LeaveRequest> =
         when {
@@ -82,9 +82,9 @@ class LeaveRequestService(
 
     @Transactional
     fun approveLeaveRequest(
-        id: String,
-        organizationId: String,
-        decidedBy: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        decidedBy: java.util.UUID,
     ): LeaveRequest {
         val req = getLeaveRequest(id, organizationId)
         if (req.status != LeaveRequestStatus.PENDING) {
@@ -117,10 +117,10 @@ class LeaveRequestService(
 
     @Transactional
     fun rejectLeaveRequest(
-        id: String,
+        id: java.util.UUID,
         reason: String?,
-        organizationId: String,
-        decidedBy: String,
+        organizationId: java.util.UUID,
+        decidedBy: java.util.UUID,
     ): LeaveRequest {
         val req = getLeaveRequest(id, organizationId)
         if (req.status != LeaveRequestStatus.PENDING) {
@@ -135,8 +135,8 @@ class LeaveRequestService(
 
     @Transactional
     fun cancelLeaveRequest(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): LeaveRequest {
         val req = getLeaveRequest(id, organizationId)
         if (req.status != LeaveRequestStatus.PENDING && req.status != LeaveRequestStatus.APPROVED) {
@@ -147,10 +147,10 @@ class LeaveRequestService(
     }
 
     fun balance(
-        employeeId: String,
-        leaveTypeId: String,
+        employeeId: java.util.UUID,
+        leaveTypeId: java.util.UUID,
         year: Int,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): LeaveBalanceResponse {
         employeeService.getEmployee(employeeId, organizationId)
         val leaveType = leaveTypeService.getLeaveType(leaveTypeId, organizationId)
@@ -166,11 +166,11 @@ class LeaveRequestService(
     }
 
     private fun usedDays(
-        organizationId: String,
-        employeeId: String,
-        leaveTypeId: String,
+        organizationId: java.util.UUID,
+        employeeId: java.util.UUID,
+        leaveTypeId: java.util.UUID,
         year: Int,
-        excludingRequestId: String?,
+        excludingRequestId: java.util.UUID?,
     ): Int =
         leaveRequestRepository
             .findByOrganizationIdAndEmployeeIdAndLeaveTypeIdAndStatus(

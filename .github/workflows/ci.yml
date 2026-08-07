@@ -7,7 +7,7 @@ on:
     branches: [ production, staging ]
 
 env:
-  JAVA_VERSION: '21'
+  JAVA_VERSION: '26'
   JAVA_DISTRIBUTION: 'temurin'
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
           POSTGRES_USER: tessera
           POSTGRES_PASSWORD: tessera
         options: >-
-          --health-cmd "pg_isready -U tessera"
+          --health-cmd "pg_isready -U tessera -d tessera_test"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -52,7 +52,7 @@ jobs:
 
       - name: Run Tests
         env:
-          DATABASE_URL: jdbc:postgresql://localhost:5432/tessera_test
+          DATABASE_URL: jdbc:postgresql://localhost:5432/tessera_test?currentSchema=tessera_test
           DATABASE_USERNAME: tessera
           DATABASE_PASSWORD: tessera
           JWT_SECRET: test-secret-key-for-ci-cd
@@ -60,7 +60,7 @@ jobs:
 
       - name: Start Application and Health Check
         env:
-          DATABASE_URL: jdbc:postgresql://localhost:5432/tessera_test
+          DATABASE_URL: jdbc:postgresql://localhost:5432/tessera_test?currentSchema=tessera_test
           DATABASE_USERNAME: tessera
           DATABASE_PASSWORD: tessera
           JWT_SECRET: test-secret-key-for-ci-cd

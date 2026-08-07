@@ -33,11 +33,11 @@ enum class PurchaseRequestStatus {
 class PurchaseRequestLine(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "line_number")
     var lineNumber: Int = 0,
     @Column(name = "product_id", columnDefinition = "uuid")
-    var productId: String,
+    var productId: java.util.UUID,
     @Column(name = "product_sku")
     var productSku: String,
     @Column(name = "product_name")
@@ -54,32 +54,32 @@ class PurchaseRequestLine(
 class PurchaseRequest(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "pr_number")
     var prNumber: String,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @Enumerated(EnumType.STRING)
     var status: PurchaseRequestStatus = PurchaseRequestStatus.DRAFT,
     @Column(name = "suggested_vendor_id", columnDefinition = "uuid")
-    var suggestedVendorId: String? = null,
+    var suggestedVendorId: java.util.UUID? = null,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
-    var warehouseId: String? = null,
+    var warehouseId: java.util.UUID? = null,
     var justification: String? = null,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "purchase_request_id")
     @OrderBy("lineNumber ASC")
     var lines: List<PurchaseRequestLine>,
     @Column(name = "requested_by", columnDefinition = "uuid")
-    var requestedBy: String,
+    var requestedBy: java.util.UUID,
     @Column(name = "decided_by", columnDefinition = "uuid")
-    var decidedBy: String? = null,
+    var decidedBy: java.util.UUID? = null,
     @Column(name = "decided_at")
     var decidedAt: LocalDateTime? = null,
     @Column(name = "decision_reason")
     var decisionReason: String? = null,
     @Column(name = "converted_purchase_order_id", columnDefinition = "uuid")
-    var convertedPurchaseOrderId: String? = null,
+    var convertedPurchaseOrderId: java.util.UUID? = null,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

@@ -28,13 +28,13 @@ enum class TimeEntryStatus {
 class TimeEntry(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "employee_id", columnDefinition = "uuid")
-    var employeeId: String,
+    var employeeId: java.util.UUID,
     @Column(name = "project_id", columnDefinition = "uuid")
-    var projectId: String,
+    var projectId: java.util.UUID,
     @Column(name = "task_id", columnDefinition = "uuid")
-    var taskId: String? = null,
+    var taskId: java.util.UUID? = null,
     @Column(name = "entry_date")
     var entryDate: LocalDate,
     var hours: BigDecimal,
@@ -44,14 +44,14 @@ class TimeEntry(
     var status: TimeEntryStatus = TimeEntryStatus.DRAFT,
     var notes: String? = null,
     @Column(name = "approved_by", columnDefinition = "uuid")
-    var approvedBy: String? = null,
+    var approvedBy: java.util.UUID? = null,
     @Column(name = "approved_at")
     var approvedAt: LocalDateTime? = null,
     var invoiced: Boolean = false,
     @Column(name = "invoice_id", columnDefinition = "uuid")
-    var invoiceId: String? = null,
+    var invoiceId: java.util.UUID? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,
