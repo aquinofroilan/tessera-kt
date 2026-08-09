@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface ProductRepository :
-    JpaRepository<Product, String>,
+    JpaRepository<Product, java.util.UUID>,
     ProductQueries

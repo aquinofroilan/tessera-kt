@@ -5,9 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface CustomerRepository : JpaRepository<Customer, String> {
+interface CustomerRepository : JpaRepository<Customer, java.util.UUID> {
     fun findByOrganizationIdAndIsActive(
-        organizationId: String,
+        organizationId: java.util.UUID,
         isActive: Boolean,
     ): List<Customer>
 }

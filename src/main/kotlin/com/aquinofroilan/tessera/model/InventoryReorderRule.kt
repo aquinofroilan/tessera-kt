@@ -15,20 +15,20 @@ import java.util.UUID
 @Entity
 @Table(name = "inventory_reorder_rules")
 @EntityListeners(AuditingEntityListener::class)
-data class InventoryReorderRule(
+class InventoryReorderRule(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "product_id", columnDefinition = "uuid")
-    val productId: String,
+    var productId: java.util.UUID,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
-    val warehouseId: String,
+    var warehouseId: java.util.UUID,
     @Column(name = "reorder_point")
-    val reorderPoint: BigDecimal,
+    var reorderPoint: BigDecimal,
     @Column(name = "safety_stock")
-    val safetyStock: BigDecimal = BigDecimal.ZERO,
+    var safetyStock: BigDecimal = BigDecimal.ZERO,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

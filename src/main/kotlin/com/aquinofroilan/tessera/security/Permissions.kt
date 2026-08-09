@@ -69,6 +69,19 @@ object Permissions {
     const val HR_WRITE = "hr:write"
     const val HR_APPROVE = "hr:approve"
 
+    const val HR_RECRUITMENT_READ = "hr-recruitment:read"
+    const val HR_RECRUITMENT_WRITE = "hr-recruitment:write"
+    const val HR_RECRUITMENT_APPROVE = "hr-recruitment:approve"
+    const val MFG_READ = "mfg:read"
+    const val MFG_WRITE = "mfg:write"
+    const val MFG_APPROVE = "mfg:approve"
+
+    const val PROJECT_READ = "projects:read"
+    const val PROJECT_WRITE = "projects:write"
+    const val PROJECT_APPROVE = "projects:approve"
+    const val CRM_READ = "crm:read"
+    const val CRM_WRITE = "crm:write"
+
     val ALL_PERMISSIONS =
         listOf(
             SESSION_READ,
@@ -122,5 +135,16 @@ object Permissions {
             HR_READ,
             HR_WRITE,
             HR_APPROVE,
+            HR_RECRUITMENT_READ,
+            HR_RECRUITMENT_WRITE,
+            HR_RECRUITMENT_APPROVE,
+            MFG_READ,
+            MFG_WRITE,
+            MFG_APPROVE,
+            PROJECT_READ,
+            PROJECT_WRITE,
+            PROJECT_APPROVE,
+            CRM_READ,
+            CRM_WRITE,
         )
 }

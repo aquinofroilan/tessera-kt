@@ -6,16 +6,16 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface PositionRepository : JpaRepository<Position, String> {
-    fun findByOrganizationId(organizationId: String): List<Position>
+interface PositionRepository : JpaRepository<Position, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<Position>
 
     fun findByOrganizationIdAndIsActive(
-        organizationId: String,
+        organizationId: java.util.UUID,
         isActive: Boolean,
     ): List<Position>
 
     fun findByOrganizationIdAndCode(
-        organizationId: String,
+        organizationId: java.util.UUID,
         code: String,
     ): Optional<Position>
 }

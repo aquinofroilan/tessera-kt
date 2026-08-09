@@ -24,13 +24,13 @@ class PurchaseRequestGraphqlController(
     @PreAuthorize("hasAuthority('procurement:read')")
     fun purchaseRequests(
         @Argument status: String?,
-        @Argument requestedBy: String?,
+        @Argument requestedBy: java.util.UUID?,
     ): Any = support.unwrap(purchaseRequestController.listPurchaseRequests(status, requestedBy))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('procurement:read')")
     fun purchaseRequest(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(purchaseRequestController.getPurchaseRequest(id))
 
     @MutationMapping
@@ -42,19 +42,19 @@ class PurchaseRequestGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:write')")
     fun submitPurchaseRequest(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(purchaseRequestController.submitPurchaseRequest(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:approve')")
     fun approvePurchaseRequest(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(purchaseRequestController.approvePurchaseRequest(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:approve')")
     fun rejectPurchaseRequest(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<RejectPurchaseRequestRequest>(it) }
@@ -64,13 +64,13 @@ class PurchaseRequestGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:write')")
     fun cancelPurchaseRequest(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(purchaseRequestController.cancelPurchaseRequest(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:write')")
     fun convertPurchaseRequest(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<ConvertPurchaseRequestRequest>(it) }

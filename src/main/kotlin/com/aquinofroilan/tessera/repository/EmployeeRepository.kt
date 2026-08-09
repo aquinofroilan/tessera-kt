@@ -7,23 +7,23 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface EmployeeRepository : JpaRepository<Employee, String> {
-    fun findByOrganizationId(organizationId: String): List<Employee>
+interface EmployeeRepository : JpaRepository<Employee, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<Employee>
 
     fun findByOrganizationIdAndUserId(
-        organizationId: String,
-        userId: String,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): Optional<Employee>
 
     fun findByOrganizationIdAndStatus(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: EmploymentStatus,
     ): List<Employee>
 
     fun findByOrganizationIdAndDepartmentId(
-        organizationId: String,
-        departmentId: String,
+        organizationId: java.util.UUID,
+        departmentId: java.util.UUID,
     ): List<Employee>
 
-    fun countByOrganizationId(organizationId: String): Long
+    fun countByOrganizationId(organizationId: java.util.UUID): Long
 }

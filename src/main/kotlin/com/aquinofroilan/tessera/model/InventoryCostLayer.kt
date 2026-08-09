@@ -14,26 +14,26 @@ import java.util.UUID
 @Entity
 @Table(name = "inventory_cost_layers")
 @EntityListeners(AuditingEntityListener::class)
-data class InventoryCostLayer(
+class InventoryCostLayer(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "product_id", columnDefinition = "uuid")
-    val productId: String,
+    var productId: java.util.UUID,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
-    val warehouseId: String,
+    var warehouseId: java.util.UUID,
     @Column(name = "original_quantity")
-    val originalQuantity: BigDecimal,
+    var originalQuantity: BigDecimal,
     @Column(name = "remaining_quantity")
-    val remainingQuantity: BigDecimal,
+    var remainingQuantity: BigDecimal,
     @Column(name = "unit_cost")
-    val unitCost: BigDecimal,
+    var unitCost: BigDecimal,
     @Column(name = "source_movement_id", columnDefinition = "uuid")
-    val sourceMovementId: String,
+    var sourceMovementId: java.util.UUID,
     @Column(name = "occurred_at")
-    val occurredAt: LocalDateTime,
+    var occurredAt: LocalDateTime,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

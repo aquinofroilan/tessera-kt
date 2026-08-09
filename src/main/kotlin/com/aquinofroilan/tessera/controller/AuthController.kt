@@ -3,16 +3,20 @@ package com.aquinofroilan.tessera.controller
 import com.aquinofroilan.tessera.annotation.LogLevel
 import com.aquinofroilan.tessera.annotation.Loggable
 import com.aquinofroilan.tessera.dto.ChangePasswordRequest
+import com.aquinofroilan.tessera.dto.ConsumeLoginLinkRequest
 import com.aquinofroilan.tessera.dto.ForgotPasswordRequest
+import com.aquinofroilan.tessera.dto.LoginLinkIssuedResponse
 import com.aquinofroilan.tessera.dto.LoginRequest
 import com.aquinofroilan.tessera.dto.RefreshRequest
 import com.aquinofroilan.tessera.dto.RegisterRequest
+import com.aquinofroilan.tessera.dto.RequestLoginLinkRequest
 import com.aquinofroilan.tessera.dto.ResetPasswordRequest
 import com.aquinofroilan.tessera.dto.SwitchOrganizationRequest
 import com.aquinofroilan.tessera.exception.AuthenticationException
 import com.aquinofroilan.tessera.model.User
 import com.aquinofroilan.tessera.security.SessionContext
 import com.aquinofroilan.tessera.service.AuthService
+import com.aquinofroilan.tessera.service.LoginLinkService
 import com.github.benmanes.caffeine.cache.Caffeine
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
@@ -34,6 +38,7 @@ import java.util.concurrent.TimeUnit
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
 class AuthController(
     private val authService: AuthService,
+    private val loginLinkService: LoginLinkService,
 ) {
     private val log = LoggerFactory.getLogger(AuthController::class.java)
 
@@ -58,10 +63,18 @@ class AuthController(
             .maximumSize(10_000)
             .build<String, Boolean>()
 
+    private val loginLinkThrottle =
+        Caffeine
+            .newBuilder()
+            .expireAfterWrite(LOGIN_LINK_THROTTLE_MINUTES, TimeUnit.MINUTES)
+            .maximumSize(10_000)
+            .build<String, Boolean>()
+
     companion object {
         private const val MAX_ATTEMPTS = 5
         private const val BLOCK_DURATION_MINUTES = 15L
         private const val FORGOT_PASSWORD_THROTTLE_MINUTES = 2L
+        private const val LOGIN_LINK_THROTTLE_MINUTES = 2L
         private const val MAX_USER_AGENT_LENGTH = 512
         private const val MAX_IP_LENGTH = 45
     }
@@ -160,6 +173,46 @@ class AuthController(
         authService.resetPassword(request.token, request.newPassword)
         return ResponseEntity.ok(mapOf("message" to "Password has been reset successfully"))
     }
+
+    @PostMapping("/login-link/request")
+    fun requestLoginLink(
+        @Valid @RequestBody request: RequestLoginLinkRequest,
+    ): ResponseEntity<Any> {
+        val email = request.email.lowercase(Locale.ROOT)
+        if (loginLinkThrottle.getIfPresent(email) != null) {
+            return ResponseEntity.ok(
+                LoginLinkIssuedResponse("If an account with that email exists, a login link has been sent."),
+            )
+        }
+        loginLinkThrottle.put(email, true)
+        try {
+            loginLinkService.request(email)
+        } catch (e: Exception) {
+            log.error("Login-link request failed", e)
+        }
+        return ResponseEntity.ok(
+            LoginLinkIssuedResponse("If an account with that email exists, a login link has been sent."),
+        )
+    }
+
+    @PostMapping("/login-link/consume")
+    fun consumeLoginLink(
+        @Valid @RequestBody request: ConsumeLoginLinkRequest,
+        httpRequest: HttpServletRequest,
+    ): ResponseEntity<Any> =
+        try {
+            val response =
+                loginLinkService.consume(
+                    rawToken = request.token,
+                    ipAddress = httpRequest.remoteAddr?.take(MAX_IP_LENGTH),
+                    userAgent = httpRequest.getHeader("User-Agent")?.take(MAX_USER_AGENT_LENGTH),
+                )
+            ResponseEntity.ok(response)
+        } catch (e: AuthenticationException) {
+            ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(mapOf("error" to (e.message ?: "Invalid or expired login link")))
+        }
 
     @GetMapping("/organizations")
     fun listOrganizations(): ResponseEntity<Any> {

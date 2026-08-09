@@ -41,8 +41,8 @@ class PurchaseOrderService(
     @Transactional
     fun createPurchaseOrder(
         request: CreatePurchaseOrderRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): PurchaseOrder {
         val vendor = vendorService.getVendor(request.vendorId, organizationId)
         if (!vendor.isActive) {
@@ -99,8 +99,8 @@ class PurchaseOrderService(
     }
 
     fun getPurchaseOrder(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): PurchaseOrder {
         val po =
             purchaseOrderRepository.findById(id).orElseThrow {
@@ -113,9 +113,9 @@ class PurchaseOrderService(
     }
 
     fun listPurchaseOrders(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: PurchaseOrderStatus? = null,
-        vendorId: String? = null,
+        vendorId: java.util.UUID? = null,
     ): List<PurchaseOrder> =
         when {
             status != null && vendorId != null ->
@@ -127,29 +127,26 @@ class PurchaseOrderService(
 
     @Transactional
     fun approvePurchaseOrder(
-        id: String,
-        organizationId: String,
-        approvedBy: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        approvedBy: java.util.UUID,
     ): PurchaseOrder {
         val po = getPurchaseOrder(id, organizationId)
         if (po.status != PurchaseOrderStatus.DRAFT) {
             throw BusinessRuleException("Only draft purchase orders can be approved")
         }
-        return purchaseOrderRepository.save(
-            po.copy(
-                status = PurchaseOrderStatus.APPROVED,
-                approvedAt = LocalDateTime.now(ZoneOffset.UTC),
-                approvedBy = approvedBy,
-            ),
-        )
+        po.status = PurchaseOrderStatus.APPROVED
+        po.approvedAt = LocalDateTime.now(ZoneOffset.UTC)
+        po.approvedBy = approvedBy
+        return purchaseOrderRepository.save(po)
     }
 
     @Transactional
     fun receivePurchaseOrder(
-        id: String,
+        id: java.util.UUID,
         request: ReceivePurchaseOrderRequest?,
-        organizationId: String,
-        userId: String,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): PurchaseOrder {
         val po = getPurchaseOrder(id, organizationId)
         if (po.status != PurchaseOrderStatus.APPROVED && po.status != PurchaseOrderStatus.PARTIALLY_RECEIVED) {
@@ -163,7 +160,7 @@ class PurchaseOrderService(
                     .associate { it.id to it.quantity.subtract(it.receivedQuantity) }
                     .filterValues { it.signum() > 0 }
             } else {
-                request.lines!!.associate { it.lineId to (it.quantity ?: throw BusinessRuleException("Quantity is required")) }
+                request!!.lines.associate { it.lineId to (it.quantity ?: throw BusinessRuleException("Quantity is required")) }
             }
         requested.keys.forEach { if (it !in byId) throw BusinessRuleException("Unknown purchase order line '$it'") }
         if (requested.isEmpty()) {
@@ -190,25 +187,22 @@ class PurchaseOrderService(
                     organizationId,
                     userId,
                 )
-                line.copy(receivedQuantity = line.receivedQuantity.add(qty))
+                line.apply { receivedQuantity = line.receivedQuantity.add(qty) }
             }
 
         val fullyReceived = updatedLines.all { it.receivedQuantity >= it.quantity }
-        return purchaseOrderRepository.save(
-            po.copy(
-                lines = updatedLines,
-                status = if (fullyReceived) PurchaseOrderStatus.RECEIVED else PurchaseOrderStatus.PARTIALLY_RECEIVED,
-                receivedAt = if (fullyReceived) LocalDateTime.now(ZoneOffset.UTC) else po.receivedAt,
-            ),
-        )
+        po.lines = updatedLines
+        po.status = if (fullyReceived) PurchaseOrderStatus.RECEIVED else PurchaseOrderStatus.PARTIALLY_RECEIVED
+        po.receivedAt = if (fullyReceived) LocalDateTime.now(ZoneOffset.UTC) else po.receivedAt
+        return purchaseOrderRepository.save(po)
     }
 
     @Transactional
     fun generateBill(
-        id: String,
+        id: java.util.UUID,
         request: GenerateBillRequest?,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): Bill {
         val po = getPurchaseOrder(id, organizationId)
         if (po.status != PurchaseOrderStatus.PARTIALLY_RECEIVED && po.status != PurchaseOrderStatus.RECEIVED) {
@@ -222,7 +216,7 @@ class PurchaseOrderService(
                     .associate { it.id to (it.receivedQuantity.subtract(it.billedQuantity) to null as BigDecimal?) }
                     .filterValues { it.first.signum() > 0 }
             } else {
-                request.lines!!.associate {
+                request!!.lines.associate {
                     it.lineId to ((it.quantity ?: throw BusinessRuleException("Quantity is required")) to it.unitCost)
                 }
             }
@@ -253,7 +247,7 @@ class PurchaseOrderService(
                         description = "${line.productSku} - ${line.productName}",
                     ),
                 )
-                line.copy(billedQuantity = line.billedQuantity.add(qty))
+                line.apply { billedQuantity = line.billedQuantity.add(qty) }
             }
 
         val today = LocalDate.now(ZoneOffset.UTC)
@@ -269,7 +263,8 @@ class PurchaseOrderService(
                 organizationId,
                 createdBy,
             )
-        purchaseOrderRepository.save(po.copy(lines = updatedLines))
+        po.lines = updatedLines
+        purchaseOrderRepository.save(po)
         return bill
     }
 
@@ -279,9 +274,9 @@ class PurchaseOrderService(
      * unit-cost variances beyond tolerance.
      */
     fun previewBillMatch(
-        id: String,
+        id: java.util.UUID,
         request: BillMatchRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): BillMatchResult {
         val po = getPurchaseOrder(id, organizationId)
         val byId = po.lines.associateBy { it.id }
@@ -330,8 +325,8 @@ class PurchaseOrderService(
 
     private fun billExpenseAccountId(
         po: PurchaseOrder,
-        organizationId: String,
-    ): String {
+        organizationId: java.util.UUID,
+    ): java.util.UUID {
         val clearing = accountRepository.findByOrganizationIdAndCode(organizationId, INVENTORY_CLEARING_CODE)
         if (clearing.isPresent && clearing.get().isActive) {
             return clearing.get().id
@@ -357,21 +352,22 @@ class PurchaseOrderService(
 
     @Transactional
     fun closePurchaseOrder(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): PurchaseOrder {
         val po = getPurchaseOrder(id, organizationId)
         if (po.status != PurchaseOrderStatus.RECEIVED) {
             throw BusinessRuleException("Only received purchase orders can be closed")
         }
-        return purchaseOrderRepository.save(po.copy(status = PurchaseOrderStatus.CLOSED))
+        po.status = PurchaseOrderStatus.CLOSED
+        return purchaseOrderRepository.save(po)
     }
 
     @Transactional
     fun cancelPurchaseOrder(
-        id: String,
-        organizationId: String,
-        userId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): PurchaseOrder {
         val po = getPurchaseOrder(id, organizationId)
         if (po.status == PurchaseOrderStatus.CANCELLED || po.status == PurchaseOrderStatus.CLOSED) {
@@ -386,17 +382,14 @@ class PurchaseOrderService(
             stockMovementService.reverseByReference("PO-${po.poNumber}", organizationId, userId)
         }
 
-        return purchaseOrderRepository.save(
-            po.copy(
-                lines = if (received) po.lines.map { it.copy(receivedQuantity = BigDecimal.ZERO) } else po.lines,
-                status = PurchaseOrderStatus.CANCELLED,
-                cancelledAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        po.lines = if (received) po.lines.map { it.apply { receivedQuantity = BigDecimal.ZERO } } else po.lines
+        po.status = PurchaseOrderStatus.CANCELLED
+        po.cancelledAt = LocalDateTime.now(ZoneOffset.UTC)
+        return purchaseOrderRepository.save(po)
     }
 
     private fun saveWithRetry(
-        organizationId: String,
+        organizationId: java.util.UUID,
         maxRetries: Int = 3,
         build: (String) -> PurchaseOrder,
     ): PurchaseOrder {

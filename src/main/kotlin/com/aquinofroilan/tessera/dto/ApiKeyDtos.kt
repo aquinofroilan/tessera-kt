@@ -16,11 +16,11 @@ data class CreateApiKeyRequest(
 )
 
 data class ApiKeyResponse(
-    val id: String,
+    val id: java.util.UUID,
     val name: String,
     val keyPrefix: String,
     val permissions: List<String>,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val isActive: Boolean,
     val lastUsedAt: String?,
     val expiresAt: String?,
@@ -28,12 +28,12 @@ data class ApiKeyResponse(
 )
 
 data class ApiKeyCreatedResponse(
-    val id: String,
+    val id: java.util.UUID,
     val name: String,
     val rawKey: String,
     val keyPrefix: String,
     val permissions: List<String>,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val expiresAt: String?,
     val createdAt: String?,
 )

@@ -48,7 +48,7 @@ class SessionController(
     @PreAuthorize("hasRole('SUPER_ADMIN') or hasAuthority('session:delete')")
     fun revokeSession(
         @RequestHeader("Authorization") authHeader: String,
-        @PathVariable sessionId: String,
+        @PathVariable sessionId: java.util.UUID,
     ): ResponseEntity<Any> {
         val (user, currentToken) =
             extractUserAndToken(authHeader)

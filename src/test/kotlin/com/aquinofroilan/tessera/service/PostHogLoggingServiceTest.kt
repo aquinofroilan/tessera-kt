@@ -23,14 +23,19 @@ class PostHogLoggingServiceTest {
 
         val service =
             PostHogLoggingService(
-                postHogProperties = PostHogProperties(enabled = true, loggingEnabled = true, distinctId = "test-app"),
+                postHogProperties =
+                    PostHogProperties(
+                        enabled = true,
+                        loggingEnabled = true,
+                        distinctId = "50a05a28-c428-37f5-852e-9a226ac073f6",
+                    ),
                 postHogProvider = beanFactory.getBeanProvider(PostHog::class.java),
             )
 
         service.captureException(level = "ERROR", source = "service", throwable = RuntimeException("boom: ssn 123-45-6789"))
 
         val propsCaptor = argumentCaptor<Map<String, Any>>()
-        verify(postHog).capture(eq("test-app"), eq("application_log"), propsCaptor.capture())
+        verify(postHog).capture(eq("50a05a28-c428-37f5-852e-9a226ac073f6"), eq("application_log"), propsCaptor.capture())
         val props = propsCaptor.firstValue
         assertThat(props).containsKeys("level", "source", "exception_type", "exception_origin")
         assertThat(props["exception_type"]).isEqualTo("java.lang.RuntimeException")
@@ -49,7 +54,12 @@ class PostHogLoggingServiceTest {
 
         val service =
             PostHogLoggingService(
-                postHogProperties = PostHogProperties(enabled = true, loggingEnabled = true, distinctId = "test-app"),
+                postHogProperties =
+                    PostHogProperties(
+                        enabled = true,
+                        loggingEnabled = true,
+                        distinctId = "50a05a28-c428-37f5-852e-9a226ac073f6",
+                    ),
                 postHogProvider = beanFactory.getBeanProvider(PostHog::class.java),
             )
 
@@ -66,7 +76,12 @@ class PostHogLoggingServiceTest {
 
         val service =
             PostHogLoggingService(
-                postHogProperties = PostHogProperties(enabled = false, loggingEnabled = true, distinctId = "test-app"),
+                postHogProperties =
+                    PostHogProperties(
+                        enabled = false,
+                        loggingEnabled = true,
+                        distinctId = "50a05a28-c428-37f5-852e-9a226ac073f6",
+                    ),
                 postHogProvider = beanFactory.getBeanProvider(PostHog::class.java),
             )
 

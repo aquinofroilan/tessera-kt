@@ -5,7 +5,7 @@ import jakarta.persistence.EntityManager
 
 interface ProductQueries {
     fun search(
-        organizationId: String,
+        organizationId: java.util.UUID,
         isActive: Boolean,
         category: String?,
         term: String?,
@@ -16,7 +16,7 @@ open class ProductQueriesImpl(
     private val em: EntityManager,
 ) : ProductQueries {
     override fun search(
-        organizationId: String,
+        organizationId: java.util.UUID,
         isActive: Boolean,
         category: String?,
         term: String?,

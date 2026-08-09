@@ -38,6 +38,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.util.UUID
 
 @WebMvcTest(controllers = [SessionController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
@@ -81,14 +82,14 @@ class SessionControllerTest {
 
     private val testUser =
         User(
-            uuid = "user-123",
+            uuid = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             username = "testuser",
             email = "test@example.com",
             firstName = "Test",
             lastName = "User",
             passwordHash = "encoded",
-            organizationId = "org-123",
-            roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
+            organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000199"))),
         )
 
     private val currentToken = "current-bearer-token"
@@ -110,7 +111,7 @@ class SessionControllerTest {
         val sessions =
             listOf(
                 SessionToken(
-                    id = "s1",
+                    id = UUID.fromString("00000000-0000-0000-0000-000000000199"),
                     token = currentToken,
                     userId = testUser.uuid,
                     expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(12),
@@ -118,7 +119,7 @@ class SessionControllerTest {
                     userAgent = "Mozilla/5.0",
                 ),
                 SessionToken(
-                    id = "s2",
+                    id = UUID.fromString("00000000-0000-0000-0000-000000000199"),
                     token = "other-token",
                     userId = testUser.uuid,
                     expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(6),
@@ -134,10 +135,10 @@ class SessionControllerTest {
                     .header("Authorization", "Bearer $currentToken"),
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(2))
-            .andExpect(jsonPath("$[0].id").value("s1"))
+            .andExpect(jsonPath("$[0].id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$[0].current").value(true))
             .andExpect(jsonPath("$[0].ipAddress").value("127.0.0.1"))
-            .andExpect(jsonPath("$[1].id").value("s2"))
+            .andExpect(jsonPath("$[1].id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$[1].current").value(false))
     }
 
@@ -157,7 +158,7 @@ class SessionControllerTest {
     fun `DELETE session by id should return 200 on success`() {
         mockMvc
             .perform(
-                delete("/auth/sessions/s2")
+                delete("/auth/sessions/00000000-0000-0000-0000-000000000199")
                     .header("Authorization", "Bearer $currentToken"),
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("Session revoked"))
@@ -170,7 +171,7 @@ class SessionControllerTest {
 
         mockMvc
             .perform(
-                delete("/auth/sessions/non-existent")
+                delete("/auth/sessions/00000000-0000-0000-0000-000000000000")
                     .header("Authorization", "Bearer $currentToken"),
             ).andExpect(status().isNotFound)
             .andExpect(jsonPath("$.error").value("Session not found"))
@@ -183,7 +184,7 @@ class SessionControllerTest {
 
         mockMvc
             .perform(
-                delete("/auth/sessions/s1")
+                delete("/auth/sessions/00000000-0000-0000-0000-000000000199")
                     .header("Authorization", "Bearer $currentToken"),
             ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Cannot revoke the current session"))
@@ -216,7 +217,7 @@ class SessionControllerTest {
 
         mockMvc
             .perform(
-                delete("/auth/sessions/s2")
+                delete("/auth/sessions/00000000-0000-0000-0000-000000000199")
                     .header("Authorization", "Bearer $currentToken"),
             ).andExpect(status().isForbidden)
     }

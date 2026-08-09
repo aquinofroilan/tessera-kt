@@ -14,25 +14,25 @@ import java.util.UUID
 @Entity
 @Table(name = "customers")
 @EntityListeners(AuditingEntityListener::class)
-data class Customer(
+class Customer(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
-    val name: String,
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
+    var name: String,
     @Column(name = "contact_name")
-    val contactName: String? = null,
+    var contactName: String? = null,
     @Column(name = "contact_email")
-    val contactEmail: String? = null,
+    var contactEmail: String? = null,
     @Column(name = "contact_phone")
-    val contactPhone: String? = null,
+    var contactPhone: String? = null,
     @Column(name = "payment_term_days")
-    val paymentTermDays: Int = 30,
+    var paymentTermDays: Int = 30,
     @Column(name = "default_revenue_account_id", columnDefinition = "uuid")
-    val defaultRevenueAccountId: String? = null,
+    var defaultRevenueAccountId: java.util.UUID? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "is_active")
-    val isActive: Boolean = true,
+    var isActive: Boolean = true,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

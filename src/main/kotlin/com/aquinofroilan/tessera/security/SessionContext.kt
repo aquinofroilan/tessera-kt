@@ -1,6 +1,6 @@
 package com.aquinofroilan.tessera.security
 
 data class SessionContext(
-    val sessionId: String,
-    val organizationId: String,
+    val sessionId: java.util.UUID,
+    val organizationId: java.util.UUID,
 )

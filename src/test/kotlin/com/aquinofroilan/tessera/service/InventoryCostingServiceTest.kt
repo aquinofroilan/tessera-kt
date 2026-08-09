@@ -25,10 +25,10 @@ class InventoryCostingServiceTest {
     private lateinit var waRepository: InventoryWaSnapshotRepository
     private lateinit var organizationRepository: OrganizationRepository
 
-    private val orgId = "org-123"
-    private val productId = "prod-1"
-    private val warehouseId = "wh-1"
-    private val otherWarehouseId = "wh-2"
+    private val orgId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
+    private val productId = java.util.UUID.fromString("dbf2a095-ce0d-371a-bd21-a52d4a5a29c9")
+    private val warehouseId = java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")
+    private val otherWarehouseId = java.util.UUID.fromString("1d0e273c-e8f6-3c81-aa83-af17bdd332f5")
 
     @BeforeEach
     fun setup() {
@@ -59,9 +59,9 @@ class InventoryCostingServiceTest {
         type: StockMovementType,
         quantity: BigDecimal,
         unitCost: BigDecimal? = null,
-        warehouse: String = warehouseId,
-        transferTo: String? = null,
-        id: String = "mov-1",
+        warehouse: java.util.UUID = warehouseId,
+        transferTo: java.util.UUID? = null,
+        id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         occurredAt: LocalDateTime = LocalDateTime.now(),
     ) = StockMovement(
         id = id,
@@ -73,7 +73,7 @@ class InventoryCostingServiceTest {
         quantity = quantity,
         unitCost = unitCost,
         occurredAt = occurredAt,
-        createdBy = "user-1",
+        createdBy = java.util.UUID.fromString("1db2395f-13ba-3d37-9d2b-f77d3eb3aa2e"),
     )
 
     // ─── FIFO ──────────────────────────────────────────────────────────────
@@ -100,8 +100,22 @@ class InventoryCostingServiceTest {
     @Test
     fun `FIFO ISSUE consumes oldest layers first`() {
         mockOrg(InventoryCostingMethod.FIFO)
-        val older = makeLayer(BigDecimal("4"), BigDecimal("4"), BigDecimal("2"), id = "l1", occurredOffsetSec = -1000)
-        val newer = makeLayer(BigDecimal("6"), BigDecimal("6"), BigDecimal("3"), id = "l2", occurredOffsetSec = 0)
+        val older =
+            makeLayer(
+                BigDecimal("4"),
+                BigDecimal("4"),
+                BigDecimal("2"),
+                id = java.util.UUID.fromString("336769dc-3e2c-3551-b2b1-22511f94d60f"),
+                occurredOffsetSec = -1000,
+            )
+        val newer =
+            makeLayer(
+                BigDecimal("6"),
+                BigDecimal("6"),
+                BigDecimal("3"),
+                id = java.util.UUID.fromString("f8a2b403-56bd-3082-89c5-e2ac4afade07"),
+                occurredOffsetSec = 0,
+            )
         `when`(
             layerRepository.findByOrganizationIdAndProductIdAndWarehouseIdOrderByOccurredAtAsc(
                 orgId,
@@ -118,8 +132,18 @@ class InventoryCostingServiceTest {
             .verify(layerRepository, org.mockito.Mockito.atLeast(2))
             .save(captor.capture())
         val saved = captor.allValues
-        assertThat(saved.first { it.id == "l1" }.remainingQuantity).isEqualByComparingTo("0")
-        assertThat(saved.first { it.id == "l2" }.remainingQuantity).isEqualByComparingTo("5")
+        assertThat(
+            saved
+                .first {
+                    it.id == java.util.UUID.fromString("336769dc-3e2c-3551-b2b1-22511f94d60f")
+                }.remainingQuantity,
+        ).isEqualByComparingTo("0")
+        assertThat(
+            saved
+                .first {
+                    it.id == java.util.UUID.fromString("f8a2b403-56bd-3082-89c5-e2ac4afade07")
+                }.remainingQuantity,
+        ).isEqualByComparingTo("5")
     }
 
     @Test
@@ -243,7 +267,7 @@ class InventoryCostingServiceTest {
         original: BigDecimal,
         remaining: BigDecimal,
         unitCost: BigDecimal,
-        id: String = "layer-1",
+        id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         occurredOffsetSec: Long = 0,
     ) = InventoryCostLayer(
         id = id,
@@ -253,7 +277,7 @@ class InventoryCostingServiceTest {
         originalQuantity = original,
         remainingQuantity = remaining,
         unitCost = unitCost,
-        sourceMovementId = "mov-x",
+        sourceMovementId = java.util.UUID.fromString("7f2f6a62-1064-3ac2-90f8-87b00989f535"),
         occurredAt = LocalDateTime.now().plusSeconds(occurredOffsetSec),
     )
 }

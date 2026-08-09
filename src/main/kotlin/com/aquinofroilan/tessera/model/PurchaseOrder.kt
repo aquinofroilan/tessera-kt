@@ -31,75 +31,75 @@ enum class PurchaseOrderStatus {
 
 @Entity
 @Table(name = "purchase_order_lines")
-data class PurchaseOrderLine(
+class PurchaseOrderLine(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "line_number")
-    val lineNumber: Int = 0,
+    var lineNumber: Int = 0,
     @Column(name = "product_id", columnDefinition = "uuid")
-    val productId: String,
+    var productId: java.util.UUID,
     @Column(name = "product_sku")
-    val productSku: String,
+    var productSku: String,
     @Column(name = "product_name")
-    val productName: String,
-    val quantity: BigDecimal,
+    var productName: String,
+    var quantity: BigDecimal,
     @Column(name = "unit_cost")
-    val unitCost: BigDecimal,
+    var unitCost: BigDecimal,
     @Column(name = "line_total")
-    val lineTotal: BigDecimal,
+    var lineTotal: BigDecimal,
     @Column(name = "received_quantity")
-    val receivedQuantity: BigDecimal = BigDecimal.ZERO,
+    var receivedQuantity: BigDecimal = BigDecimal.ZERO,
     @Column(name = "billed_quantity")
-    val billedQuantity: BigDecimal = BigDecimal.ZERO,
-    val description: String? = null,
+    var billedQuantity: BigDecimal = BigDecimal.ZERO,
+    var description: String? = null,
 )
 
 @Entity
 @Table(name = "purchase_orders")
 @EntityListeners(AuditingEntityListener::class)
-data class PurchaseOrder(
+class PurchaseOrder(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "po_number")
-    val poNumber: String,
+    var poNumber: String,
     @Column(name = "vendor_id", columnDefinition = "uuid")
-    val vendorId: String,
+    var vendorId: java.util.UUID,
     @Column(name = "vendor_name")
-    val vendorName: String,
+    var vendorName: String,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
-    val warehouseId: String,
+    var warehouseId: java.util.UUID,
     @Column(name = "order_date")
-    val orderDate: LocalDate,
+    var orderDate: LocalDate,
     @Column(name = "expected_date")
-    val expectedDate: LocalDate? = null,
+    var expectedDate: LocalDate? = null,
     @Column(name = "reference_number")
-    val referenceNumber: String? = null,
+    var referenceNumber: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Enumerated(EnumType.STRING)
-    val status: PurchaseOrderStatus = PurchaseOrderStatus.DRAFT,
+    var status: PurchaseOrderStatus = PurchaseOrderStatus.DRAFT,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "purchase_order_id")
     @OrderBy("lineNumber ASC")
-    val lines: List<PurchaseOrderLine>,
+    var lines: List<PurchaseOrderLine>,
     @Column(name = "total_amount")
-    val totalAmount: BigDecimal,
+    var totalAmount: BigDecimal,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    var createdBy: java.util.UUID,
     @Column(name = "approved_at")
-    val approvedAt: LocalDateTime? = null,
+    var approvedAt: LocalDateTime? = null,
     @Column(name = "approved_by", columnDefinition = "uuid")
-    val approvedBy: String? = null,
+    var approvedBy: java.util.UUID? = null,
     @Column(name = "received_at")
-    val receivedAt: LocalDateTime? = null,
+    var receivedAt: LocalDateTime? = null,
     @Column(name = "cancelled_at")
-    val cancelledAt: LocalDateTime? = null,
+    var cancelledAt: LocalDateTime? = null,
     @CreatedDate
     @Column(name = "created_at")
-    val createdAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     @Column(name = "updated_at")
-    val updatedAt: LocalDateTime? = null,
+    var updatedAt: LocalDateTime? = null,
 )
