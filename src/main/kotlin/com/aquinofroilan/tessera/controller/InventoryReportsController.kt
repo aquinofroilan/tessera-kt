@@ -34,8 +34,8 @@ class InventoryReportsController(
     @GetMapping("/stock-on-hand")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun stockOnHand(
-        @RequestParam(required = false) productId: String?,
-        @RequestParam(required = false) warehouseId: String?,
+        @RequestParam(required = false) productId: java.util.UUID?,
+        @RequestParam(required = false) warehouseId: java.util.UUID?,
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         asOfDate: LocalDateTime?,
@@ -47,8 +47,8 @@ class InventoryReportsController(
     @GetMapping("/movements")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun movementHistory(
-        @RequestParam(required = false) productId: String?,
-        @RequestParam(required = false) warehouseId: String?,
+        @RequestParam(required = false) productId: java.util.UUID?,
+        @RequestParam(required = false) warehouseId: java.util.UUID?,
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         from: LocalDateTime?,

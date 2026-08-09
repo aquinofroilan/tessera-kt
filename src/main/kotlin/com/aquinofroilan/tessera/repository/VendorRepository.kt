@@ -5,9 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface VendorRepository : JpaRepository<Vendor, String> {
+interface VendorRepository : JpaRepository<Vendor, java.util.UUID> {
     fun findByOrganizationIdAndIsActive(
-        organizationId: String,
+        organizationId: java.util.UUID,
         isActive: Boolean,
     ): List<Vendor>
 }

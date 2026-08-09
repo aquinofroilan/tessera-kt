@@ -29,8 +29,8 @@ class JournalEntryService(
     @Transactional
     fun createJournalEntry(
         request: CreateJournalEntryRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): JournalEntry {
         if (request.lines.size < 2) {
             throw BusinessRuleException("Journal entry must have at least 2 line items")
@@ -101,10 +101,10 @@ class JournalEntryService(
     fun createSystemEntry(
         date: LocalDate,
         description: String,
-        organizationId: String,
+        organizationId: java.util.UUID,
         lines: List<JournalEntryLine>,
         sourceReference: String,
-        createdBy: String,
+        createdBy: java.util.UUID,
     ): JournalEntry {
         if (lines.isEmpty()) {
             throw BusinessRuleException("System journal entry must have at least one line item")
@@ -151,8 +151,8 @@ class JournalEntryService(
 
     @Transactional
     fun postJournalEntry(
-        entryId: String,
-        organizationId: String,
+        entryId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): JournalEntry {
         val entry = findEntry(entryId, organizationId)
         if (entry.status != JournalEntryStatus.DRAFT) {
@@ -167,18 +167,15 @@ class JournalEntryService(
 
         validateFiscalPeriodOpen(organizationId, entry.date)
 
-        return journalEntryRepository.save(
-            entry.copy(
-                status = JournalEntryStatus.POSTED,
-                postedAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        entry.status = JournalEntryStatus.POSTED
+        entry.postedAt = LocalDateTime.now(ZoneOffset.UTC)
+        return journalEntryRepository.save(entry)
     }
 
     @Transactional
     fun voidJournalEntry(
-        entryId: String,
-        organizationId: String,
+        entryId: java.util.UUID,
+        organizationId: java.util.UUID,
         reason: String,
     ): JournalEntry {
         val entry = findEntry(entryId, organizationId)
@@ -190,18 +187,19 @@ class JournalEntryService(
         validateFiscalPeriodOpen(organizationId, reversalDate)
 
         val now = LocalDateTime.now(ZoneOffset.UTC)
-        val voidedEntry =
-            journalEntryRepository.save(
-                entry.copy(
-                    status = JournalEntryStatus.VOIDED,
-                    voidedAt = now,
-                    voidReason = reason,
-                ),
-            )
+        entry.status = JournalEntryStatus.VOIDED
+        entry.voidedAt = now
+        entry.voidReason = reason
+        val voidedEntry = journalEntryRepository.save(entry)
 
         val reversedLines =
             entry.lines.map { line ->
-                line.copy(debit = line.credit, credit = line.debit)
+                val originalDebit = line.debit
+                val originalCredit = line.credit
+                line.apply {
+                    debit = originalCredit
+                    credit = originalDebit
+                }
             }
 
         entryNumberGenerator.saveWithRetry(organizationId) { reversingNumber ->
@@ -223,12 +221,12 @@ class JournalEntryService(
     }
 
     fun getJournalEntry(
-        entryId: String,
-        organizationId: String,
+        entryId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): JournalEntry = findEntry(entryId, organizationId)
 
     fun listJournalEntries(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: JournalEntryStatus? = null,
         startDate: LocalDate? = null,
         endDate: LocalDate? = null,
@@ -253,8 +251,8 @@ class JournalEntryService(
         }
 
     fun getAccountBalance(
-        accountId: String,
-        organizationId: String,
+        accountId: java.util.UUID,
+        organizationId: java.util.UUID,
         asOfDate: LocalDate? = null,
     ): AccountBalanceResponse {
         val account =
@@ -282,7 +280,7 @@ class JournalEntryService(
     }
 
     fun getTrialBalance(
-        organizationId: String,
+        organizationId: java.util.UUID,
         asOfDate: LocalDate? = null,
     ): TrialBalanceResponse {
         val allAccounts = accountRepository.findByOrganizationIdAndIsActive(organizationId, true)
@@ -329,8 +327,8 @@ class JournalEntryService(
     }
 
     private fun findEntry(
-        entryId: String,
-        organizationId: String,
+        entryId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): JournalEntry {
         val entry =
             journalEntryRepository.findById(entryId).orElseThrow {
@@ -343,7 +341,7 @@ class JournalEntryService(
     }
 
     private fun validateFiscalPeriodOpen(
-        organizationId: String,
+        organizationId: java.util.UUID,
         date: LocalDate,
     ) = fiscalYearService.validatePeriodOpen(organizationId, date)
 }

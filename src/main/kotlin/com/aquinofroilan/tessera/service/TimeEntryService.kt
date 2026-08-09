@@ -22,7 +22,7 @@ class TimeEntryService(
     @Transactional
     fun createTimeEntry(
         request: CreateTimeEntryRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): TimeEntry {
         val hours = request.hours ?: throw BusinessRuleException("Hours are required")
         if (hours.signum() <= 0) {
@@ -52,8 +52,8 @@ class TimeEntryService(
     }
 
     fun getTimeEntry(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): TimeEntry {
         val entry =
             timeEntryRepository.findById(id).orElseThrow {
@@ -66,9 +66,9 @@ class TimeEntryService(
     }
 
     fun listTimeEntries(
-        organizationId: String,
-        employeeId: String? = null,
-        projectId: String? = null,
+        organizationId: java.util.UUID,
+        employeeId: java.util.UUID? = null,
+        projectId: java.util.UUID? = null,
         status: TimeEntryStatus? = null,
     ): List<TimeEntry> =
         when {
@@ -82,9 +82,9 @@ class TimeEntryService(
 
     @Transactional
     fun updateTimeEntry(
-        id: String,
+        id: java.util.UUID,
         request: UpdateTimeEntryRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): TimeEntry {
         val entry = getTimeEntry(id, organizationId)
         if (entry.status != TimeEntryStatus.DRAFT) {
@@ -92,65 +92,59 @@ class TimeEntryService(
         }
         request.hours?.let { if (it.signum() <= 0) throw BusinessRuleException("Hours must be positive") }
         request.taskId?.let { projectTaskService.getTask(entry.projectId, it, organizationId) }
-        return timeEntryRepository.save(
-            entry.copy(
-                taskId = request.taskId ?: entry.taskId,
-                entryDate = request.entryDate ?: entry.entryDate,
-                hours = request.hours ?: entry.hours,
-                billable = request.billable ?: entry.billable,
-                rate = request.rate ?: entry.rate,
-                notes = request.notes ?: entry.notes,
-            ),
-        )
+        entry.apply {
+            taskId = request.taskId ?: entry.taskId
+            entryDate = request.entryDate ?: entry.entryDate
+            hours = request.hours ?: entry.hours
+            billable = request.billable ?: entry.billable
+            rate = request.rate ?: entry.rate
+            notes = request.notes ?: entry.notes
+        }
+        return timeEntryRepository.save(entry)
     }
 
     @Transactional
     fun submitTimeEntry(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): TimeEntry {
         val entry = getTimeEntry(id, organizationId)
         if (entry.status != TimeEntryStatus.DRAFT) {
             throw BusinessRuleException("Only draft time entries can be submitted")
         }
-        return timeEntryRepository.save(entry.copy(status = TimeEntryStatus.SUBMITTED))
+        entry.status = TimeEntryStatus.SUBMITTED
+        return timeEntryRepository.save(entry)
     }
 
     @Transactional
     fun approveTimeEntry(
-        id: String,
-        organizationId: String,
-        approvedBy: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        approvedBy: java.util.UUID,
     ): TimeEntry {
         val entry = getTimeEntry(id, organizationId)
         if (entry.status != TimeEntryStatus.SUBMITTED) {
             throw BusinessRuleException("Only submitted time entries can be approved")
         }
-        return timeEntryRepository.save(
-            entry.copy(
-                status = TimeEntryStatus.APPROVED,
-                approvedBy = approvedBy,
-                approvedAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        entry.status = TimeEntryStatus.APPROVED
+        entry.approvedBy = approvedBy
+        entry.approvedAt = LocalDateTime.now(ZoneOffset.UTC)
+        return timeEntryRepository.save(entry)
     }
 
     @Transactional
     fun rejectTimeEntry(
-        id: String,
-        organizationId: String,
-        decidedBy: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        decidedBy: java.util.UUID,
     ): TimeEntry {
         val entry = getTimeEntry(id, organizationId)
         if (entry.status != TimeEntryStatus.SUBMITTED) {
             throw BusinessRuleException("Only submitted time entries can be rejected")
         }
-        return timeEntryRepository.save(
-            entry.copy(
-                status = TimeEntryStatus.REJECTED,
-                approvedBy = decidedBy,
-                approvedAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        entry.status = TimeEntryStatus.REJECTED
+        entry.approvedBy = decidedBy
+        entry.approvedAt = LocalDateTime.now(ZoneOffset.UTC)
+        return timeEntryRepository.save(entry)
     }
 }

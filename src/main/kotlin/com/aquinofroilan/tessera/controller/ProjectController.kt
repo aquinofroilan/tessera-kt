@@ -43,7 +43,7 @@ class ProjectController(
     @PreAuthorize("hasAuthority('projects:read')")
     fun listProjects(
         @RequestParam(required = false) status: String?,
-        @RequestParam(required = false) customerId: String?,
+        @RequestParam(required = false) customerId: java.util.UUID?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val projectStatus =
@@ -62,7 +62,7 @@ class ProjectController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('projects:read')")
     fun getProject(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(ProjectResponse.from(projectService.getProject(id, orgId)))
@@ -71,7 +71,7 @@ class ProjectController(
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('projects:write')")
     fun updateProject(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateProjectRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -81,7 +81,7 @@ class ProjectController(
     @PostMapping("/{id}/activate")
     @PreAuthorize("hasAuthority('projects:write')")
     fun activateProject(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(ProjectResponse.from(projectService.activateProject(id, orgId)))
@@ -90,7 +90,7 @@ class ProjectController(
     @PostMapping("/{id}/hold")
     @PreAuthorize("hasAuthority('projects:write')")
     fun holdProject(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(ProjectResponse.from(projectService.holdProject(id, orgId)))
@@ -99,7 +99,7 @@ class ProjectController(
     @PostMapping("/{id}/close")
     @PreAuthorize("hasAuthority('projects:write')")
     fun closeProject(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(ProjectResponse.from(projectService.closeProject(id, orgId)))
@@ -108,7 +108,7 @@ class ProjectController(
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('projects:write')")
     fun cancelProject(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(ProjectResponse.from(projectService.cancelProject(id, orgId)))

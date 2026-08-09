@@ -17,7 +17,7 @@ class DepartmentService(
     @Transactional
     fun createDepartment(
         request: CreateDepartmentRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Department {
         val code = request.code.trim()
         if (departmentRepository.findByOrganizationIdAndCode(organizationId, code).isPresent) {
@@ -36,8 +36,8 @@ class DepartmentService(
     }
 
     fun getDepartment(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Department {
         val department =
             departmentRepository.findById(id).orElseThrow {
@@ -50,7 +50,7 @@ class DepartmentService(
     }
 
     fun listDepartments(
-        organizationId: String,
+        organizationId: java.util.UUID,
         activeOnly: Boolean = false,
     ): List<Department> =
         if (activeOnly) {
@@ -61,29 +61,29 @@ class DepartmentService(
 
     @Transactional
     fun updateDepartment(
-        id: String,
+        id: java.util.UUID,
         request: UpdateDepartmentRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Department {
         val department = getDepartment(id, organizationId)
-        return departmentRepository.save(
-            department.copy(
-                name = request.name?.trim() ?: department.name,
-                description = request.description ?: department.description,
-            ),
-        )
+        department.apply {
+            name = request.name?.trim() ?: department.name
+            description = request.description ?: department.description
+        }
+        return departmentRepository.save(department)
     }
 
     @Transactional
     fun deactivateDepartment(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Department {
         val department = getDepartment(id, organizationId)
         if (!department.isActive) {
             throw BusinessRuleException("Department is already inactive")
         }
-        return departmentRepository.save(department.copy(isActive = false))
+        department.isActive = false
+        return departmentRepository.save(department)
     }
 
     /**
@@ -93,13 +93,14 @@ class DepartmentService(
      */
     @Transactional
     fun setParent(
-        id: String,
-        parentId: String?,
-        organizationId: String,
+        id: java.util.UUID,
+        parentId: java.util.UUID?,
+        organizationId: java.util.UUID,
     ): Department {
         val department = getDepartment(id, organizationId)
         if (parentId == null) {
-            return departmentRepository.save(department.copy(parentId = null))
+            department.parentId = null
+            return departmentRepository.save(department)
         }
         if (parentId == id) {
             throw BusinessRuleException("A department cannot be its own parent")
@@ -108,14 +109,15 @@ class DepartmentService(
         if (descendantIds(id, organizationId).contains(parentId)) {
             throw BusinessRuleException("Cannot move a department under one of its own descendants")
         }
-        return departmentRepository.save(department.copy(parentId = parentId))
+        department.parentId = parentId
+        return departmentRepository.save(department)
     }
 
     /**
      * Builds the department org chart for an organization: root departments
      * (those without a parent) with their descendants nested beneath them.
      */
-    fun getOrgChart(organizationId: String): List<DepartmentTreeNode> {
+    fun getOrgChart(organizationId: java.util.UUID): List<DepartmentTreeNode> {
         val all = departmentRepository.findByOrganizationId(organizationId)
         val childrenByParent = all.groupBy { it.parentId }
 
@@ -128,19 +130,19 @@ class DepartmentService(
     }
 
     private fun requireParentInOrg(
-        parentId: String,
-        organizationId: String,
+        parentId: java.util.UUID,
+        organizationId: java.util.UUID,
     ) {
         // Reuses the cross-org guard: a parent in another org surfaces as "not found".
         getDepartment(parentId, organizationId)
     }
 
     private fun descendantIds(
-        id: String,
-        organizationId: String,
-    ): Set<String> {
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+    ): Set<java.util.UUID> {
         val childrenByParent = departmentRepository.findByOrganizationId(organizationId).groupBy { it.parentId }
-        val descendants = mutableSetOf<String>()
+        val descendants = mutableSetOf<java.util.UUID>()
         val queue = ArrayDeque(childrenByParent[id].orEmpty().map { it.id })
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()

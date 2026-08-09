@@ -14,6 +14,7 @@ import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.http.ResponseEntity
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import java.util.UUID
 
 @GraphQlTest(controllers = [ProjectBillingGraphqlController::class])
 @Import(
@@ -33,20 +34,20 @@ class ProjectBillingGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["projects:write"])
     fun `generateProjectInvoice mutation should bridge to controller`() {
-        whenever(projectBillingController.generateInvoice(eq("p1"), anyOrNull()))
-            .thenReturn(ResponseEntity.ok(mapOf("id" to "inv1", "status" to "DRAFT")))
+        whenever(projectBillingController.generateInvoice(eq(UUID.fromString("00000000-0000-0000-0000-000000000199")), anyOrNull()))
+            .thenReturn(ResponseEntity.ok(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "DRAFT")))
 
         graphQlTester
             .document(
                 """
                 mutation {
-                  generateProjectInvoice(projectId: "p1")
+                  generateProjectInvoice(projectId: "00000000-0000-0000-0000-000000000199")
                 }
                 """.trimIndent(),
             ).execute()
             .path("generateProjectInvoice.id")
             .entity(String::class.java)
-            .isEqualTo("inv1")
+            .isEqualTo("00000000-0000-0000-0000-000000000199")
     }
 
     @Test
@@ -56,7 +57,7 @@ class ProjectBillingGraphqlControllerTest {
             .document(
                 """
                 mutation {
-                  generateProjectInvoice(projectId: "p1")
+                  generateProjectInvoice(projectId: "00000000-0000-0000-0000-000000000199")
                 }
                 """.trimIndent(),
             ).execute()

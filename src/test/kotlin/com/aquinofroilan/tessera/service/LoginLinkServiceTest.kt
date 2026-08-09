@@ -31,8 +31,8 @@ class LoginLinkServiceTest {
     private lateinit var service: LoginLinkService
 
     private val email = "ada@example.com"
-    private val orgId = "org-1"
-    private val userId = "u-1"
+    private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
+    private val userId = java.util.UUID.fromString("1fd9446c-9f04-31e6-941e-53b391d01cab")
 
     @BeforeEach
     fun setup() {

@@ -45,6 +45,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 
 @WebMvcTest(controllers = [FinancialReportController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
@@ -94,28 +95,32 @@ class FinancialReportControllerTest {
 
     private val testUser =
         User(
-            uuid = "user-123",
+            uuid = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             username = "testuser",
             email = "test@example.com",
             firstName = "Test",
             lastName = "User",
             passwordHash = "encoded",
-            organizationId = "org-123",
-            roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
+            organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000199"))),
         )
 
     @BeforeEach
     fun setup() {
         setupAuthWithPermissions("journal:read")
-        `when`(authenticationContext.organizationId()).thenReturn("org-123")
-        `when`(authenticationContext.userId()).thenReturn("user-123")
+        `when`(authenticationContext.organizationId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
+        `when`(authenticationContext.userId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
     }
 
     private fun setupAuthWithPermissions(vararg permissions: String) {
         val roleAuthorities = testUser.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
         val permissionAuthorities = permissions.map { SimpleGrantedAuthority(it) }
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
-        authentication.details = SessionContext(sessionId = "session-123", organizationId = "org-123")
+        authentication.details =
+            SessionContext(
+                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+            )
         SecurityContextHolder.getContext().authentication = authentication
     }
 
@@ -144,13 +149,13 @@ class FinancialReportControllerTest {
                 comparativePeriod = null,
                 revenue =
                     listOf(
-                        ReportAccountLine("acc-rev", "4000", "Sales", BigDecimal("1000.00")),
+                        ReportAccountLine(UUID.fromString("00000000-0000-0000-0000-000000000999"), "4000", "Sales", BigDecimal("1000.00")),
                     ),
                 totalRevenue = BigDecimal("1000.00"),
                 comparativeTotalRevenue = null,
                 expenses =
                     listOf(
-                        ReportAccountLine("acc-exp", "5000", "COGS", BigDecimal("300.00")),
+                        ReportAccountLine(UUID.fromString("00000000-0000-0000-0000-000000000998"), "5000", "COGS", BigDecimal("300.00")),
                     ),
                 totalExpenses = BigDecimal("300.00"),
                 comparativeTotalExpenses = null,
@@ -159,7 +164,7 @@ class FinancialReportControllerTest {
             )
         `when`(
             financialReportService.getIncomeStatement(
-                eq("org-123"),
+                eq(UUID.fromString("00000000-0000-0000-0000-000000000199")),
                 eq(LocalDate.of(2026, 3, 1)),
                 eq(LocalDate.of(2026, 3, 31)),
                 anyOrNull(),
@@ -197,7 +202,7 @@ class FinancialReportControllerTest {
                 equity =
                     listOf(
                         ReportAccountLine(
-                            accountId = SyntheticAccountIds.CURRENT_PERIOD_EARNINGS,
+                            accountId = SyntheticAccountIds.CURRENT_PERIOD_EARNINGS_ID,
                             accountCode = SyntheticAccountIds.CURRENT_PERIOD_EARNINGS,
                             accountName = "Current Period Earnings",
                             amount = BigDecimal("1000.00"),
@@ -221,7 +226,7 @@ class FinancialReportControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.balanced").value(true))
             .andExpect(jsonPath("$.equity[0].synthetic").value(true))
-            .andExpect(jsonPath("$.equity[0].accountId").value(SyntheticAccountIds.CURRENT_PERIOD_EARNINGS))
+            .andExpect(jsonPath("$.equity[0].accountId").value(SyntheticAccountIds.CURRENT_PERIOD_EARNINGS_ID.toString()))
     }
 
     @Test

@@ -27,7 +27,7 @@ class ProjectBudgetController(
     @PostMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun setBudget(
-        @PathVariable projectId: String,
+        @PathVariable projectId: java.util.UUID,
         @Valid @RequestBody request: SetProjectBudgetRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -38,7 +38,7 @@ class ProjectBudgetController(
     @GetMapping
     @PreAuthorize("hasAuthority('projects:read')")
     fun listBudgets(
-        @PathVariable projectId: String,
+        @PathVariable projectId: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(projectBudgetService.listBudgets(projectId, orgId).map { ProjectBudgetResponse.from(it) })
@@ -47,7 +47,7 @@ class ProjectBudgetController(
     @GetMapping("/vs-actual")
     @PreAuthorize("hasAuthority('projects:read')")
     fun budgetVsActual(
-        @PathVariable projectId: String,
+        @PathVariable projectId: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(projectBudgetService.budgetVsActual(projectId, orgId))

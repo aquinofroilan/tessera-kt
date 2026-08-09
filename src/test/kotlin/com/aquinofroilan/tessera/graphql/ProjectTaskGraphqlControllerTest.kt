@@ -12,6 +12,7 @@ import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.http.ResponseEntity
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import java.util.UUID
 
 @GraphQlTest(controllers = [ProjectTaskGraphqlController::class])
 @Import(
@@ -31,20 +32,20 @@ class ProjectTaskGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["projects:read"])
     fun `projectTasks query should return json payload`() {
-        `when`(projectTaskController.listTasks("p1"))
-            .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "t1", "status" to "TODO"))))
+        `when`(projectTaskController.listTasks(UUID.fromString("00000000-0000-0000-0000-000000000199")))
+            .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "TODO"))))
 
         graphQlTester
             .document(
                 """
                 query {
-                  projectTasks(projectId: "p1")
+                  projectTasks(projectId: "00000000-0000-0000-0000-000000000199")
                 }
                 """.trimIndent(),
             ).execute()
             .path("projectTasks[0].id")
             .entity(String::class.java)
-            .isEqualTo("t1")
+            .isEqualTo("00000000-0000-0000-0000-000000000199")
     }
 
     @Test
@@ -54,7 +55,7 @@ class ProjectTaskGraphqlControllerTest {
             .document(
                 """
                 mutation(${'$'}input: JSON!) {
-                  createProjectTask(projectId: "p1", input: ${'$'}input)
+                  createProjectTask(projectId: "00000000-0000-0000-0000-000000000199", input: ${'$'}input)
                 }
                 """.trimIndent(),
             ).variable("input", mapOf("name" to "Design"))

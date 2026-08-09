@@ -24,12 +24,12 @@ data class UpdateLeaveTypeRequest(
 )
 
 data class LeaveTypeResponse(
-    val id: String,
+    val id: java.util.UUID,
     val code: String,
     val name: String,
     val paid: Boolean,
     val defaultAnnualDays: Int,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,

@@ -7,12 +7,12 @@ import jakarta.persistence.Table
 
 @Entity
 @Table(name = "currencies")
-data class Currency(
+class Currency(
     @Id
     @Column(columnDefinition = "char(3)")
-    val code: String,
-    val name: String,
-    val symbol: String,
+    var code: String,
+    var name: String,
+    var symbol: String,
     @Column(name = "decimal_places")
-    val decimalPlaces: Int,
+    var decimalPlaces: Int,
 )

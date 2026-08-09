@@ -8,6 +8,7 @@ plugins {
     id("org.springframework.boot") version "4.0.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.jlleitschuh.gradle.ktlint") version "12.3.0"
+    kotlin("plugin.lombok") version "2.3.0"
 }
 
 group = "com.aquinofroilan"
@@ -16,7 +17,7 @@ description = "Tessera an ERP System"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(26)
     }
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
@@ -49,6 +50,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-health:4.0.1")
     implementation("org.aspectj:aspectjweaver")
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
+    implementation("com.github.f4b6a3:uuid-creator:6.1.1")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-authorization-server")
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
@@ -61,12 +63,14 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.testcontainers:postgresql:1.20.1")
     testImplementation("org.springframework.boot:spring-boot-starter-graphql-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(kotlin("test"))
 }
 
 kotlin {

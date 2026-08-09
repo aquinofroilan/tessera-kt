@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface OrganizationRepository : JpaRepository<Organizations, String> {
+interface OrganizationRepository : JpaRepository<Organizations, java.util.UUID> {
     fun findByOrgSlug(orgSlug: String): Optional<Organizations>
 
     fun existsByOrgSlug(orgSlug: String): Boolean

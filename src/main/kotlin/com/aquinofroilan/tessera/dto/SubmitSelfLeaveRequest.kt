@@ -1,6 +1,5 @@
 package com.aquinofroilan.tessera.dto
 
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import java.time.LocalDate
 
@@ -9,8 +8,8 @@ import java.time.LocalDate
  * resolved from the authenticated user, so no employee ID is supplied.
  */
 data class SubmitSelfLeaveRequest(
-    @field:NotBlank(message = "Leave type ID is required")
-    val leaveTypeId: String,
+    @field:NotNull(message = "Leave type ID is required")
+    val leaveTypeId: java.util.UUID,
     @field:NotNull(message = "Start date is required")
     val startDate: LocalDate?,
     @field:NotNull(message = "End date is required")

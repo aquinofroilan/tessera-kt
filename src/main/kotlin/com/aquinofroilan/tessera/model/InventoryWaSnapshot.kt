@@ -14,19 +14,19 @@ import java.util.UUID
 @Entity
 @Table(name = "inventory_wa_snapshots")
 @EntityListeners(AuditingEntityListener::class)
-data class InventoryWaSnapshot(
+class InventoryWaSnapshot(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "product_id", columnDefinition = "uuid")
-    val productId: String,
+    var productId: java.util.UUID,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
-    val warehouseId: String,
-    val quantity: BigDecimal,
+    var warehouseId: java.util.UUID,
+    var quantity: BigDecimal,
     @Column(name = "total_cost")
-    val totalCost: BigDecimal,
+    var totalCost: BigDecimal,
     @LastModifiedDate
     @Column(name = "updated_at")
     var updatedAt: LocalDateTime? = null,

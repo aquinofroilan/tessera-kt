@@ -25,37 +25,37 @@ enum class TimeEntryStatus {
 @Entity
 @Table(name = "time_entries")
 @EntityListeners(AuditingEntityListener::class)
-data class TimeEntry(
+class TimeEntry(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "employee_id", columnDefinition = "uuid")
-    val employeeId: String,
+    var employeeId: java.util.UUID,
     @Column(name = "project_id", columnDefinition = "uuid")
-    val projectId: String,
+    var projectId: java.util.UUID,
     @Column(name = "task_id", columnDefinition = "uuid")
-    val taskId: String? = null,
+    var taskId: java.util.UUID? = null,
     @Column(name = "entry_date")
-    val entryDate: LocalDate,
-    val hours: BigDecimal,
-    val billable: Boolean = true,
-    val rate: BigDecimal? = null,
+    var entryDate: LocalDate,
+    var hours: BigDecimal,
+    var billable: Boolean = true,
+    var rate: BigDecimal? = null,
     @Enumerated(EnumType.STRING)
-    val status: TimeEntryStatus = TimeEntryStatus.DRAFT,
-    val notes: String? = null,
+    var status: TimeEntryStatus = TimeEntryStatus.DRAFT,
+    var notes: String? = null,
     @Column(name = "approved_by", columnDefinition = "uuid")
-    val approvedBy: String? = null,
+    var approvedBy: java.util.UUID? = null,
     @Column(name = "approved_at")
-    val approvedAt: LocalDateTime? = null,
-    val invoiced: Boolean = false,
+    var approvedAt: LocalDateTime? = null,
+    var invoiced: Boolean = false,
     @Column(name = "invoice_id", columnDefinition = "uuid")
-    val invoiceId: String? = null,
+    var invoiceId: java.util.UUID? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
-    val createdAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     @Column(name = "updated_at")
-    val updatedAt: LocalDateTime? = null,
+    var updatedAt: LocalDateTime? = null,
 )

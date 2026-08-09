@@ -4,8 +4,8 @@ import com.aquinofroilan.tessera.model.InventoryCostingMethod
 import java.math.BigDecimal
 
 data class ValuationLineResponse(
-    val productId: String,
-    val warehouseId: String,
+    val productId: java.util.UUID,
+    val warehouseId: java.util.UUID,
     val quantity: BigDecimal,
     val totalValue: BigDecimal,
 )

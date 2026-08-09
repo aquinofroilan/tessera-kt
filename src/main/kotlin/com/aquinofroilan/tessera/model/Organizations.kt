@@ -14,34 +14,34 @@ import java.util.UUID
 @Entity
 @Table(name = "organizations")
 @EntityListeners(AuditingEntityListener::class)
-data class Organizations(
+class Organizations(
     @Id
     @Column(name = "uuid", columnDefinition = "uuid")
-    val uuid: String = UUID.randomUUID().toString(),
+    var uuid: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "org_slug")
-    val orgSlug: String,
-    val name: String,
-    val description: String? = null,
+    var orgSlug: String,
+    var name: String,
+    var description: String? = null,
     @Column(name = "legal_name")
-    val legalName: String,
+    var legalName: String,
     @Column(name = "trade_name")
-    val tradeName: String,
+    var tradeName: String,
     @Column(name = "base_currency", columnDefinition = "char(3)")
-    val baseCurrency: String = "USD",
+    var baseCurrency: String = "USD",
     @Column(name = "fiscal_year_start")
-    val fiscalYearStart: LocalDateTime,
-    val timezone: String,
-    val status: String = "ACTIVE",
+    var fiscalYearStart: LocalDateTime,
+    var timezone: String,
+    var status: String = "ACTIVE",
     @Column(name = "inventory_costing_method")
     @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
-    val inventoryCostingMethod: InventoryCostingMethod = InventoryCostingMethod.WEIGHTED_AVERAGE,
+    var inventoryCostingMethod: InventoryCostingMethod = InventoryCostingMethod.WEIGHTED_AVERAGE,
     @Column(name = "inventory_gl_posting_enabled")
-    val inventoryGlPostingEnabled: Boolean = false,
+    var inventoryGlPostingEnabled: Boolean = false,
     @CreatedDate
     @Column(name = "created_at")
-    val createdAt: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC),
+    var createdAt: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC),
     @Column(name = "is_active")
-    val isActive: Boolean = true,
+    var isActive: Boolean = true,
 )
 
 enum class InventoryCostingMethod {

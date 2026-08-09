@@ -7,35 +7,35 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
 @Repository
-interface BillRepository : JpaRepository<Bill, String> {
-    fun findByOrganizationId(organizationId: String): List<Bill>
+interface BillRepository : JpaRepository<Bill, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<Bill>
 
     fun findByOrganizationIdAndStatus(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: BillStatus,
     ): List<Bill>
 
     fun findByOrganizationIdAndVendorId(
-        organizationId: String,
-        vendorId: String,
+        organizationId: java.util.UUID,
+        vendorId: java.util.UUID,
     ): List<Bill>
 
     fun findByOrganizationIdAndStatusAndVendorId(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: BillStatus,
-        vendorId: String,
+        vendorId: java.util.UUID,
     ): List<Bill>
 
     fun findByOrganizationIdAndStatusIn(
-        organizationId: String,
+        organizationId: java.util.UUID,
         statuses: List<BillStatus>,
     ): List<Bill>
 
     fun findByOrganizationIdAndDateBetween(
-        organizationId: String,
+        organizationId: java.util.UUID,
         startDate: LocalDate,
         endDate: LocalDate,
     ): List<Bill>
 
-    fun countByOrganizationId(organizationId: String): Long
+    fun countByOrganizationId(organizationId: java.util.UUID): Long
 }

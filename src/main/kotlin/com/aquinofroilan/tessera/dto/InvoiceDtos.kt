@@ -4,25 +4,26 @@ import com.aquinofroilan.tessera.model.PaymentMethod
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 import java.math.BigDecimal
 import java.time.LocalDate
 
 data class InvoiceLineRequest(
-    @field:NotBlank(message = "Account ID is required")
-    val accountId: String,
+    @field:NotNull(message = "Account ID is required")
+    val accountId: java.util.UUID,
     @field:Positive(message = "Amount must be positive")
     val amount: BigDecimal,
     val description: String? = null,
 )
 
 data class CreateInvoiceRequest(
-    @field:NotBlank(message = "Customer ID is required")
-    val customerId: String,
+    @field:NotNull(message = "Customer ID is required")
+    val customerId: java.util.UUID,
     val date: LocalDate,
     val dueDate: LocalDate,
     val referenceNumber: String? = null,
-    val taxGroupId: String? = null,
+    val taxGroupId: java.util.UUID? = null,
     val currencyCode: String? = null,
     @field:NotEmpty(message = "At least one line item is required")
     @field:Valid
@@ -43,7 +44,7 @@ data class RecordReceiptRequest(
 )
 
 data class InvoiceLineResponse(
-    val accountId: String,
+    val accountId: java.util.UUID,
     val accountCode: String,
     val accountName: String,
     val amount: BigDecimal,
@@ -51,15 +52,15 @@ data class InvoiceLineResponse(
 )
 
 data class InvoiceResponse(
-    val id: String,
+    val id: java.util.UUID,
     val invoiceNumber: String,
-    val customerId: String,
+    val customerId: java.util.UUID,
     val customerName: String,
     val date: String,
     val dueDate: String,
     val referenceNumber: String?,
-    val taxGroupId: String?,
-    val organizationId: String,
+    val taxGroupId: java.util.UUID?,
+    val organizationId: java.util.UUID,
     val status: String,
     val lines: List<InvoiceLineResponse>,
     val totalAmount: BigDecimal,
@@ -70,20 +71,20 @@ data class InvoiceResponse(
     val baseCurrencyAmount: BigDecimal,
     val baseCurrencyTaxAmount: BigDecimal,
     val baseCurrencyAmountReceived: BigDecimal,
-    val journalEntryId: String?,
-    val createdBy: String,
+    val journalEntryId: java.util.UUID?,
+    val createdBy: java.util.UUID,
     val approvedAt: String?,
-    val approvedBy: String?,
+    val approvedBy: java.util.UUID?,
     val paidAt: String?,
     val voidedAt: String?,
-    val voidedBy: String?,
+    val voidedBy: java.util.UUID?,
     val voidReason: String?,
     val createdAt: String?,
     val updatedAt: String?,
 )
 
 data class InvoiceSummaryResponse(
-    val id: String,
+    val id: java.util.UUID,
     val invoiceNumber: String,
     val customerName: String,
     val date: String,
@@ -96,21 +97,21 @@ data class InvoiceSummaryResponse(
 )
 
 data class InvoiceReceiptResponse(
-    val id: String,
-    val invoiceId: String,
+    val id: java.util.UUID,
+    val invoiceId: java.util.UUID,
     val receiptDate: String,
     val amount: BigDecimal,
     val baseCurrencyAmount: BigDecimal,
     val exchangeRate: BigDecimal,
     val paymentMethod: String,
     val referenceNumber: String?,
-    val journalEntryId: String?,
-    val createdBy: String,
+    val journalEntryId: java.util.UUID?,
+    val createdBy: java.util.UUID,
     val createdAt: String?,
 )
 
 data class CustomerAgingResponse(
-    val customerId: String,
+    val customerId: java.util.UUID,
     val customerName: String,
     val aging: AgingBucket,
 )

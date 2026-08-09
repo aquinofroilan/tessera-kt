@@ -15,8 +15,8 @@ data class CreateEmployeeRequest(
     @field:Email(message = "Email must be valid")
     val email: String? = null,
     val jobTitle: String? = null,
-    val departmentId: String? = null,
-    val userId: String? = null,
+    val departmentId: java.util.UUID? = null,
+    val userId: java.util.UUID? = null,
     @field:NotNull(message = "Hire date is required")
     val hireDate: LocalDate?,
 )
@@ -27,7 +27,7 @@ data class UpdateEmployeeRequest(
     @field:Email(message = "Email must be valid")
     val email: String? = null,
     val jobTitle: String? = null,
-    val userId: String? = null,
+    val userId: java.util.UUID? = null,
 )
 
 data class TerminateEmployeeRequest(
@@ -36,18 +36,18 @@ data class TerminateEmployeeRequest(
 )
 
 data class EmployeeResponse(
-    val id: String,
+    val id: java.util.UUID,
     val employeeNumber: String,
     val firstName: String,
     val lastName: String,
     val email: String?,
     val jobTitle: String?,
-    val departmentId: String?,
-    val userId: String?,
+    val departmentId: java.util.UUID?,
+    val userId: java.util.UUID?,
     val hireDate: String,
     val status: EmploymentStatus,
     val terminationDate: String?,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val createdAt: String?,
     val updatedAt: String?,
 ) {

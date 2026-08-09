@@ -12,6 +12,7 @@ import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.http.ResponseEntity
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import java.util.UUID
 
 @GraphQlTest(controllers = [TimeEntryGraphqlController::class])
 @Import(
@@ -32,7 +33,7 @@ class TimeEntryGraphqlControllerTest {
     @WithMockUser(authorities = ["projects:read"])
     fun `timeEntries query should return json payload`() {
         `when`(timeEntryController.listTimeEntries(null, null, null))
-            .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "te1", "status" to "DRAFT"))))
+            .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "DRAFT"))))
 
         graphQlTester
             .document(
@@ -44,20 +45,20 @@ class TimeEntryGraphqlControllerTest {
             ).execute()
             .path("timeEntries[0].id")
             .entity(String::class.java)
-            .isEqualTo("te1")
+            .isEqualTo("00000000-0000-0000-0000-000000000199")
     }
 
     @Test
     @WithMockUser(authorities = ["projects:approve"])
     fun `approveTimeEntry mutation should bridge to controller`() {
-        `when`(timeEntryController.approveTimeEntry("te1"))
-            .thenReturn(ResponseEntity.ok(mapOf("id" to "te1", "status" to "APPROVED")))
+        `when`(timeEntryController.approveTimeEntry(UUID.fromString("00000000-0000-0000-0000-000000000199")))
+            .thenReturn(ResponseEntity.ok(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "APPROVED")))
 
         graphQlTester
             .document(
                 """
                 mutation {
-                  approveTimeEntry(id: "te1")
+                  approveTimeEntry(id: "00000000-0000-0000-0000-000000000199")
                 }
                 """.trimIndent(),
             ).execute()

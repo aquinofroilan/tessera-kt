@@ -26,11 +26,11 @@ class ProjectBillingController(
     @PostMapping("/invoice")
     @PreAuthorize("hasAuthority('projects:write')")
     fun generateInvoice(
-        @PathVariable projectId: String,
+        @PathVariable projectId: java.util.UUID,
         @Valid @RequestBody(required = false) request: GenerateProjectInvoiceRequest?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val createdBy = authContext.userId() ?: "api-key"
+        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val invoice =
             projectBillingService.generateInvoice(
                 projectId,

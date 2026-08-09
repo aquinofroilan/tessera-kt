@@ -46,6 +46,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 @WebMvcTest(controllers = [ProductController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
@@ -98,34 +99,38 @@ class ProductControllerTest {
 
     private val testUser =
         User(
-            uuid = "user-123",
+            uuid = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             username = "testuser",
             email = "test@example.com",
             firstName = "Test",
             lastName = "User",
             passwordHash = "encoded",
-            organizationId = "org-123",
-            roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
+            organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000199"))),
         )
 
     @BeforeEach
     fun setup() {
         setupAuthWithPermissions("inventory:read", "inventory:write")
-        `when`(authenticationContext.organizationId()).thenReturn("org-123")
-        `when`(authenticationContext.userId()).thenReturn("user-123")
+        `when`(authenticationContext.organizationId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
+        `when`(authenticationContext.userId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
     }
 
     private fun setupAuthWithPermissions(vararg permissions: String) {
         val roleAuthorities = testUser.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
         val permissionAuthorities = permissions.map { SimpleGrantedAuthority(it) }
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
-        authentication.details = SessionContext(sessionId = "session-123", organizationId = "org-123")
+        authentication.details =
+            SessionContext(
+                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+            )
         SecurityContextHolder.getContext().authentication = authentication
     }
 
     private fun createMockProduct() =
         Product(
-            id = "prod-123",
+            id = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             sku = "WIDGET-001",
             name = "Widget",
             description = "A test widget",
@@ -133,8 +138,8 @@ class ProductControllerTest {
             imageUrl = "https://example.com/image.jpg",
             listPrice = BigDecimal("99.99"),
             priceCurrency = "USD",
-            taxGroupId = "tax-123",
-            organizationId = "org-123",
+            taxGroupId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+            organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             isActive = true,
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now(),
@@ -158,7 +163,7 @@ class ProductControllerTest {
                             "imageUrl": "https://example.com/image.jpg",
                             "listPrice": "99.99",
                             "priceCurrency": "USD",
-                            "taxGroupId": "tax-123"
+                            "taxGroupId": "00000000-0000-0000-0000-000000000199"
                         }""",
                     ),
             ).andExpect(status().isCreated)
@@ -222,7 +227,7 @@ class ProductControllerTest {
         val captor = org.mockito.ArgumentCaptor.forClass(Boolean::class.javaObjectType)
         org.mockito.Mockito
             .verify(productService)
-            .listProducts(any(), org.mockito.kotlin.anyOrNull(), captor.capture(), org.mockito.kotlin.anyOrNull())
+            .listProducts(any(), anyOrNull(), captor.capture(), anyOrNull())
         org.assertj.core.api.Assertions
             .assertThat(captor.value)
             .isTrue()
@@ -267,9 +272,9 @@ class ProductControllerTest {
         `when`(productService.getProduct(any(), any())).thenReturn(product)
 
         mockMvc
-            .perform(get("/inventory/products/prod-123"))
+            .perform(get("/inventory/products/00000000-0000-0000-0000-000000000199"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value("prod-123"))
+            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.sku").value("WIDGET-001"))
             .andExpect(jsonPath("$.name").value("Widget"))
     }
@@ -280,34 +285,34 @@ class ProductControllerTest {
             .thenThrow(ResourceNotFoundException("Product not found"))
 
         mockMvc
-            .perform(get("/inventory/products/nonexistent"))
+            .perform(get("/inventory/products/00000000-0000-0000-0000-000000000000"))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.error").value("Product not found"))
     }
 
     @Test
     fun `PATCH products should return 200 when updated`() {
-        val updated = createMockProduct().copy(name = "Updated Widget")
+        val updated = createMockProduct().apply { name = "Updated Widget" }
         `when`(productService.updateProduct(any(), any(), any())).thenReturn(updated)
 
         mockMvc
             .perform(
-                patch("/inventory/products/prod-123")
+                patch("/inventory/products/00000000-0000-0000-0000-000000000199")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"name": "Updated Widget"}"""),
             ).andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value("prod-123"))
+            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.name").value("Updated Widget"))
     }
 
     @Test
     fun `PATCH products should support partial updates`() {
-        val updated = createMockProduct().copy(listPrice = BigDecimal("149.99"))
+        val updated = createMockProduct().apply { listPrice = BigDecimal("149.99") }
         `when`(productService.updateProduct(any(), any(), any())).thenReturn(updated)
 
         mockMvc
             .perform(
-                patch("/inventory/products/prod-123")
+                patch("/inventory/products/00000000-0000-0000-0000-000000000199")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"listPrice": "149.99"}"""),
             ).andExpect(status().isOk)
@@ -316,11 +321,11 @@ class ProductControllerTest {
 
     @Test
     fun `DELETE products should return 200 when soft deleted`() {
-        val deleted = createMockProduct().copy(isActive = false)
+        val deleted = createMockProduct().apply { isActive = false }
         `when`(productService.deleteProduct(any(), any())).thenReturn(deleted)
 
         mockMvc
-            .perform(delete("/inventory/products/prod-123"))
+            .perform(delete("/inventory/products/00000000-0000-0000-0000-000000000199"))
             .andExpect(status().isOk)
     }
 
@@ -357,7 +362,7 @@ class ProductControllerTest {
 
         mockMvc
             .perform(
-                patch("/inventory/products/prod-123")
+                patch("/inventory/products/00000000-0000-0000-0000-000000000199")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"name": "Updated Widget"}"""),
             ).andExpect(status().isForbidden)
@@ -368,7 +373,7 @@ class ProductControllerTest {
         setupAuthWithPermissions("inventory:read")
 
         mockMvc
-            .perform(delete("/inventory/products/prod-123"))
+            .perform(delete("/inventory/products/00000000-0000-0000-0000-000000000199"))
             .andExpect(status().isForbidden)
     }
 }

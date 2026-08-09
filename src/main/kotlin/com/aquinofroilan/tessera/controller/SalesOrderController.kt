@@ -35,7 +35,7 @@ class SalesOrderController(
         @Valid @RequestBody request: CreateSalesOrderRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val createdBy = authContext.userId() ?: "api-key"
+        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val so = salesOrderService.createSalesOrder(request, orgId, createdBy)
         return ResponseEntity.status(HttpStatus.CREATED).body(SalesOrderResponse.from(so))
     }
@@ -44,7 +44,7 @@ class SalesOrderController(
     @PreAuthorize("hasAuthority('sales:read')")
     fun listSalesOrders(
         @RequestParam(required = false) status: String?,
-        @RequestParam(required = false) customerId: String?,
+        @RequestParam(required = false) customerId: java.util.UUID?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val soStatus =
@@ -64,7 +64,7 @@ class SalesOrderController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('sales:read')")
     fun getSalesOrder(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(SalesOrderResponse.from(salesOrderService.getSalesOrder(id, orgId)))
@@ -73,32 +73,32 @@ class SalesOrderController(
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasAuthority('sales:approve')")
     fun approveSalesOrder(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val approvedBy = authContext.userId() ?: "api-key"
+        val approvedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         return ResponseEntity.ok(SalesOrderResponse.from(salesOrderService.approveSalesOrder(id, orgId, approvedBy)))
     }
 
     @PostMapping("/{id}/fulfill")
     @PreAuthorize("hasAuthority('sales:fulfill')")
     fun fulfillSalesOrder(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody(required = false) request: FulfillSalesOrderRequest?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         return ResponseEntity.ok(SalesOrderResponse.from(salesOrderService.fulfillSalesOrder(id, request, orgId, userId)))
     }
 
     @PostMapping("/{id}/generate-invoice")
     @PreAuthorize("hasAuthority('sales:fulfill')")
     fun generateInvoice(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody(required = false) request: GenerateInvoiceRequest?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val createdBy = authContext.userId() ?: "api-key"
+        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val invoice = salesOrderService.generateInvoice(id, request, orgId, createdBy)
         return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("invoiceId" to invoice.id, "invoiceNumber" to invoice.invoiceNumber))
     }
@@ -106,7 +106,7 @@ class SalesOrderController(
     @PostMapping("/{id}/close")
     @PreAuthorize("hasAuthority('sales:write')")
     fun closeSalesOrder(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(SalesOrderResponse.from(salesOrderService.closeSalesOrder(id, orgId)))
@@ -115,10 +115,10 @@ class SalesOrderController(
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('sales:write')")
     fun cancelSalesOrder(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         return ResponseEntity.ok(SalesOrderResponse.from(salesOrderService.cancelSalesOrder(id, orgId, userId)))
     }
 }

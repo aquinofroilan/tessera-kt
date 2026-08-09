@@ -21,7 +21,7 @@ class ProjectService(
     @Transactional
     fun createProject(
         request: CreateProjectRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Project {
         val startDate = request.startDate ?: throw BusinessRuleException("Start date is required")
         if (request.endDate != null && request.endDate.isBefore(startDate)) {
@@ -46,8 +46,8 @@ class ProjectService(
     }
 
     fun getProject(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Project {
         val project =
             projectRepository.findById(id).orElseThrow {
@@ -60,9 +60,9 @@ class ProjectService(
     }
 
     fun listProjects(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: ProjectStatus? = null,
-        customerId: String? = null,
+        customerId: java.util.UUID? = null,
     ): List<Project> =
         when {
             status != null -> projectRepository.findByOrganizationIdAndStatus(organizationId, status)
@@ -72,9 +72,9 @@ class ProjectService(
 
     @Transactional
     fun updateProject(
-        id: String,
+        id: java.util.UUID,
         request: UpdateProjectRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Project {
         val project = getProject(id, organizationId)
         request.customerId?.let { customerService.getCustomer(it, organizationId) }
@@ -83,68 +83,71 @@ class ProjectService(
         if (endDate != null && endDate.isBefore(project.startDate)) {
             throw BusinessRuleException("End date cannot be before the start date")
         }
-        return projectRepository.save(
-            project.copy(
-                name = request.name?.trim() ?: project.name,
-                description = request.description ?: project.description,
-                customerId = request.customerId ?: project.customerId,
-                managerEmployeeId = request.managerEmployeeId ?: project.managerEmployeeId,
-                endDate = endDate,
-                billingType = request.billingType ?: project.billingType,
-            ),
-        )
+        project.apply {
+            name = request.name?.trim() ?: project.name
+            description = request.description ?: project.description
+            customerId = request.customerId ?: project.customerId
+            managerEmployeeId = request.managerEmployeeId ?: project.managerEmployeeId
+            this.endDate = endDate
+            billingType = request.billingType ?: project.billingType
+        }
+        return projectRepository.save(project)
     }
 
     @Transactional
     fun activateProject(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Project {
         val project = getProject(id, organizationId)
         if (project.status != ProjectStatus.PLANNED && project.status != ProjectStatus.ON_HOLD) {
             throw BusinessRuleException("Only planned or on-hold projects can be activated")
         }
-        return projectRepository.save(project.copy(status = ProjectStatus.ACTIVE))
+        project.status = ProjectStatus.ACTIVE
+        return projectRepository.save(project)
     }
 
     @Transactional
     fun holdProject(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Project {
         val project = getProject(id, organizationId)
         if (project.status != ProjectStatus.ACTIVE) {
             throw BusinessRuleException("Only active projects can be put on hold")
         }
-        return projectRepository.save(project.copy(status = ProjectStatus.ON_HOLD))
+        project.status = ProjectStatus.ON_HOLD
+        return projectRepository.save(project)
     }
 
     @Transactional
     fun closeProject(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Project {
         val project = getProject(id, organizationId)
         if (project.status != ProjectStatus.ACTIVE && project.status != ProjectStatus.ON_HOLD) {
             throw BusinessRuleException("Only active or on-hold projects can be closed")
         }
-        return projectRepository.save(project.copy(status = ProjectStatus.CLOSED))
+        project.status = ProjectStatus.CLOSED
+        return projectRepository.save(project)
     }
 
     @Transactional
     fun cancelProject(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Project {
         val project = getProject(id, organizationId)
         if (project.status == ProjectStatus.CLOSED || project.status == ProjectStatus.CANCELLED) {
             throw BusinessRuleException("Project is already ${project.status.name.lowercase()}")
         }
-        return projectRepository.save(project.copy(status = ProjectStatus.CANCELLED))
+        project.status = ProjectStatus.CANCELLED
+        return projectRepository.save(project)
     }
 
     private fun saveWithRetry(
-        organizationId: String,
+        organizationId: java.util.UUID,
         maxRetries: Int = 3,
         build: (String) -> Project,
     ): Project {

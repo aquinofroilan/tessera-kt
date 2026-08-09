@@ -44,7 +44,7 @@ class StockMovementController(
     @PostMapping("/movements/{id}/reverse")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun reverseMovement(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: return authContext.unauthorized()
@@ -55,8 +55,8 @@ class StockMovementController(
     @GetMapping("/movements")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun listMovements(
-        @RequestParam(required = false) productId: String?,
-        @RequestParam(required = false) warehouseId: String?,
+        @RequestParam(required = false) productId: java.util.UUID?,
+        @RequestParam(required = false) warehouseId: java.util.UUID?,
         @RequestParam(required = false) type: StockMovementType?,
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
@@ -73,8 +73,8 @@ class StockMovementController(
     @GetMapping("/stock-on-hand")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun onHand(
-        @RequestParam productId: String,
-        @RequestParam warehouseId: String,
+        @RequestParam productId: java.util.UUID,
+        @RequestParam warehouseId: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val qty = stockMovementService.onHand(orgId, productId, warehouseId)

@@ -16,29 +16,29 @@ data class CreatePayrollRunRequest(
 )
 
 data class PayrollRunLineResponse(
-    val id: String,
+    val id: java.util.UUID,
     val lineNumber: Int,
-    val employeeId: String,
+    val employeeId: java.util.UUID,
     val employeeNumber: String,
     val employeeName: String,
-    val compensationId: String,
+    val compensationId: java.util.UUID,
     val grossAmount: BigDecimal,
 )
 
 data class PayrollRunResponse(
-    val id: String,
+    val id: java.util.UUID,
     val runNumber: String,
     val periodStart: String,
     val periodEnd: String,
     val payDate: String,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val status: PayrollRunStatus,
     val lines: List<PayrollRunLineResponse>,
     val totalGross: BigDecimal,
     val currency: String,
-    val createdBy: String,
-    val accrualJournalEntryId: String?,
-    val paymentJournalEntryId: String?,
+    val createdBy: java.util.UUID,
+    val accrualJournalEntryId: java.util.UUID?,
+    val paymentJournalEntryId: java.util.UUID?,
     val approvedAt: String?,
     val paidAt: String?,
     val cancelledAt: String?,

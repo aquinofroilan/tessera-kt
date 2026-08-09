@@ -18,6 +18,7 @@ import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.http.ResponseEntity
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import java.util.UUID
 
 @GraphQlTest(controllers = [HrGraphqlController::class])
 @Import(
@@ -56,7 +57,7 @@ class HrGraphqlControllerTest {
     @WithMockUser(authorities = ["hr:read"])
     fun `employees query should return json payload`() {
         `when`(employeeController.listEmployees(null, null))
-            .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "emp1", "status" to "ACTIVE"))))
+            .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "ACTIVE"))))
 
         graphQlTester
             .document(
@@ -68,7 +69,7 @@ class HrGraphqlControllerTest {
             ).execute()
             .path("employees[0].id")
             .entity(String::class.java)
-            .isEqualTo("emp1")
+            .isEqualTo("00000000-0000-0000-0000-000000000199")
     }
 
     @Test
@@ -77,7 +78,12 @@ class HrGraphqlControllerTest {
         `when`(departmentController.getOrgChart())
             .thenReturn(
                 ResponseEntity.ok(
-                    listOf(mapOf("id" to "d1", "children" to listOf(mapOf("id" to "d2", "children" to emptyList<Any>())))),
+                    listOf(
+                        mapOf(
+                            "id" to "00000000-0000-0000-0000-000000000199",
+                            "children" to listOf(mapOf("id" to "00000000-0000-0000-0000-000000000199", "children" to emptyList<Any>())),
+                        ),
+                    ),
                 ),
             )
 
@@ -91,20 +97,20 @@ class HrGraphqlControllerTest {
             ).execute()
             .path("departmentOrgChart[0].children[0].id")
             .entity(String::class.java)
-            .isEqualTo("d2")
+            .isEqualTo("00000000-0000-0000-0000-000000000199")
     }
 
     @Test
     @WithMockUser(authorities = ["hr:approve"])
     fun `approvePayrollRun mutation should bridge to controller`() {
-        `when`(payrollRunController.approvePayrollRun("pr1"))
-            .thenReturn(ResponseEntity.ok(mapOf("id" to "pr1", "status" to "APPROVED")))
+        `when`(payrollRunController.approvePayrollRun(UUID.fromString("00000000-0000-0000-0000-000000000199")))
+            .thenReturn(ResponseEntity.ok(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "APPROVED")))
 
         graphQlTester
             .document(
                 """
                 mutation {
-                  approvePayrollRun(id: "pr1")
+                  approvePayrollRun(id: "00000000-0000-0000-0000-000000000199")
                 }
                 """.trimIndent(),
             ).execute()

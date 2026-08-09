@@ -24,23 +24,23 @@ enum class ProjectCostCategory {
 @Entity
 @Table(name = "project_budgets")
 @EntityListeners(AuditingEntityListener::class)
-data class ProjectBudget(
+class ProjectBudget(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "project_id", columnDefinition = "uuid")
-    val projectId: String,
+    var projectId: java.util.UUID,
     @Enumerated(EnumType.STRING)
-    val category: ProjectCostCategory,
+    var category: ProjectCostCategory,
     @Column(name = "budget_amount")
-    val budgetAmount: BigDecimal,
-    val currency: String? = null,
+    var budgetAmount: BigDecimal,
+    var currency: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
-    val createdAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     @Column(name = "updated_at")
-    val updatedAt: LocalDateTime? = null,
+    var updatedAt: LocalDateTime? = null,
 )
