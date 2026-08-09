@@ -4,6 +4,7 @@ import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.math.BigDecimal
+import java.util.UUID
 
 data class CreateProductRequest(
     @field:NotBlank(message = "SKU is required")

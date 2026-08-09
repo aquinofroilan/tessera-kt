@@ -23,6 +23,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Controller
 class InventoryGraphqlController(
