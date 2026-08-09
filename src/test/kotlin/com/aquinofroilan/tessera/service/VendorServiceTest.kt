@@ -21,7 +21,7 @@ class VendorServiceTest {
     private lateinit var vendorService: VendorService
     private lateinit var vendorRepository: VendorRepository
 
-    private val orgId = "org-123"
+    private val orgId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
 
     @BeforeEach
     fun setup() {
@@ -53,28 +53,28 @@ class VendorServiceTest {
 
     @Test
     fun `get should return vendor for correct org`() {
-        val vendor = createVendor()
-        `when`(vendorRepository.findById("v-1")).thenReturn(Optional.of(vendor))
+        val vendor = createVendor(id = java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"))
+        `when`(vendorRepository.findById(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"))).thenReturn(Optional.of(vendor))
 
-        val result = vendorService.getVendor("v-1", orgId)
-        assertThat(result.id).isEqualTo("v-1")
+        val result = vendorService.getVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId)
+        assertThat(result.id).isEqualTo(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"))
     }
 
     @Test
     fun `get should throw when vendor belongs to different org`() {
-        val vendor = createVendor(orgId = "other-org")
-        `when`(vendorRepository.findById("v-1")).thenReturn(Optional.of(vendor))
+        val vendor = createVendor(orgId = java.util.UUID.fromString("fbede99a-0bef-3bf9-ba0b-8d28f050479d"))
+        `when`(vendorRepository.findById(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"))).thenReturn(Optional.of(vendor))
 
         val exception =
             assertThrows<ResourceNotFoundException> {
-                vendorService.getVendor("v-1", orgId)
+                vendorService.getVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId)
             }
         assertThat(exception.message).contains("Vendor not found")
     }
 
     @Test
     fun `list should return active vendors`() {
-        val vendors = listOf(createVendor(), createVendor(id = "v-2", name = "Beta Inc"))
+        val vendors = listOf(createVendor(), createVendor(id = java.util.UUID.ofEpochMillis(System.currentTimeMillis())))
         `when`(vendorRepository.findByOrganizationIdAndIsActive(orgId, true)).thenReturn(vendors)
 
         val result = vendorService.listVendors(orgId)
@@ -84,11 +84,11 @@ class VendorServiceTest {
     @Test
     fun `update should apply partial changes`() {
         val vendor = createVendor()
-        `when`(vendorRepository.findById("v-1")).thenReturn(Optional.of(vendor))
+        `when`(vendorRepository.findById(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"))).thenReturn(Optional.of(vendor))
         `when`(vendorRepository.save(any<Vendor>())).thenAnswer { it.arguments[0] }
 
         val request = UpdateVendorRequest(name = "Updated Corp")
-        val result = vendorService.updateVendor("v-1", request, orgId)
+        val result = vendorService.updateVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), request, orgId)
 
         assertThat(result.name).isEqualTo("Updated Corp")
         assertThat(result.contactName).isEqualTo("John Doe")
@@ -97,11 +97,15 @@ class VendorServiceTest {
     @Test
     fun `update should reject inactive vendor`() {
         val vendor = createVendor(isActive = false)
-        `when`(vendorRepository.findById("v-1")).thenReturn(Optional.of(vendor))
+        `when`(vendorRepository.findById(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"))).thenReturn(Optional.of(vendor))
 
         val exception =
             assertThrows<BusinessRuleException> {
-                vendorService.updateVendor("v-1", UpdateVendorRequest(name = "New"), orgId)
+                vendorService.updateVendor(
+                    java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"),
+                    UpdateVendorRequest(name = "New"),
+                    orgId,
+                )
             }
         assertThat(exception.message).contains("inactive")
     }
@@ -109,10 +113,10 @@ class VendorServiceTest {
     @Test
     fun `delete should soft delete vendor`() {
         val vendor = createVendor()
-        `when`(vendorRepository.findById("v-1")).thenReturn(Optional.of(vendor))
+        `when`(vendorRepository.findById(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"))).thenReturn(Optional.of(vendor))
         `when`(vendorRepository.save(any<Vendor>())).thenAnswer { it.arguments[0] }
 
-        val result = vendorService.deleteVendor("v-1", orgId)
+        val result = vendorService.deleteVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId)
 
         assertThat(result.isActive).isFalse()
         val captor = argumentCaptor<Vendor>()
@@ -123,19 +127,19 @@ class VendorServiceTest {
     @Test
     fun `delete should reject already inactive vendor`() {
         val vendor = createVendor(isActive = false)
-        `when`(vendorRepository.findById("v-1")).thenReturn(Optional.of(vendor))
+        `when`(vendorRepository.findById(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"))).thenReturn(Optional.of(vendor))
 
         val exception =
             assertThrows<BusinessRuleException> {
-                vendorService.deleteVendor("v-1", orgId)
+                vendorService.deleteVendor(java.util.UUID.fromString("718fa2b3-0eb7-3a9c-987f-a0cbe216ac6a"), orgId)
             }
         assertThat(exception.message).contains("already inactive")
     }
 
     private fun createVendor(
-        id: String = "v-1",
+        id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         name: String = "Acme Corp",
-        orgId: String = this.orgId,
+        orgId: java.util.UUID = this.orgId,
         isActive: Boolean = true,
     ) = Vendor(
         id = id,

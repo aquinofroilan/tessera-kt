@@ -10,7 +10,7 @@ class JournalEntryNumberGenerator(
     private val journalEntryRepository: JournalEntryRepository,
 ) {
     fun saveWithRetry(
-        organizationId: String,
+        organizationId: java.util.UUID,
         maxRetries: Int = 3,
         buildEntry: (String) -> JournalEntry,
     ): JournalEntry {

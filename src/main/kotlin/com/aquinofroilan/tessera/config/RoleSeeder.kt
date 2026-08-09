@@ -88,6 +88,14 @@ class RoleSeeder(
                             Permissions.HR_RECRUITMENT_READ,
                             Permissions.HR_RECRUITMENT_WRITE,
                             Permissions.HR_RECRUITMENT_APPROVE,
+                            Permissions.MFG_READ,
+                            Permissions.MFG_WRITE,
+                            Permissions.MFG_APPROVE,
+                            Permissions.PROJECT_READ,
+                            Permissions.PROJECT_WRITE,
+                            Permissions.PROJECT_APPROVE,
+                            Permissions.CRM_READ,
+                            Permissions.CRM_WRITE,
                         ),
                 ),
                 Role(
@@ -143,6 +151,14 @@ class RoleSeeder(
                             Permissions.HR_RECRUITMENT_READ,
                             Permissions.HR_RECRUITMENT_WRITE,
                             Permissions.HR_RECRUITMENT_APPROVE,
+                            Permissions.MFG_READ,
+                            Permissions.MFG_WRITE,
+                            Permissions.MFG_APPROVE,
+                            Permissions.PROJECT_READ,
+                            Permissions.PROJECT_WRITE,
+                            Permissions.PROJECT_APPROVE,
+                            Permissions.CRM_READ,
+                            Permissions.CRM_WRITE,
                         ),
                 ),
                 Role(
@@ -176,6 +192,12 @@ class RoleSeeder(
                             Permissions.HR_WRITE,
                             Permissions.HR_RECRUITMENT_READ,
                             Permissions.HR_RECRUITMENT_WRITE,
+                            Permissions.MFG_READ,
+                            Permissions.MFG_WRITE,
+                            Permissions.PROJECT_READ,
+                            Permissions.PROJECT_WRITE,
+                            Permissions.CRM_READ,
+                            Permissions.CRM_WRITE,
                         ),
                 ),
                 Role(
@@ -198,6 +220,9 @@ class RoleSeeder(
                             Permissions.SALES_READ,
                             Permissions.HR_READ,
                             Permissions.HR_RECRUITMENT_READ,
+                            Permissions.MFG_READ,
+                            Permissions.PROJECT_READ,
+                            Permissions.CRM_READ,
                         ),
                 ),
             )
@@ -227,14 +252,13 @@ class RoleSeeder(
                     current.isDefault != role.isDefault ||
                     current.permissions.toSet() != role.permissions.toSet()
                 ) {
-                    roleRepository.save(
-                        current.copy(
-                            description = role.description,
-                            level = role.level,
-                            isDefault = role.isDefault,
-                            permissions = role.permissions,
-                        ),
-                    )
+                    current.apply {
+                        description = role.description
+                        level = role.level
+                        isDefault = role.isDefault
+                        permissions = role.permissions
+                    }
+                    roleRepository.save(current)
                     log.info("Updated role: {}", role.name)
                     changed = true
                 }

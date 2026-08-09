@@ -40,6 +40,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.util.UUID
 
 @WebMvcTest(controllers = [InvitationController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
@@ -83,14 +84,14 @@ class InvitationControllerTest {
 
     private val testUser =
         User(
-            uuid = "user-123",
+            uuid = java.util.UUID.fromString("bc17c97c-3d89-7d43-b7e0-7ca0266eafa8"),
             username = "testuser",
             email = "test@example.com",
             firstName = "Test",
             lastName = "User",
             passwordHash = "encoded",
-            organizationId = "org-123",
-            roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
+            organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
+            roleAssignments = listOf(RoleAssignment("OWNER", java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"))),
         )
 
     @BeforeEach
@@ -102,7 +103,11 @@ class InvitationControllerTest {
         val roleAuthorities = testUser.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
         val permissionAuthorities = permissions.map { SimpleGrantedAuthority(it) }
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
-        authentication.details = SessionContext(sessionId = "session-123", organizationId = "org-123")
+        authentication.details =
+            SessionContext(
+                sessionId = java.util.UUID.fromString("79c5ca4c-8e48-a8f8-6ffc-5b3271a250aa"),
+                organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
+            )
         SecurityContextHolder.getContext().authentication = authentication
     }
 
@@ -159,16 +164,16 @@ class InvitationControllerTest {
         val invitations =
             listOf(
                 Invitation(
-                    id = "inv-1",
+                    id = java.util.UUID.fromString("a1dc238a-c774-5d3d-241b-f32dce1112ce"),
                     email = "user1@example.com",
-                    organizationId = "org-123",
+                    organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
                     role = "MEMBER",
                     tokenHash = "hash1",
-                    invitedBy = "user-123",
+                    invitedBy = java.util.UUID.fromString("bc17c97c-3d89-7d43-b7e0-7ca0266eafa8"),
                     expiryAt = LocalDateTime.now(ZoneOffset.UTC).plusHours(72),
                 ),
             )
-        `when`(invitationService.listInvitations("org-123")).thenReturn(invitations)
+        `when`(invitationService.listInvitations(java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"))).thenReturn(invitations)
 
         mockMvc
             .perform(get("/auth/invitations"))
@@ -185,7 +190,7 @@ class InvitationControllerTest {
             ValidateInvitationResponse(
                 email = "invited@example.com",
                 role = "MEMBER",
-                organizationId = "org-123",
+                organizationId = java.util.UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216"),
                 existingUser = false,
             )
         `when`(invitationService.validateInvitation(any())).thenReturn(response)
@@ -265,7 +270,7 @@ class InvitationControllerTest {
     @Test
     fun `DELETE invitation should return 200 when revoked`() {
         mockMvc
-            .perform(delete("/auth/invitations/inv-123"))
+            .perform(delete("/auth/invitations/52a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("Invitation revoked"))
     }
@@ -276,7 +281,7 @@ class InvitationControllerTest {
             .thenThrow(IllegalArgumentException("Invitation is not pending"))
 
         mockMvc
-            .perform(delete("/auth/invitations/inv-123"))
+            .perform(delete("/auth/invitations/52a14436-99e0-5e9d-9396-3a670fc505c0"))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Invitation is not pending"))
     }

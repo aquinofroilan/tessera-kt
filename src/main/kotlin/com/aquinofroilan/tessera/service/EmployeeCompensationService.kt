@@ -18,10 +18,10 @@ class EmployeeCompensationService(
 ) {
     @Transactional
     fun addCompensation(
-        employeeId: String,
+        employeeId: java.util.UUID,
         request: CreateEmployeeCompensationRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): EmployeeCompensation {
         val employee = employeeService.getEmployee(employeeId, organizationId)
         val payRate = request.payRate ?: throw BusinessRuleException("Pay rate is required")
@@ -46,8 +46,8 @@ class EmployeeCompensationService(
     }
 
     fun listCompensation(
-        employeeId: String,
-        organizationId: String,
+        employeeId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): List<EmployeeCompensation> {
         employeeService.getEmployee(employeeId, organizationId)
         return compensationRepository.findByOrganizationIdAndEmployeeIdOrderByEffectiveDateDesc(organizationId, employeeId)
@@ -55,8 +55,8 @@ class EmployeeCompensationService(
 
     /** The compensation record in effect on [asOf] — the latest with effectiveDate on or before it. */
     fun currentCompensation(
-        employeeId: String,
-        organizationId: String,
+        employeeId: java.util.UUID,
+        organizationId: java.util.UUID,
         asOf: LocalDate,
     ): EmployeeCompensation =
         currentCompensationOrNull(employeeId, organizationId, asOf)
@@ -64,8 +64,8 @@ class EmployeeCompensationService(
 
     /** Like [currentCompensation] but returns null instead of throwing when none applies. */
     fun currentCompensationOrNull(
-        employeeId: String,
-        organizationId: String,
+        employeeId: java.util.UUID,
+        organizationId: java.util.UUID,
         asOf: LocalDate,
     ): EmployeeCompensation? {
         employeeService.getEmployee(employeeId, organizationId)

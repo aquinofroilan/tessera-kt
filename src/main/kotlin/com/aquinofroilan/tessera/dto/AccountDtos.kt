@@ -9,7 +9,7 @@ data class CreateAccountRequest(
     val name: String,
     @field:NotBlank(message = "Account type is required")
     val type: String,
-    val parentId: String? = null,
+    val parentId: java.util.UUID? = null,
     val description: String? = null,
 )
 
@@ -19,13 +19,13 @@ data class UpdateAccountRequest(
 )
 
 data class AccountResponse(
-    val id: String,
+    val id: java.util.UUID,
     val code: String,
     val name: String,
     val description: String?,
     val type: String,
-    val parentId: String?,
-    val organizationId: String,
+    val parentId: java.util.UUID?,
+    val organizationId: java.util.UUID,
     val isActive: Boolean,
     val isSystemAccount: Boolean,
     val createdAt: String?,

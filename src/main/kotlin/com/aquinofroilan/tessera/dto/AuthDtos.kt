@@ -2,6 +2,7 @@ package com.aquinofroilan.tessera.dto
 
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
@@ -70,7 +71,7 @@ data class ResetPasswordRequest(
 )
 
 data class SessionResponse(
-    val id: String,
+    val id: java.util.UUID,
     val ipAddress: String?,
     val userAgent: String?,
     val createdAt: String,
@@ -83,18 +84,18 @@ data class AuthResponse(
     val refreshToken: String,
     val username: String,
     val roles: List<String>,
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val expiresAt: String,
     val refreshTokenExpiresAt: String,
 )
 
 data class SwitchOrganizationRequest(
-    @field:NotBlank(message = "Organization ID is required")
-    val organizationId: String,
+    @field:NotNull(message = "Organization ID is required")
+    val organizationId: java.util.UUID,
 )
 
 data class UserOrganizationResponse(
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val name: String,
     val orgSlug: String,
     val roles: List<String>,

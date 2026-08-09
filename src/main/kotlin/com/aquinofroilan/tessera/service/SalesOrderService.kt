@@ -34,8 +34,8 @@ class SalesOrderService(
     @Transactional
     fun createSalesOrder(
         request: CreateSalesOrderRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): SalesOrder {
         val customer = customerService.getCustomer(request.customerId, organizationId)
         if (!customer.isActive) {
@@ -92,8 +92,8 @@ class SalesOrderService(
     }
 
     fun getSalesOrder(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): SalesOrder {
         val so =
             salesOrderRepository.findById(id).orElseThrow {
@@ -106,9 +106,9 @@ class SalesOrderService(
     }
 
     fun listSalesOrders(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: SalesOrderStatus? = null,
-        customerId: String? = null,
+        customerId: java.util.UUID? = null,
     ): List<SalesOrder> =
         when {
             status != null && customerId != null ->
@@ -120,29 +120,26 @@ class SalesOrderService(
 
     @Transactional
     fun approveSalesOrder(
-        id: String,
-        organizationId: String,
-        approvedBy: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        approvedBy: java.util.UUID,
     ): SalesOrder {
         val so = getSalesOrder(id, organizationId)
         if (so.status != SalesOrderStatus.DRAFT) {
             throw BusinessRuleException("Only draft sales orders can be approved")
         }
-        return salesOrderRepository.save(
-            so.copy(
-                status = SalesOrderStatus.APPROVED,
-                approvedAt = LocalDateTime.now(ZoneOffset.UTC),
-                approvedBy = approvedBy,
-            ),
-        )
+        so.status = SalesOrderStatus.APPROVED
+        so.approvedAt = LocalDateTime.now(ZoneOffset.UTC)
+        so.approvedBy = approvedBy
+        return salesOrderRepository.save(so)
     }
 
     @Transactional
     fun fulfillSalesOrder(
-        id: String,
+        id: java.util.UUID,
         request: FulfillSalesOrderRequest?,
-        organizationId: String,
-        userId: String,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): SalesOrder {
         val so = getSalesOrder(id, organizationId)
         if (so.status != SalesOrderStatus.APPROVED && so.status != SalesOrderStatus.PARTIALLY_FULFILLED) {
@@ -156,7 +153,7 @@ class SalesOrderService(
                     .associate { it.id to it.quantity.subtract(it.fulfilledQuantity) }
                     .filterValues { it.signum() > 0 }
             } else {
-                request.lines!!.associate { it.lineId to (it.quantity ?: throw BusinessRuleException("Quantity is required")) }
+                request!!.lines.associate { it.lineId to (it.quantity ?: throw BusinessRuleException("Quantity is required")) }
             }
         requested.keys.forEach { if (it !in byId) throw BusinessRuleException("Unknown sales order line '$it'") }
         if (requested.isEmpty()) {
@@ -182,25 +179,22 @@ class SalesOrderService(
                     organizationId,
                     userId,
                 )
-                line.copy(fulfilledQuantity = line.fulfilledQuantity.add(qty))
+                line.apply { fulfilledQuantity = line.fulfilledQuantity.add(qty) }
             }
 
         val fullyFulfilled = updatedLines.all { it.fulfilledQuantity >= it.quantity }
-        return salesOrderRepository.save(
-            so.copy(
-                lines = updatedLines,
-                status = if (fullyFulfilled) SalesOrderStatus.FULFILLED else SalesOrderStatus.PARTIALLY_FULFILLED,
-                fulfilledAt = if (fullyFulfilled) LocalDateTime.now(ZoneOffset.UTC) else so.fulfilledAt,
-            ),
-        )
+        so.lines = updatedLines
+        so.status = if (fullyFulfilled) SalesOrderStatus.FULFILLED else SalesOrderStatus.PARTIALLY_FULFILLED
+        so.fulfilledAt = if (fullyFulfilled) LocalDateTime.now(ZoneOffset.UTC) else so.fulfilledAt
+        return salesOrderRepository.save(so)
     }
 
     @Transactional
     fun generateInvoice(
-        id: String,
+        id: java.util.UUID,
         request: GenerateInvoiceRequest?,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): Invoice {
         val so = getSalesOrder(id, organizationId)
         if (so.status != SalesOrderStatus.PARTIALLY_FULFILLED && so.status != SalesOrderStatus.FULFILLED) {
@@ -247,7 +241,7 @@ class SalesOrderService(
                         description = "${line.productSku} - ${line.productName}",
                     ),
                 )
-                line.copy(invoicedQuantity = line.invoicedQuantity.add(qty))
+                line.apply { invoicedQuantity = line.invoicedQuantity.add(qty) }
             }
 
         val today = LocalDate.now(ZoneOffset.UTC)
@@ -263,27 +257,29 @@ class SalesOrderService(
                 organizationId,
                 createdBy,
             )
-        salesOrderRepository.save(so.copy(lines = updatedLines))
+        so.lines = updatedLines
+        salesOrderRepository.save(so)
         return invoice
     }
 
     @Transactional
     fun closeSalesOrder(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): SalesOrder {
         val so = getSalesOrder(id, organizationId)
         if (so.status != SalesOrderStatus.FULFILLED) {
             throw BusinessRuleException("Only fulfilled sales orders can be closed")
         }
-        return salesOrderRepository.save(so.copy(status = SalesOrderStatus.CLOSED))
+        so.status = SalesOrderStatus.CLOSED
+        return salesOrderRepository.save(so)
     }
 
     @Transactional
     fun cancelSalesOrder(
-        id: String,
-        organizationId: String,
-        userId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): SalesOrder {
         val so = getSalesOrder(id, organizationId)
         if (so.status == SalesOrderStatus.CANCELLED || so.status == SalesOrderStatus.CLOSED) {
@@ -298,17 +294,14 @@ class SalesOrderService(
             stockMovementService.reverseByReference("SO-${so.soNumber}", organizationId, userId)
         }
 
-        return salesOrderRepository.save(
-            so.copy(
-                lines = if (fulfilled) so.lines.map { it.copy(fulfilledQuantity = BigDecimal.ZERO) } else so.lines,
-                status = SalesOrderStatus.CANCELLED,
-                cancelledAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        so.lines = if (fulfilled) so.lines.map { it.apply { fulfilledQuantity = BigDecimal.ZERO } } else so.lines
+        so.status = SalesOrderStatus.CANCELLED
+        so.cancelledAt = LocalDateTime.now(ZoneOffset.UTC)
+        return salesOrderRepository.save(so)
     }
 
     private fun saveWithRetry(
-        organizationId: String,
+        organizationId: java.util.UUID,
         maxRetries: Int = 3,
         build: (String) -> SalesOrder,
     ): SalesOrder {

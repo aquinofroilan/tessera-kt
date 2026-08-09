@@ -25,8 +25,8 @@ class EmployeeCompensationServiceTest {
     private lateinit var currencyService: CurrencyService
     private lateinit var service: EmployeeCompensationService
 
-    private val orgId = "org-1"
-    private val empId = "e1"
+    private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
+    private val empId = java.util.UUID.fromString("535fd4f7-eb3b-30d3-b784-d16e1d946ff4")
 
     @BeforeEach
     fun setup() {
@@ -60,7 +60,7 @@ class EmployeeCompensationServiceTest {
         payPeriod = PayPeriod.ANNUAL,
         effectiveDate = effective,
         organizationId = orgId,
-        createdBy = "u1",
+        createdBy = java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"),
     )
 
     @Test
@@ -75,7 +75,7 @@ class EmployeeCompensationServiceTest {
                     effectiveDate = LocalDate.of(2026, 1, 1),
                 ),
                 orgId,
-                "u1",
+                java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"),
             )
 
         assertThat(saved.currency).isEqualTo("USD")

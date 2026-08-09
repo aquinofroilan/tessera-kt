@@ -23,35 +23,35 @@ enum class EmploymentStatus {
 @Entity
 @Table(name = "employees")
 @EntityListeners(AuditingEntityListener::class)
-data class Employee(
+class Employee(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "employee_number")
-    val employeeNumber: String,
+    var employeeNumber: String,
     @Column(name = "first_name")
-    val firstName: String,
+    var firstName: String,
     @Column(name = "last_name")
-    val lastName: String,
-    val email: String? = null,
+    var lastName: String,
+    var email: String? = null,
     @Column(name = "job_title")
-    val jobTitle: String? = null,
+    var jobTitle: String? = null,
     @Column(name = "department_id", columnDefinition = "uuid")
-    val departmentId: String? = null,
+    var departmentId: java.util.UUID? = null,
     @Column(name = "user_id", columnDefinition = "uuid")
-    val userId: String? = null,
+    var userId: java.util.UUID? = null,
     @Column(name = "hire_date")
-    val hireDate: LocalDate,
+    var hireDate: LocalDate,
     @Enumerated(EnumType.STRING)
-    val status: EmploymentStatus = EmploymentStatus.ACTIVE,
+    var status: EmploymentStatus = EmploymentStatus.ACTIVE,
     @Column(name = "termination_date")
-    val terminationDate: LocalDate? = null,
+    var terminationDate: LocalDate? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
-    val createdAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     @Column(name = "updated_at")
-    val updatedAt: LocalDateTime? = null,
+    var updatedAt: LocalDateTime? = null,
 )

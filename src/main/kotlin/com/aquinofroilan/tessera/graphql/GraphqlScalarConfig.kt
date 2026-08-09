@@ -31,6 +31,7 @@ class GraphqlScalarConfig {
             .coercing(JsonCoercing)
             .build()
 
+    @Suppress("DEPRECATION")
     private object JsonCoercing : Coercing<Any, Any> {
         override fun serialize(dataFetcherResult: Any): Any = dataFetcherResult
 

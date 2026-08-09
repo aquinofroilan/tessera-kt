@@ -8,27 +8,27 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 
 data class OnHandKey(
-    val productId: String,
-    val warehouseId: String,
+    val productId: java.util.UUID,
+    val warehouseId: java.util.UUID,
 )
 
 interface StockMovementQueries {
     fun listMovements(
-        organizationId: String,
-        productId: String?,
-        warehouseId: String?,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID?,
+        warehouseId: java.util.UUID?,
         type: StockMovementType?,
         from: LocalDateTime?,
         to: LocalDateTime?,
     ): List<StockMovement>
 
     fun onHand(
-        organizationId: String,
-        productId: String,
-        warehouseId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
     ): BigDecimal
 
-    fun onHandByProductWarehouse(organizationId: String): Map<OnHandKey, BigDecimal>
+    fun onHandByProductWarehouse(organizationId: java.util.UUID): Map<OnHandKey, BigDecimal>
 }
 
 open class StockMovementQueriesImpl(
@@ -36,9 +36,9 @@ open class StockMovementQueriesImpl(
     private val jdbc: JdbcTemplate,
 ) : StockMovementQueries {
     override fun listMovements(
-        organizationId: String,
-        productId: String?,
-        warehouseId: String?,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID?,
+        warehouseId: java.util.UUID?,
         type: StockMovementType?,
         from: LocalDateTime?,
         to: LocalDateTime?,
@@ -65,9 +65,9 @@ open class StockMovementQueriesImpl(
     }
 
     override fun onHand(
-        organizationId: String,
-        productId: String,
-        warehouseId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
     ): BigDecimal {
         val sql =
             """
@@ -101,7 +101,7 @@ open class StockMovementQueriesImpl(
         ) ?: BigDecimal.ZERO
     }
 
-    override fun onHandByProductWarehouse(organizationId: String): Map<OnHandKey, BigDecimal> {
+    override fun onHandByProductWarehouse(organizationId: java.util.UUID): Map<OnHandKey, BigDecimal> {
         val sql =
             """
             SELECT product_id, warehouse_id, COALESCE(SUM(qty), 0) AS total_qty
@@ -133,8 +133,8 @@ open class StockMovementQueriesImpl(
             """.trimIndent()
         val totals = mutableMapOf<OnHandKey, BigDecimal>()
         jdbc.query(sql, { rs ->
-            val productId = rs.getString("product_id")
-            val warehouseId = rs.getString("warehouse_id")
+            val productId = java.util.UUID.fromString(rs.getString("product_id"))
+            val warehouseId = java.util.UUID.fromString(rs.getString("warehouse_id"))
             val qty = rs.getBigDecimal("total_qty") ?: BigDecimal.ZERO
             totals[OnHandKey(productId, warehouseId)] = qty
         }, organizationId, organizationId)

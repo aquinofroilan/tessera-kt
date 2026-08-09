@@ -103,6 +103,8 @@ class InventoryPostingService(
             StockMovementType.RECEIPT -> INVENTORY_ASSET to INVENTORY_CLEARING
             StockMovementType.OPENING_BALANCE -> INVENTORY_ASSET to OPENING_BALANCE_EQUITY
             StockMovementType.ISSUE -> COGS to INVENTORY_ASSET
+            StockMovementType.WIP_ISSUE -> WIP_ASSET to INVENTORY_ASSET
+            StockMovementType.WIP_RECEIPT -> INVENTORY_ASSET to WIP_ASSET
             StockMovementType.ADJUSTMENT ->
                 if (movement.quantity.signum() > 0) {
                     INVENTORY_ASSET to INVENTORY_ADJUSTMENT
@@ -113,7 +115,7 @@ class InventoryPostingService(
         }
 
     private fun account(
-        organizationId: String,
+        organizationId: java.util.UUID,
         code: String,
     ): Account {
         val account =
@@ -128,6 +130,7 @@ class InventoryPostingService(
 
     private companion object {
         const val INVENTORY_ASSET = "1200"
+        const val WIP_ASSET = "1250"
         const val INVENTORY_CLEARING = "2150"
         const val OPENING_BALANCE_EQUITY = "3200"
         const val COGS = "5000"

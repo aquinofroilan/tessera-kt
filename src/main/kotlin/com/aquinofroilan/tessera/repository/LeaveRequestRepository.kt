@@ -6,23 +6,23 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface LeaveRequestRepository : JpaRepository<LeaveRequest, String> {
-    fun findByOrganizationId(organizationId: String): List<LeaveRequest>
+interface LeaveRequestRepository : JpaRepository<LeaveRequest, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<LeaveRequest>
 
     fun findByOrganizationIdAndEmployeeId(
-        organizationId: String,
-        employeeId: String,
+        organizationId: java.util.UUID,
+        employeeId: java.util.UUID,
     ): List<LeaveRequest>
 
     fun findByOrganizationIdAndStatus(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: LeaveRequestStatus,
     ): List<LeaveRequest>
 
     fun findByOrganizationIdAndEmployeeIdAndLeaveTypeIdAndStatus(
-        organizationId: String,
-        employeeId: String,
-        leaveTypeId: String,
+        organizationId: java.util.UUID,
+        employeeId: java.util.UUID,
+        leaveTypeId: java.util.UUID,
         status: LeaveRequestStatus,
     ): List<LeaveRequest>
 }

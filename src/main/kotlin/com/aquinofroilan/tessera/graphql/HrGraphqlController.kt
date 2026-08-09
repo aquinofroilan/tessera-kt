@@ -54,7 +54,7 @@ class HrGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun payrollRun(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(payrollRunController.getPayrollRun(id))
 
     @MutationMapping
@@ -66,19 +66,19 @@ class HrGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:approve')")
     fun approvePayrollRun(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(payrollRunController.approvePayrollRun(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:approve')")
     fun payPayrollRun(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(payrollRunController.payPayrollRun(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun cancelPayrollRun(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(payrollRunController.cancelPayrollRun(id))
 
     @QueryMapping
@@ -90,7 +90,7 @@ class HrGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun department(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(departmentController.getDepartment(id))
 
     @QueryMapping
@@ -106,14 +106,14 @@ class HrGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun updateDepartment(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(departmentController.updateDepartment(id, support.toRequest<UpdateDepartmentRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun setDepartmentParent(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<SetDepartmentParentRequest>(it) } ?: SetDepartmentParentRequest()
@@ -123,20 +123,20 @@ class HrGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun deactivateDepartment(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(departmentController.deactivateDepartment(id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun employees(
         @Argument status: String?,
-        @Argument departmentId: String?,
+        @Argument departmentId: java.util.UUID?,
     ): Any = support.unwrap(employeeController.listEmployees(status, departmentId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun employee(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(employeeController.getEmployee(id))
 
     @MutationMapping
@@ -148,33 +148,33 @@ class HrGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun updateEmployee(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(employeeController.updateEmployee(id, support.toRequest<UpdateEmployeeRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun assignEmployeeDepartment(
-        @Argument id: String,
-        @Argument departmentId: String?,
+        @Argument id: java.util.UUID,
+        @Argument departmentId: java.util.UUID?,
     ): Any = support.unwrap(employeeController.assignDepartment(id, departmentId))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun placeEmployeeOnLeave(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(employeeController.placeOnLeave(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun returnEmployeeFromLeave(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(employeeController.returnFromLeave(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun terminateEmployee(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(employeeController.terminate(id, support.toRequest<TerminateEmployeeRequest>(input)))
 
@@ -187,7 +187,7 @@ class HrGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun position(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(positionController.getPosition(id))
 
     @MutationMapping
@@ -199,14 +199,14 @@ class HrGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun updatePosition(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(positionController.updatePosition(id, support.toRequest<UpdatePositionRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun deactivatePosition(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(positionController.deactivatePosition(id))
 
     @QueryMapping
@@ -218,7 +218,7 @@ class HrGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun leaveType(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(leaveTypeController.getLeaveType(id))
 
     @MutationMapping
@@ -230,34 +230,34 @@ class HrGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun updateLeaveType(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(leaveTypeController.updateLeaveType(id, support.toRequest<UpdateLeaveTypeRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun deactivateLeaveType(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(leaveTypeController.deactivateLeaveType(id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun leaveRequests(
-        @Argument employeeId: String?,
+        @Argument employeeId: java.util.UUID?,
         @Argument status: String?,
     ): Any = support.unwrap(leaveRequestController.listLeaveRequests(employeeId, status))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun leaveRequest(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(leaveRequestController.getLeaveRequest(id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun leaveBalance(
-        @Argument employeeId: String,
-        @Argument leaveTypeId: String,
+        @Argument employeeId: java.util.UUID,
+        @Argument leaveTypeId: java.util.UUID,
         @Argument year: Int?,
     ): Any = support.unwrap(leaveRequestController.balance(employeeId, leaveTypeId, year))
 
@@ -270,39 +270,39 @@ class HrGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:approve')")
     fun approveLeaveRequest(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(leaveRequestController.approveLeaveRequest(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:approve')")
     fun rejectLeaveRequest(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any?,
     ): Any = support.unwrap(leaveRequestController.rejectLeaveRequest(id, input?.let { support.toRequest<RejectLeaveRequestRequest>(it) }))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun cancelLeaveRequest(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(leaveRequestController.cancelLeaveRequest(id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun employeeCompensations(
-        @Argument employeeId: String,
+        @Argument employeeId: java.util.UUID,
     ): Any = support.unwrap(employeeCompensationController.listCompensation(employeeId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun currentEmployeeCompensation(
-        @Argument employeeId: String,
+        @Argument employeeId: java.util.UUID,
         @Argument asOf: String?,
     ): Any = support.unwrap(employeeCompensationController.currentCompensation(employeeId, asOf?.let(LocalDate::parse)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun addEmployeeCompensation(
-        @Argument employeeId: String,
+        @Argument employeeId: java.util.UUID,
         @Argument input: Any,
     ): Any =
         support.unwrap(

@@ -107,6 +107,14 @@ class RoleSeederTest {
                         Permissions.HR_RECRUITMENT_READ,
                         Permissions.HR_RECRUITMENT_WRITE,
                         Permissions.HR_RECRUITMENT_APPROVE,
+                        Permissions.MFG_READ,
+                        Permissions.MFG_WRITE,
+                        Permissions.MFG_APPROVE,
+                        Permissions.PROJECT_READ,
+                        Permissions.PROJECT_WRITE,
+                        Permissions.PROJECT_APPROVE,
+                        Permissions.CRM_READ,
+                        Permissions.CRM_WRITE,
                     ),
             )
         `when`(roleRepository.findByName(any())).thenReturn(Optional.empty())
@@ -314,6 +322,14 @@ class RoleSeederTest {
                         Permissions.HR_RECRUITMENT_READ,
                         Permissions.HR_RECRUITMENT_WRITE,
                         Permissions.HR_RECRUITMENT_APPROVE,
+                        Permissions.MFG_READ,
+                        Permissions.MFG_WRITE,
+                        Permissions.MFG_APPROVE,
+                        Permissions.PROJECT_READ,
+                        Permissions.PROJECT_WRITE,
+                        Permissions.PROJECT_APPROVE,
+                        Permissions.CRM_READ,
+                        Permissions.CRM_WRITE,
                     ),
             )
         val admin =
@@ -370,6 +386,14 @@ class RoleSeederTest {
                         Permissions.HR_RECRUITMENT_READ,
                         Permissions.HR_RECRUITMENT_WRITE,
                         Permissions.HR_RECRUITMENT_APPROVE,
+                        Permissions.MFG_READ,
+                        Permissions.MFG_WRITE,
+                        Permissions.MFG_APPROVE,
+                        Permissions.PROJECT_READ,
+                        Permissions.PROJECT_WRITE,
+                        Permissions.PROJECT_APPROVE,
+                        Permissions.CRM_READ,
+                        Permissions.CRM_WRITE,
                     ),
             )
         val member =
@@ -404,6 +428,12 @@ class RoleSeederTest {
                         Permissions.HR_WRITE,
                         Permissions.HR_RECRUITMENT_READ,
                         Permissions.HR_RECRUITMENT_WRITE,
+                        Permissions.MFG_READ,
+                        Permissions.MFG_WRITE,
+                        Permissions.PROJECT_READ,
+                        Permissions.PROJECT_WRITE,
+                        Permissions.CRM_READ,
+                        Permissions.CRM_WRITE,
                     ),
             )
         val viewer =
@@ -427,6 +457,9 @@ class RoleSeederTest {
                         Permissions.SALES_READ,
                         Permissions.HR_READ,
                         Permissions.HR_RECRUITMENT_READ,
+                        Permissions.MFG_READ,
+                        Permissions.PROJECT_READ,
+                        Permissions.CRM_READ,
                     ),
             )
 

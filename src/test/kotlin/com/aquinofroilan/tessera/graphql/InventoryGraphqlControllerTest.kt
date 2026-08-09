@@ -18,6 +18,7 @@ import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.http.ResponseEntity
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import java.util.UUID
 
 @GraphQlTest(controllers = [InventoryGraphqlController::class])
 @Import(
@@ -56,7 +57,16 @@ class InventoryGraphqlControllerTest {
     @WithMockUser(authorities = ["inventory:read"])
     fun `products query should return json payload`() {
         `when`(productController.listProducts(null, true, null))
-            .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "p1", "sku" to "SKU-1"))))
+            .thenReturn(
+                ResponseEntity.ok(
+                    listOf(
+                        mapOf(
+                            "id" to "p1",
+                            "sku" to java.util.UUID.fromString("318e4195-194f-e73c-1e71-d2d29630c151"),
+                        ),
+                    ),
+                ),
+            )
 
         graphQlTester
             .document(
@@ -68,7 +78,7 @@ class InventoryGraphqlControllerTest {
             ).execute()
             .path("products[0].sku")
             .entity(String::class.java)
-            .isEqualTo("SKU-1")
+            .isEqualTo("318e4195-194f-e73c-1e71-d2d29630c151")
     }
 
     @Test

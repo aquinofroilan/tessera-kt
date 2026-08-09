@@ -19,6 +19,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 
 class FinancialReportServiceTest {
     private lateinit var service: FinancialReportService
@@ -26,8 +27,8 @@ class FinancialReportServiceTest {
     private lateinit var accountRepository: AccountRepository
     private lateinit var journalEntryService: JournalEntryService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
+    private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
+    private val userId = java.util.UUID.fromString("1db2395f-13ba-3d37-9d2b-f77d3eb3aa2e")
 
     @BeforeEach
     fun setup() {
@@ -41,16 +42,18 @@ class FinancialReportServiceTest {
     fun `getIncomeStatement computes net income and sorts by code`() {
         val start = LocalDate.of(2026, 3, 1)
         val end = LocalDate.of(2026, 3, 31)
-        val revenue = account("acc-rev", "4100", AccountType.REVENUE)
-        val expense = account("acc-exp", "5000", AccountType.EXPENSE)
+        val revId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")
+        val expId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec")
+        val revenue = account(revId, "4100", AccountType.REVENUE)
+        val expense = account(expId, "5000", AccountType.EXPENSE)
 
         `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
             .thenReturn(listOf(expense, revenue))
         `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, start, end))
             .thenReturn(
                 mapOf(
-                    "acc-rev" to AccountTotals(BigDecimal.ZERO, BigDecimal("1000.00")),
-                    "acc-exp" to AccountTotals(BigDecimal("300.00"), BigDecimal.ZERO),
+                    revId to AccountTotals(BigDecimal.ZERO, BigDecimal("1000.00")),
+                    expId to AccountTotals(BigDecimal("300.00"), BigDecimal.ZERO),
                 ),
             )
 
@@ -72,14 +75,25 @@ class FinancialReportServiceTest {
         val end = LocalDate.of(2026, 3, 31)
         val compareStart = LocalDate.of(2026, 2, 1)
         val compareEnd = LocalDate.of(2026, 2, 28)
-        val revenue = account("acc-rev", "4100", AccountType.REVENUE)
+        val revId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")
+        val revenue = account(revId, "4100", AccountType.REVENUE)
 
         `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
             .thenReturn(listOf(revenue))
         `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, start, end))
-            .thenReturn(mapOf("acc-rev" to AccountTotals(BigDecimal.ZERO, BigDecimal("1000.00"))))
+            .thenReturn(
+                mapOf(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a") to
+                        AccountTotals(BigDecimal.ZERO, BigDecimal("1000.00")),
+                ),
+            )
         `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, compareStart, compareEnd))
-            .thenReturn(mapOf("acc-rev" to AccountTotals(BigDecimal.ZERO, BigDecimal("800.00"))))
+            .thenReturn(
+                mapOf(
+                    java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a") to
+                        AccountTotals(BigDecimal.ZERO, BigDecimal("800.00")),
+                ),
+            )
 
         val result = service.getIncomeStatement(orgId, start, end, compareStart, compareEnd)
 
@@ -118,8 +132,9 @@ class FinancialReportServiceTest {
     fun `getIncomeStatement returns empty lists when no accounts match`() {
         val start = LocalDate.of(2026, 3, 1)
         val end = LocalDate.of(2026, 3, 31)
+        val cashId = java.util.UUID.fromString("f411ffb7-66f2-3534-92de-46af447dbec3")
         `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
-            .thenReturn(listOf(account("acc-cash", "1000", AccountType.ASSET)))
+            .thenReturn(listOf(account(cashId, "1000", AccountType.ASSET)))
         `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, start, end))
             .thenReturn(emptyMap())
 
@@ -133,21 +148,26 @@ class FinancialReportServiceTest {
     @Test
     fun `getBalanceSheet computes totals and current earnings`() {
         val asOf = LocalDate.of(2026, 3, 31)
-        val cash = account("acc-cash", "1000", AccountType.ASSET)
-        val ap = account("acc-ap", "2000", AccountType.LIABILITY)
-        val equity = account("acc-eq", "3000", AccountType.EQUITY)
-        val rev = account("acc-rev", "4000", AccountType.REVENUE)
-        val exp = account("acc-exp", "5000", AccountType.EXPENSE)
+        val cashId = java.util.UUID.fromString("f411ffb7-66f2-3534-92de-46af447dbec3")
+        val apId = java.util.UUID.fromString("97c02c2b-db1d-3201-b200-5645c65c4ecc")
+        val eqId = java.util.UUID.fromString("8460eb67-cc2b-3de5-bdba-6c4320d2c3de")
+        val revId = java.util.UUID.fromString("6c9034de-2612-334f-98d8-57e3ec94932a")
+        val expId = java.util.UUID.fromString("19770c7a-8b4f-3b6e-adb1-3631faff91ec")
+        val cash = account(cashId, "1000", AccountType.ASSET)
+        val ap = account(apId, "2000", AccountType.LIABILITY)
+        val equity = account(eqId, "3000", AccountType.EQUITY)
+        val rev = account(revId, "4000", AccountType.REVENUE)
+        val exp = account(expId, "5000", AccountType.EXPENSE)
 
         `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
             .thenReturn(listOf(cash, ap, equity, rev, exp))
         `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, null, asOf))
             .thenReturn(
                 mapOf(
-                    "acc-cash" to AccountTotals(BigDecimal("13000.00"), BigDecimal("500.00")),
-                    "acc-eq" to AccountTotals(BigDecimal.ZERO, BigDecimal("10000.00")),
-                    "acc-rev" to AccountTotals(BigDecimal.ZERO, BigDecimal("3000.00")),
-                    "acc-exp" to AccountTotals(BigDecimal("500.00"), BigDecimal.ZERO),
+                    cashId to AccountTotals(BigDecimal("13000.00"), BigDecimal("500.00")),
+                    eqId to AccountTotals(BigDecimal.ZERO, BigDecimal("10000.00")),
+                    revId to AccountTotals(BigDecimal.ZERO, BigDecimal("3000.00")),
+                    expId to AccountTotals(BigDecimal("500.00"), BigDecimal.ZERO),
                 ),
             )
 
@@ -162,7 +182,7 @@ class FinancialReportServiceTest {
         assertThat(result.outOfBalanceAmount).isEqualByComparingTo(BigDecimal.ZERO)
         val earningsRow = result.equity.last()
         assertThat(earningsRow.accountName).isEqualTo("Current Period Earnings")
-        assertThat(earningsRow.accountId).isEqualTo(SyntheticAccountIds.CURRENT_PERIOD_EARNINGS)
+        assertThat(earningsRow.accountId).isEqualTo(SyntheticAccountIds.CURRENT_PERIOD_EARNINGS_ID)
         assertThat(earningsRow.accountCode).isEqualTo(SyntheticAccountIds.CURRENT_PERIOD_EARNINGS)
         assertThat(earningsRow.isSynthetic).isTrue()
     }
@@ -170,16 +190,18 @@ class FinancialReportServiceTest {
     @Test
     fun `getBalanceSheet flags imbalance without throwing`() {
         val asOf = LocalDate.of(2026, 3, 31)
-        val cash = account("acc-cash", "1000", AccountType.ASSET)
-        val equity = account("acc-eq", "3000", AccountType.EQUITY)
+        val cashId = java.util.UUID.fromString("f411ffb7-66f2-3534-92de-46af447dbec3")
+        val eqId = java.util.UUID.fromString("8460eb67-cc2b-3de5-bdba-6c4320d2c3de")
+        val cash = account(cashId, "1000", AccountType.ASSET)
+        val equity = account(eqId, "3000", AccountType.EQUITY)
 
         `when`(accountRepository.findByOrganizationIdAndIsActive(orgId, true))
             .thenReturn(listOf(cash, equity))
         `when`(journalEntryRepository.aggregateAccountTotals(orgId, null, null, asOf))
             .thenReturn(
                 mapOf(
-                    "acc-cash" to AccountTotals(BigDecimal("100.00"), BigDecimal.ZERO),
-                    "acc-eq" to AccountTotals(BigDecimal.ZERO, BigDecimal("80.00")),
+                    cashId to AccountTotals(BigDecimal("100.00"), BigDecimal.ZERO),
+                    eqId to AccountTotals(BigDecimal.ZERO, BigDecimal("80.00")),
                 ),
             )
 
@@ -219,7 +241,7 @@ class FinancialReportServiceTest {
     }
 
     private fun account(
-        id: String,
+        id: UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         code: String,
         type: AccountType,
     ) = Account(
@@ -231,12 +253,12 @@ class FinancialReportServiceTest {
     )
 
     private fun entry(
-        id: String,
+        id: UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         date: LocalDate,
         lines: List<JournalEntryLine>,
     ) = JournalEntry(
         id = id,
-        entryNumber = id.uppercase(),
+        entryNumber = "JE-1",
         date = date,
         description = "test",
         organizationId = orgId,
@@ -246,13 +268,13 @@ class FinancialReportServiceTest {
     )
 
     private fun line(
-        accountId: String,
+        accountId: UUID,
         debit: BigDecimal,
         credit: BigDecimal,
     ) = JournalEntryLine(
         accountId = accountId,
-        accountCode = accountId,
-        accountName = "Account $accountId",
+        accountCode = "1000",
+        accountName = "Account Name",
         debit = debit,
         credit = credit,
     )

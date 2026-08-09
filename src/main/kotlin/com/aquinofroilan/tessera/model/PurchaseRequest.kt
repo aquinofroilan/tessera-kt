@@ -30,60 +30,60 @@ enum class PurchaseRequestStatus {
 
 @Entity
 @Table(name = "purchase_request_lines")
-data class PurchaseRequestLine(
+class PurchaseRequestLine(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "line_number")
-    val lineNumber: Int = 0,
+    var lineNumber: Int = 0,
     @Column(name = "product_id", columnDefinition = "uuid")
-    val productId: String,
+    var productId: java.util.UUID,
     @Column(name = "product_sku")
-    val productSku: String,
+    var productSku: String,
     @Column(name = "product_name")
-    val productName: String,
-    val quantity: BigDecimal,
+    var productName: String,
+    var quantity: BigDecimal,
     @Column(name = "estimated_unit_cost")
-    val estimatedUnitCost: BigDecimal? = null,
-    val description: String? = null,
+    var estimatedUnitCost: BigDecimal? = null,
+    var description: String? = null,
 )
 
 @Entity
 @Table(name = "purchase_requests")
 @EntityListeners(AuditingEntityListener::class)
-data class PurchaseRequest(
+class PurchaseRequest(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "pr_number")
-    val prNumber: String,
+    var prNumber: String,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Enumerated(EnumType.STRING)
-    val status: PurchaseRequestStatus = PurchaseRequestStatus.DRAFT,
+    var status: PurchaseRequestStatus = PurchaseRequestStatus.DRAFT,
     @Column(name = "suggested_vendor_id", columnDefinition = "uuid")
-    val suggestedVendorId: String? = null,
+    var suggestedVendorId: java.util.UUID? = null,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
-    val warehouseId: String? = null,
-    val justification: String? = null,
+    var warehouseId: java.util.UUID? = null,
+    var justification: String? = null,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "purchase_request_id")
     @OrderBy("lineNumber ASC")
-    val lines: List<PurchaseRequestLine>,
+    var lines: List<PurchaseRequestLine>,
     @Column(name = "requested_by", columnDefinition = "uuid")
-    val requestedBy: String,
+    var requestedBy: java.util.UUID,
     @Column(name = "decided_by", columnDefinition = "uuid")
-    val decidedBy: String? = null,
+    var decidedBy: java.util.UUID? = null,
     @Column(name = "decided_at")
-    val decidedAt: LocalDateTime? = null,
+    var decidedAt: LocalDateTime? = null,
     @Column(name = "decision_reason")
-    val decisionReason: String? = null,
+    var decisionReason: String? = null,
     @Column(name = "converted_purchase_order_id", columnDefinition = "uuid")
-    val convertedPurchaseOrderId: String? = null,
+    var convertedPurchaseOrderId: java.util.UUID? = null,
     @CreatedDate
     @Column(name = "created_at")
-    val createdAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     @Column(name = "updated_at")
-    val updatedAt: LocalDateTime? = null,
+    var updatedAt: LocalDateTime? = null,
 )

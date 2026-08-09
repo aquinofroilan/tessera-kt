@@ -44,7 +44,7 @@ class EmployeeController(
     @PreAuthorize("hasAuthority('hr:read')")
     fun listEmployees(
         @RequestParam(required = false) status: String?,
-        @RequestParam(required = false) departmentId: String?,
+        @RequestParam(required = false) departmentId: java.util.UUID?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val employmentStatus =
@@ -63,7 +63,7 @@ class EmployeeController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:read')")
     fun getEmployee(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(EmployeeResponse.from(employeeService.getEmployee(id, orgId)))
@@ -72,7 +72,7 @@ class EmployeeController(
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:write')")
     fun updateEmployee(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateEmployeeRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -82,8 +82,8 @@ class EmployeeController(
     @PostMapping("/{id}/assign-department")
     @PreAuthorize("hasAuthority('hr:write')")
     fun assignDepartment(
-        @PathVariable id: String,
-        @RequestParam(required = false) departmentId: String?,
+        @PathVariable id: java.util.UUID,
+        @RequestParam(required = false) departmentId: java.util.UUID?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(EmployeeResponse.from(employeeService.assignDepartment(id, departmentId, orgId)))
@@ -92,7 +92,7 @@ class EmployeeController(
     @PostMapping("/{id}/leave")
     @PreAuthorize("hasAuthority('hr:write')")
     fun placeOnLeave(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(EmployeeResponse.from(employeeService.placeOnLeave(id, orgId)))
@@ -101,7 +101,7 @@ class EmployeeController(
     @PostMapping("/{id}/return")
     @PreAuthorize("hasAuthority('hr:write')")
     fun returnFromLeave(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(EmployeeResponse.from(employeeService.returnFromLeave(id, orgId)))
@@ -110,7 +110,7 @@ class EmployeeController(
     @PostMapping("/{id}/terminate")
     @PreAuthorize("hasAuthority('hr:write')")
     fun terminate(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: TerminateEmployeeRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
