@@ -7,29 +7,29 @@ import java.time.LocalDate
 import java.util.Optional
 
 @Repository
-interface AttendanceRecordRepository : JpaRepository<AttendanceRecord, String> {
-    fun findByOrganizationId(organizationId: String): List<AttendanceRecord>
+interface AttendanceRecordRepository : JpaRepository<AttendanceRecord, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<AttendanceRecord>
 
     fun findByOrganizationIdAndEmployeeId(
-        organizationId: String,
-        employeeId: String,
+        organizationId: java.util.UUID,
+        employeeId: java.util.UUID,
     ): List<AttendanceRecord>
 
     fun findByOrganizationIdAndEmployeeIdAndWorkDate(
-        organizationId: String,
-        employeeId: String,
+        organizationId: java.util.UUID,
+        employeeId: java.util.UUID,
         workDate: LocalDate,
     ): Optional<AttendanceRecord>
 
     fun findByOrganizationIdAndWorkDateBetween(
-        organizationId: String,
+        organizationId: java.util.UUID,
         from: LocalDate,
         to: LocalDate,
     ): List<AttendanceRecord>
 
     fun findByOrganizationIdAndEmployeeIdAndWorkDateBetween(
-        organizationId: String,
-        employeeId: String,
+        organizationId: java.util.UUID,
+        employeeId: java.util.UUID,
         from: LocalDate,
         to: LocalDate,
     ): List<AttendanceRecord>

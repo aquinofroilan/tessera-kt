@@ -6,24 +6,24 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface SalesOrderRepository : JpaRepository<SalesOrder, String> {
-    fun findByOrganizationId(organizationId: String): List<SalesOrder>
+interface SalesOrderRepository : JpaRepository<SalesOrder, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<SalesOrder>
 
     fun findByOrganizationIdAndStatus(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: SalesOrderStatus,
     ): List<SalesOrder>
 
     fun findByOrganizationIdAndCustomerId(
-        organizationId: String,
-        customerId: String,
+        organizationId: java.util.UUID,
+        customerId: java.util.UUID,
     ): List<SalesOrder>
 
     fun findByOrganizationIdAndStatusAndCustomerId(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: SalesOrderStatus,
-        customerId: String,
+        customerId: java.util.UUID,
     ): List<SalesOrder>
 
-    fun countByOrganizationId(organizationId: String): Long
+    fun countByOrganizationId(organizationId: java.util.UUID): Long
 }

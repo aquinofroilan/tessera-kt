@@ -43,6 +43,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 @WebMvcTest(controllers = [StockMovementController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
@@ -95,42 +96,46 @@ class StockMovementControllerTest {
 
     private val testUser =
         User(
-            uuid = "user-123",
+            uuid = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             username = "testuser",
             email = "test@example.com",
             firstName = "Test",
             lastName = "User",
             passwordHash = "encoded",
-            organizationId = "org-123",
-            roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
+            organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000199"))),
         )
 
     @BeforeEach
     fun setup() {
         setupAuthWithPermissions("inventory:read", "inventory:write")
-        `when`(authenticationContext.organizationId()).thenReturn("org-123")
-        `when`(authenticationContext.userId()).thenReturn("user-123")
+        `when`(authenticationContext.organizationId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
+        `when`(authenticationContext.userId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
     }
 
     private fun setupAuthWithPermissions(vararg permissions: String) {
         val roleAuthorities = testUser.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
         val permissionAuthorities = permissions.map { SimpleGrantedAuthority(it) }
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
-        authentication.details = SessionContext(sessionId = "session-123", organizationId = "org-123")
+        authentication.details =
+            SessionContext(
+                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+            )
         SecurityContextHolder.getContext().authentication = authentication
     }
 
     private fun mockMovement() =
         StockMovement(
-            id = "mov-1",
-            organizationId = "org-123",
+            id = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+            organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             type = StockMovementType.RECEIPT,
-            productId = "prod-1",
-            warehouseId = "wh-1",
+            productId = UUID.fromString("00000000-0000-0000-0000-000000000999"),
+            warehouseId = UUID.fromString("00000000-0000-0000-0000-000000000999"),
             quantity = BigDecimal("10"),
             unitCost = BigDecimal("5"),
             occurredAt = LocalDateTime.now(),
-            createdBy = "user-123",
+            createdBy = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             createdAt = LocalDateTime.now(),
         )
 
@@ -144,8 +149,8 @@ class StockMovementControllerTest {
                     .content(
                         """{
                             "type": "RECEIPT",
-                            "productId": "prod-1",
-                            "warehouseId": "wh-1",
+                            "productId": "00000000-0000-0000-0000-000000000199",
+                            "warehouseId": "00000000-0000-0000-0000-000000000199",
                             "quantity": "10",
                             "unitCost": "5"
                         }""",
@@ -164,7 +169,7 @@ class StockMovementControllerTest {
                         """{
                             "type": "RECEIPT",
                             "productId": "",
-                            "warehouseId": "wh-1",
+                            "warehouseId": "00000000-0000-0000-0000-000000000199",
                             "quantity": "10",
                             "unitCost": "5"
                         }""",
@@ -186,10 +191,13 @@ class StockMovementControllerTest {
     fun `GET stock-on-hand should return quantity`() {
         `when`(stockMovementService.onHand(any(), any(), any())).thenReturn(BigDecimal("42"))
         mockMvc
-            .perform(get("/inventory/stock-on-hand").param("productId", "prod-1").param("warehouseId", "wh-1"))
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.productId").value("prod-1"))
-            .andExpect(jsonPath("$.warehouseId").value("wh-1"))
+            .perform(
+                get("/inventory/stock-on-hand")
+                    .param("productId", "00000000-0000-0000-0000-000000000199")
+                    .param("warehouseId", "00000000-0000-0000-0000-000000000199"),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.productId").value("00000000-0000-0000-0000-000000000199"))
+            .andExpect(jsonPath("$.warehouseId").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.quantity").value(42))
     }
 
@@ -203,8 +211,8 @@ class StockMovementControllerTest {
                     .content(
                         """{
                             "type": "RECEIPT",
-                            "productId": "prod-1",
-                            "warehouseId": "wh-1",
+                            "productId": "00000000-0000-0000-0000-000000000199",
+                            "warehouseId": "00000000-0000-0000-0000-000000000199",
                             "quantity": "10",
                             "unitCost": "5"
                         }""",

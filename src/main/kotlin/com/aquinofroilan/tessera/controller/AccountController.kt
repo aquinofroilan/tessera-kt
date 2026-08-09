@@ -49,7 +49,7 @@ class AccountController(
     @PreAuthorize("hasAuthority('account:read')")
     fun listAccounts(
         @RequestParam(required = false) type: String?,
-        @RequestParam(required = false) parentId: String?,
+        @RequestParam(required = false) parentId: java.util.UUID?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
@@ -73,7 +73,7 @@ class AccountController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('account:read')")
     fun getAccount(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
@@ -84,7 +84,7 @@ class AccountController(
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('account:update')")
     fun updateAccount(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateAccountRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -96,7 +96,7 @@ class AccountController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('account:delete')")
     fun deleteAccount(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
@@ -107,7 +107,7 @@ class AccountController(
     @GetMapping("/{id}/balance")
     @PreAuthorize("hasAuthority('account:read')")
     fun getAccountBalance(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @RequestParam(required = false) asOfDate: LocalDate?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()

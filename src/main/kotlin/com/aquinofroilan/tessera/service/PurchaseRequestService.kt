@@ -29,8 +29,8 @@ class PurchaseRequestService(
     @Transactional
     fun createPurchaseRequest(
         request: CreatePurchaseRequestRequest,
-        organizationId: String,
-        requestedBy: String,
+        organizationId: java.util.UUID,
+        requestedBy: java.util.UUID,
     ): PurchaseRequest {
         request.suggestedVendorId?.let { vendorService.getVendor(it, organizationId) }
         request.warehouseId?.let { warehouseService.getWarehouse(it, organizationId) }
@@ -73,8 +73,8 @@ class PurchaseRequestService(
     }
 
     fun getPurchaseRequest(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): PurchaseRequest {
         val pr =
             purchaseRequestRepository.findById(id).orElseThrow {
@@ -87,9 +87,9 @@ class PurchaseRequestService(
     }
 
     fun listPurchaseRequests(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: PurchaseRequestStatus? = null,
-        requestedBy: String? = null,
+        requestedBy: java.util.UUID? = null,
     ): List<PurchaseRequest> =
         when {
             status != null -> purchaseRequestRepository.findByOrganizationIdAndStatus(organizationId, status)
@@ -99,60 +99,55 @@ class PurchaseRequestService(
 
     @Transactional
     fun submitPurchaseRequest(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): PurchaseRequest {
         val pr = getPurchaseRequest(id, organizationId)
         if (pr.status != PurchaseRequestStatus.DRAFT) {
             throw BusinessRuleException("Only draft purchase requests can be submitted")
         }
-        return purchaseRequestRepository.save(pr.copy(status = PurchaseRequestStatus.SUBMITTED))
+        pr.status = PurchaseRequestStatus.SUBMITTED
+        return purchaseRequestRepository.save(pr)
     }
 
     @Transactional
     fun approvePurchaseRequest(
-        id: String,
-        organizationId: String,
-        decidedBy: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        decidedBy: java.util.UUID,
     ): PurchaseRequest {
         val pr = getPurchaseRequest(id, organizationId)
         if (pr.status != PurchaseRequestStatus.SUBMITTED) {
             throw BusinessRuleException("Only submitted purchase requests can be approved")
         }
-        return purchaseRequestRepository.save(
-            pr.copy(
-                status = PurchaseRequestStatus.APPROVED,
-                decidedBy = decidedBy,
-                decidedAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        pr.status = PurchaseRequestStatus.APPROVED
+        pr.decidedBy = decidedBy
+        pr.decidedAt = LocalDateTime.now(ZoneOffset.UTC)
+        return purchaseRequestRepository.save(pr)
     }
 
     @Transactional
     fun rejectPurchaseRequest(
-        id: String,
+        id: java.util.UUID,
         reason: String?,
-        organizationId: String,
-        decidedBy: String,
+        organizationId: java.util.UUID,
+        decidedBy: java.util.UUID,
     ): PurchaseRequest {
         val pr = getPurchaseRequest(id, organizationId)
         if (pr.status != PurchaseRequestStatus.SUBMITTED) {
             throw BusinessRuleException("Only submitted purchase requests can be rejected")
         }
-        return purchaseRequestRepository.save(
-            pr.copy(
-                status = PurchaseRequestStatus.REJECTED,
-                decisionReason = reason,
-                decidedBy = decidedBy,
-                decidedAt = LocalDateTime.now(ZoneOffset.UTC),
-            ),
-        )
+        pr.status = PurchaseRequestStatus.REJECTED
+        pr.decisionReason = reason
+        pr.decidedBy = decidedBy
+        pr.decidedAt = LocalDateTime.now(ZoneOffset.UTC)
+        return purchaseRequestRepository.save(pr)
     }
 
     @Transactional
     fun cancelPurchaseRequest(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): PurchaseRequest {
         val pr = getPurchaseRequest(id, organizationId)
         if (pr.status == PurchaseRequestStatus.CONVERTED) {
@@ -161,7 +156,8 @@ class PurchaseRequestService(
         if (pr.status == PurchaseRequestStatus.CANCELLED || pr.status == PurchaseRequestStatus.REJECTED) {
             throw BusinessRuleException("Purchase request is already ${pr.status.name.lowercase()}")
         }
-        return purchaseRequestRepository.save(pr.copy(status = PurchaseRequestStatus.CANCELLED))
+        pr.status = PurchaseRequestStatus.CANCELLED
+        return purchaseRequestRepository.save(pr)
     }
 
     /**
@@ -173,10 +169,10 @@ class PurchaseRequestService(
      */
     @Transactional
     fun convertToPurchaseOrder(
-        id: String,
+        id: java.util.UUID,
         request: ConvertPurchaseRequestRequest,
-        organizationId: String,
-        createdBy: String,
+        organizationId: java.util.UUID,
+        createdBy: java.util.UUID,
     ): PurchaseOrder {
         val pr = getPurchaseRequest(id, organizationId)
         if (pr.status != PurchaseRequestStatus.APPROVED) {
@@ -217,17 +213,14 @@ class PurchaseRequestService(
                 createdBy,
             )
 
-        purchaseRequestRepository.save(
-            pr.copy(
-                status = PurchaseRequestStatus.CONVERTED,
-                convertedPurchaseOrderId = po.id,
-            ),
-        )
+        pr.status = PurchaseRequestStatus.CONVERTED
+        pr.convertedPurchaseOrderId = po.id
+        purchaseRequestRepository.save(pr)
         return po
     }
 
     private fun saveWithRetry(
-        organizationId: String,
+        organizationId: java.util.UUID,
         maxRetries: Int = 3,
         build: (String) -> PurchaseRequest,
     ): PurchaseRequest {

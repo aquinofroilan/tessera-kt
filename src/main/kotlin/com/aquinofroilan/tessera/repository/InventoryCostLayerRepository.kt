@@ -5,12 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface InventoryCostLayerRepository : JpaRepository<InventoryCostLayer, String> {
+interface InventoryCostLayerRepository : JpaRepository<InventoryCostLayer, java.util.UUID> {
     fun findByOrganizationIdAndProductIdAndWarehouseIdOrderByOccurredAtAsc(
-        organizationId: String,
-        productId: String,
-        warehouseId: String,
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
     ): List<InventoryCostLayer>
 
-    fun findByOrganizationId(organizationId: String): List<InventoryCostLayer>
+    fun findByOrganizationId(organizationId: java.util.UUID): List<InventoryCostLayer>
 }

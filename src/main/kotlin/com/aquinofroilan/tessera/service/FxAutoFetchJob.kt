@@ -62,7 +62,7 @@ class FxAutoFetchJob(
     }
 
     private fun upsertAuto(
-        organizationId: String,
+        organizationId: java.util.UUID,
         fromCurrency: String,
         toCurrency: String,
         rate: java.math.BigDecimal,
@@ -100,7 +100,7 @@ class FxAutoFetchJob(
     }
 
     private fun saveAuto(
-        organizationId: String,
+        organizationId: java.util.UUID,
         fromCurrency: String,
         toCurrency: String,
         rate: java.math.BigDecimal,
@@ -119,8 +119,12 @@ class FxAutoFetchJob(
         }
         val toSave =
             existing
-                .map { it.copy(rate = rate, source = ExchangeRateSource.AUTO) }
-                .orElse(
+                .map {
+                    it.apply {
+                        this.rate = rate
+                        source = ExchangeRateSource.AUTO
+                    }
+                }.orElse(
                     ExchangeRate(
                         organizationId = organizationId,
                         fromCurrency = fromCurrency,

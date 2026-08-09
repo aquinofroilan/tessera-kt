@@ -1,0 +1,13 @@
+extend type Query {
+  projects(status: String, customerId: String): JSON!
+  project(id: ID!): JSON!
+}
+
+extend type Mutation {
+  createProject(input: JSON!): JSON!
+  updateProject(id: ID!, input: JSON!): JSON!
+  activateProject(id: ID!): JSON!
+  holdProject(id: ID!): JSON!
+  closeProject(id: ID!): JSON!
+  cancelProject(id: ID!): JSON!
+}

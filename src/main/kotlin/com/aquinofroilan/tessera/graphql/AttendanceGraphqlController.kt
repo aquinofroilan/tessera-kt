@@ -23,7 +23,7 @@ class AttendanceGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun attendance(
-        @Argument employeeId: String?,
+        @Argument employeeId: java.util.UUID?,
         @Argument from: String?,
         @Argument to: String?,
     ): Any = support.unwrap(attendanceController.listTimesheet(employeeId, from?.let(LocalDate::parse), to?.let(LocalDate::parse)))
@@ -31,7 +31,7 @@ class AttendanceGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun attendanceRecord(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(attendanceController.getAttendance(id))
 
     @MutationMapping

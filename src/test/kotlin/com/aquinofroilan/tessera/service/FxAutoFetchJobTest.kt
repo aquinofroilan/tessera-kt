@@ -27,7 +27,7 @@ class FxAutoFetchJobTest {
     private lateinit var exchangeRateRepository: ExchangeRateRepository
     private lateinit var frankfurterClient: FrankfurterClient
 
-    private val orgId = "org-1"
+    private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
 
     @BeforeEach
     fun setup() {

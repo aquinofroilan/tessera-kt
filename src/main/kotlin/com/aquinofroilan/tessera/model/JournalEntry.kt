@@ -33,42 +33,42 @@ enum class JournalEntrySource {
 
 @Entity
 @Table(name = "journal_entry_lines")
-data class JournalEntryLine(
+class JournalEntryLine(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "line_number")
-    val lineNumber: Int = 0,
+    var lineNumber: Int = 0,
     @Column(name = "account_id", columnDefinition = "uuid")
-    val accountId: String,
+    var accountId: java.util.UUID,
     @Column(name = "account_code")
-    val accountCode: String,
+    var accountCode: String,
     @Column(name = "account_name")
-    val accountName: String,
-    val debit: BigDecimal = BigDecimal.ZERO,
-    val credit: BigDecimal = BigDecimal.ZERO,
-    val description: String? = null,
+    var accountName: String,
+    var debit: BigDecimal = BigDecimal.ZERO,
+    var credit: BigDecimal = BigDecimal.ZERO,
+    var description: String? = null,
 )
 
 @Entity
 @Table(name = "journal_entries")
 @EntityListeners(AuditingEntityListener::class)
-data class JournalEntry(
+class JournalEntry(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "entry_number")
-    val entryNumber: String,
-    val date: LocalDate,
-    val description: String,
+    var entryNumber: String,
+    var date: LocalDate,
+    var description: String,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Enumerated(EnumType.STRING)
-    val status: JournalEntryStatus = JournalEntryStatus.DRAFT,
+    var status: JournalEntryStatus = JournalEntryStatus.DRAFT,
     @Enumerated(EnumType.STRING)
-    val source: JournalEntrySource = JournalEntrySource.MANUAL,
+    var source: JournalEntrySource = JournalEntrySource.MANUAL,
     @Column(name = "source_reference")
-    val sourceReference: String? = null,
+    var sourceReference: String? = null,
     @OneToMany(
         cascade = [CascadeType.ALL],
         orphanRemoval = true,
@@ -76,15 +76,15 @@ data class JournalEntry(
     )
     @JoinColumn(name = "journal_entry_id")
     @OrderBy("lineNumber ASC")
-    val lines: List<JournalEntryLine>,
+    var lines: List<JournalEntryLine>,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    var createdBy: java.util.UUID,
     @Column(name = "posted_at")
-    val postedAt: LocalDateTime? = null,
+    var postedAt: LocalDateTime? = null,
     @Column(name = "voided_at")
-    val voidedAt: LocalDateTime? = null,
+    var voidedAt: LocalDateTime? = null,
     @Column(name = "void_reason")
-    val voidReason: String? = null,
+    var voidReason: String? = null,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

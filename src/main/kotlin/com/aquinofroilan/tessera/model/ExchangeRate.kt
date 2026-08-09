@@ -23,21 +23,21 @@ enum class ExchangeRateSource {
 @Entity
 @Table(name = "exchange_rates")
 @EntityListeners(AuditingEntityListener::class)
-data class ExchangeRate(
+class ExchangeRate(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "from_currency", columnDefinition = "char(3)")
-    val fromCurrency: String,
+    var fromCurrency: String,
     @Column(name = "to_currency", columnDefinition = "char(3)")
-    val toCurrency: String,
-    val rate: BigDecimal,
+    var toCurrency: String,
+    var rate: BigDecimal,
     @Column(name = "as_of_date")
-    val asOfDate: LocalDate,
+    var asOfDate: LocalDate,
     @Enumerated(EnumType.STRING)
-    val source: ExchangeRateSource = ExchangeRateSource.MANUAL,
+    var source: ExchangeRateSource = ExchangeRateSource.MANUAL,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

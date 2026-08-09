@@ -4,25 +4,26 @@ import com.aquinofroilan.tessera.model.PaymentMethod
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 import java.math.BigDecimal
 import java.time.LocalDate
 
 data class BillLineRequest(
-    @field:NotBlank(message = "Account ID is required")
-    val accountId: String,
+    @field:NotNull(message = "Account ID is required")
+    val accountId: java.util.UUID,
     @field:Positive(message = "Amount must be positive")
     val amount: BigDecimal,
     val description: String? = null,
 )
 
 data class CreateBillRequest(
-    @field:NotBlank(message = "Vendor ID is required")
-    val vendorId: String,
+    @field:NotNull(message = "Vendor ID is required")
+    val vendorId: java.util.UUID,
     val date: LocalDate,
     val dueDate: LocalDate,
     val referenceNumber: String? = null,
-    val taxGroupId: String? = null,
+    val taxGroupId: java.util.UUID? = null,
     val currencyCode: String? = null,
     @field:NotEmpty(message = "At least one line item is required")
     @field:Valid
@@ -43,7 +44,7 @@ data class RecordPaymentRequest(
 )
 
 data class BillLineResponse(
-    val accountId: String,
+    val accountId: java.util.UUID,
     val accountCode: String,
     val accountName: String,
     val amount: BigDecimal,
@@ -51,15 +52,15 @@ data class BillLineResponse(
 )
 
 data class BillResponse(
-    val id: String,
+    val id: java.util.UUID,
     val billNumber: String,
-    val vendorId: String,
+    val vendorId: java.util.UUID,
     val vendorName: String,
     val date: String,
     val dueDate: String,
     val referenceNumber: String?,
-    val taxGroupId: String?,
-    val organizationId: String,
+    val taxGroupId: java.util.UUID?,
+    val organizationId: java.util.UUID,
     val status: String,
     val lines: List<BillLineResponse>,
     val totalAmount: BigDecimal,
@@ -70,20 +71,20 @@ data class BillResponse(
     val baseCurrencyAmount: BigDecimal,
     val baseCurrencyTaxAmount: BigDecimal,
     val baseCurrencyAmountPaid: BigDecimal,
-    val journalEntryId: String?,
-    val createdBy: String,
+    val journalEntryId: java.util.UUID?,
+    val createdBy: java.util.UUID,
     val approvedAt: String?,
-    val approvedBy: String?,
+    val approvedBy: java.util.UUID?,
     val paidAt: String?,
     val voidedAt: String?,
-    val voidedBy: String?,
+    val voidedBy: java.util.UUID?,
     val voidReason: String?,
     val createdAt: String?,
     val updatedAt: String?,
 )
 
 data class BillSummaryResponse(
-    val id: String,
+    val id: java.util.UUID,
     val billNumber: String,
     val vendorName: String,
     val date: String,
@@ -96,16 +97,16 @@ data class BillSummaryResponse(
 )
 
 data class BillPaymentResponse(
-    val id: String,
-    val billId: String,
+    val id: java.util.UUID,
+    val billId: java.util.UUID,
     val paymentDate: String,
     val amount: BigDecimal,
     val baseCurrencyAmount: BigDecimal,
     val exchangeRate: BigDecimal,
     val paymentMethod: String,
     val referenceNumber: String?,
-    val journalEntryId: String?,
-    val createdBy: String,
+    val journalEntryId: java.util.UUID?,
+    val createdBy: java.util.UUID,
     val createdAt: String?,
 )
 
@@ -119,7 +120,7 @@ data class AgingBucket(
 )
 
 data class VendorAgingResponse(
-    val vendorId: String,
+    val vendorId: java.util.UUID,
     val vendorName: String,
     val aging: AgingBucket,
 )

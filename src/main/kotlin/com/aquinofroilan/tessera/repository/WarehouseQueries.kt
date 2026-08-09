@@ -5,7 +5,7 @@ import jakarta.persistence.EntityManager
 
 interface WarehouseQueries {
     fun search(
-        organizationId: String,
+        organizationId: java.util.UUID,
         isActive: Boolean,
         term: String?,
     ): List<Warehouse>
@@ -15,7 +15,7 @@ open class WarehouseQueriesImpl(
     private val em: EntityManager,
 ) : WarehouseQueries {
     override fun search(
-        organizationId: String,
+        organizationId: java.util.UUID,
         isActive: Boolean,
         term: String?,
     ): List<Warehouse> {

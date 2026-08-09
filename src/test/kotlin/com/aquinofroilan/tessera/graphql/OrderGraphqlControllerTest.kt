@@ -13,6 +13,7 @@ import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.http.ResponseEntity
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import java.util.UUID
 
 @GraphQlTest(controllers = [OrderGraphqlController::class])
 @Import(
@@ -36,7 +37,7 @@ class OrderGraphqlControllerTest {
     @WithMockUser(authorities = ["procurement:read"])
     fun `purchaseOrders query should return json payload`() {
         `when`(purchaseOrderController.listPurchaseOrders(null, null))
-            .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "po1", "status" to "DRAFT"))))
+            .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "DRAFT"))))
 
         graphQlTester
             .document(
@@ -48,20 +49,20 @@ class OrderGraphqlControllerTest {
             ).execute()
             .path("purchaseOrders[0].id")
             .entity(String::class.java)
-            .isEqualTo("po1")
+            .isEqualTo("00000000-0000-0000-0000-000000000199")
     }
 
     @Test
     @WithMockUser(authorities = ["sales:approve"])
     fun `approveSalesOrder mutation should bridge to controller`() {
-        `when`(salesOrderController.approveSalesOrder("so1"))
-            .thenReturn(ResponseEntity.ok(mapOf("id" to "so1", "status" to "APPROVED")))
+        `when`(salesOrderController.approveSalesOrder(UUID.fromString("00000000-0000-0000-0000-000000000199")))
+            .thenReturn(ResponseEntity.ok(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "APPROVED")))
 
         graphQlTester
             .document(
                 """
                 mutation {
-                  approveSalesOrder(id: "so1")
+                  approveSalesOrder(id: "00000000-0000-0000-0000-000000000199")
                 }
                 """.trimIndent(),
             ).execute()

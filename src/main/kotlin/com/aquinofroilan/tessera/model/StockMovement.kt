@@ -19,38 +19,40 @@ enum class StockMovementType {
     TRANSFER,
     ADJUSTMENT,
     OPENING_BALANCE,
+    WIP_ISSUE,
+    WIP_RECEIPT,
 }
 
 @Entity
 @Table(name = "stock_movements")
 @EntityListeners(AuditingEntityListener::class)
-data class StockMovement(
+class StockMovement(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Enumerated(EnumType.STRING)
-    val type: StockMovementType,
+    var type: StockMovementType,
     @Column(name = "product_id", columnDefinition = "uuid")
-    val productId: String,
+    var productId: java.util.UUID,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
-    val warehouseId: String,
+    var warehouseId: java.util.UUID,
     @Column(name = "transfer_to_warehouse_id", columnDefinition = "uuid")
-    val transferToWarehouseId: String? = null,
-    val quantity: BigDecimal,
+    var transferToWarehouseId: java.util.UUID? = null,
+    var quantity: BigDecimal,
     @Column(name = "unit_cost")
-    val unitCost: BigDecimal? = null,
-    val reference: String? = null,
-    val notes: String? = null,
+    var unitCost: BigDecimal? = null,
+    var reference: String? = null,
+    var notes: String? = null,
     @Column(name = "reversed")
-    val reversed: Boolean = false,
+    var reversed: Boolean = false,
     @Column(name = "reversal_of_movement_id", columnDefinition = "uuid")
-    val reversalOfMovementId: String? = null,
+    var reversalOfMovementId: java.util.UUID? = null,
     @Column(name = "occurred_at")
-    val occurredAt: LocalDateTime,
+    var occurredAt: LocalDateTime,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    var createdBy: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

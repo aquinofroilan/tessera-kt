@@ -15,26 +15,28 @@ import java.util.UUID
 @Entity
 @Table(name = "products")
 @EntityListeners(AuditingEntityListener::class)
-data class Product(
+class Product(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
-    val sku: String,
-    val name: String,
-    val description: String? = null,
-    val category: String? = null,
+    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
+    var sku: String,
+    var name: String,
+    var description: String? = null,
+    var category: String? = null,
     @Column(name = "image_url")
-    val imageUrl: String? = null,
+    var imageUrl: String? = null,
     @Column(name = "list_price")
-    val listPrice: BigDecimal,
+    var listPrice: BigDecimal,
     @Column(name = "price_currency", columnDefinition = "char(3)")
-    val priceCurrency: String,
+    var priceCurrency: String,
     @Column(name = "tax_group_id", columnDefinition = "uuid")
-    val taxGroupId: String? = null,
+    var taxGroupId: UUID? = null,
+    @Column(name = "uom_id", columnDefinition = "uuid")
+    var uomId: UUID? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: java.util.UUID,
     @Column(name = "is_active")
-    val isActive: Boolean = true,
+    var isActive: Boolean = true,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,
