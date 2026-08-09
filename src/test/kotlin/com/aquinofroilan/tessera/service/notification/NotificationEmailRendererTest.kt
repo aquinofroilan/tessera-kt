@@ -88,8 +88,8 @@ class NotificationEmailRendererTest {
         link: String? = null,
     ): Notification =
         Notification(
-            organizationId = "org-1",
-            recipientUserId = "user-1",
+            organizationId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000100"),
+            recipientUserId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000101"),
             category = NotificationCategory.APPROVAL,
             kind = "test.kind",
             title = title,
