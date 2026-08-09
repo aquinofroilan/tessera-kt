@@ -5,6 +5,7 @@ import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import com.aquinofroilan.tessera.model.Notification
 import com.aquinofroilan.tessera.model.NotificationCategory
 import com.aquinofroilan.tessera.repository.NotificationRepository
+import com.aquinofroilan.tessera.service.notification.NotificationEmailEnqueuer
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -20,6 +21,7 @@ import java.util.Optional
 
 class NotificationServiceTest {
     private lateinit var repository: NotificationRepository
+    private lateinit var emailEnqueuer: NotificationEmailEnqueuer
     private lateinit var service: NotificationService
 
     private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")
@@ -28,12 +30,13 @@ class NotificationServiceTest {
     @BeforeEach
     fun setup() {
         repository = mock(NotificationRepository::class.java)
+        emailEnqueuer = mock(NotificationEmailEnqueuer::class.java)
         whenever(repository.save(any<Notification>())).thenAnswer { it.arguments[0] }
-        service = NotificationService(repository)
+        service = NotificationService(repository, emailEnqueuer)
     }
 
     @Test
-    fun `publish persists a notification scoped to the org`() {
+    fun `publish persists a notification scoped to the org and hands off to the email enqueuer`() {
         val request =
             CreateNotificationRequest(
                 recipientUserId = userId,
@@ -52,6 +55,7 @@ class NotificationServiceTest {
         assertThat(saved.kind).isEqualTo("leave_request.submitted")
         assertThat(saved.title).isEqualTo("New leave request")
         assertThat(saved.readAt).isNull()
+        verify(emailEnqueuer).enqueue(saved)
     }
 
     @Test
