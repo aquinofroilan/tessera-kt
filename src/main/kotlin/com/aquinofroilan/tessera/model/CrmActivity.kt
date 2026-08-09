@@ -27,23 +27,23 @@ enum class CrmActivityType {
 data class CrmActivity(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: UUID = UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: UUID,
     @Enumerated(EnumType.STRING)
     val type: CrmActivityType,
     val subject: String,
     val body: String? = null,
     @Column(name = "related_lead_id", columnDefinition = "uuid")
-    val relatedLeadId: String? = null,
+    val relatedLeadId: UUID? = null,
     @Column(name = "related_opportunity_id", columnDefinition = "uuid")
-    val relatedOpportunityId: String? = null,
+    val relatedOpportunityId: UUID? = null,
     @Column(name = "related_contact_id", columnDefinition = "uuid")
-    val relatedContactId: String? = null,
+    val relatedContactId: UUID? = null,
     @Column(name = "related_customer_id", columnDefinition = "uuid")
-    val relatedCustomerId: String? = null,
+    val relatedCustomerId: UUID? = null,
     @Column(name = "owner_user_id", columnDefinition = "uuid")
-    val ownerUserId: String? = null,
+    val ownerUserId: UUID? = null,
     @Column(name = "occurred_at")
     val occurredAt: LocalDateTime = LocalDateTime.now(),
     @Column(name = "due_at")
@@ -52,9 +52,9 @@ data class CrmActivity(
     @Column(name = "completed_at")
     val completedAt: LocalDateTime? = null,
     @Column(name = "completed_by", columnDefinition = "uuid")
-    val completedBy: String? = null,
+    val completedBy: UUID? = null,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    val createdBy: UUID,
     @CreatedDate
     @Column(name = "created_at")
     val createdAt: LocalDateTime? = null,

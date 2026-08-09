@@ -14,6 +14,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import java.time.LocalDateTime
 import java.util.Optional
+import java.util.UUID
 
 class CrmActivityServiceTest {
     private lateinit var repository: CrmActivityRepository
@@ -23,8 +24,8 @@ class CrmActivityServiceTest {
     private lateinit var customerService: CustomerService
     private lateinit var service: CrmActivityService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
+    private val orgId = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    private val userId = UUID.fromString("00000000-0000-0000-0000-000000000002")
 
     @BeforeEach
     fun setup() {
@@ -55,7 +56,7 @@ class CrmActivityServiceTest {
                 CreateActivityRequest(
                     type = CrmActivityType.TASK,
                     subject = "Follow up",
-                    relatedOpportunityId = "opp-1",
+                    relatedOpportunityId = UUID.fromString("00000000-0000-0000-0000-000000000004"),
                 ),
                 orgId,
                 userId,
@@ -70,50 +71,50 @@ class CrmActivityServiceTest {
                 CreateActivityRequest(
                     type = CrmActivityType.NOTE,
                     subject = "Initial intro call",
-                    relatedLeadId = "lead-1",
+                    relatedLeadId = UUID.fromString("00000000-0000-0000-0000-000000000003"),
                 ),
                 orgId,
                 userId,
             )
         assertThat(activity.type).isEqualTo(CrmActivityType.NOTE)
-        assertThat(activity.relatedLeadId).isEqualTo("lead-1")
+        assertThat(activity.relatedLeadId).isEqualTo(UUID.fromString("00000000-0000-0000-0000-000000000003"))
         assertThat(activity.completed).isFalse()
     }
 
     @Test
     fun `complete only allowed on TASK`() {
-        whenever(repository.findById("a1")).thenReturn(
+        whenever(repository.findById(UUID.fromString("00000000-0000-0000-0000-000000000005"))).thenReturn(
             Optional.of(
                 CrmActivity(
-                    id = "a1",
+                    id = UUID.fromString("00000000-0000-0000-0000-000000000005"),
                     organizationId = orgId,
                     type = CrmActivityType.NOTE,
                     subject = "n",
-                    relatedLeadId = "lead-1",
+                    relatedLeadId = UUID.fromString("00000000-0000-0000-0000-000000000003"),
                     createdBy = userId,
                 ),
             ),
         )
-        assertThatThrownBy { service.completeActivity("a1", orgId, userId) }
+        assertThatThrownBy { service.completeActivity(UUID.fromString("00000000-0000-0000-0000-000000000005"), orgId, userId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `complete stamps completed audit fields on TASK`() {
-        whenever(repository.findById("a1")).thenReturn(
+        whenever(repository.findById(UUID.fromString("00000000-0000-0000-0000-000000000005"))).thenReturn(
             Optional.of(
                 CrmActivity(
-                    id = "a1",
+                    id = UUID.fromString("00000000-0000-0000-0000-000000000005"),
                     organizationId = orgId,
                     type = CrmActivityType.TASK,
                     subject = "task",
-                    relatedOpportunityId = "opp-1",
+                    relatedOpportunityId = UUID.fromString("00000000-0000-0000-0000-000000000004"),
                     dueAt = LocalDateTime.now().plusDays(1),
                     createdBy = userId,
                 ),
             ),
         )
-        val completed = service.completeActivity("a1", orgId, userId)
+        val completed = service.completeActivity(UUID.fromString("00000000-0000-0000-0000-000000000005"), orgId, userId)
         assertThat(completed.completed).isTrue()
         assertThat(completed.completedBy).isEqualTo(userId)
     }

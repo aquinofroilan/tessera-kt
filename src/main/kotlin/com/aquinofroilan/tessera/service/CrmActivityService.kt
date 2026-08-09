@@ -22,8 +22,8 @@ class CrmActivityService(
     @Transactional
     fun createActivity(
         request: CreateActivityRequest,
-        organizationId: String,
-        userId: String,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): CrmActivity {
         val type = request.type ?: throw BusinessRuleException("Type is required")
         if (request.relatedLeadId == null &&
@@ -60,8 +60,8 @@ class CrmActivityService(
     }
 
     fun getActivity(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): CrmActivity {
         val a =
             activityRepository.findById(id).orElseThrow {
@@ -74,12 +74,12 @@ class CrmActivityService(
     }
 
     fun listActivities(
-        organizationId: String,
+        organizationId: java.util.UUID,
         type: CrmActivityType?,
-        leadId: String?,
-        opportunityId: String?,
-        contactId: String?,
-        customerId: String?,
+        leadId: java.util.UUID?,
+        opportunityId: java.util.UUID?,
+        contactId: java.util.UUID?,
+        customerId: java.util.UUID?,
     ): List<CrmActivity> =
         when {
             leadId != null ->
@@ -97,15 +97,15 @@ class CrmActivityService(
         }
 
     fun listMyOpenTasks(
-        organizationId: String,
-        userId: String,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): List<CrmActivity> = activityRepository.findByOrganizationIdAndOwnerUserIdAndCompletedFalseOrderByDueAtAsc(organizationId, userId)
 
     @Transactional
     fun updateActivity(
-        id: String,
+        id: java.util.UUID,
         request: UpdateActivityRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): CrmActivity {
         val a = getActivity(id, organizationId)
         if (a.completed) {
@@ -124,9 +124,9 @@ class CrmActivityService(
 
     @Transactional
     fun completeActivity(
-        id: String,
-        organizationId: String,
-        userId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): CrmActivity {
         val a = getActivity(id, organizationId)
         if (a.completed) return a
@@ -144,8 +144,8 @@ class CrmActivityService(
 
     @Transactional
     fun deleteActivity(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ) {
         val a = getActivity(id, organizationId)
         activityRepository.delete(a)
