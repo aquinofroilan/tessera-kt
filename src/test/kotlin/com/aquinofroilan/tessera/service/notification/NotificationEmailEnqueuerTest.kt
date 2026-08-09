@@ -48,11 +48,12 @@ class NotificationEmailEnqueuerTest {
 
     @Test
     fun `enqueue does nothing when the email channel is disabled`() {
-        val disabled = NotificationEmailEnqueuer(
-            outboxRepository,
-            userRepository,
-            NotificationEmailProperties(enabled = false),
-        )
+        val disabled =
+            NotificationEmailEnqueuer(
+                outboxRepository,
+                userRepository,
+                NotificationEmailProperties(enabled = false),
+            )
 
         disabled.enqueue(notification(id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")))
 

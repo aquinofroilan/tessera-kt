@@ -115,7 +115,9 @@ class NotificationEmailDispatcherTest {
     @Test
     fun `missing notification row marks the outbox row FAILED instead of dispatching`() {
         givenPending(row(notificationId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000999")))
-        whenever(notificationRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000999"))).thenReturn(Optional.empty())
+        whenever(
+            notificationRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000999")),
+        ).thenReturn(Optional.empty())
 
         dispatcher.drain()
 
