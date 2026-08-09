@@ -87,6 +87,8 @@ object Permissions {
     const val CRM_READ = "crm:read"
     const val CRM_WRITE = "crm:write"
 
+    const val NOTIFICATION_WRITE = "notification:write"
+
     val ALL_PERMISSIONS =
         listOf(
             SESSION_READ,
@@ -154,6 +156,7 @@ object Permissions {
             PROJECT_READ,
             PROJECT_WRITE,
             PROJECT_APPROVE,
+            NOTIFICATION_WRITE,
             CRM_READ,
             CRM_WRITE,
         )
