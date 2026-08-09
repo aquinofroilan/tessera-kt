@@ -26,7 +26,7 @@ class ContactService(
             throw BusinessRuleException("At least one of firstName or lastName is required")
         }
         if (request.customerId != null) {
-            customerService.getCustomer(request.customerId!!, organizationId)
+            customerService.getCustomer(request.customerId, organizationId)
         }
         return contactRepository.save(
             Contact(
@@ -77,7 +77,7 @@ class ContactService(
     ): Contact {
         val c = getContact(id, organizationId)
         if (request.customerId != null && request.customerId != c.customerId) {
-            customerService.getCustomer(request.customerId!!, organizationId)
+            customerService.getCustomer(request.customerId, organizationId)
         }
         val firstName = request.firstName?.trim() ?: c.firstName
         val lastName = request.lastName?.trim() ?: c.lastName
