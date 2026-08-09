@@ -6,6 +6,7 @@ import com.aquinofroilan.tessera.model.Notification
 import com.aquinofroilan.tessera.model.NotificationCategory
 import com.aquinofroilan.tessera.repository.NotificationRepository
 import com.aquinofroilan.tessera.service.notification.NotificationEmailEnqueuer
+import com.aquinofroilan.tessera.service.notification.NotificationStreamRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -22,6 +23,7 @@ import java.util.Optional
 class NotificationServiceTest {
     private lateinit var repository: NotificationRepository
     private lateinit var emailEnqueuer: NotificationEmailEnqueuer
+    private lateinit var streamRegistry: NotificationStreamRegistry
     private lateinit var service: NotificationService
 
     private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")
@@ -31,8 +33,9 @@ class NotificationServiceTest {
     fun setup() {
         repository = mock(NotificationRepository::class.java)
         emailEnqueuer = mock(NotificationEmailEnqueuer::class.java)
+        streamRegistry = mock(NotificationStreamRegistry::class.java)
         whenever(repository.save(any<Notification>())).thenAnswer { it.arguments[0] }
-        service = NotificationService(repository, emailEnqueuer)
+        service = NotificationService(repository, emailEnqueuer, streamRegistry)
     }
 
     @Test
