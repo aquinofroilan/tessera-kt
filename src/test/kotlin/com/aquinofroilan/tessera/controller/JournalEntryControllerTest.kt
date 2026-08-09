@@ -50,6 +50,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 
 @WebMvcTest(controllers = [JournalEntryController::class])
 @Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
@@ -102,58 +103,62 @@ class JournalEntryControllerTest {
 
     private val testUser =
         User(
-            uuid = "user-123",
+            uuid = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             username = "testuser",
             email = "test@example.com",
             firstName = "Test",
             lastName = "User",
             passwordHash = "encoded",
-            organizationId = "org-123",
-            roleAssignments = listOf(RoleAssignment("OWNER", "org-123")),
+            organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+            roleAssignments = listOf(RoleAssignment("OWNER", UUID.fromString("00000000-0000-0000-0000-000000000199"))),
         )
 
     @BeforeEach
     fun setup() {
         setupAuthWithPermissions("journal:create", "journal:read", "journal:post", "journal:void", "account:read")
-        `when`(authenticationContext.organizationId()).thenReturn("org-123")
-        `when`(authenticationContext.userId()).thenReturn("user-123")
+        `when`(authenticationContext.organizationId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
+        `when`(authenticationContext.userId()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000199"))
     }
 
     private fun setupAuthWithPermissions(vararg permissions: String) {
         val roleAuthorities = testUser.roleAssignments.map { SimpleGrantedAuthority("ROLE_${it.role}") }
         val permissionAuthorities = permissions.map { SimpleGrantedAuthority(it) }
         val authentication = UsernamePasswordAuthenticationToken(testUser, null, roleAuthorities + permissionAuthorities)
-        authentication.details = SessionContext(sessionId = "session-123", organizationId = "org-123")
+        authentication.details =
+            SessionContext(
+                sessionId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+                organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
+            )
         SecurityContextHolder.getContext().authentication = authentication
     }
 
     private fun createMockJournalEntry() =
         JournalEntry(
-            id = "je-123",
+            id = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             entryNumber = "JE-0001",
             date = LocalDate.of(2026, 1, 15),
             description = "Test entry",
-            organizationId = "org-123",
+            organizationId = UUID.fromString("00000000-0000-0000-0000-000000000199"),
             status = JournalEntryStatus.DRAFT,
             source = JournalEntrySource.MANUAL,
             lines =
                 listOf(
                     JournalEntryLine(
-                        accountId = "acc-1",
+                        accountId = UUID.fromString("00000000-0000-0000-0000-000000000999"),
                         accountCode = "1000",
                         accountName = "Cash",
                         debit = BigDecimal("100.00"),
                         credit = BigDecimal.ZERO,
                     ),
                     JournalEntryLine(
-                        accountId = "acc-2",
+                        accountId = UUID.fromString("00000000-0000-0000-0000-000000000999"),
                         accountCode = "4000",
                         accountName = "Sales Revenue",
                         debit = BigDecimal.ZERO,
                         credit = BigDecimal("100.00"),
                     ),
                 ),
-            createdBy = "user-123",
+            createdBy = UUID.fromString("00000000-0000-0000-0000-000000000199"),
         )
 
     @Test
@@ -171,22 +176,22 @@ class JournalEntryControllerTest {
                             "date": "2026-01-15",
                             "description": "Test entry",
                             "lines": [
-                                {"accountId": "acc-1", "debit": 100.00, "credit": 0},
-                                {"accountId": "acc-2", "debit": 0, "credit": 100.00}
+                                {"accountId": "00000000-0000-0000-0000-000000000999", "debit": 100.00, "credit": 0},
+                                {"accountId": "00000000-0000-0000-0000-000000000999", "debit": 0, "credit": 100.00}
                             ]
                         }
                         """.trimIndent(),
                     ),
             ).andExpect(status().isCreated)
-            .andExpect(jsonPath("$.id").value("je-123"))
+            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.entryNumber").value("JE-0001"))
             .andExpect(jsonPath("$.date").value("2026-01-15"))
             .andExpect(jsonPath("$.description").value("Test entry"))
-            .andExpect(jsonPath("$.organizationId").value("org-123"))
+            .andExpect(jsonPath("$.organizationId").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.status").value("DRAFT"))
             .andExpect(jsonPath("$.source").value("MANUAL"))
             .andExpect(jsonPath("$.lines.length()").value(2))
-            .andExpect(jsonPath("$.createdBy").value("user-123"))
+            .andExpect(jsonPath("$.createdBy").value("00000000-0000-0000-0000-000000000199"))
     }
 
     @Test
@@ -204,8 +209,8 @@ class JournalEntryControllerTest {
                             "date": "2026-01-15",
                             "description": "Unbalanced entry",
                             "lines": [
-                                {"accountId": "acc-1", "debit": 100.00, "credit": 0},
-                                {"accountId": "acc-2", "debit": 0, "credit": 50.00}
+                                {"accountId": "00000000-0000-0000-0000-000000000999", "debit": 100.00, "credit": 0},
+                                {"accountId": "00000000-0000-0000-0000-000000000999", "debit": 0, "credit": 50.00}
                             ]
                         }
                         """.trimIndent(),
@@ -223,7 +228,7 @@ class JournalEntryControllerTest {
             .perform(get("/finance/journal"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].id").value("je-123"))
+            .andExpect(jsonPath("$[0].id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$[0].entryNumber").value("JE-0001"))
             .andExpect(jsonPath("$[0].status").value("DRAFT"))
             .andExpect(jsonPath("$[0].lines.length()").value(2))
@@ -235,9 +240,9 @@ class JournalEntryControllerTest {
         `when`(journalEntryService.getJournalEntry(any(), any())).thenReturn(entry)
 
         mockMvc
-            .perform(get("/finance/journal/je-123"))
+            .perform(get("/finance/journal/00000000-0000-0000-0000-000000000199"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value("je-123"))
+            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.entryNumber").value("JE-0001"))
             .andExpect(jsonPath("$.date").value("2026-01-15"))
             .andExpect(jsonPath("$.description").value("Test entry"))
@@ -250,35 +255,35 @@ class JournalEntryControllerTest {
             .thenThrow(ResourceNotFoundException("Journal entry not found"))
 
         mockMvc
-            .perform(get("/finance/journal/nonexistent"))
+            .perform(get("/finance/journal/00000000-0000-0000-0000-000000000000"))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.error").value("Journal entry not found"))
     }
 
     @Test
     fun `POST journal-entries id post should return 200`() {
-        val entry = createMockJournalEntry().copy(status = JournalEntryStatus.POSTED)
+        val entry = createMockJournalEntry().apply { status = JournalEntryStatus.POSTED }
         `when`(journalEntryService.postJournalEntry(any(), any())).thenReturn(entry)
 
         mockMvc
-            .perform(post("/finance/journal/je-123/post"))
+            .perform(post("/finance/journal/00000000-0000-0000-0000-000000000199/post"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value("je-123"))
+            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.status").value("POSTED"))
     }
 
     @Test
     fun `POST journal-entries id void should return 200`() {
-        val entry = createMockJournalEntry().copy(status = JournalEntryStatus.VOIDED)
+        val entry = createMockJournalEntry().apply { status = JournalEntryStatus.VOIDED }
         `when`(journalEntryService.voidJournalEntry(any(), any(), any())).thenReturn(entry)
 
         mockMvc
             .perform(
-                post("/finance/journal/je-123/void")
+                post("/finance/journal/00000000-0000-0000-0000-000000000199/void")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"reason": "Error correction"}"""),
             ).andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value("je-123"))
+            .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.status").value("VOIDED"))
     }
 
@@ -289,7 +294,7 @@ class JournalEntryControllerTest {
                 accounts =
                     listOf(
                         AccountBalanceResponse(
-                            accountId = "acc-1",
+                            accountId = UUID.fromString("00000000-0000-0000-0000-000000000999"),
                             accountCode = "1000",
                             accountName = "Cash",
                             accountType = "ASSET",
@@ -298,7 +303,7 @@ class JournalEntryControllerTest {
                             balance = BigDecimal("100.00"),
                         ),
                         AccountBalanceResponse(
-                            accountId = "acc-2",
+                            accountId = UUID.fromString("00000000-0000-0000-0000-000000000999"),
                             accountCode = "4000",
                             accountName = "Sales Revenue",
                             accountType = "REVENUE",
@@ -341,8 +346,8 @@ class JournalEntryControllerTest {
                             "date": "2026-01-15",
                             "description": "Test entry",
                             "lines": [
-                                {"accountId": "acc-1", "debit": 100.00, "credit": 0},
-                                {"accountId": "acc-2", "debit": 0, "credit": 100.00}
+                                {"accountId": "00000000-0000-0000-0000-000000000999", "debit": 100.00, "credit": 0},
+                                {"accountId": "00000000-0000-0000-0000-000000000999", "debit": 0, "credit": 100.00}
                             ]
                         }
                         """.trimIndent(),

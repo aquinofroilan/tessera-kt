@@ -9,7 +9,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 data class CreateEmployeeCompensationRequest(
-    val positionId: String? = null,
+    val positionId: java.util.UUID? = null,
     @field:NotNull(message = "Pay rate is required")
     @field:Positive(message = "Pay rate must be positive")
     val payRate: BigDecimal?,
@@ -22,15 +22,15 @@ data class CreateEmployeeCompensationRequest(
 )
 
 data class EmployeeCompensationResponse(
-    val id: String,
-    val employeeId: String,
-    val positionId: String?,
+    val id: java.util.UUID,
+    val employeeId: java.util.UUID,
+    val positionId: java.util.UUID?,
     val payRate: BigDecimal,
     val currency: String,
     val payPeriod: PayPeriod,
     val effectiveDate: String,
-    val organizationId: String,
-    val createdBy: String,
+    val organizationId: java.util.UUID,
+    val createdBy: java.util.UUID,
     val createdAt: String?,
 ) {
     companion object {

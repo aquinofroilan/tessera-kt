@@ -4,6 +4,7 @@ import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.math.BigDecimal
+import java.util.UUID
 
 data class CreateProductRequest(
     @field:NotBlank(message = "SKU is required")
@@ -21,7 +22,7 @@ data class CreateProductRequest(
     @field:DecimalMin(value = "0.0", message = "List price must be zero or positive")
     val listPrice: BigDecimal,
     val priceCurrency: String? = null,
-    val taxGroupId: String? = null,
+    val taxGroupId: java.util.UUID? = null,
 )
 
 data class UpdateProductRequest(
@@ -36,11 +37,11 @@ data class UpdateProductRequest(
     @field:DecimalMin(value = "0.0", message = "List price must be zero or positive")
     val listPrice: BigDecimal? = null,
     val priceCurrency: String? = null,
-    val taxGroupId: String? = null,
+    val taxGroupId: java.util.UUID? = null,
 )
 
 data class ProductResponse(
-    val id: String,
+    val id: java.util.UUID,
     val sku: String,
     val name: String,
     val description: String?,
@@ -48,8 +49,8 @@ data class ProductResponse(
     val imageUrl: String?,
     val listPrice: BigDecimal,
     val priceCurrency: String,
-    val taxGroupId: String?,
-    val organizationId: String,
+    val taxGroupId: java.util.UUID?,
+    val organizationId: java.util.UUID,
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,

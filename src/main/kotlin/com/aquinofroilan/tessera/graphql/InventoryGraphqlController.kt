@@ -23,6 +23,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Controller
 class InventoryGraphqlController(
@@ -56,7 +57,7 @@ class InventoryGraphqlController(
     @MutationMapping
     @PreAuthorize("hasAuthority('fx:create')")
     fun deleteExchangeRate(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(exchangeRateController.deleteRate(id))
 
     @MutationMapping
@@ -76,20 +77,20 @@ class InventoryGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('inventory:read')")
     fun product(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(productController.getProduct(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('inventory:write')")
     fun updateProduct(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(productController.updateProduct(id, support.toRequest<UpdateProductRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('inventory:write')")
     fun deleteProduct(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(productController.deleteProduct(id))
 
     @MutationMapping
@@ -108,20 +109,20 @@ class InventoryGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('inventory:read')")
     fun warehouse(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(warehouseController.getWarehouse(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('inventory:write')")
     fun updateWarehouse(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(warehouseController.updateWarehouse(id, support.toRequest<UpdateWarehouseRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('inventory:write')")
     fun deleteWarehouse(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(warehouseController.deleteWarehouse(id))
 
     @MutationMapping
@@ -133,8 +134,8 @@ class InventoryGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('inventory:read')")
     fun stockMovements(
-        @Argument productId: String?,
-        @Argument warehouseId: String?,
+        @Argument productId: java.util.UUID?,
+        @Argument warehouseId: java.util.UUID?,
         @Argument type: String?,
         @Argument from: String?,
         @Argument to: String?,
@@ -152,8 +153,8 @@ class InventoryGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('inventory:read')")
     fun stockOnHand(
-        @Argument productId: String,
-        @Argument warehouseId: String,
+        @Argument productId: java.util.UUID,
+        @Argument warehouseId: java.util.UUID,
     ): Any = support.unwrap(stockMovementController.onHand(productId, warehouseId))
 
     @MutationMapping
@@ -169,20 +170,20 @@ class InventoryGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('inventory:read')")
     fun reorderRule(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(reorderRuleController.getRule(id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('inventory:write')")
     fun updateReorderRule(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
         @Argument input: Any,
     ): Any = support.unwrap(reorderRuleController.updateRule(id, support.toRequest<UpdateReorderRuleRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('inventory:write')")
     fun deleteReorderRule(
-        @Argument id: String,
+        @Argument id: java.util.UUID,
     ): Any = support.unwrap(reorderRuleController.deleteRule(id))
 
     @QueryMapping
@@ -192,8 +193,8 @@ class InventoryGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('inventory:read')")
     fun inventoryStockOnHand(
-        @Argument productId: String?,
-        @Argument warehouseId: String?,
+        @Argument productId: java.util.UUID?,
+        @Argument warehouseId: java.util.UUID?,
         @Argument asOfDate: String?,
     ): Any =
         support.unwrap(
@@ -207,8 +208,8 @@ class InventoryGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('inventory:read')")
     fun inventoryMovementHistory(
-        @Argument productId: String?,
-        @Argument warehouseId: String?,
+        @Argument productId: java.util.UUID?,
+        @Argument warehouseId: java.util.UUID?,
         @Argument from: String?,
         @Argument to: String?,
     ): Any =

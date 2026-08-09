@@ -20,7 +20,7 @@ class TaxRateService(
     @Transactional
     fun createTaxRate(
         request: CreateTaxRateRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): TaxRate {
         val taxRate =
             TaxRate(
@@ -42,8 +42,8 @@ class TaxRateService(
     }
 
     fun getTaxRate(
-        taxRateId: String,
-        organizationId: String,
+        taxRateId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): TaxRate {
         val taxRate =
             taxRateRepository.findById(taxRateId).orElseThrow {
@@ -56,7 +56,7 @@ class TaxRateService(
     }
 
     fun listTaxRates(
-        organizationId: String,
+        organizationId: java.util.UUID,
         activeOnly: Boolean = false,
     ): List<TaxRate> =
         if (activeOnly) {
@@ -67,11 +67,12 @@ class TaxRateService(
 
     @Transactional
     fun updateTaxRate(
-        taxRateId: String,
+        taxRateId: java.util.UUID,
         request: UpdateTaxRateRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): TaxRate {
         val taxRate = getTaxRate(taxRateId, organizationId)
+        val previousPercentage = taxRate.percentage
 
         if (!taxRate.isActive) {
             throw BusinessRuleException("Cannot update inactive tax rate")
@@ -87,16 +88,15 @@ class TaxRateService(
             throw BusinessRuleException("Percentage must be positive")
         }
 
-        val updated =
-            taxRate.copy(
-                name = request.name ?: taxRate.name,
-                percentage = request.percentage ?: taxRate.percentage,
-                authority = request.authority ?: taxRate.authority,
-            )
+        taxRate.apply {
+            name = request.name ?: taxRate.name
+            percentage = request.percentage ?: taxRate.percentage
+            authority = request.authority ?: taxRate.authority
+        }
 
-        val saved = taxRateRepository.save(updated)
+        val saved = taxRateRepository.save(taxRate)
 
-        if (request.percentage != null && request.percentage.compareTo(taxRate.percentage) != 0) {
+        if (request.percentage != null && request.percentage.compareTo(previousPercentage) != 0) {
             cascadeCombinedRate(taxRateId, organizationId)
         }
 
@@ -105,8 +105,8 @@ class TaxRateService(
 
     @Transactional
     fun deleteTaxRate(
-        taxRateId: String,
-        organizationId: String,
+        taxRateId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): TaxRate {
         val taxRate = getTaxRate(taxRateId, organizationId)
 
@@ -122,12 +122,13 @@ class TaxRateService(
             throw BusinessRuleException("Cannot deactivate tax rate used in active tax groups")
         }
 
-        return taxRateRepository.save(taxRate.copy(isActive = false))
+        taxRate.isActive = false
+        return taxRateRepository.save(taxRate)
     }
 
     private fun cascadeCombinedRate(
-        taxRateId: String,
-        organizationId: String,
+        taxRateId: java.util.UUID,
+        organizationId: java.util.UUID,
     ) {
         val groups = taxGroupRepository.findByOrganizationIdAndTaxRateIdsContaining(organizationId, taxRateId)
         if (groups.isEmpty()) return
@@ -149,7 +150,8 @@ class TaxRateService(
                 group.taxRateIds.fold(BigDecimal.ZERO) { sum, id ->
                     sum.add(ratesById.getValue(id).percentage)
                 }
-            taxGroupRepository.save(group.copy(combinedRate = newCombinedRate))
+            group.combinedRate = newCombinedRate
+            taxGroupRepository.save(group)
         }
     }
 }

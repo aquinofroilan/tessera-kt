@@ -50,7 +50,7 @@ class CustomerController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ar:read')")
     fun getCustomer(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
@@ -61,7 +61,7 @@ class CustomerController(
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ar:create')")
     fun updateCustomer(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateCustomerRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -73,7 +73,7 @@ class CustomerController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ar:create')")
     fun deleteCustomer(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 

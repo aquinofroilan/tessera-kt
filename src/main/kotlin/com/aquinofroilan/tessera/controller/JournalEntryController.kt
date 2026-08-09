@@ -37,7 +37,7 @@ class JournalEntryController(
         @Valid @RequestBody request: CreateJournalEntryRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val createdBy = authContext.userId() ?: "api-key"
+        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
 
         val entry = journalEntryService.createJournalEntry(request, orgId, createdBy)
         return ResponseEntity.status(HttpStatus.CREATED).body(entry.toResponse())
@@ -72,7 +72,7 @@ class JournalEntryController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('journal:read')")
     fun getJournalEntry(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
@@ -83,7 +83,7 @@ class JournalEntryController(
     @PostMapping("/{id}/post")
     @PreAuthorize("hasAuthority('journal:post')")
     fun postJournalEntry(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
 
@@ -94,7 +94,7 @@ class JournalEntryController(
     @PostMapping("/{id}/void")
     @PreAuthorize("hasAuthority('journal:void')")
     fun voidJournalEntry(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: VoidJournalEntryRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()

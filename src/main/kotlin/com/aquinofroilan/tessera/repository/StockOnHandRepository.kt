@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface StockOnHandRepository :
-    JpaRepository<StockOnHand, String>,
+    JpaRepository<StockOnHand, java.util.UUID>,
     StockOnHandQueries {
-    fun findByOrganizationId(organizationId: String): List<StockOnHand>
+    fun findByOrganizationId(organizationId: java.util.UUID): List<StockOnHand>
 }

@@ -22,13 +22,13 @@ class SelfServiceService(
     private val employeeCompensationService: EmployeeCompensationService,
 ) {
     fun myProfile(
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Employee = employeeService.getEmployeeByUser(userId, organizationId)
 
     fun myLeaveRequests(
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): List<LeaveRequest> {
         val me = employeeService.getEmployeeByUser(userId, organizationId)
         return leaveRequestService.listLeaveRequests(organizationId, employeeId = me.id)
@@ -36,8 +36,8 @@ class SelfServiceService(
 
     @Transactional
     fun submitLeave(
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
         request: SubmitSelfLeaveRequest,
     ): LeaveRequest {
         val me = employeeService.getEmployeeByUser(userId, organizationId)
@@ -55,9 +55,9 @@ class SelfServiceService(
     }
 
     fun myLeaveBalance(
-        userId: String,
-        organizationId: String,
-        leaveTypeId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
+        leaveTypeId: java.util.UUID,
         year: Int,
     ): LeaveBalanceResponse {
         val me = employeeService.getEmployeeByUser(userId, organizationId)
@@ -65,16 +65,16 @@ class SelfServiceService(
     }
 
     fun myCompensationHistory(
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): List<EmployeeCompensation> {
         val me = employeeService.getEmployeeByUser(userId, organizationId)
         return employeeCompensationService.listCompensation(me.id, organizationId)
     }
 
     fun myCurrentCompensation(
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
         asOf: LocalDate,
     ): EmployeeCompensation {
         val me = employeeService.getEmployeeByUser(userId, organizationId)

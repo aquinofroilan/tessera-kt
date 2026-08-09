@@ -17,7 +17,7 @@ class LeaveTypeServiceTest {
     private lateinit var repository: LeaveTypeRepository
     private lateinit var service: LeaveTypeService
 
-    private val orgId = "org-1"
+    private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
 
     @BeforeEach
     fun setup() {
@@ -52,10 +52,20 @@ class LeaveTypeServiceTest {
 
     @Test
     fun `deactivate rejects double-deactivation`() {
-        whenever(repository.findById("lt1"))
-            .thenReturn(Optional.of(LeaveType(id = "lt1", code = "AL", name = "Annual", organizationId = orgId, isActive = false)))
+        whenever(repository.findById(java.util.UUID.fromString("82d745af-a33b-3e13-adff-05141b0d976d")))
+            .thenReturn(
+                Optional.of(
+                    LeaveType(
+                        id = java.util.UUID.fromString("82d745af-a33b-3e13-adff-05141b0d976d"),
+                        code = "AL",
+                        name = "Annual",
+                        organizationId = orgId,
+                        isActive = false,
+                    ),
+                ),
+            )
 
-        assertThatThrownBy { service.deactivateLeaveType("lt1", orgId) }
+        assertThatThrownBy { service.deactivateLeaveType(java.util.UUID.fromString("82d745af-a33b-3e13-adff-05141b0d976d"), orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 }

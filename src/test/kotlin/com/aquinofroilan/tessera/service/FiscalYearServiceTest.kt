@@ -35,8 +35,8 @@ class FiscalYearServiceTest {
     private lateinit var accountRepository: AccountRepository
     private lateinit var entryNumberGenerator: JournalEntryNumberGenerator
 
-    private val orgId = "org-123"
-    private val userId = "user-1"
+    private val orgId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
+    private val userId = java.util.UUID.fromString("1db2395f-13ba-3d37-9d2b-f77d3eb3aa2e")
 
     @BeforeEach
     fun setup() {
@@ -169,12 +169,14 @@ class FiscalYearServiceTest {
     @Test
     fun `closePeriod should update period status to CLOSED`() {
         val fiscalYear = createFiscalYear()
-        `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
         `when`(fiscalYearRepository.save(any<FiscalYear>())).thenAnswer { it.arguments[0] }
 
         val result =
             fiscalYearService.closePeriod(
-                "fy-1",
+                java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"),
                 fiscalYear.periods[0].id,
                 orgId,
                 userId,
@@ -194,12 +196,14 @@ class FiscalYearServiceTest {
                         createPeriod(1, status = FiscalPeriodStatus.CLOSED),
                     ),
             )
-        `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
 
         val exception =
             assertThrows<BusinessRuleException> {
                 fiscalYearService.closePeriod(
-                    "fy-1",
+                    java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"),
                     fiscalYear.periods[0].id,
                     orgId,
                     userId,
@@ -216,12 +220,14 @@ class FiscalYearServiceTest {
                 createPeriod(2, status = FiscalPeriodStatus.OPEN),
             )
         val fiscalYear = createFiscalYear(periods = periods)
-        `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
 
         val exception =
             assertThrows<BusinessRuleException> {
                 fiscalYearService.closePeriod(
-                    "fy-1",
+                    java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"),
                     fiscalYear.periods[1].id,
                     orgId,
                     userId,
@@ -238,12 +244,14 @@ class FiscalYearServiceTest {
                 createPeriod(2, status = FiscalPeriodStatus.CLOSED),
             )
         val fiscalYear = createFiscalYear(periods = periods)
-        `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
         `when`(fiscalYearRepository.save(any<FiscalYear>())).thenAnswer { it.arguments[0] }
 
         val result =
             fiscalYearService.reopenPeriod(
-                "fy-1",
+                java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"),
                 fiscalYear.periods[1].id,
                 orgId,
                 userId,
@@ -262,12 +270,14 @@ class FiscalYearServiceTest {
                 createPeriod(2, status = FiscalPeriodStatus.OPEN),
             )
         val fiscalYear = createFiscalYear(periods = periods)
-        `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
 
         val exception =
             assertThrows<BusinessRuleException> {
                 fiscalYearService.reopenPeriod(
-                    "fy-1",
+                    java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"),
                     fiscalYear.periods[0].id,
                     orgId,
                     userId,
@@ -287,12 +297,14 @@ class FiscalYearServiceTest {
                 periods = periods,
                 status = FiscalYearStatus.CLOSED,
             )
-        `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
 
         val exception =
             assertThrows<BusinessRuleException> {
                 fiscalYearService.reopenPeriod(
-                    "fy-1",
+                    java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"),
                     fiscalYear.periods[0].id,
                     orgId,
                     userId,
@@ -309,11 +321,13 @@ class FiscalYearServiceTest {
                 createPeriod(2, status = FiscalPeriodStatus.OPEN),
             )
         val fiscalYear = createFiscalYear(periods = periods)
-        `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
 
         val exception =
             assertThrows<BusinessRuleException> {
-                fiscalYearService.closeYear("fy-1", orgId, userId)
+                fiscalYearService.closeYear(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"), orgId, userId)
             }
         assertThat(exception.message).contains("All periods must be closed")
     }
@@ -325,14 +339,16 @@ class FiscalYearServiceTest {
                 createPeriod(1, status = FiscalPeriodStatus.CLOSED),
             )
         val fiscalYear = createFiscalYear(periods = periods)
-        `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
         `when`(fiscalYearRepository.save(any<FiscalYear>())).thenAnswer { it.arguments[0] }
         `when`(journalEntryRepository.existsByOrganizationIdAndSourceReference(orgId, "YEAR-END-CLOSE-fy-1"))
             .thenReturn(false)
 
         val cashAccount =
             Account(
-                id = "acc-cash",
+                id = java.util.UUID.fromString("76aee8a0-be1c-3046-ac38-0c0b819d0b1e"),
                 code = "1000",
                 name = "Cash",
                 type = AccountType.ASSET,
@@ -340,7 +356,7 @@ class FiscalYearServiceTest {
             )
         val revenueAccount =
             Account(
-                id = "acc-revenue",
+                id = java.util.UUID.fromString("56bc042f-5295-31d7-9573-57ec543647ff"),
                 code = "4000",
                 name = "Sales Revenue",
                 type = AccountType.REVENUE,
@@ -348,7 +364,7 @@ class FiscalYearServiceTest {
             )
         val expenseAccount =
             Account(
-                id = "acc-expense",
+                id = java.util.UUID.fromString("ae4979aa-053c-3d3b-98ce-8698038738d3"),
                 code = "5000",
                 name = "Cost of Goods Sold",
                 type = AccountType.EXPENSE,
@@ -356,7 +372,7 @@ class FiscalYearServiceTest {
             )
         val retainedEarnings =
             Account(
-                id = "acc-re",
+                id = java.util.UUID.fromString("92b6a7ae-9ab7-31f4-a3cc-05d7399fecac"),
                 code = "3100",
                 name = "Retained Earnings",
                 type = AccountType.EQUITY,
@@ -366,7 +382,7 @@ class FiscalYearServiceTest {
         val entries =
             listOf(
                 JournalEntry(
-                    id = "entry-1",
+                    id = java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22"),
                     entryNumber = "JE-0001",
                     date = LocalDate.of(2026, 1, 15),
                     description = "Sale",
@@ -375,14 +391,14 @@ class FiscalYearServiceTest {
                     lines =
                         listOf(
                             JournalEntryLine(
-                                accountId = "acc-cash",
+                                accountId = java.util.UUID.fromString("76aee8a0-be1c-3046-ac38-0c0b819d0b1e"),
                                 accountCode = "1000",
                                 accountName = "Cash",
                                 debit = BigDecimal("1000.00"),
                                 credit = BigDecimal.ZERO,
                             ),
                             JournalEntryLine(
-                                accountId = "acc-revenue",
+                                accountId = java.util.UUID.fromString("56bc042f-5295-31d7-9573-57ec543647ff"),
                                 accountCode = "4000",
                                 accountName = "Sales Revenue",
                                 debit = BigDecimal.ZERO,
@@ -392,7 +408,7 @@ class FiscalYearServiceTest {
                     createdBy = userId,
                 ),
                 JournalEntry(
-                    id = "entry-2",
+                    id = java.util.UUID.fromString("f9029c57-059a-3b7c-8aaf-2dfc79036689"),
                     entryNumber = "JE-0002",
                     date = LocalDate.of(2026, 1, 20),
                     description = "Purchase",
@@ -401,14 +417,14 @@ class FiscalYearServiceTest {
                     lines =
                         listOf(
                             JournalEntryLine(
-                                accountId = "acc-expense",
+                                accountId = java.util.UUID.fromString("ae4979aa-053c-3d3b-98ce-8698038738d3"),
                                 accountCode = "5000",
                                 accountName = "Cost of Goods Sold",
                                 debit = BigDecimal("300.00"),
                                 credit = BigDecimal.ZERO,
                             ),
                             JournalEntryLine(
-                                accountId = "acc-cash",
+                                accountId = java.util.UUID.fromString("76aee8a0-be1c-3046-ac38-0c0b819d0b1e"),
                                 accountCode = "1000",
                                 accountName = "Cash",
                                 debit = BigDecimal.ZERO,
@@ -428,14 +444,14 @@ class FiscalYearServiceTest {
             ),
         ).thenReturn(entries)
 
-        `when`(accountRepository.findAllById(any<Iterable<String>>()))
+        `when`(accountRepository.findAllById(any<Iterable<java.util.UUID>>()))
             .thenReturn(listOf(cashAccount, revenueAccount, expenseAccount, retainedEarnings))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "3100"))
             .thenReturn(Optional.of(retainedEarnings))
         `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(2L)
         `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
 
-        val result = fiscalYearService.closeYear("fy-1", orgId, userId)
+        val result = fiscalYearService.closeYear(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"), orgId, userId)
 
         assertThat(result.status).isEqualTo(FiscalYearStatus.CLOSED)
         assertThat(result.closedBy).isEqualTo(userId)
@@ -449,15 +465,15 @@ class FiscalYearServiceTest {
         assertThat(closingEntry.description).contains("Year-end closing entry")
         assertThat(closingEntry.status).isEqualTo(JournalEntryStatus.POSTED)
 
-        val revenueLine = closingEntry.lines.find { it.accountId == "acc-revenue" }
+        val revenueLine = closingEntry.lines.find { it.accountId == java.util.UUID.fromString("56bc042f-5295-31d7-9573-57ec543647ff") }
         assertThat(revenueLine).isNotNull
         assertThat(revenueLine!!.debit).isEqualByComparingTo(BigDecimal("1000.00"))
 
-        val expenseLine = closingEntry.lines.find { it.accountId == "acc-expense" }
+        val expenseLine = closingEntry.lines.find { it.accountId == java.util.UUID.fromString("ae4979aa-053c-3d3b-98ce-8698038738d3") }
         assertThat(expenseLine).isNotNull
         assertThat(expenseLine!!.credit).isEqualByComparingTo(BigDecimal("300.00"))
 
-        val reLine = closingEntry.lines.find { it.accountId == "acc-re" }
+        val reLine = closingEntry.lines.find { it.accountId == java.util.UUID.fromString("92b6a7ae-9ab7-31f4-a3cc-05d7399fecac") }
         assertThat(reLine).isNotNull
         assertThat(reLine!!.credit).isEqualByComparingTo(BigDecimal("700.00"))
     }
@@ -469,14 +485,16 @@ class FiscalYearServiceTest {
                 createPeriod(1, status = FiscalPeriodStatus.CLOSED),
             )
         val fiscalYear = createFiscalYear(periods = periods)
-        `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
         `when`(fiscalYearRepository.save(any<FiscalYear>())).thenAnswer { it.arguments[0] }
         `when`(journalEntryRepository.existsByOrganizationIdAndSourceReference(orgId, "YEAR-END-CLOSE-fy-1"))
             .thenReturn(false)
 
         val cashAccount =
             Account(
-                id = "acc-cash",
+                id = java.util.UUID.fromString("76aee8a0-be1c-3046-ac38-0c0b819d0b1e"),
                 code = "1000",
                 name = "Cash",
                 type = AccountType.ASSET,
@@ -484,7 +502,7 @@ class FiscalYearServiceTest {
             )
         val expenseAccount =
             Account(
-                id = "acc-expense",
+                id = java.util.UUID.fromString("ae4979aa-053c-3d3b-98ce-8698038738d3"),
                 code = "5000",
                 name = "Cost of Goods Sold",
                 type = AccountType.EXPENSE,
@@ -492,7 +510,7 @@ class FiscalYearServiceTest {
             )
         val retainedEarnings =
             Account(
-                id = "acc-re",
+                id = java.util.UUID.fromString("92b6a7ae-9ab7-31f4-a3cc-05d7399fecac"),
                 code = "3100",
                 name = "Retained Earnings",
                 type = AccountType.EQUITY,
@@ -502,7 +520,7 @@ class FiscalYearServiceTest {
         val entries =
             listOf(
                 JournalEntry(
-                    id = "entry-1",
+                    id = java.util.UUID.fromString("883cd44c-a464-3674-a0ec-1fb21a7ccd22"),
                     entryNumber = "JE-0001",
                     date = LocalDate.of(2026, 1, 15),
                     description = "Expense only",
@@ -511,14 +529,14 @@ class FiscalYearServiceTest {
                     lines =
                         listOf(
                             JournalEntryLine(
-                                accountId = "acc-expense",
+                                accountId = java.util.UUID.fromString("ae4979aa-053c-3d3b-98ce-8698038738d3"),
                                 accountCode = "5000",
                                 accountName = "Cost of Goods Sold",
                                 debit = BigDecimal("500.00"),
                                 credit = BigDecimal.ZERO,
                             ),
                             JournalEntryLine(
-                                accountId = "acc-cash",
+                                accountId = java.util.UUID.fromString("76aee8a0-be1c-3046-ac38-0c0b819d0b1e"),
                                 accountCode = "1000",
                                 accountName = "Cash",
                                 debit = BigDecimal.ZERO,
@@ -538,14 +556,14 @@ class FiscalYearServiceTest {
             ),
         ).thenReturn(entries)
 
-        `when`(accountRepository.findAllById(any<Iterable<String>>()))
+        `when`(accountRepository.findAllById(any<Iterable<java.util.UUID>>()))
             .thenReturn(listOf(cashAccount, expenseAccount, retainedEarnings))
         `when`(accountRepository.findByOrganizationIdAndCode(orgId, "3100"))
             .thenReturn(Optional.of(retainedEarnings))
         `when`(journalEntryRepository.countByOrganizationId(orgId)).thenReturn(1L)
         `when`(journalEntryRepository.save(any<JournalEntry>())).thenAnswer { it.arguments[0] }
 
-        val result = fiscalYearService.closeYear("fy-1", orgId, userId)
+        val result = fiscalYearService.closeYear(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"), orgId, userId)
 
         assertThat(result.status).isEqualTo(FiscalYearStatus.CLOSED)
 
@@ -553,7 +571,7 @@ class FiscalYearServiceTest {
         verify(journalEntryRepository).save(entryCaptor.capture())
 
         val closingEntry = entryCaptor.firstValue
-        val reLine = closingEntry.lines.find { it.accountId == "acc-re" }
+        val reLine = closingEntry.lines.find { it.accountId == java.util.UUID.fromString("92b6a7ae-9ab7-31f4-a3cc-05d7399fecac") }
         assertThat(reLine).isNotNull
         assertThat(reLine!!.debit).isEqualByComparingTo(BigDecimal("500.00"))
         assertThat(reLine.credit).isEqualByComparingTo(BigDecimal.ZERO)
@@ -566,7 +584,9 @@ class FiscalYearServiceTest {
                 createPeriod(1, status = FiscalPeriodStatus.CLOSED),
             )
         val fiscalYear = createFiscalYear(periods = periods)
-        `when`(fiscalYearRepository.findById("fy-1")).thenReturn(Optional.of(fiscalYear))
+        `when`(
+            fiscalYearRepository.findById(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e")),
+        ).thenReturn(Optional.of(fiscalYear))
         `when`(fiscalYearRepository.save(any<FiscalYear>())).thenAnswer { it.arguments[0] }
         `when`(journalEntryRepository.existsByOrganizationIdAndSourceReference(orgId, "YEAR-END-CLOSE-fy-1"))
             .thenReturn(false)
@@ -580,10 +600,10 @@ class FiscalYearServiceTest {
             ),
         ).thenReturn(emptyList())
 
-        `when`(accountRepository.findAllById(any<Iterable<String>>()))
+        `when`(accountRepository.findAllById(any<Iterable<java.util.UUID>>()))
             .thenReturn(emptyList())
 
-        val result = fiscalYearService.closeYear("fy-1", orgId, userId)
+        val result = fiscalYearService.closeYear(java.util.UUID.fromString("e70d185f-67cf-3457-bb30-61da0a63102e"), orgId, userId)
 
         assertThat(result.status).isEqualTo(FiscalYearStatus.CLOSED)
         assertThat(result.closingEntryId).isNull()
@@ -658,7 +678,7 @@ class FiscalYearServiceTest {
     }
 
     private fun createFiscalYear(
-        id: String = "fy-1",
+        id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
         name: String = "FY 2026",
         startDate: LocalDate = LocalDate.of(2026, 1, 1),
         endDate: LocalDate = LocalDate.of(2026, 12, 31),
