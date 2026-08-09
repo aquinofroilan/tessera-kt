@@ -1,7 +1,5 @@
 package com.aquinofroilan.tessera.graphql
 
-import java.util.UUID
-
 import com.aquinofroilan.tessera.controller.CurrencyController
 import com.aquinofroilan.tessera.controller.ExchangeRateController
 import com.aquinofroilan.tessera.controller.InventoryReorderRuleController
@@ -25,6 +23,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Controller
 class InventoryGraphqlController(

@@ -1,13 +1,12 @@
 package com.aquinofroilan.tessera.dto
 
-import java.util.UUID
-
 import com.aquinofroilan.tessera.model.ProductVariant
 import com.aquinofroilan.tessera.model.UnitOfMeasure
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
 import java.math.BigDecimal
+import java.util.UUID
 
 data class CreateUomRequest(
     @field:NotBlank(message = "Code is required")

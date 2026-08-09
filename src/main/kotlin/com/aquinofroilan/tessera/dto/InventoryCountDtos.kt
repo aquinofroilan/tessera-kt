@@ -1,7 +1,5 @@
 package com.aquinofroilan.tessera.dto
 
-import java.util.UUID
-
 import com.aquinofroilan.tessera.model.InventoryCountLine
 import com.aquinofroilan.tessera.model.InventoryCountSession
 import com.aquinofroilan.tessera.model.InventoryCountStatus
@@ -10,6 +8,7 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.PositiveOrZero
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 
 data class CreateCountSessionRequest(
     @field:NotBlank(message = "Code is required")

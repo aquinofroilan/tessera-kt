@@ -1,7 +1,5 @@
 package com.aquinofroilan.tessera.service
 
-import java.util.UUID
-
 import com.aquinofroilan.tessera.dto.CreateProductVariantRequest
 import com.aquinofroilan.tessera.dto.UpdateProductVariantRequest
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -11,6 +9,7 @@ import com.aquinofroilan.tessera.repository.ProductVariantRepository
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 class ProductVariantService(
