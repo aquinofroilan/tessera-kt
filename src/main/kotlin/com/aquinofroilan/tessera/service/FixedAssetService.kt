@@ -10,6 +10,7 @@ import com.aquinofroilan.tessera.repository.FixedAssetRepository
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 class FixedAssetService(
@@ -19,7 +20,7 @@ class FixedAssetService(
     @Transactional
     fun createAsset(
         request: CreateFixedAssetRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): FixedAsset {
         val acquisitionDate = request.acquisitionDate ?: throw BusinessRuleException("Acquisition date is required")
         val acquisitionCost = request.acquisitionCost ?: throw BusinessRuleException("Acquisition cost is required")
@@ -51,7 +52,7 @@ class FixedAssetService(
     }
 
     fun listAssets(
-        organizationId: String,
+        organizationId: UUID,
         status: AssetStatus? = null,
         categoryId: String? = null,
     ): List<FixedAsset> =
@@ -63,7 +64,7 @@ class FixedAssetService(
 
     fun getAsset(
         id: String,
-        organizationId: String,
+        organizationId: UUID,
     ): FixedAsset {
         val asset =
             fixedAssetRepository.findById(id).orElseThrow {
@@ -79,7 +80,7 @@ class FixedAssetService(
     fun updateAsset(
         id: String,
         request: UpdateFixedAssetRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): FixedAsset {
         val existing = getAsset(id, organizationId)
         request.categoryId?.let { assetCategoryService.getCategory(it, organizationId) }

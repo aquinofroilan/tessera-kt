@@ -4,15 +4,16 @@ import com.aquinofroilan.tessera.model.AssetCategory
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.Optional
+import java.util.UUID
 
 @Repository
 interface AssetCategoryRepository : JpaRepository<AssetCategory, String> {
-    fun findByOrganizationId(organizationId: String): List<AssetCategory>
+    fun findByOrganizationId(organizationId: UUID): List<AssetCategory>
 
-    fun findByOrganizationIdAndIsActiveTrue(organizationId: String): List<AssetCategory>
+    fun findByOrganizationIdAndIsActiveTrue(organizationId: UUID): List<AssetCategory>
 
     fun findByOrganizationIdAndCode(
-        organizationId: String,
+        organizationId: UUID,
         code: String,
     ): Optional<AssetCategory>
 }

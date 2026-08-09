@@ -19,15 +19,15 @@ data class CreateFixedAssetRequest(
     val description: String? = null,
     val categoryId: String? = null,
     @field:NotNull(message = "Acquisition date is required")
-    val acquisitionDate: LocalDate?,
+    var acquisitionDate: LocalDate?,
     @field:NotNull(message = "Acquisition cost is required")
     @field:PositiveOrZero(message = "Acquisition cost must be zero or positive")
-    val acquisitionCost: BigDecimal?,
+    var acquisitionCost: BigDecimal?,
     @field:PositiveOrZero(message = "Salvage value must be zero or positive")
     val salvageValue: BigDecimal = BigDecimal.ZERO,
     @field:NotNull(message = "Useful life is required")
     @field:Positive(message = "Useful life must be positive")
-    val usefulLifeMonths: Int?,
+    var usefulLifeMonths: Int?,
     val depreciationMethod: DepreciationMethod = DepreciationMethod.STRAIGHT_LINE,
     @field:Size(max = 200)
     val location: String? = null,

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
 import jakarta.validation.constraints.Size
 import java.math.BigDecimal
+import java.util.UUID
 
 data class CreateAssetCategoryRequest(
     @field:NotBlank(message = "Code is required")
@@ -38,7 +39,7 @@ data class UpdateAssetCategoryRequest(
 )
 
 data class AssetCategoryResponse(
-    val id: String,
+    val id: UUID,
     val code: String,
     val name: String,
     val description: String?,
@@ -46,7 +47,7 @@ data class AssetCategoryResponse(
     val defaultDepreciationMethod: DepreciationMethod,
     val defaultSalvageValue: BigDecimal,
     val isActive: Boolean,
-    val organizationId: String,
+    val organizationId: UUID,
     val createdAt: String?,
     val updatedAt: String?,
 ) {

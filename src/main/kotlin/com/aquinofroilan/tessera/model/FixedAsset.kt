@@ -24,46 +24,46 @@ enum class AssetStatus {
 @Entity
 @Table(name = "fixed_assets")
 @EntityListeners(AuditingEntityListener::class)
-data class FixedAsset(
+class FixedAsset(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    var id: UUID = UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    var organizationId: String,
     @Column(name = "asset_number")
-    val assetNumber: String,
-    val name: String,
-    val description: String? = null,
+    var assetNumber: String,
+    var name: String,
+    var description: String? = null,
     @Column(name = "category_id", columnDefinition = "uuid")
-    val categoryId: String? = null,
+    var categoryId: String? = null,
     @Column(name = "acquisition_date")
-    val acquisitionDate: LocalDate,
+    var acquisitionDate: LocalDate,
     @Column(name = "acquisition_cost")
-    val acquisitionCost: BigDecimal,
+    var acquisitionCost: BigDecimal,
     @Column(name = "salvage_value")
-    val salvageValue: BigDecimal = BigDecimal.ZERO,
+    var salvageValue: BigDecimal = BigDecimal.ZERO,
     @Column(name = "useful_life_months")
-    val usefulLifeMonths: Int,
+    var usefulLifeMonths: Int,
     @Enumerated(EnumType.STRING)
     @Column(name = "depreciation_method")
-    val depreciationMethod: DepreciationMethod = DepreciationMethod.STRAIGHT_LINE,
-    val location: String? = null,
+    var depreciationMethod: DepreciationMethod = DepreciationMethod.STRAIGHT_LINE,
+    var location: String? = null,
     @Column(name = "serial_number")
-    val serialNumber: String? = null,
+    var serialNumber: String? = null,
     @Enumerated(EnumType.STRING)
-    val status: AssetStatus = AssetStatus.ACTIVE,
+    var status: AssetStatus = AssetStatus.ACTIVE,
     @Column(name = "accumulated_depreciation")
-    val accumulatedDepreciation: BigDecimal = BigDecimal.ZERO,
+    var accumulatedDepreciation: BigDecimal = BigDecimal.ZERO,
     @Column(name = "asset_account_id", columnDefinition = "uuid")
-    val assetAccountId: String? = null,
+    var assetAccountId: String? = null,
     @Column(name = "accumulated_depreciation_account_id", columnDefinition = "uuid")
-    val accumulatedDepreciationAccountId: String? = null,
+    var accumulatedDepreciationAccountId: String? = null,
     @Column(name = "depreciation_expense_account_id", columnDefinition = "uuid")
-    val depreciationExpenseAccountId: String? = null,
+    var depreciationExpenseAccountId: String? = null,
     @CreatedDate
     @Column(name = "created_at", updatable = false)
-    val createdAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     @Column(name = "updated_at")
-    val updatedAt: LocalDateTime? = null,
+    var updatedAt: LocalDateTime? = null,
 )

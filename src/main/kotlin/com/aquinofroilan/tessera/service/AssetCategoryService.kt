@@ -8,6 +8,7 @@ import com.aquinofroilan.tessera.model.AssetCategory
 import com.aquinofroilan.tessera.repository.AssetCategoryRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 class AssetCategoryService(
@@ -16,7 +17,7 @@ class AssetCategoryService(
     @Transactional
     fun createCategory(
         request: CreateAssetCategoryRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): AssetCategory {
         val code = request.code.trim()
         if (assetCategoryRepository.findByOrganizationIdAndCode(organizationId, code).isPresent) {
@@ -36,7 +37,7 @@ class AssetCategoryService(
     }
 
     fun listCategories(
-        organizationId: String,
+        organizationId: UUID,
         activeOnly: Boolean = false,
     ): List<AssetCategory> =
         if (activeOnly) {
@@ -47,7 +48,7 @@ class AssetCategoryService(
 
     fun getCategory(
         id: String,
-        organizationId: String,
+        organizationId: UUID,
     ): AssetCategory {
         val category =
             assetCategoryRepository.findById(id).orElseThrow {
@@ -63,7 +64,7 @@ class AssetCategoryService(
     fun updateCategory(
         id: String,
         request: UpdateAssetCategoryRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): AssetCategory {
         val existing = getCategory(id, organizationId)
         return assetCategoryRepository.save(
