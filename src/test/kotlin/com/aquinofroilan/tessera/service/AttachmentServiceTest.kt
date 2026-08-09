@@ -23,8 +23,8 @@ class AttachmentServiceTest {
     @TempDir
     lateinit var tempDir: Path
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
+    private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")
+    private val userId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000002")
 
     @BeforeEach
     fun setup() {
@@ -36,7 +36,7 @@ class AttachmentServiceTest {
     @Test
     fun `upload persists metadata and writes bytes to disk`() {
         val file = MockMultipartFile("file", "resume.pdf", "application/pdf", "PDF DATA".toByteArray())
-        val a = service.upload(file, "candidate", "c-1", orgId, userId)
+        val a = service.upload(file, "candidate", java.util.UUID.fromString("00000000-0000-0000-0000-000000000003"), orgId, userId)
         assertThat(a.filename).isEqualTo("resume.pdf")
         assertThat(a.mimeType).isEqualTo("application/pdf")
         assertThat(a.sizeBytes).isEqualTo("PDF DATA".length.toLong())
@@ -48,14 +48,14 @@ class AttachmentServiceTest {
     @Test
     fun `upload rejects empty file`() {
         val empty = MockMultipartFile("file", "x.pdf", "application/pdf", ByteArray(0))
-        assertThatThrownBy { service.upload(empty, "candidate", "c-1", orgId, userId) }
+        assertThatThrownBy { service.upload(empty, "candidate", java.util.UUID.fromString("00000000-0000-0000-0000-000000000003"), orgId, userId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `upload sanitises path-escaping filename`() {
         val file = MockMultipartFile("file", "../../etc/passwd", "text/plain", "data".toByteArray())
-        val a = service.upload(file, "candidate", "c-1", orgId, userId)
+        val a = service.upload(file, "candidate", java.util.UUID.fromString("00000000-0000-0000-0000-000000000003"), orgId, userId)
         assertThat(a.filename).doesNotContain("/")
         assertThat(a.filename).doesNotContain("..")
     }
@@ -63,7 +63,7 @@ class AttachmentServiceTest {
     @Test
     fun `delete removes both row and bytes`() {
         val file = MockMultipartFile("file", "x.txt", "text/plain", "hi".toByteArray())
-        val a = service.upload(file, "candidate", "c-1", orgId, userId)
+        val a = service.upload(file, "candidate", java.util.UUID.fromString("00000000-0000-0000-0000-000000000003"), orgId, userId)
         val path = tempDir.resolve(a.storageKey)
         whenever(repository.findById(a.id)).thenReturn(Optional.of(a))
         service.delete(a.id, orgId)

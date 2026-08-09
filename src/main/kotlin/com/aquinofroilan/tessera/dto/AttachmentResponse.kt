@@ -3,13 +3,13 @@ package com.aquinofroilan.tessera.dto
 import com.aquinofroilan.tessera.model.Attachment
 
 data class AttachmentResponse(
-    val id: String,
+    val id: java.util.UUID,
     val entityType: String,
-    val entityId: String,
+    val entityId: java.util.UUID,
     val filename: String,
     val mimeType: String,
     val sizeBytes: Long,
-    val uploadedBy: String,
+    val uploadedBy: java.util.UUID,
 ) {
     companion object {
         fun from(a: Attachment) =

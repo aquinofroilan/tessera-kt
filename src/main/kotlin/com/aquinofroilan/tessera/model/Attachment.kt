@@ -16,13 +16,13 @@ import java.util.UUID
 data class Attachment(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: java.util.UUID = java.util.UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     @Column(name = "entity_type")
     val entityType: String,
     @Column(name = "entity_id", columnDefinition = "uuid")
-    val entityId: String,
+    val entityId: java.util.UUID,
     val filename: String,
     @Column(name = "mime_type")
     val mimeType: String,
@@ -31,7 +31,7 @@ data class Attachment(
     @Column(name = "storage_key")
     val storageKey: String,
     @Column(name = "uploaded_by", columnDefinition = "uuid")
-    val uploadedBy: String,
+    val uploadedBy: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
     val createdAt: LocalDateTime? = null,

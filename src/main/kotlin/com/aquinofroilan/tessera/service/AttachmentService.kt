@@ -34,18 +34,15 @@ class AttachmentService(
     fun upload(
         file: MultipartFile,
         entityType: String,
-        entityId: String,
-        organizationId: String,
-        userId: String,
+        entityId: java.util.UUID,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): Attachment {
         if (file.isEmpty) throw BusinessRuleException("Uploaded file is empty")
         if (entityType.isBlank()) throw BusinessRuleException("entityType is required")
-        if (entityId.isBlank()) throw BusinessRuleException("entityId is required")
         val filename = sanitiseFilename(file.originalFilename ?: "upload.bin")
         val attachmentId =
-            java.util.UUID
-                .randomUUID()
-                .toString()
+            java.util.UUID.randomUUID()
         val relativeKey = "$organizationId/$entityType/$entityId/$attachmentId-$filename"
         storeBytes(relativeKey, file)
         return attachmentRepository.save(
@@ -64,8 +61,8 @@ class AttachmentService(
     }
 
     fun getAttachment(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Attachment {
         val a =
             attachmentRepository.findById(id).orElseThrow {
@@ -78,9 +75,9 @@ class AttachmentService(
     }
 
     fun listForEntity(
-        organizationId: String,
+        organizationId: java.util.UUID,
         entityType: String,
-        entityId: String,
+        entityId: java.util.UUID,
     ): List<Attachment> = attachmentRepository.findByOrganizationIdAndEntityTypeAndEntityId(organizationId, entityType, entityId)
 
     fun openStream(attachment: Attachment): InputStream {
@@ -93,8 +90,8 @@ class AttachmentService(
 
     @Transactional
     fun delete(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ) {
         val a = getAttachment(id, organizationId)
         attachmentRepository.delete(a)

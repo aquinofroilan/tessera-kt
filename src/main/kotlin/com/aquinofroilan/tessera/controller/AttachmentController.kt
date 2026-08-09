@@ -32,10 +32,10 @@ class AttachmentController(
     fun upload(
         @RequestParam("file") file: MultipartFile,
         @RequestParam entityType: String,
-        @RequestParam entityId: String,
+        @RequestParam entityId: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val a = attachmentService.upload(file, entityType, entityId, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(AttachmentResponse.from(a))
     }
@@ -44,7 +44,7 @@ class AttachmentController(
     @PreAuthorize("hasAuthority('attachment:read')")
     fun list(
         @RequestParam entityType: String,
-        @RequestParam entityId: String,
+        @RequestParam entityId: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(
@@ -55,7 +55,7 @@ class AttachmentController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('attachment:read')")
     fun get(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(AttachmentResponse.from(attachmentService.getAttachment(id, orgId)))
@@ -64,7 +64,7 @@ class AttachmentController(
     @GetMapping("/{id}/download")
     @PreAuthorize("hasAuthority('attachment:read')")
     fun download(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<InputStreamResource> {
         val orgId = authContext.organizationId() ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         val a = attachmentService.getAttachment(id, orgId)
@@ -80,7 +80,7 @@ class AttachmentController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('attachment:write')")
     fun delete(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         attachmentService.delete(id, orgId)
