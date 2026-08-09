@@ -91,7 +91,11 @@ class WorkflowRuleEvaluatorTest {
                 user(java.util.UUID.fromString("00000000-0000-0000-0000-000000000201"), roles = listOf("FINANCE")),
                 user(java.util.UUID.fromString("00000000-0000-0000-0000-000000000202"), roles = listOf("FINANCE", "OWNER")),
                 user(java.util.UUID.fromString("00000000-0000-0000-0000-000000000203"), roles = listOf("ENGINEERING")),
-                user(java.util.UUID.fromString("00000000-0000-0000-0000-000000000204"), organizationId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000205"), roles = listOf("FINANCE")),
+                user(
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000204"),
+                    organizationId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000205"),
+                    roles = listOf("FINANCE"),
+                ),
             ),
         )
 
@@ -100,7 +104,12 @@ class WorkflowRuleEvaluatorTest {
         val captor = argumentCaptor<CreateNotificationRequest>()
         verify(notificationService, times(2)).publish(captor.capture(), eq(orgId))
         val recipients = captor.allValues.map { it.recipientUserId }.toSet()
-        assertThat(recipients).containsExactlyInAnyOrder(java.util.UUID.fromString("00000000-0000-0000-0000-000000000201"), java.util.UUID.fromString("00000000-0000-0000-0000-000000000202"))
+        assertThat(
+            recipients,
+        ).containsExactlyInAnyOrder(
+            java.util.UUID.fromString("00000000-0000-0000-0000-000000000201"),
+            java.util.UUID.fromString("00000000-0000-0000-0000-000000000202"),
+        )
     }
 
     @Test
@@ -109,8 +118,16 @@ class WorkflowRuleEvaluatorTest {
             workflowRuleService.findEnabledFor(orgId, NotificationKinds.LEAVE_REQUEST_APPROVED),
         ).thenReturn(
             listOf(
-                rule(id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000209"), actionType = WorkflowRuleActionType.NOTIFY_USER, actionTarget = "00000000-0000-0000-0000-000000000211"),
-                rule(id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000210"), actionType = WorkflowRuleActionType.NOTIFY_USER, actionTarget = "good-user"),
+                rule(
+                    id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000209"),
+                    actionType = WorkflowRuleActionType.NOTIFY_USER,
+                    actionTarget = "00000000-0000-0000-0000-000000000211",
+                ),
+                rule(
+                    id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000210"),
+                    actionType = WorkflowRuleActionType.NOTIFY_USER,
+                    actionTarget = "good-user",
+                ),
             ),
         )
         whenever(notificationService.publish(any(), eq(orgId)))

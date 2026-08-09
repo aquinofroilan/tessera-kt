@@ -59,7 +59,12 @@ class WorkflowRuleServiceTest {
     @Test
     fun `getRule 404s for a rule in a different org`() {
         whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000600"))).thenReturn(
-            Optional.of(rule(id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000600"), organizationId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000205"))),
+            Optional.of(
+                rule(
+                    id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000600"),
+                    organizationId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000205"),
+                ),
+            ),
         )
 
         assertThatThrownBy { service.getRule(java.util.UUID.fromString("00000000-0000-0000-0000-000000000600"), orgId) }
