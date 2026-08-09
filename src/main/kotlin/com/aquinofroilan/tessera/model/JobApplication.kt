@@ -29,11 +29,11 @@ enum class JobApplicationStatus {
 data class JobApplication(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: UUID = UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: UUID,
     @Column(name = "job_posting_id", columnDefinition = "uuid")
-    val jobPostingId: String,
+    val jobPostingId: UUID,
     @Column(name = "candidate_full_name")
     val candidateFullName: String,
     val email: String? = null,
@@ -46,10 +46,10 @@ data class JobApplication(
     @Column(name = "applied_at")
     val appliedAt: LocalDateTime = LocalDateTime.now(),
     @Column(name = "owner_user_id", columnDefinition = "uuid")
-    val ownerUserId: String? = null,
+    val ownerUserId: UUID? = null,
     val notes: String? = null,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    val createdBy: UUID,
     @CreatedDate
     @Column(name = "created_at")
     val createdAt: LocalDateTime? = null,

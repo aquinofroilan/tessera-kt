@@ -10,6 +10,7 @@ import com.aquinofroilan.tessera.model.InterviewStatus
 import com.aquinofroilan.tessera.repository.InterviewRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 class InterviewService(
@@ -19,11 +20,17 @@ class InterviewService(
     @Transactional
     fun scheduleInterview(
         request: CreateInterviewRequest,
-        organizationId: String,
-        userId: String,
+        organizationId: UUID,
+        userId: UUID,
     ): Interview {
         val scheduledAt = request.scheduledAt ?: throw BusinessRuleException("scheduledAt is required")
         val application = applicationService.getApplication(request.applicationId, organizationId)
+        if (application.status == com.aquinofroilan.tessera.model.JobApplicationStatus.REJECTED ||
+            application.status == com.aquinofroilan.tessera.model.JobApplicationStatus.WITHDRAWN ||
+            application.status == com.aquinofroilan.tessera.model.JobApplicationStatus.HIRED
+        ) {
+            throw BusinessRuleException("Cannot schedule interview for application in terminal status: ${application.status}")
+        }
         return interviewRepository.save(
             Interview(
                 organizationId = organizationId,
@@ -38,8 +45,8 @@ class InterviewService(
     }
 
     fun getInterview(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): Interview {
         val i =
             interviewRepository.findById(id).orElseThrow {
@@ -52,15 +59,15 @@ class InterviewService(
     }
 
     fun listInterviewsForApplication(
-        organizationId: String,
-        applicationId: String,
+        organizationId: UUID,
+        applicationId: UUID,
     ): List<Interview> = interviewRepository.findByOrganizationIdAndApplicationIdOrderByScheduledAtAsc(organizationId, applicationId)
 
     @Transactional
     fun rescheduleInterview(
-        id: String,
+        id: UUID,
         request: RescheduleInterviewRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): Interview {
         val scheduledAt = request.scheduledAt ?: throw BusinessRuleException("scheduledAt is required")
         val i = getInterview(id, organizationId)
@@ -72,9 +79,9 @@ class InterviewService(
 
     @Transactional
     fun completeInterview(
-        id: String,
+        id: UUID,
         request: CompleteInterviewRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): Interview {
         val outcome = request.outcome ?: throw BusinessRuleException("Outcome is required")
         val i = getInterview(id, organizationId)
@@ -92,8 +99,8 @@ class InterviewService(
 
     @Transactional
     fun cancelInterview(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): Interview {
         val i = getInterview(id, organizationId)
         if (i.status == InterviewStatus.CANCELLED) return i

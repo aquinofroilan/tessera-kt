@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/hr/recruitment/interviews")
@@ -34,7 +35,7 @@ class InterviewController(
         @Valid @RequestBody request: CreateInterviewRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: return authContext.unauthorized()
         val i = interviewService.scheduleInterview(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(InterviewResponse.from(i))
     }
@@ -42,7 +43,7 @@ class InterviewController(
     @GetMapping
     @PreAuthorize("hasAuthority('hr-recruitment:read')")
     fun listForApplication(
-        @RequestParam applicationId: String,
+        @RequestParam applicationId: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(
@@ -53,7 +54,7 @@ class InterviewController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('hr-recruitment:read')")
     fun get(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(InterviewResponse.from(interviewService.getInterview(id, orgId)))
@@ -62,7 +63,7 @@ class InterviewController(
     @PutMapping("/{id}/reschedule")
     @PreAuthorize("hasAuthority('hr-recruitment:write')")
     fun reschedule(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
         @Valid @RequestBody request: RescheduleInterviewRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -72,7 +73,7 @@ class InterviewController(
     @PostMapping("/{id}/complete")
     @PreAuthorize("hasAuthority('hr-recruitment:approve')")
     fun complete(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
         @Valid @RequestBody request: CompleteInterviewRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -82,7 +83,7 @@ class InterviewController(
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('hr-recruitment:write')")
     fun cancel(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(InterviewResponse.from(interviewService.cancelInterview(id, orgId)))

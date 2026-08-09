@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/hr/recruitment/applications")
@@ -36,7 +37,7 @@ class JobApplicationController(
         @Valid @RequestBody request: CreateApplicationRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: return authContext.unauthorized()
         val a = applicationService.createApplication(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(ApplicationResponse.from(a))
     }
@@ -45,7 +46,7 @@ class JobApplicationController(
     @PreAuthorize("hasAuthority('hr-recruitment:read')")
     fun list(
         @RequestParam(required = false) status: String?,
-        @RequestParam(required = false) jobPostingId: String?,
+        @RequestParam(required = false) jobPostingId: UUID?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val parsed =
@@ -66,7 +67,7 @@ class JobApplicationController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('hr-recruitment:read')")
     fun get(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(ApplicationResponse.from(applicationService.getApplication(id, orgId)))
@@ -75,7 +76,7 @@ class JobApplicationController(
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('hr-recruitment:write')")
     fun update(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateApplicationRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -85,7 +86,7 @@ class JobApplicationController(
     @PostMapping("/{id}/advance")
     @PreAuthorize("hasAuthority('hr-recruitment:approve')")
     fun advance(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
         @Valid @RequestBody request: AdvanceApplicationRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()

@@ -14,13 +14,14 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import java.util.Optional
+import java.util.UUID
 
 class JobPostingServiceTest {
     private lateinit var repository: JobPostingRepository
     private lateinit var service: JobPostingService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
+    private val orgId = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    private val userId = UUID.fromString("00000000-0000-0000-0000-000000000002")
 
     @BeforeEach
     fun setup() {
@@ -38,29 +39,35 @@ class JobPostingServiceTest {
 
     @Test
     fun `open is rejected for non-DRAFT`() {
-        whenever(repository.findById("p1")).thenReturn(Optional.of(posting().copy(status = JobPostingStatus.OPEN)))
-        assertThatThrownBy { service.openPosting("p1", orgId) }.isInstanceOf(BusinessRuleException::class.java)
+        whenever(
+            repository.findById(UUID.fromString("00000000-0000-0000-0000-000000000010")),
+        ).thenReturn(Optional.of(posting().copy(status = JobPostingStatus.OPEN)))
+        assertThatThrownBy {
+            service.openPosting(UUID.fromString("00000000-0000-0000-0000-000000000010"), orgId)
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `open flips to OPEN and stamps postedAt`() {
-        whenever(repository.findById("p1")).thenReturn(Optional.of(posting()))
-        val opened = service.openPosting("p1", orgId)
+        whenever(repository.findById(UUID.fromString("00000000-0000-0000-0000-000000000010"))).thenReturn(Optional.of(posting()))
+        val opened = service.openPosting(UUID.fromString("00000000-0000-0000-0000-000000000010"), orgId)
         assertThat(opened.status).isEqualTo(JobPostingStatus.OPEN)
         assertThat(opened.postedAt).isNotNull
     }
 
     @Test
     fun `update rejected when CLOSED`() {
-        whenever(repository.findById("p1")).thenReturn(Optional.of(posting().copy(status = JobPostingStatus.CLOSED)))
+        whenever(
+            repository.findById(UUID.fromString("00000000-0000-0000-0000-000000000010")),
+        ).thenReturn(Optional.of(posting().copy(status = JobPostingStatus.CLOSED)))
         assertThatThrownBy {
-            service.updatePosting("p1", UpdateJobPostingRequest(title = "x"), orgId)
+            service.updatePosting(UUID.fromString("00000000-0000-0000-0000-000000000010"), UpdateJobPostingRequest(title = "x"), orgId)
         }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     private fun posting() =
         JobPosting(
-            id = "p1",
+            id = UUID.fromString("00000000-0000-0000-0000-000000000010"),
             organizationId = orgId,
             title = "Engineer",
             status = JobPostingStatus.DRAFT,

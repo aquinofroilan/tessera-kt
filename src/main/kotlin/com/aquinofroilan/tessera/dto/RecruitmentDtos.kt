@@ -12,36 +12,37 @@ import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import java.time.LocalDateTime
+import java.util.UUID
 
 data class CreateJobPostingRequest(
     @field:NotBlank(message = "Title is required")
     val title: String,
     val description: String? = null,
-    val departmentId: String? = null,
-    val positionId: String? = null,
-    val ownerUserId: String? = null,
+    val departmentId: UUID? = null,
+    val positionId: UUID? = null,
+    val ownerUserId: UUID? = null,
     val notes: String? = null,
 )
 
 data class UpdateJobPostingRequest(
     val title: String? = null,
     val description: String? = null,
-    val departmentId: String? = null,
-    val positionId: String? = null,
-    val ownerUserId: String? = null,
+    val departmentId: UUID? = null,
+    val positionId: UUID? = null,
+    val ownerUserId: UUID? = null,
     val notes: String? = null,
 )
 
 data class JobPostingResponse(
-    val id: String,
+    val id: UUID,
     val title: String,
     val description: String?,
-    val departmentId: String?,
-    val positionId: String?,
+    val departmentId: UUID?,
+    val positionId: UUID?,
     val status: JobPostingStatus,
     val postedAt: LocalDateTime?,
     val closedAt: LocalDateTime?,
-    val ownerUserId: String?,
+    val ownerUserId: UUID?,
     val notes: String?,
 ) {
     companion object {
@@ -63,7 +64,7 @@ data class JobPostingResponse(
 
 data class CreateApplicationRequest(
     @field:NotBlank(message = "Job posting ID is required")
-    val jobPostingId: String,
+    val jobPostingId: UUID,
     @field:NotBlank(message = "Candidate name is required")
     val candidateFullName: String,
     @field:Email
@@ -71,7 +72,7 @@ data class CreateApplicationRequest(
     val phone: String? = null,
     val resumeUrl: String? = null,
     val source: String? = null,
-    val ownerUserId: String? = null,
+    val ownerUserId: UUID? = null,
     val notes: String? = null,
 )
 
@@ -82,7 +83,7 @@ data class UpdateApplicationRequest(
     val phone: String? = null,
     val resumeUrl: String? = null,
     val source: String? = null,
-    val ownerUserId: String? = null,
+    val ownerUserId: UUID? = null,
     val notes: String? = null,
 )
 
@@ -93,8 +94,8 @@ data class AdvanceApplicationRequest(
 )
 
 data class ApplicationResponse(
-    val id: String,
-    val jobPostingId: String,
+    val id: UUID,
+    val jobPostingId: UUID,
     val candidateFullName: String,
     val email: String?,
     val phone: String?,
@@ -102,7 +103,7 @@ data class ApplicationResponse(
     val source: String?,
     val status: JobApplicationStatus,
     val appliedAt: LocalDateTime,
-    val ownerUserId: String?,
+    val ownerUserId: UUID?,
     val notes: String?,
 ) {
     companion object {
@@ -125,10 +126,10 @@ data class ApplicationResponse(
 
 data class CreateInterviewRequest(
     @field:NotBlank(message = "Application ID is required")
-    val applicationId: String,
+    val applicationId: UUID,
     @field:NotNull(message = "Scheduled timestamp is required")
     val scheduledAt: LocalDateTime?,
-    val interviewerUserId: String? = null,
+    val interviewerUserId: UUID? = null,
     val mode: InterviewMode = InterviewMode.VIDEO,
     val notes: String? = null,
 )
@@ -146,10 +147,10 @@ data class CompleteInterviewRequest(
 )
 
 data class InterviewResponse(
-    val id: String,
-    val applicationId: String,
+    val id: UUID,
+    val applicationId: UUID,
     val scheduledAt: LocalDateTime,
-    val interviewerUserId: String?,
+    val interviewerUserId: UUID?,
     val mode: InterviewMode,
     val status: InterviewStatus,
     val outcome: InterviewOutcome?,

@@ -26,15 +26,15 @@ enum class JobPostingStatus {
 data class JobPosting(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: UUID = UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: UUID,
     val title: String,
     val description: String? = null,
     @Column(name = "department_id", columnDefinition = "uuid")
-    val departmentId: String? = null,
+    val departmentId: UUID? = null,
     @Column(name = "position_id", columnDefinition = "uuid")
-    val positionId: String? = null,
+    val positionId: UUID? = null,
     @Enumerated(EnumType.STRING)
     val status: JobPostingStatus = JobPostingStatus.DRAFT,
     @Column(name = "posted_at")
@@ -42,10 +42,10 @@ data class JobPosting(
     @Column(name = "closed_at")
     val closedAt: LocalDateTime? = null,
     @Column(name = "owner_user_id", columnDefinition = "uuid")
-    val ownerUserId: String? = null,
+    val ownerUserId: UUID? = null,
     val notes: String? = null,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    val createdBy: UUID,
     @CreatedDate
     @Column(name = "created_at")
     val createdAt: LocalDateTime? = null,

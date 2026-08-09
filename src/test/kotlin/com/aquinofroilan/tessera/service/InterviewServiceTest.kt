@@ -20,15 +20,16 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import java.time.LocalDateTime
 import java.util.Optional
+import java.util.UUID
 
 class InterviewServiceTest {
     private lateinit var repository: InterviewRepository
     private lateinit var applicationService: JobApplicationService
     private lateinit var service: InterviewService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
-    private val appId = "a1"
+    private val orgId = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    private val userId = UUID.fromString("00000000-0000-0000-0000-000000000002")
+    private val appId = UUID.fromString("00000000-0000-0000-0000-000000000011")
 
     @BeforeEach
     fun setup() {
@@ -57,10 +58,10 @@ class InterviewServiceTest {
 
     @Test
     fun `complete sets outcome and flips status`() {
-        whenever(repository.findById("i1")).thenReturn(Optional.of(scheduled()))
+        whenever(repository.findById(UUID.fromString("00000000-0000-0000-0000-000000000012"))).thenReturn(Optional.of(scheduled()))
         val done =
             service.completeInterview(
-                "i1",
+                UUID.fromString("00000000-0000-0000-0000-000000000012"),
                 CompleteInterviewRequest(outcome = InterviewOutcome.PASS),
                 orgId,
             )
@@ -70,24 +71,38 @@ class InterviewServiceTest {
 
     @Test
     fun `complete rejects on already-COMPLETED`() {
-        whenever(repository.findById("i1")).thenReturn(Optional.of(scheduled().copy(status = InterviewStatus.COMPLETED)))
+        whenever(
+            repository.findById(UUID.fromString("00000000-0000-0000-0000-000000000012")),
+        ).thenReturn(Optional.of(scheduled().copy(status = InterviewStatus.COMPLETED)))
         assertThatThrownBy {
-            service.completeInterview("i1", CompleteInterviewRequest(outcome = InterviewOutcome.PASS), orgId)
+            service.completeInterview(
+                UUID.fromString("00000000-0000-0000-0000-000000000012"),
+                CompleteInterviewRequest(outcome = InterviewOutcome.PASS),
+                orgId,
+            )
         }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `reschedule rejects when not SCHEDULED`() {
-        whenever(repository.findById("i1")).thenReturn(Optional.of(scheduled().copy(status = InterviewStatus.COMPLETED)))
+        whenever(
+            repository.findById(UUID.fromString("00000000-0000-0000-0000-000000000012")),
+        ).thenReturn(Optional.of(scheduled().copy(status = InterviewStatus.COMPLETED)))
         assertThatThrownBy {
-            service.rescheduleInterview("i1", RescheduleInterviewRequest(scheduledAt = LocalDateTime.now().plusDays(2)), orgId)
+            service.rescheduleInterview(
+                UUID.fromString("00000000-0000-0000-0000-000000000012"),
+                RescheduleInterviewRequest(scheduledAt = LocalDateTime.now().plusDays(2)),
+                orgId,
+            )
         }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `cancel rejects COMPLETED`() {
-        whenever(repository.findById("i1")).thenReturn(Optional.of(scheduled().copy(status = InterviewStatus.COMPLETED)))
-        assertThatThrownBy { service.cancelInterview("i1", orgId) }
+        whenever(
+            repository.findById(UUID.fromString("00000000-0000-0000-0000-000000000012")),
+        ).thenReturn(Optional.of(scheduled().copy(status = InterviewStatus.COMPLETED)))
+        assertThatThrownBy { service.cancelInterview(UUID.fromString("00000000-0000-0000-0000-000000000012"), orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 
@@ -95,7 +110,7 @@ class InterviewServiceTest {
         JobApplication(
             id = appId,
             organizationId = orgId,
-            jobPostingId = "p1",
+            jobPostingId = UUID.fromString("00000000-0000-0000-0000-000000000010"),
             candidateFullName = "Ada",
             status = JobApplicationStatus.INTERVIEW,
             createdBy = userId,
@@ -103,7 +118,7 @@ class InterviewServiceTest {
 
     private fun scheduled() =
         Interview(
-            id = "i1",
+            id = UUID.fromString("00000000-0000-0000-0000-000000000012"),
             organizationId = orgId,
             applicationId = appId,
             scheduledAt = LocalDateTime.now().plusDays(1),

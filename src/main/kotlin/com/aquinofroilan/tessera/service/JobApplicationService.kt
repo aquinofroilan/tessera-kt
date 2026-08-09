@@ -11,6 +11,7 @@ import com.aquinofroilan.tessera.model.JobPostingStatus
 import com.aquinofroilan.tessera.repository.JobApplicationRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 class JobApplicationService(
@@ -20,8 +21,8 @@ class JobApplicationService(
     @Transactional
     fun createApplication(
         request: CreateApplicationRequest,
-        organizationId: String,
-        userId: String,
+        organizationId: UUID,
+        userId: UUID,
     ): JobApplication {
         val posting = jobPostingService.getPosting(request.jobPostingId, organizationId)
         if (posting.status != JobPostingStatus.OPEN) {
@@ -44,8 +45,8 @@ class JobApplicationService(
     }
 
     fun getApplication(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): JobApplication {
         val a =
             applicationRepository.findById(id).orElseThrow {
@@ -58,9 +59,9 @@ class JobApplicationService(
     }
 
     fun listApplications(
-        organizationId: String,
+        organizationId: UUID,
         status: JobApplicationStatus?,
-        jobPostingId: String?,
+        jobPostingId: UUID?,
     ): List<JobApplication> =
         when {
             jobPostingId != null ->
@@ -73,9 +74,9 @@ class JobApplicationService(
 
     @Transactional
     fun updateApplication(
-        id: String,
+        id: UUID,
         request: UpdateApplicationRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): JobApplication {
         val a = getApplication(id, organizationId)
         if (isTerminal(a.status)) {
@@ -96,9 +97,9 @@ class JobApplicationService(
 
     @Transactional
     fun advanceApplication(
-        id: String,
+        id: UUID,
         request: AdvanceApplicationRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): JobApplication {
         val target = request.status ?: throw BusinessRuleException("Target status is required")
         val a = getApplication(id, organizationId)

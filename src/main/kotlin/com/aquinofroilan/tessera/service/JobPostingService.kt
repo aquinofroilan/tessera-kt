@@ -10,6 +10,7 @@ import com.aquinofroilan.tessera.repository.JobPostingRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Service
 class JobPostingService(
@@ -18,8 +19,8 @@ class JobPostingService(
     @Transactional
     fun createPosting(
         request: CreateJobPostingRequest,
-        organizationId: String,
-        userId: String,
+        organizationId: UUID,
+        userId: UUID,
     ): JobPosting =
         jobPostingRepository.save(
             JobPosting(
@@ -35,8 +36,8 @@ class JobPostingService(
         )
 
     fun getPosting(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): JobPosting {
         val p =
             jobPostingRepository.findById(id).orElseThrow {
@@ -49,7 +50,7 @@ class JobPostingService(
     }
 
     fun listPostings(
-        organizationId: String,
+        organizationId: UUID,
         status: JobPostingStatus?,
     ): List<JobPosting> =
         if (status != null) {
@@ -60,9 +61,9 @@ class JobPostingService(
 
     @Transactional
     fun updatePosting(
-        id: String,
+        id: UUID,
         request: UpdateJobPostingRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): JobPosting {
         val p = getPosting(id, organizationId)
         if (p.status == JobPostingStatus.CLOSED || p.status == JobPostingStatus.CANCELLED) {
@@ -82,8 +83,8 @@ class JobPostingService(
 
     @Transactional
     fun openPosting(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): JobPosting {
         val p = getPosting(id, organizationId)
         if (p.status != JobPostingStatus.DRAFT) {
@@ -94,8 +95,8 @@ class JobPostingService(
 
     @Transactional
     fun closePosting(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): JobPosting {
         val p = getPosting(id, organizationId)
         if (p.status == JobPostingStatus.CLOSED) return p
@@ -107,8 +108,8 @@ class JobPostingService(
 
     @Transactional
     fun cancelPosting(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): JobPosting {
         val p = getPosting(id, organizationId)
         if (p.status == JobPostingStatus.CANCELLED) return p

@@ -37,15 +37,15 @@ enum class InterviewOutcome {
 data class Interview(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: UUID = UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: UUID,
     @Column(name = "application_id", columnDefinition = "uuid")
-    val applicationId: String,
+    val applicationId: UUID,
     @Column(name = "scheduled_at")
     val scheduledAt: LocalDateTime,
     @Column(name = "interviewer_user_id", columnDefinition = "uuid")
-    val interviewerUserId: String? = null,
+    val interviewerUserId: UUID? = null,
     @Enumerated(EnumType.STRING)
     val mode: InterviewMode = InterviewMode.VIDEO,
     @Enumerated(EnumType.STRING)
@@ -54,7 +54,7 @@ data class Interview(
     val outcome: InterviewOutcome? = null,
     val notes: String? = null,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    val createdBy: UUID,
     @CreatedDate
     @Column(name = "created_at")
     val createdAt: LocalDateTime? = null,

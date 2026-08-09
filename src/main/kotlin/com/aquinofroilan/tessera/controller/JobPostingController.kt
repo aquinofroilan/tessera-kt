@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/hr/recruitment/jobs")
@@ -35,7 +36,7 @@ class JobPostingController(
         @Valid @RequestBody request: CreateJobPostingRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: return authContext.unauthorized()
         val p = jobPostingService.createPosting(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(JobPostingResponse.from(p))
     }
@@ -62,7 +63,7 @@ class JobPostingController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('hr-recruitment:read')")
     fun get(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(JobPostingResponse.from(jobPostingService.getPosting(id, orgId)))
@@ -71,7 +72,7 @@ class JobPostingController(
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('hr-recruitment:write')")
     fun update(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateJobPostingRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -81,7 +82,7 @@ class JobPostingController(
     @PostMapping("/{id}/open")
     @PreAuthorize("hasAuthority('hr-recruitment:approve')")
     fun open(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(JobPostingResponse.from(jobPostingService.openPosting(id, orgId)))
@@ -90,7 +91,7 @@ class JobPostingController(
     @PostMapping("/{id}/close")
     @PreAuthorize("hasAuthority('hr-recruitment:approve')")
     fun close(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(JobPostingResponse.from(jobPostingService.closePosting(id, orgId)))
@@ -99,7 +100,7 @@ class JobPostingController(
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('hr-recruitment:write')")
     fun cancel(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(JobPostingResponse.from(jobPostingService.cancelPosting(id, orgId)))
