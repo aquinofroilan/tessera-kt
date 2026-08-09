@@ -4,28 +4,29 @@ import com.aquinofroilan.tessera.model.Opportunity
 import com.aquinofroilan.tessera.model.OpportunityStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
+import java.util.UUID
 
 @Repository
-interface OpportunityRepository : JpaRepository<Opportunity, String> {
-    fun findByOrganizationId(organizationId: String): List<Opportunity>
+interface OpportunityRepository : JpaRepository<Opportunity, UUID> {
+    fun findByOrganizationId(organizationId: UUID): List<Opportunity>
 
     fun findByOrganizationIdAndStatus(
-        organizationId: String,
+        organizationId: UUID,
         status: OpportunityStatus,
     ): List<Opportunity>
 
     fun findByOrganizationIdAndCustomerId(
-        organizationId: String,
-        customerId: String,
+        organizationId: UUID,
+        customerId: UUID,
     ): List<Opportunity>
 
     fun findByOrganizationIdAndStageId(
-        organizationId: String,
-        stageId: String,
+        organizationId: UUID,
+        stageId: UUID,
     ): List<Opportunity>
 
     fun findByOrganizationIdAndOwnerUserId(
-        organizationId: String,
-        ownerUserId: String,
+        organizationId: UUID,
+        ownerUserId: UUID,
     ): List<Opportunity>
 }

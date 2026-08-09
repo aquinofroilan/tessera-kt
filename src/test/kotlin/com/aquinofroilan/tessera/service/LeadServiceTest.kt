@@ -19,14 +19,19 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.util.Optional
+import java.util.UUID
 
 class LeadServiceTest {
+    private val leadId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")
+    private val oppId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000002")
+    private val custId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000003")
+    private val stageId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000004")
     private lateinit var repository: LeadRepository
     private lateinit var opportunityService: OpportunityService
     private lateinit var service: LeadService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
+    private val orgId = java.util.UUID.randomUUID()
+    private val userId = java.util.UUID.randomUUID()
 
     @BeforeEach
     fun setup() {
@@ -45,26 +50,26 @@ class LeadServiceTest {
 
     @Test
     fun `update rejects setting status to CONVERTED directly`() {
-        whenever(repository.findById("l1")).thenReturn(
+        whenever(repository.findById(leadId)).thenReturn(
             Optional.of(lead(LeadStatus.NEW)),
         )
         assertThatThrownBy {
-            service.updateLead("l1", UpdateLeadRequest(status = LeadStatus.CONVERTED), orgId)
+            service.updateLead(leadId, UpdateLeadRequest(status = LeadStatus.CONVERTED), orgId)
         }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `convert flips status and stamps converted_to_opportunity_id`() {
-        whenever(repository.findById("l1")).thenReturn(Optional.of(lead(LeadStatus.QUALIFIED)))
-        val opp = stubOpportunity("opp-1")
+        whenever(repository.findById(leadId)).thenReturn(Optional.of(lead(LeadStatus.QUALIFIED)))
+        val opp = stubOpportunity(oppId)
         whenever(opportunityService.createOpportunity(any<CreateOpportunityRequest>(), any(), any(), any())).thenReturn(opp)
 
         val (updatedLead, returnedOpp) =
             service.convertLead(
-                "l1",
+                leadId,
                 ConvertLeadRequest(
-                    customerId = "cust-1",
-                    stageId = "stage-1",
+                    customerId = custId,
+                    stageId = stageId,
                     opportunityName = "Deal",
                     amount = BigDecimal("1000"),
                 ),
@@ -73,19 +78,19 @@ class LeadServiceTest {
             )
 
         assertThat(updatedLead.status).isEqualTo(LeadStatus.CONVERTED)
-        assertThat(updatedLead.convertedToOpportunityId).isEqualTo("opp-1")
-        assertThat(returnedOpp.id).isEqualTo("opp-1")
+        assertThat(updatedLead.convertedToOpportunityId).isEqualTo(oppId)
+        assertThat(returnedOpp.id).isEqualTo(oppId)
     }
 
     @Test
     fun `convert rejects already-converted leads`() {
-        whenever(repository.findById("l1")).thenReturn(Optional.of(lead(LeadStatus.CONVERTED).copy(convertedToOpportunityId = "opp-old")))
+        whenever(repository.findById(leadId)).thenReturn(Optional.of(lead(LeadStatus.CONVERTED).copy(convertedToOpportunityId = oppId)))
         assertThatThrownBy {
             service.convertLead(
-                "l1",
+                leadId,
                 ConvertLeadRequest(
-                    customerId = "cust-1",
-                    stageId = "stage-1",
+                    customerId = custId,
+                    stageId = stageId,
                     opportunityName = "Deal",
                     amount = BigDecimal("1000"),
                 ),
@@ -97,20 +102,20 @@ class LeadServiceTest {
 
     private fun lead(status: LeadStatus) =
         Lead(
-            id = "l1",
+            id = leadId,
             organizationId = orgId,
             fullName = "Ada",
             status = status,
             createdBy = userId,
         )
 
-    private fun stubOpportunity(id: String) =
+    private fun stubOpportunity(id: java.util.UUID) =
         Opportunity(
             id = id,
             organizationId = orgId,
             name = "Deal",
-            customerId = "cust-1",
-            stageId = "stage-1",
+            customerId = custId,
+            stageId = stageId,
             amount = BigDecimal("1000"),
             currency = "USD",
             status = OpportunityStatus.OPEN,

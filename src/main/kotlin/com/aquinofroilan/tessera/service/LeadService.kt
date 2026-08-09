@@ -13,6 +13,7 @@ import com.aquinofroilan.tessera.repository.LeadRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Service
 class LeadService(
@@ -22,8 +23,8 @@ class LeadService(
     @Transactional
     fun createLead(
         request: CreateLeadRequest,
-        organizationId: String,
-        userId: String,
+        organizationId: UUID,
+        userId: UUID,
     ): Lead {
         if (request.fullName.isBlank()) {
             throw BusinessRuleException("Full name is required")
@@ -44,8 +45,8 @@ class LeadService(
     }
 
     fun getLead(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): Lead {
         val l =
             leadRepository.findById(id).orElseThrow {
@@ -58,9 +59,9 @@ class LeadService(
     }
 
     fun listLeads(
-        organizationId: String,
+        organizationId: UUID,
         status: LeadStatus?,
-        ownerUserId: String?,
+        ownerUserId: UUID?,
     ): List<Lead> =
         when {
             status != null -> leadRepository.findByOrganizationIdAndStatus(organizationId, status)
@@ -70,9 +71,9 @@ class LeadService(
 
     @Transactional
     fun updateLead(
-        id: String,
+        id: UUID,
         request: UpdateLeadRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): Lead {
         val l = getLead(id, organizationId)
         if (l.status == LeadStatus.CONVERTED) {
@@ -97,10 +98,10 @@ class LeadService(
 
     @Transactional
     fun convertLead(
-        id: String,
+        id: UUID,
         request: ConvertLeadRequest,
-        organizationId: String,
-        userId: String,
+        organizationId: UUID,
+        userId: UUID,
     ): Pair<Lead, Opportunity> {
         val lead = getLead(id, organizationId)
         if (lead.status == LeadStatus.CONVERTED) {
@@ -139,8 +140,8 @@ class LeadService(
 
     @Transactional
     fun disqualifyLead(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): Lead {
         val l = getLead(id, organizationId)
         if (l.status == LeadStatus.CONVERTED) {

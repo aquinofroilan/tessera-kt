@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 
 data class CreateLeadRequest(
     @field:NotBlank(message = "Full name is required")
@@ -17,7 +18,7 @@ data class CreateLeadRequest(
     val email: String? = null,
     val phone: String? = null,
     val source: String? = null,
-    val ownerUserId: String? = null,
+    val ownerUserId: UUID? = null,
     val notes: String? = null,
 )
 
@@ -29,16 +30,16 @@ data class UpdateLeadRequest(
     val phone: String? = null,
     val source: String? = null,
     val status: LeadStatus? = null,
-    val ownerUserId: String? = null,
+    val ownerUserId: UUID? = null,
     val notes: String? = null,
 )
 
 data class ConvertLeadRequest(
     @field:NotBlank(message = "Customer ID is required for conversion")
-    val customerId: String,
-    val primaryContactId: String? = null,
+    val customerId: UUID,
+    val primaryContactId: UUID? = null,
     @field:NotBlank(message = "Stage ID is required")
-    val stageId: String,
+    val stageId: UUID,
     @field:NotBlank(message = "Opportunity name is required")
     val opportunityName: String,
     @field:NotNull(message = "Amount is required")
@@ -46,21 +47,21 @@ data class ConvertLeadRequest(
     val amount: BigDecimal?,
     val currency: String? = null,
     val expectedCloseDate: LocalDate? = null,
-    val ownerUserId: String? = null,
+    val ownerUserId: UUID? = null,
     val notes: String? = null,
 )
 
 data class LeadResponse(
-    val id: String,
+    val id: UUID,
     val fullName: String,
     val company: String?,
     val email: String?,
     val phone: String?,
     val source: String?,
     val status: LeadStatus,
-    val ownerUserId: String?,
+    val ownerUserId: UUID?,
     val notes: String?,
-    val convertedToOpportunityId: String?,
+    val convertedToOpportunityId: UUID?,
 ) {
     companion object {
         fun from(l: Lead) =

@@ -1,5 +1,6 @@
 package com.aquinofroilan.tessera.model
 
+import com.github.f4b6a3.uuid.UuidCreator
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
@@ -26,9 +27,9 @@ enum class LeadStatus {
 data class Lead(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: UUID = UuidCreator.getTimeOrderedEpoch(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: UUID,
     @Column(name = "full_name")
     val fullName: String,
     val company: String? = null,
@@ -38,14 +39,14 @@ data class Lead(
     @Enumerated(EnumType.STRING)
     val status: LeadStatus = LeadStatus.NEW,
     @Column(name = "owner_user_id", columnDefinition = "uuid")
-    val ownerUserId: String? = null,
+    val ownerUserId: UUID? = null,
     val notes: String? = null,
     @Column(name = "converted_to_opportunity_id", columnDefinition = "uuid")
-    val convertedToOpportunityId: String? = null,
+    val convertedToOpportunityId: UUID? = null,
     @Column(name = "converted_at")
     val convertedAt: LocalDateTime? = null,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    val createdBy: UUID,
     @CreatedDate
     @Column(name = "created_at")
     val createdAt: LocalDateTime? = null,

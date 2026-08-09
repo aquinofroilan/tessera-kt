@@ -1,5 +1,6 @@
 package com.aquinofroilan.tessera.model
 
+import com.github.f4b6a3.uuid.UuidCreator
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
@@ -28,16 +29,16 @@ enum class OpportunityStatus {
 data class Opportunity(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: UUID = UuidCreator.getTimeOrderedEpoch(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: UUID,
     val name: String,
     @Column(name = "customer_id", columnDefinition = "uuid")
-    val customerId: String,
+    val customerId: UUID,
     @Column(name = "primary_contact_id", columnDefinition = "uuid")
-    val primaryContactId: String? = null,
+    val primaryContactId: UUID? = null,
     @Column(name = "stage_id", columnDefinition = "uuid")
-    val stageId: String,
+    val stageId: UUID,
     val amount: BigDecimal = BigDecimal.ZERO,
     @Column(columnDefinition = "char(3)")
     val currency: String,
@@ -46,16 +47,16 @@ data class Opportunity(
     @Enumerated(EnumType.STRING)
     val status: OpportunityStatus = OpportunityStatus.OPEN,
     @Column(name = "owner_user_id", columnDefinition = "uuid")
-    val ownerUserId: String? = null,
+    val ownerUserId: UUID? = null,
     @Column(name = "source_lead_id", columnDefinition = "uuid")
-    val sourceLeadId: String? = null,
+    val sourceLeadId: UUID? = null,
     val notes: String? = null,
     @Column(name = "closed_at")
     val closedAt: LocalDateTime? = null,
     @Column(name = "closed_by", columnDefinition = "uuid")
-    val closedBy: String? = null,
+    val closedBy: UUID? = null,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    val createdBy: UUID,
     @CreatedDate
     @Column(name = "created_at")
     val createdAt: LocalDateTime? = null,

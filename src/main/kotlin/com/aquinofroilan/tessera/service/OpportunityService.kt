@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Service
 class OpportunityService(
@@ -25,9 +26,9 @@ class OpportunityService(
     @Transactional
     fun createOpportunity(
         request: CreateOpportunityRequest,
-        organizationId: String,
-        createdBy: String,
-        sourceLeadId: String? = null,
+        organizationId: UUID,
+        createdBy: UUID,
+        sourceLeadId: UUID? = null,
     ): Opportunity {
         val customer = customerService.getCustomer(request.customerId, organizationId)
         if (!customer.isActive) {
@@ -67,8 +68,8 @@ class OpportunityService(
     }
 
     fun getOpportunity(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): Opportunity {
         val o =
             opportunityRepository.findById(id).orElseThrow {
@@ -81,11 +82,11 @@ class OpportunityService(
     }
 
     fun listOpportunities(
-        organizationId: String,
+        organizationId: UUID,
         status: OpportunityStatus?,
-        customerId: String?,
-        stageId: String?,
-        ownerUserId: String?,
+        customerId: UUID?,
+        stageId: UUID?,
+        ownerUserId: UUID?,
     ): List<Opportunity> =
         when {
             status != null -> opportunityRepository.findByOrganizationIdAndStatus(organizationId, status)
@@ -97,9 +98,9 @@ class OpportunityService(
 
     @Transactional
     fun updateOpportunity(
-        id: String,
+        id: UUID,
         request: UpdateOpportunityRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): Opportunity {
         val o = getOpportunity(id, organizationId)
         if (o.status != OpportunityStatus.OPEN) {
@@ -134,10 +135,10 @@ class OpportunityService(
 
     @Transactional
     fun closeOpportunity(
-        id: String,
+        id: UUID,
         request: CloseOpportunityRequest,
-        organizationId: String,
-        userId: String,
+        organizationId: UUID,
+        userId: UUID,
     ): Opportunity {
         val o = getOpportunity(id, organizationId)
         if (o.status != OpportunityStatus.OPEN) {
@@ -161,9 +162,9 @@ class OpportunityService(
 
     @Transactional
     fun abandonOpportunity(
-        id: String,
-        organizationId: String,
-        userId: String,
+        id: UUID,
+        organizationId: UUID,
+        userId: UUID,
     ): Opportunity {
         val o = getOpportunity(id, organizationId)
         if (o.status != OpportunityStatus.OPEN) {
@@ -178,7 +179,7 @@ class OpportunityService(
         )
     }
 
-    private fun orgCurrency(organizationId: String): String =
+    private fun orgCurrency(organizationId: UUID): String =
         organizationRepository.findById(organizationId).map { it.baseCurrency }.orElse("USD")
 
     fun amountZero(): BigDecimal = BigDecimal.ZERO

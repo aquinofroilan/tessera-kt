@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/crm/leads")
@@ -37,7 +38,7 @@ class LeadController(
         @Valid @RequestBody request: CreateLeadRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val lead = leadService.createLead(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(LeadResponse.from(lead))
     }
@@ -46,7 +47,7 @@ class LeadController(
     @PreAuthorize("hasAuthority('crm:read')")
     fun list(
         @RequestParam(required = false) status: String?,
-        @RequestParam(required = false) ownerUserId: String?,
+        @RequestParam(required = false) ownerUserId: UUID?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val parsed =
@@ -65,7 +66,7 @@ class LeadController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('crm:read')")
     fun get(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(LeadResponse.from(leadService.getLead(id, orgId)))
@@ -74,7 +75,7 @@ class LeadController(
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('crm:write')")
     fun update(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateLeadRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -84,11 +85,11 @@ class LeadController(
     @PostMapping("/{id}/convert")
     @PreAuthorize("hasAuthority('crm:write')")
     fun convert(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
         @Valid @RequestBody request: ConvertLeadRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val (lead, opportunity) = leadService.convertLead(id, request, orgId, userId)
         return ResponseEntity.ok(
             mapOf(
@@ -101,7 +102,7 @@ class LeadController(
     @PostMapping("/{id}/disqualify")
     @PreAuthorize("hasAuthority('crm:write')")
     fun disqualify(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(LeadResponse.from(leadService.disqualifyLead(id, orgId)))

@@ -20,8 +20,11 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.util.Optional
+import java.util.UUID
 
 class OpportunityServiceTest {
+    private val oppId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000002")
+    private val contactId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000006")
     private lateinit var repository: OpportunityRepository
     private lateinit var customerService: CustomerService
     private lateinit var contactService: ContactService
@@ -29,11 +32,11 @@ class OpportunityServiceTest {
     private lateinit var orgRepository: OrganizationRepository
     private lateinit var service: OpportunityService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
-    private val customerId = "cust-1"
-    private val openStageId = "stage-open"
-    private val wonStageId = "stage-won"
+    private val orgId = java.util.UUID.randomUUID()
+    private val userId = java.util.UUID.randomUUID()
+    private val customerId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000003")
+    private val openStageId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000004")
+    private val wonStageId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000005")
 
     @BeforeEach
     fun setup() {
@@ -100,10 +103,10 @@ class OpportunityServiceTest {
 
     @Test
     fun `create rejects a contact linked to a different customer`() {
-        whenever(contactService.getContact("contact-1", orgId)).thenReturn(
+        whenever(contactService.getContact(contactId, orgId)).thenReturn(
             Contact(
                 organizationId = orgId,
-                customerId = "different-customer",
+                customerId = java.util.UUID.randomUUID(),
                 firstName = "A",
                 lastName = "B",
                 createdBy = userId,
@@ -114,7 +117,7 @@ class OpportunityServiceTest {
                 CreateOpportunityRequest(
                     name = "Deal",
                     customerId = customerId,
-                    primaryContactId = "contact-1",
+                    primaryContactId = contactId,
                     stageId = openStageId,
                     amount = BigDecimal("1000"),
                 ),
@@ -127,25 +130,25 @@ class OpportunityServiceTest {
     @Test
     fun `close requires a won or lost terminal stage`() {
         val open = opportunity()
-        whenever(repository.findById("o1")).thenReturn(Optional.of(open))
+        whenever(repository.findById(oppId)).thenReturn(Optional.of(open))
         // openStageId is not won/lost
         assertThatThrownBy {
-            service.closeOpportunity("o1", CloseOpportunityRequest(stageId = openStageId), orgId, userId)
+            service.closeOpportunity(oppId, CloseOpportunityRequest(stageId = openStageId), orgId, userId)
         }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `close flips status to WON when stage is won`() {
         val open = opportunity()
-        whenever(repository.findById("o1")).thenReturn(Optional.of(open))
-        val closed = service.closeOpportunity("o1", CloseOpportunityRequest(stageId = wonStageId), orgId, userId)
+        whenever(repository.findById(oppId)).thenReturn(Optional.of(open))
+        val closed = service.closeOpportunity(oppId, CloseOpportunityRequest(stageId = wonStageId), orgId, userId)
         assertThat(closed.status).isEqualTo(OpportunityStatus.WON)
         assertThat(closed.closedBy).isEqualTo(userId)
     }
 
     private fun opportunity() =
         Opportunity(
-            id = "o1",
+            id = oppId,
             organizationId = orgId,
             name = "Deal",
             customerId = customerId,
@@ -157,7 +160,7 @@ class OpportunityServiceTest {
         )
 
     private fun stage(
-        id: String,
+        id: java.util.UUID,
         code: String,
         isActive: Boolean,
         isWon: Boolean = false,

@@ -7,54 +7,55 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.PositiveOrZero
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 
 data class CreateOpportunityRequest(
     @field:NotBlank(message = "Opportunity name is required")
     val name: String,
     @field:NotBlank(message = "Customer ID is required")
-    val customerId: String,
-    val primaryContactId: String? = null,
+    val customerId: UUID,
+    val primaryContactId: UUID? = null,
     @field:NotBlank(message = "Stage ID is required")
-    val stageId: String,
+    val stageId: UUID,
     @field:NotNull(message = "Amount is required")
     @field:PositiveOrZero(message = "Amount cannot be negative")
     val amount: BigDecimal?,
     val currency: String? = null,
     val expectedCloseDate: LocalDate? = null,
-    val ownerUserId: String? = null,
+    val ownerUserId: UUID? = null,
     val notes: String? = null,
 )
 
 data class UpdateOpportunityRequest(
     val name: String? = null,
-    val primaryContactId: String? = null,
-    val stageId: String? = null,
+    val primaryContactId: UUID? = null,
+    val stageId: UUID? = null,
     @field:PositiveOrZero
     val amount: BigDecimal? = null,
     val currency: String? = null,
     val expectedCloseDate: LocalDate? = null,
-    val ownerUserId: String? = null,
+    val ownerUserId: UUID? = null,
     val notes: String? = null,
 )
 
 data class CloseOpportunityRequest(
     @field:NotBlank(message = "stageId for the terminal stage is required (e.g. WON or LOST)")
-    val stageId: String,
+    val stageId: UUID,
     val notes: String? = null,
 )
 
 data class OpportunityResponse(
-    val id: String,
+    val id: UUID,
     val name: String,
-    val customerId: String,
-    val primaryContactId: String?,
-    val stageId: String,
+    val customerId: UUID,
+    val primaryContactId: UUID?,
+    val stageId: UUID,
     val amount: BigDecimal,
     val currency: String,
     val expectedCloseDate: LocalDate?,
     val status: OpportunityStatus,
-    val ownerUserId: String?,
-    val sourceLeadId: String?,
+    val ownerUserId: UUID?,
+    val sourceLeadId: UUID?,
     val notes: String?,
 ) {
     companion object {
