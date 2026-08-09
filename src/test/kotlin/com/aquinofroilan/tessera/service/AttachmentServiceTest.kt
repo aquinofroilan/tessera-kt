@@ -48,8 +48,15 @@ class AttachmentServiceTest {
     @Test
     fun `upload rejects empty file`() {
         val empty = MockMultipartFile("file", "x.pdf", "application/pdf", ByteArray(0))
-        assertThatThrownBy { service.upload(empty, "candidate", java.util.UUID.fromString("00000000-0000-0000-0000-000000000003"), orgId, userId) }
-            .isInstanceOf(BusinessRuleException::class.java)
+        assertThatThrownBy {
+            service.upload(
+                empty,
+                "candidate",
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000003"),
+                orgId,
+                userId,
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
