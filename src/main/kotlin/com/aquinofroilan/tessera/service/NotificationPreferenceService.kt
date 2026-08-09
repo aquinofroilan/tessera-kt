@@ -25,8 +25,8 @@ class NotificationPreferenceService(
         userId: java.util.UUID,
         organizationId: java.util.UUID,
 =======
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
 >>>>>>> 61cc253 (feat(notifications): per-user delivery preferences (channel x kind) (#251))
         kind: String,
         channel: NotificationChannel,
@@ -41,8 +41,8 @@ class NotificationPreferenceService(
         userId: java.util.UUID,
         organizationId: java.util.UUID,
 =======
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
 >>>>>>> 61cc253 (feat(notifications): per-user delivery preferences (channel x kind) (#251))
     ): List<NotificationPreference> = preferenceRepository.findByUserIdAndOrganizationId(userId, organizationId)
 
@@ -52,8 +52,8 @@ class NotificationPreferenceService(
         userId: java.util.UUID,
         organizationId: java.util.UUID,
 =======
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
 >>>>>>> 61cc253 (feat(notifications): per-user delivery preferences (channel x kind) (#251))
         entries: List<NotificationPreferenceEntry>,
     ): List<NotificationPreference> {

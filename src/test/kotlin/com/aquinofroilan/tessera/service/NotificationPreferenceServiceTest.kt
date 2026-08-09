@@ -24,8 +24,8 @@ class NotificationPreferenceServiceTest {
     private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000100")
     private val userId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000101")
 =======
-    private val orgId = "org-1"
-    private val userId = "user-1"
+    private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000100")
+    private val userId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000101")
 >>>>>>> 61cc253 (feat(notifications): per-user delivery preferences (channel x kind) (#251))
 
     @BeforeEach

@@ -31,9 +31,9 @@ data class NotificationPreference(
     @Column(name = "user_id", columnDefinition = "uuid")
     val userId: java.util.UUID,
 =======
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     @Column(name = "user_id", columnDefinition = "uuid")
-    val userId: String,
+    val userId: java.util.UUID,
 >>>>>>> 61cc253 (feat(notifications): per-user delivery preferences (channel x kind) (#251))
     val kind: String,
     @Enumerated(EnumType.STRING)

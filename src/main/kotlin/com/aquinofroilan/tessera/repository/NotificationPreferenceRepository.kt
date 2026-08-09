@@ -18,13 +18,13 @@ interface NotificationPreferenceRepository : JpaRepository<NotificationPreferenc
         userId: java.util.UUID,
         organizationId: java.util.UUID,
 =======
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): List<NotificationPreference>
 
     fun findByUserIdAndOrganizationIdAndKindAndChannel(
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
 >>>>>>> 61cc253 (feat(notifications): per-user delivery preferences (channel x kind) (#251))
         kind: String,
         channel: NotificationChannel,
