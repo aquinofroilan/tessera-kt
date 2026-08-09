@@ -1,6 +1,4 @@
 package com.aquinofroilan.tessera.service
-import java.util.UUID
-
 import com.aquinofroilan.tessera.dto.CreatePipelineStageRequest
 import com.aquinofroilan.tessera.dto.UpdatePipelineStageRequest
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -11,6 +9,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
+import java.util.UUID
 
 @Service
 class PipelineStageService(

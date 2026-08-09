@@ -8,13 +8,13 @@ import com.aquinofroilan.tessera.model.Customer
 import com.aquinofroilan.tessera.repository.ContactRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
-import java.util.UUID
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import java.util.Optional
+import java.util.UUID
 
 class ContactServiceTest {
     private lateinit var repository: ContactRepository

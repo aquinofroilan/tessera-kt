@@ -1,9 +1,8 @@
 package com.aquinofroilan.tessera.dto
-import java.util.UUID
-
 import com.aquinofroilan.tessera.model.Contact
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Size
+import java.util.UUID
 
 data class CreateContactRequest(
     val customerId: UUID? = null,

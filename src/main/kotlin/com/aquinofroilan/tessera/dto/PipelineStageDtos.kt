@@ -1,12 +1,11 @@
 package com.aquinofroilan.tessera.dto
-import java.util.UUID
-
 import com.aquinofroilan.tessera.model.PipelineStage
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.math.BigDecimal
+import java.util.UUID
 
 data class CreatePipelineStageRequest(
     @field:NotBlank(message = "Code is required")

@@ -1,6 +1,4 @@
 package com.aquinofroilan.tessera.service
-import java.util.UUID
-
 import com.aquinofroilan.tessera.dto.CreateContactRequest
 import com.aquinofroilan.tessera.dto.UpdateContactRequest
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -9,6 +7,7 @@ import com.aquinofroilan.tessera.model.Contact
 import com.aquinofroilan.tessera.repository.ContactRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 class ContactService(
