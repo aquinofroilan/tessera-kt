@@ -6,8 +6,8 @@ package com.aquinofroilan.tessera.dto
  * permission string in JS — the source of truth lives on the server.
  */
 data class CallerPermissionsResponse(
-    val userId: String,
-    val organizationId: String?,
+    val userId: java.util.UUID,
+    val organizationId: java.util.UUID?,
     val roles: List<String>,
     val permissions: List<String>,
 )
