@@ -59,7 +59,7 @@ class WorkflowRuleEvaluatorTest {
                 rule(
                     id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000600"),
                     actionType = WorkflowRuleActionType.NOTIFY_USER,
-                    actionTarget = "manager-1",
+                    actionTarget = "00000000-0000-0000-0000-000000000301",
                 ),
             ),
         )
@@ -68,7 +68,7 @@ class WorkflowRuleEvaluatorTest {
 
         val captor = argumentCaptor<CreateNotificationRequest>()
         verify(notificationService).publish(captor.capture(), eq(orgId))
-        assertThat(captor.firstValue.recipientUserId).isEqualTo("manager-1")
+        assertThat(captor.firstValue.recipientUserId).isEqualTo(java.util.UUID.fromString("00000000-0000-0000-0000-000000000301"))
         assertThat(captor.firstValue.kind).isEqualTo(NotificationKinds.LEAVE_REQUEST_APPROVED)
         assertThat(captor.firstValue.category).isEqualTo(NotificationCategory.APPROVAL)
     }
@@ -126,7 +126,7 @@ class WorkflowRuleEvaluatorTest {
                 rule(
                     id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000210"),
                     actionType = WorkflowRuleActionType.NOTIFY_USER,
-                    actionTarget = "good-user",
+                    actionTarget = "00000000-0000-0000-0000-000000000302",
                 ),
             ),
         )

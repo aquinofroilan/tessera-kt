@@ -97,7 +97,7 @@ class WorkflowRuleServiceTest {
         assertThat(saved.name).isEqualTo("Original")
         assertThat(saved.eventKind).isEqualTo("leave_request.approved")
         assertThat(saved.actionType).isEqualTo(WorkflowRuleActionType.NOTIFY_USER)
-        assertThat(saved.actionTarget).isEqualTo(java.util.UUID.fromString("00000000-0000-0000-0000-000000000101"))
+        assertThat(saved.actionTarget).isEqualTo("00000000-0000-0000-0000-000000000101")
     }
 
     @Test
