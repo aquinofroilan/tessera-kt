@@ -1,5 +1,7 @@
 package com.aquinofroilan.tessera.controller
 
+import java.util.UUID
+
 import com.aquinofroilan.tessera.annotation.LogLevel
 import com.aquinofroilan.tessera.annotation.Loggable
 import com.aquinofroilan.tessera.dto.CreateProductVariantRequest
@@ -30,7 +32,7 @@ class ProductVariantController(
     @PostMapping
     @PreAuthorize("hasAuthority('inventory:write')")
     fun create(
-        @PathVariable productId: String,
+        @PathVariable productId: UUID,
         @Valid @RequestBody request: CreateProductVariantRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -41,7 +43,7 @@ class ProductVariantController(
     @GetMapping
     @PreAuthorize("hasAuthority('inventory:read')")
     fun list(
-        @PathVariable productId: String,
+        @PathVariable productId: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(variantService.listVariants(productId, orgId).map { ProductVariantResponse.from(it) })
@@ -50,8 +52,8 @@ class ProductVariantController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun get(
-        @PathVariable productId: String,
-        @PathVariable id: String,
+        @PathVariable productId: UUID,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(ProductVariantResponse.from(variantService.getVariant(id, orgId)))
@@ -60,8 +62,8 @@ class ProductVariantController(
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun update(
-        @PathVariable productId: String,
-        @PathVariable id: String,
+        @PathVariable productId: UUID,
+        @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateProductVariantRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -71,8 +73,8 @@ class ProductVariantController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun deactivate(
-        @PathVariable productId: String,
-        @PathVariable id: String,
+        @PathVariable productId: UUID,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(ProductVariantResponse.from(variantService.deactivateVariant(id, orgId)))

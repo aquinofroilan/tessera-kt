@@ -1,5 +1,7 @@
 package com.aquinofroilan.tessera.service
 
+import java.util.UUID
+
 import com.aquinofroilan.tessera.dto.CreateProductVariantRequest
 import com.aquinofroilan.tessera.dto.UpdateProductVariantRequest
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -17,9 +19,9 @@ class ProductVariantService(
 ) {
     @Transactional
     fun createVariant(
-        productId: String,
+        productId: UUID,
         request: CreateProductVariantRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): ProductVariant {
         val product = productService.getProduct(productId, organizationId)
         val code = request.code.trim().uppercase()
@@ -44,8 +46,8 @@ class ProductVariantService(
     }
 
     fun getVariant(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): ProductVariant {
         val v =
             variantRepository.findById(id).orElseThrow {
@@ -58,8 +60,8 @@ class ProductVariantService(
     }
 
     fun listVariants(
-        productId: String,
-        organizationId: String,
+        productId: UUID,
+        organizationId: UUID,
     ): List<ProductVariant> {
         productService.getProduct(productId, organizationId)
         return variantRepository.findByOrganizationIdAndProductId(organizationId, productId)
@@ -67,9 +69,9 @@ class ProductVariantService(
 
     @Transactional
     fun updateVariant(
-        id: String,
+        id: UUID,
         request: UpdateProductVariantRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): ProductVariant {
         val v = getVariant(id, organizationId)
         return variantRepository.save(
@@ -84,8 +86,8 @@ class ProductVariantService(
 
     @Transactional
     fun deactivateVariant(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): ProductVariant {
         val v = getVariant(id, organizationId)
         if (!v.isActive) throw BusinessRuleException("Variant '${v.code}' is already inactive")

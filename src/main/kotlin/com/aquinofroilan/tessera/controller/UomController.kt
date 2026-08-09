@@ -1,5 +1,7 @@
 package com.aquinofroilan.tessera.controller
 
+import java.util.UUID
+
 import com.aquinofroilan.tessera.annotation.LogLevel
 import com.aquinofroilan.tessera.annotation.Loggable
 import com.aquinofroilan.tessera.dto.CreateUomRequest
@@ -51,7 +53,7 @@ class UomController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun get(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(UomResponse.from(uomService.getUom(id, orgId)))
@@ -60,7 +62,7 @@ class UomController(
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun update(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateUomRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -70,7 +72,7 @@ class UomController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun deactivate(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(UomResponse.from(uomService.deactivateUom(id, orgId)))
@@ -80,8 +82,8 @@ class UomController(
     @PreAuthorize("hasAuthority('inventory:read')")
     fun convert(
         @RequestParam quantity: BigDecimal,
-        @RequestParam fromUomId: String,
-        @RequestParam toUomId: String,
+        @RequestParam fromUomId: UUID,
+        @RequestParam toUomId: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val result = uomService.convert(quantity, fromUomId, toUomId, orgId)

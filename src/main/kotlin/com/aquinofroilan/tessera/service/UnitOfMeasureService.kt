@@ -1,5 +1,7 @@
 package com.aquinofroilan.tessera.service
 
+import java.util.UUID
+
 import com.aquinofroilan.tessera.dto.CreateUomRequest
 import com.aquinofroilan.tessera.dto.UpdateUomRequest
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -19,7 +21,7 @@ class UnitOfMeasureService(
     @Transactional
     fun createUom(
         request: CreateUomRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): UnitOfMeasure {
         val code = request.code.trim().uppercase()
         if (code.isBlank()) throw BusinessRuleException("Code cannot be blank")
@@ -54,8 +56,8 @@ class UnitOfMeasureService(
     }
 
     fun getUom(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): UnitOfMeasure {
         val u =
             uomRepository.findById(id).orElseThrow {
@@ -68,7 +70,7 @@ class UnitOfMeasureService(
     }
 
     fun listUoms(
-        organizationId: String,
+        organizationId: UUID,
         activeOnly: Boolean,
     ): List<UnitOfMeasure> =
         if (activeOnly) {
@@ -79,9 +81,9 @@ class UnitOfMeasureService(
 
     @Transactional
     fun updateUom(
-        id: String,
+        id: UUID,
         request: UpdateUomRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): UnitOfMeasure {
         val u = getUom(id, organizationId)
         val newBase = request.baseUomId ?: u.baseUomId
@@ -109,8 +111,8 @@ class UnitOfMeasureService(
 
     @Transactional
     fun deactivateUom(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): UnitOfMeasure {
         val u = getUom(id, organizationId)
         if (!u.isActive) throw BusinessRuleException("UoM '${u.code}' is already inactive")
@@ -123,9 +125,9 @@ class UnitOfMeasureService(
      */
     fun convert(
         quantity: BigDecimal,
-        fromUomId: String,
-        toUomId: String,
-        organizationId: String,
+        fromUomId: UUID,
+        toUomId: UUID,
+        organizationId: UUID,
     ): BigDecimal {
         if (fromUomId == toUomId) return quantity
         val from = getUom(fromUomId, organizationId)

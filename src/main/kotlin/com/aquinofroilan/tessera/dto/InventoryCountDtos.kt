@@ -1,5 +1,7 @@
 package com.aquinofroilan.tessera.dto
 
+import java.util.UUID
+
 import com.aquinofroilan.tessera.model.InventoryCountLine
 import com.aquinofroilan.tessera.model.InventoryCountSession
 import com.aquinofroilan.tessera.model.InventoryCountStatus
@@ -13,7 +15,7 @@ data class CreateCountSessionRequest(
     @field:NotBlank(message = "Code is required")
     val code: String,
     @field:NotBlank(message = "Warehouse ID is required")
-    val warehouseId: String,
+    val warehouseId: UUID,
     val scheduledFor: LocalDate? = null,
     val notes: String? = null,
 )
@@ -26,15 +28,15 @@ data class RecordCountRequest(
 )
 
 data class CountLineResponse(
-    val id: String,
+    val id: UUID,
     val lineNumber: Int,
-    val productId: String,
+    val productId: UUID,
     val productSku: String,
     val productName: String,
     val expectedQuantity: BigDecimal,
     val countedQuantity: BigDecimal?,
     val varianceQuantity: BigDecimal?,
-    val adjustmentMovementId: String?,
+    val adjustmentMovementId: UUID?,
     val notes: String?,
 ) {
     companion object {
@@ -55,9 +57,9 @@ data class CountLineResponse(
 }
 
 data class CountSessionResponse(
-    val id: String,
+    val id: UUID,
     val code: String,
-    val warehouseId: String,
+    val warehouseId: UUID,
     val status: InventoryCountStatus,
     val scheduledFor: LocalDate?,
     val startedAt: String?,

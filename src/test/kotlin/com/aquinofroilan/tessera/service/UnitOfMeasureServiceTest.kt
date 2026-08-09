@@ -18,7 +18,7 @@ class UnitOfMeasureServiceTest {
     private lateinit var repository: UnitOfMeasureRepository
     private lateinit var service: UnitOfMeasureService
 
-    private val orgId = "org-1"
+    private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")
 
     @BeforeEach
     fun setup() {
@@ -38,22 +38,22 @@ class UnitOfMeasureServiceTest {
 
     @Test
     fun `create non-base requires a real base UoM`() {
-        whenever(repository.findById("base")).thenReturn(Optional.of(baseUom("KG", "base")))
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"))).thenReturn(Optional.of(baseUom("KG", java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"))))
         val u =
             service.createUom(
-                CreateUomRequest(code = "G", name = "Gram", baseUomId = "base", conversionFactor = BigDecimal("0.001")),
+                CreateUomRequest(code = "G", name = "Gram", baseUomId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"), conversionFactor = BigDecimal("0.001")),
                 orgId,
             )
-        assertThat(u.baseUomId).isEqualTo("base")
+        assertThat(u.baseUomId).isEqualTo(java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"))
         assertThat(u.conversionFactor).isEqualByComparingTo(BigDecimal("0.001"))
     }
 
     @Test
     fun `create rejects chained conversion (base must itself be a base)`() {
-        whenever(repository.findById("not-a-base")).thenReturn(Optional.of(baseUom("G", "not-a-base").copy(baseUomId = "kg")))
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000003"))).thenReturn(Optional.of(baseUom("G", java.util.UUID.fromString("00000000-0000-0000-0000-000000000003")).copy(baseUomId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000004"))))
         assertThatThrownBy {
             service.createUom(
-                CreateUomRequest(code = "MG", name = "Milligram", baseUomId = "not-a-base"),
+                CreateUomRequest(code = "MG", name = "Milligram", baseUomId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000003")),
                 orgId,
             )
         }.isInstanceOf(BusinessRuleException::class.java)
@@ -68,27 +68,27 @@ class UnitOfMeasureServiceTest {
 
     @Test
     fun `convert between same-base units works`() {
-        val kg = baseUom("KG", "kg")
-        val g = baseUom("G", "g").copy(baseUomId = "kg", conversionFactor = BigDecimal("0.001"))
-        whenever(repository.findById("kg")).thenReturn(Optional.of(kg))
-        whenever(repository.findById("g")).thenReturn(Optional.of(g))
-        val result = service.convert(BigDecimal("2"), "kg", "g", orgId)
+        val kg = baseUom("KG", java.util.UUID.fromString("00000000-0000-0000-0000-000000000004"))
+        val g = baseUom("G", java.util.UUID.fromString("00000000-0000-0000-0000-000000000012")).copy(baseUomId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000004"), conversionFactor = BigDecimal("0.001"))
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000004"))).thenReturn(Optional.of(kg))
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000012"))).thenReturn(Optional.of(g))
+        val result = service.convert(BigDecimal("2"), java.util.UUID.fromString("00000000-0000-0000-0000-000000000004"), java.util.UUID.fromString("00000000-0000-0000-0000-000000000012"), orgId)
         assertThat(result).isEqualByComparingTo(BigDecimal("2000"))
     }
 
     @Test
     fun `convert rejects cross-base UoMs`() {
-        val kg = baseUom("KG", "kg")
-        val ea = baseUom("EA", "ea")
-        whenever(repository.findById("kg")).thenReturn(Optional.of(kg))
-        whenever(repository.findById("ea")).thenReturn(Optional.of(ea))
-        assertThatThrownBy { service.convert(BigDecimal.ONE, "kg", "ea", orgId) }
+        val kg = baseUom("KG", java.util.UUID.fromString("00000000-0000-0000-0000-000000000004"))
+        val ea = baseUom("EA", java.util.UUID.fromString("00000000-0000-0000-0000-000000000013"))
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000004"))).thenReturn(Optional.of(kg))
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000013"))).thenReturn(Optional.of(ea))
+        assertThatThrownBy { service.convert(BigDecimal.ONE, java.util.UUID.fromString("00000000-0000-0000-0000-000000000004"), java.util.UUID.fromString("00000000-0000-0000-0000-000000000013"), orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 
     private fun baseUom(
         code: String,
-        id: String,
+        id: java.util.UUID,
     ) = UnitOfMeasure(
         id = id,
         organizationId = orgId,

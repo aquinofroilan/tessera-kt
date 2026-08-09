@@ -33,11 +33,11 @@ class InventoryCountSessionServiceTest {
     private lateinit var movementService: StockMovementService
     private lateinit var service: InventoryCountSessionService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
-    private val whId = "wh-1"
-    private val productAId = "prod-A"
-    private val productBId = "prod-B"
+    private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")
+    private val userId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000009")
+    private val whId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000014")
+    private val productAId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000015")
+    private val productBId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000016")
 
     @BeforeEach
     fun setup() {
@@ -57,7 +57,7 @@ class InventoryCountSessionServiceTest {
             listOf(
                 StockOnHand(organizationId = orgId, productId = productAId, warehouseId = whId, quantity = BigDecimal("100")),
                 StockOnHand(organizationId = orgId, productId = productBId, warehouseId = whId, quantity = BigDecimal("50")),
-                StockOnHand(organizationId = orgId, productId = "prod-other", warehouseId = "wh-other", quantity = BigDecimal("999")),
+                StockOnHand(organizationId = orgId, productId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000017"), warehouseId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000018"), quantity = BigDecimal("999")),
             ),
         )
         service = InventoryCountSessionService(repository, sohRepository, warehouseService, productService, movementService)
@@ -81,10 +81,10 @@ class InventoryCountSessionServiceTest {
     fun `recordCount transitions DRAFT to COUNTING and updates line`() {
         val draft =
             session(InventoryCountStatus.DRAFT)
-                .copy(lines = listOf(line("l1", productAId, BigDecimal("100"))))
-        whenever(repository.findById("s1")).thenReturn(Optional.of(draft))
+                .copy(lines = listOf(line(java.util.UUID.fromString("00000000-0000-0000-0000-000000000019"), productAId, BigDecimal("100"))))
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000008"))).thenReturn(Optional.of(draft))
 
-        val updated = service.recordCount("s1", "l1", RecordCountRequest(countedQuantity = BigDecimal("95")), orgId)
+        val updated = service.recordCount(java.util.UUID.fromString("00000000-0000-0000-0000-000000000008"), java.util.UUID.fromString("00000000-0000-0000-0000-000000000019"), RecordCountRequest(countedQuantity = BigDecimal("95")), orgId)
 
         assertThat(updated.status).isEqualTo(InventoryCountStatus.COUNTING)
         assertThat(updated.lines[0].countedQuantity).isEqualByComparingTo(BigDecimal("95"))
@@ -93,9 +93,9 @@ class InventoryCountSessionServiceTest {
 
     @Test
     fun `recordCount rejects POSTED sessions`() {
-        whenever(repository.findById("s1")).thenReturn(Optional.of(session(InventoryCountStatus.POSTED)))
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000008"))).thenReturn(Optional.of(session(InventoryCountStatus.POSTED)))
         assertThatThrownBy {
-            service.recordCount("s1", "l1", RecordCountRequest(countedQuantity = BigDecimal.ZERO), orgId)
+            service.recordCount(java.util.UUID.fromString("00000000-0000-0000-0000-000000000008"), java.util.UUID.fromString("00000000-0000-0000-0000-000000000019"), RecordCountRequest(countedQuantity = BigDecimal.ZERO), orgId)
         }.isInstanceOf(BusinessRuleException::class.java)
     }
 
@@ -105,12 +105,12 @@ class InventoryCountSessionServiceTest {
             session(InventoryCountStatus.COUNTING).copy(
                 lines =
                     listOf(
-                        line("l1", productAId, BigDecimal("100")).copy(countedQuantity = BigDecimal("100")),
-                        line("l2", productBId, BigDecimal("50")),
+                        line(java.util.UUID.fromString("00000000-0000-0000-0000-000000000019"), productAId, BigDecimal("100")).copy(countedQuantity = BigDecimal("100")),
+                        line(java.util.UUID.fromString("00000000-0000-0000-0000-000000000020"), productBId, BigDecimal("50")),
                     ),
             )
-        whenever(repository.findById("s1")).thenReturn(Optional.of(s))
-        assertThatThrownBy { service.postSession("s1", orgId, userId) }
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000008"))).thenReturn(Optional.of(s))
+        assertThatThrownBy { service.postSession(java.util.UUID.fromString("00000000-0000-0000-0000-000000000008"), orgId, userId) }
             .isInstanceOf(BusinessRuleException::class.java)
             .hasMessageContaining("have not been counted")
     }
@@ -121,16 +121,16 @@ class InventoryCountSessionServiceTest {
             session(InventoryCountStatus.COUNTING).copy(
                 lines =
                     listOf(
-                        line("l1", productAId, BigDecimal("100")).copy(countedQuantity = BigDecimal("95")),
-                        line("l2", productBId, BigDecimal("50")).copy(countedQuantity = BigDecimal("50")),
+                        line(java.util.UUID.fromString("00000000-0000-0000-0000-000000000019"), productAId, BigDecimal("100")).copy(countedQuantity = BigDecimal("95")),
+                        line(java.util.UUID.fromString("00000000-0000-0000-0000-000000000020"), productBId, BigDecimal("50")).copy(countedQuantity = BigDecimal("50")),
                     ),
             )
-        whenever(repository.findById("s1")).thenReturn(Optional.of(s))
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000008"))).thenReturn(Optional.of(s))
         whenever(
             movementService.createMovement(any<CreateStockMovementRequest>(), any(), any()),
         ).thenAnswer {
             StockMovement(
-                id = "mv1",
+                id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"),
                 organizationId = orgId,
                 type = StockMovementType.ADJUSTMENT,
                 productId = productAId,
@@ -141,25 +141,25 @@ class InventoryCountSessionServiceTest {
             )
         }
 
-        val posted = service.postSession("s1", orgId, userId)
+        val posted = service.postSession(java.util.UUID.fromString("00000000-0000-0000-0000-000000000008"), orgId, userId)
 
         assertThat(posted.status).isEqualTo(InventoryCountStatus.POSTED)
         assertThat(posted.lines[0].varianceQuantity).isEqualByComparingTo(BigDecimal("-5"))
-        assertThat(posted.lines[0].adjustmentMovementId).isEqualTo("mv1")
+        assertThat(posted.lines[0].adjustmentMovementId).isEqualTo(java.util.UUID.fromString("00000000-0000-0000-0000-000000000021"))
         assertThat(posted.lines[1].varianceQuantity).isEqualByComparingTo(BigDecimal.ZERO)
         assertThat(posted.lines[1].adjustmentMovementId).isNull()
     }
 
     @Test
     fun `cancel rejects POSTED`() {
-        whenever(repository.findById("s1")).thenReturn(Optional.of(session(InventoryCountStatus.POSTED)))
-        assertThatThrownBy { service.cancelSession("s1", orgId) }
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000008"))).thenReturn(Optional.of(session(InventoryCountStatus.POSTED)))
+        assertThatThrownBy { service.cancelSession(java.util.UUID.fromString("00000000-0000-0000-0000-000000000008"), orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 
     private fun session(status: InventoryCountStatus) =
         InventoryCountSession(
-            id = "s1",
+            id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000008"),
             organizationId = orgId,
             code = "Q3",
             warehouseId = whId,
@@ -169,20 +169,20 @@ class InventoryCountSessionServiceTest {
         )
 
     private fun line(
-        id: String,
-        productId: String,
+        id: java.util.UUID,
+        productId: java.util.UUID,
         expected: BigDecimal,
     ) = InventoryCountLine(
         id = id,
         lineNumber = 1,
         productId = productId,
-        productSku = productId,
-        productName = productId,
+        productSku = productId.toString(),
+        productName = productId.toString(),
         expectedQuantity = expected,
     )
 
     private fun product(
-        id: String,
+        id: java.util.UUID,
         sku: String,
     ) = Product(
         id = id,

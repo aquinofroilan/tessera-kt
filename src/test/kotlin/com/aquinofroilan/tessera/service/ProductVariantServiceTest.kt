@@ -20,8 +20,8 @@ class ProductVariantServiceTest {
     private lateinit var productService: ProductService
     private lateinit var service: ProductVariantService
 
-    private val orgId = "org-1"
-    private val productId = "p1"
+    private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")
+    private val productId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000011")
 
     @BeforeEach
     fun setup() {

@@ -1,5 +1,7 @@
 package com.aquinofroilan.tessera.service
 
+import java.util.UUID
+
 import com.aquinofroilan.tessera.dto.CreateProductRequest
 import com.aquinofroilan.tessera.dto.UpdateProductRequest
 import com.aquinofroilan.tessera.exception.BusinessRuleException

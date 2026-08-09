@@ -1,5 +1,7 @@
 package com.aquinofroilan.tessera.controller
 
+import java.util.UUID
+
 import com.aquinofroilan.tessera.annotation.LogLevel
 import com.aquinofroilan.tessera.annotation.Loggable
 import com.aquinofroilan.tessera.dto.CreateProductRequest

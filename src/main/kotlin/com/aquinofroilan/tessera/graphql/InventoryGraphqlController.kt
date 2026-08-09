@@ -1,5 +1,7 @@
 package com.aquinofroilan.tessera.graphql
 
+import java.util.UUID
+
 import com.aquinofroilan.tessera.controller.CurrencyController
 import com.aquinofroilan.tessera.controller.ExchangeRateController
 import com.aquinofroilan.tessera.controller.InventoryReorderRuleController

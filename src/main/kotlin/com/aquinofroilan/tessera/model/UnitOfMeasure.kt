@@ -18,14 +18,14 @@ import java.util.UUID
 data class UnitOfMeasure(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: UUID = UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: UUID,
     val code: String,
     val name: String,
     val description: String? = null,
     @Column(name = "base_uom_id", columnDefinition = "uuid")
-    val baseUomId: String? = null,
+    val baseUomId: UUID? = null,
     @Column(name = "conversion_factor")
     val conversionFactor: BigDecimal = BigDecimal.ONE,
     @Column(name = "is_active")

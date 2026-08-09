@@ -19,11 +19,11 @@ import java.util.UUID
 data class ProductVariant(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: java.util.UUID = java.util.UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: UUID,
     @Column(name = "product_id", columnDefinition = "uuid")
-    val productId: String,
+    val productId: UUID,
     val code: String,
     val name: String,
     @Column(name = "sku_suffix")

@@ -1,5 +1,7 @@
 package com.aquinofroilan.tessera.controller
 
+import java.util.UUID
+
 import com.aquinofroilan.tessera.annotation.LogLevel
 import com.aquinofroilan.tessera.annotation.Loggable
 import com.aquinofroilan.tessera.dto.CountSessionResponse
@@ -34,7 +36,7 @@ class InventoryCountController(
         @Valid @RequestBody request: CreateCountSessionRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: return authContext.unauthorized()
         val s = countService.createSession(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(CountSessionResponse.from(s))
     }
@@ -61,7 +63,7 @@ class InventoryCountController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun get(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(CountSessionResponse.from(countService.getSession(id, orgId)))
@@ -70,8 +72,8 @@ class InventoryCountController(
     @PostMapping("/{id}/lines/{lineId}/record-count")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun recordCount(
-        @PathVariable id: String,
-        @PathVariable lineId: String,
+        @PathVariable id: UUID,
+        @PathVariable lineId: UUID,
         @Valid @RequestBody request: RecordCountRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -81,17 +83,17 @@ class InventoryCountController(
     @PostMapping("/{id}/post")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun post(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(CountSessionResponse.from(countService.postSession(id, orgId, userId)))
     }
 
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun cancel(
-        @PathVariable id: String,
+        @PathVariable id: UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(CountSessionResponse.from(countService.cancelSession(id, orgId)))

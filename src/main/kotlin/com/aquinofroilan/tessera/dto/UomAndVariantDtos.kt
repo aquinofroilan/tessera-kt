@@ -1,5 +1,7 @@
 package com.aquinofroilan.tessera.dto
 
+import java.util.UUID
+
 import com.aquinofroilan.tessera.model.ProductVariant
 import com.aquinofroilan.tessera.model.UnitOfMeasure
 import jakarta.validation.constraints.NotBlank
@@ -14,7 +16,7 @@ data class CreateUomRequest(
     @field:NotBlank(message = "Name is required")
     val name: String,
     val description: String? = null,
-    val baseUomId: String? = null,
+    val baseUomId: UUID? = null,
     @field:Positive(message = "Conversion factor must be positive")
     val conversionFactor: BigDecimal? = null,
 )
@@ -22,18 +24,18 @@ data class CreateUomRequest(
 data class UpdateUomRequest(
     val name: String? = null,
     val description: String? = null,
-    val baseUomId: String? = null,
+    val baseUomId: UUID? = null,
     @field:Positive
     val conversionFactor: BigDecimal? = null,
     val isActive: Boolean? = null,
 )
 
 data class UomResponse(
-    val id: String,
+    val id: UUID,
     val code: String,
     val name: String,
     val description: String?,
-    val baseUomId: String?,
+    val baseUomId: UUID?,
     val conversionFactor: BigDecimal,
     val isActive: Boolean,
 ) {
@@ -68,8 +70,8 @@ data class UpdateProductVariantRequest(
 )
 
 data class ProductVariantResponse(
-    val id: String,
-    val productId: String,
+    val id: UUID,
+    val productId: UUID,
     val code: String,
     val name: String,
     val skuSuffix: String?,
