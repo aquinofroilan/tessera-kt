@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Service
 class InventoryCountSessionService(
@@ -28,8 +29,8 @@ class InventoryCountSessionService(
     @Transactional
     fun createSession(
         request: CreateCountSessionRequest,
-        organizationId: String,
-        userId: String,
+        organizationId: UUID,
+        userId: UUID,
     ): InventoryCountSession {
         val warehouse = warehouseService.getWarehouse(request.warehouseId, organizationId)
         if (!warehouse.isActive) {
@@ -73,8 +74,8 @@ class InventoryCountSessionService(
     }
 
     fun getSession(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): InventoryCountSession {
         val s =
             sessionRepository.findById(id).orElseThrow {
@@ -87,7 +88,7 @@ class InventoryCountSessionService(
     }
 
     fun listSessions(
-        organizationId: String,
+        organizationId: UUID,
         status: InventoryCountStatus?,
     ): List<InventoryCountSession> =
         if (status != null) {
@@ -98,10 +99,10 @@ class InventoryCountSessionService(
 
     @Transactional
     fun recordCount(
-        sessionId: String,
-        lineId: String,
+        sessionId: UUID,
+        lineId: UUID,
         request: RecordCountRequest,
-        organizationId: String,
+        organizationId: UUID,
     ): InventoryCountSession {
         val session = getSession(sessionId, organizationId)
         if (session.status == InventoryCountStatus.POSTED || session.status == InventoryCountStatus.CANCELLED) {
@@ -132,9 +133,9 @@ class InventoryCountSessionService(
 
     @Transactional
     fun postSession(
-        sessionId: String,
-        organizationId: String,
-        userId: String,
+        sessionId: UUID,
+        organizationId: UUID,
+        userId: UUID,
     ): InventoryCountSession {
         val session = getSession(sessionId, organizationId)
         if (session.status == InventoryCountStatus.POSTED) {
@@ -185,8 +186,8 @@ class InventoryCountSessionService(
 
     @Transactional
     fun cancelSession(
-        sessionId: String,
-        organizationId: String,
+        sessionId: UUID,
+        organizationId: UUID,
     ): InventoryCountSession {
         val session = getSession(sessionId, organizationId)
         if (session.status == InventoryCountStatus.POSTED) {

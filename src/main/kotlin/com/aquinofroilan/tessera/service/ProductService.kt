@@ -10,6 +10,7 @@ import com.aquinofroilan.tessera.repository.ProductRepository
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 class ProductService(

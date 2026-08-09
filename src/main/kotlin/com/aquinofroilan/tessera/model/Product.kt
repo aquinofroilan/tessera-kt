@@ -30,7 +30,9 @@ class Product(
     @Column(name = "price_currency", columnDefinition = "char(3)")
     var priceCurrency: String,
     @Column(name = "tax_group_id", columnDefinition = "uuid")
-    var taxGroupId: java.util.UUID? = null,
+    var taxGroupId: UUID? = null,
+    @Column(name = "uom_id", columnDefinition = "uuid")
+    var uomId: UUID? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
     var organizationId: java.util.UUID,
     @Column(name = "is_active")
