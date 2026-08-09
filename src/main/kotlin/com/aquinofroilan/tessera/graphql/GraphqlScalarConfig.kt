@@ -33,10 +33,13 @@ class GraphqlScalarConfig {
 
     @Suppress("DEPRECATION")
     private object JsonCoercing : Coercing<Any, Any> {
+        @Deprecated("Deprecated in GraphQL Java")
         override fun serialize(dataFetcherResult: Any): Any = dataFetcherResult
 
+        @Deprecated("Deprecated in GraphQL Java")
         override fun parseValue(input: Any): Any = input
 
+        @Deprecated("Deprecated in GraphQL Java")
         override fun parseLiteral(input: Any): Any? = parseLiteralValue(input)
 
         private fun parseLiteralValue(value: Any): Any? =

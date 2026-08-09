@@ -305,6 +305,7 @@ class BillService(
         request: RecordPaymentRequest,
         organizationId: java.util.UUID,
         createdBy: java.util.UUID,
+        cashAccountOverride: Account? = null,
     ): BillPayment {
         val bill = getBill(billId, organizationId)
 
@@ -324,7 +325,7 @@ class BillService(
         }
 
         val apAccount = getApAccount(organizationId)
-        val cashAccount = getCashAccount(organizationId)
+        val cashAccount = cashAccountOverride ?: getCashAccount(organizationId)
 
         val paymentId = java.util.UUID.ofEpochMillis(System.currentTimeMillis())
         val baseDecimals = currencyService.getCurrency(getBaseCurrency(organizationId)).decimalPlaces
