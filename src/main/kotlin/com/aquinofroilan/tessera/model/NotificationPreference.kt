@@ -26,15 +26,9 @@ data class NotificationPreference(
     @Column(columnDefinition = "uuid")
     val id: String = UUID.randomUUID().toString(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-<<<<<<< HEAD
     val organizationId: java.util.UUID,
     @Column(name = "user_id", columnDefinition = "uuid")
     val userId: java.util.UUID,
-=======
-    val organizationId: java.util.UUID,
-    @Column(name = "user_id", columnDefinition = "uuid")
-    val userId: java.util.UUID,
->>>>>>> 61cc253 (feat(notifications): per-user delivery preferences (channel x kind) (#251))
     val kind: String,
     @Enumerated(EnumType.STRING)
     val channel: NotificationChannel,

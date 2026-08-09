@@ -81,11 +81,7 @@ class NotificationEmailEnqueuerTest {
             preferenceService.isEnabled(userId, orgId, "test.kind", NotificationChannel.EMAIL),
         ).thenReturn(false)
 
-<<<<<<< HEAD
         enqueuer.enqueue(notification(id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000102")))
-=======
-        enqueuer.enqueue(notification(id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000102")))
->>>>>>> 61cc253 (feat(notifications): per-user delivery preferences (channel x kind) (#251))
 
         verify(outboxRepository, never()).save(any<NotificationEmailOutbox>())
     }
