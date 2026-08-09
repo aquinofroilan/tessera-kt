@@ -22,8 +22,8 @@ class NotificationServiceTest {
     private lateinit var repository: NotificationRepository
     private lateinit var service: NotificationService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
+    private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")
+    private val userId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000002")
 
     @BeforeEach
     fun setup() {
@@ -56,7 +56,11 @@ class NotificationServiceTest {
 
     @Test
     fun `listFor delegates to the org+recipient query ordered by createdAt`() {
-        val rows = listOf(notification("a"), notification("b"))
+        val rows =
+            listOf(
+                notification(java.util.UUID.fromString("00000000-0000-0000-0000-000000000010")),
+                notification(java.util.UUID.fromString("00000000-0000-0000-0000-000000000011")),
+            )
         whenever(
             repository.findByRecipientUserIdAndOrganizationIdOrderByCreatedAtDesc(userId, orgId),
         ).thenReturn(rows)
@@ -75,20 +79,20 @@ class NotificationServiceTest {
 
     @Test
     fun `markRead stamps readAt when the row is unread`() {
-        val row = notification("a")
-        whenever(repository.findById("a")).thenReturn(Optional.of(row))
+        val row = notification(java.util.UUID.fromString("00000000-0000-0000-0000-000000000010"))
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000010"))).thenReturn(Optional.of(row))
 
-        val updated = service.markRead("a", userId, orgId)
+        val updated = service.markRead(java.util.UUID.fromString("00000000-0000-0000-0000-000000000010"), userId, orgId)
 
         assertThat(updated.readAt).isNotNull()
     }
 
     @Test
     fun `markRead is a no-op when the row is already read`() {
-        val already = notification("a").copy(readAt = LocalDateTime.now())
-        whenever(repository.findById("a")).thenReturn(Optional.of(already))
+        val already = notification(java.util.UUID.fromString("00000000-0000-0000-0000-000000000010")).copy(readAt = LocalDateTime.now())
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000010"))).thenReturn(Optional.of(already))
 
-        val result = service.markRead("a", userId, orgId)
+        val result = service.markRead(java.util.UUID.fromString("00000000-0000-0000-0000-000000000010"), userId, orgId)
 
         assertThat(result.readAt).isEqualTo(already.readAt)
         verify(repository, never()).save(any<Notification>())
@@ -96,19 +100,25 @@ class NotificationServiceTest {
 
     @Test
     fun `markRead 404s when the row belongs to a different org`() {
-        val foreign = notification("a").copy(organizationId = "other-org")
-        whenever(repository.findById("a")).thenReturn(Optional.of(foreign))
+        val foreign =
+            notification(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000010"),
+            ).copy(organizationId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000099"))
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000010"))).thenReturn(Optional.of(foreign))
 
-        assertThatThrownBy { service.markRead("a", userId, orgId) }
+        assertThatThrownBy { service.markRead(java.util.UUID.fromString("00000000-0000-0000-0000-000000000010"), userId, orgId) }
             .isInstanceOf(ResourceNotFoundException::class.java)
     }
 
     @Test
     fun `markRead 404s when the row belongs to a different user in the same org`() {
-        val foreign = notification("a").copy(recipientUserId = "user-2")
-        whenever(repository.findById("a")).thenReturn(Optional.of(foreign))
+        val foreign =
+            notification(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000010"),
+            ).copy(recipientUserId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000003"))
+        whenever(repository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000010"))).thenReturn(Optional.of(foreign))
 
-        assertThatThrownBy { service.markRead("a", userId, orgId) }
+        assertThatThrownBy { service.markRead(java.util.UUID.fromString("00000000-0000-0000-0000-000000000010"), userId, orgId) }
             .isInstanceOf(ResourceNotFoundException::class.java)
     }
 
@@ -121,7 +131,7 @@ class NotificationServiceTest {
         assertThat(service.markAllRead(userId, orgId)).isEqualTo(4)
     }
 
-    private fun notification(id: String): Notification =
+    private fun notification(id: java.util.UUID): Notification =
         Notification(
             id = id,
             organizationId = orgId,

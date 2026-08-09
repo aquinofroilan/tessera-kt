@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size
 
 data class CreateNotificationRequest(
     @field:NotBlank(message = "Recipient is required")
-    val recipientUserId: String,
+    val recipientUserId: java.util.UUID,
     val category: NotificationCategory = NotificationCategory.INFO,
     @field:NotBlank(message = "Kind is required")
     @field:Size(max = 100)
@@ -22,8 +22,8 @@ data class CreateNotificationRequest(
 )
 
 data class NotificationResponse(
-    val id: String,
-    val recipientUserId: String,
+    val id: java.util.UUID,
+    val recipientUserId: java.util.UUID,
     val category: NotificationCategory,
     val kind: String,
     val title: String,

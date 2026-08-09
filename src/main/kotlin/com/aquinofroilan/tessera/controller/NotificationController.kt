@@ -55,7 +55,7 @@ class NotificationController(
     @PostMapping("/{id}/read")
     @PreAuthorize("isAuthenticated()")
     fun markRead(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: return authContext.unauthorized()

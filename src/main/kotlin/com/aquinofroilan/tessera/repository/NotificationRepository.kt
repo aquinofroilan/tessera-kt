@@ -9,15 +9,15 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 @Repository
-interface NotificationRepository : JpaRepository<Notification, String> {
+interface NotificationRepository : JpaRepository<Notification, java.util.UUID> {
     fun findByRecipientUserIdAndOrganizationIdOrderByCreatedAtDesc(
-        recipientUserId: String,
-        organizationId: String,
+        recipientUserId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): List<Notification>
 
     fun countByRecipientUserIdAndOrganizationIdAndReadAtIsNull(
-        recipientUserId: String,
-        organizationId: String,
+        recipientUserId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Long
 
     @Modifying
@@ -31,8 +31,8 @@ interface NotificationRepository : JpaRepository<Notification, String> {
         """,
     )
     fun markAllReadFor(
-        @Param("recipientUserId") recipientUserId: String,
-        @Param("organizationId") organizationId: String,
+        @Param("recipientUserId") recipientUserId: java.util.UUID,
+        @Param("organizationId") organizationId: java.util.UUID,
         @Param("readAt") readAt: LocalDateTime,
     ): Int
 }

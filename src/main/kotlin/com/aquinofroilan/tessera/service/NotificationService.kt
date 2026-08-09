@@ -21,7 +21,7 @@ class NotificationService(
     @Transactional
     fun publish(
         request: CreateNotificationRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): Notification =
         notificationRepository.save(
             Notification(
@@ -36,8 +36,8 @@ class NotificationService(
         )
 
     fun listFor(
-        recipientUserId: String,
-        organizationId: String,
+        recipientUserId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): List<Notification> =
         notificationRepository.findByRecipientUserIdAndOrganizationIdOrderByCreatedAtDesc(
             recipientUserId,
@@ -45,8 +45,8 @@ class NotificationService(
         )
 
     fun unreadCountFor(
-        recipientUserId: String,
-        organizationId: String,
+        recipientUserId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Long =
         notificationRepository.countByRecipientUserIdAndOrganizationIdAndReadAtIsNull(
             recipientUserId,
@@ -55,9 +55,9 @@ class NotificationService(
 
     @Transactional
     fun markRead(
-        id: String,
-        recipientUserId: String,
-        organizationId: String,
+        id: java.util.UUID,
+        recipientUserId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Notification {
         val notification =
             notificationRepository.findById(id).orElseThrow {
@@ -74,8 +74,8 @@ class NotificationService(
 
     @Transactional
     fun markAllRead(
-        recipientUserId: String,
-        organizationId: String,
+        recipientUserId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): Int =
         notificationRepository.markAllReadFor(
             recipientUserId,

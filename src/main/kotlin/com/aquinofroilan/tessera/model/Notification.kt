@@ -26,11 +26,11 @@ enum class NotificationCategory {
 data class Notification(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: java.util.UUID = java.util.UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     @Column(name = "recipient_user_id", columnDefinition = "uuid")
-    val recipientUserId: String,
+    val recipientUserId: java.util.UUID,
     @Enumerated(EnumType.STRING)
     val category: NotificationCategory,
     val kind: String,
