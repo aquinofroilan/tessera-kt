@@ -195,7 +195,7 @@ class WorkOrderExecutionServiceTest {
                     ),
                 ),
             operations = emptyList(),
-            createdBy = userId,
+            createdBy = userId.toString(),
         )
 
     private fun component(
