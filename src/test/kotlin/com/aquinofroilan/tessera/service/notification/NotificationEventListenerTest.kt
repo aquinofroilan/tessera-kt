@@ -49,7 +49,7 @@ class NotificationEventListenerTest {
         assertThat(captured.kind).isEqualTo(NotificationKinds.LEAVE_REQUEST_APPROVED)
         assertThat(captured.title).isEqualTo("Your leave request was approved")
         assertThat(captured.body).contains("2026-08-01", "2026-08-03", "3 days")
-        assertThat(captured.link).isEqualTo("/hr/leave-requests/lr-1")
+        assertThat(captured.link).isEqualTo("/hr/leave-requests/00000000-0000-0000-0000-000000000301")
     }
 
     @Test
@@ -100,7 +100,7 @@ class NotificationEventListenerTest {
         val captured = captureRequest()
         assertThat(captured.kind).isEqualTo(NotificationKinds.PURCHASE_REQUEST_APPROVED)
         assertThat(captured.title).isEqualTo("Purchase request PR-000123 approved")
-        assertThat(captured.link).isEqualTo("/procurement/purchase-requests/pr-1")
+        assertThat(captured.link).isEqualTo("/procurement/purchase-requests/00000000-0000-0000-0000-000000000104")
     }
 
     @Test
