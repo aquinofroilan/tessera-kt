@@ -76,6 +76,8 @@ object Permissions {
     const val PROJECT_READ = "projects:read"
     const val PROJECT_WRITE = "projects:write"
     const val PROJECT_APPROVE = "projects:approve"
+    const val CRM_READ = "crm:read"
+    const val CRM_WRITE = "crm:write"
 
     val ALL_PERMISSIONS =
         listOf(
@@ -136,5 +138,7 @@ object Permissions {
             PROJECT_READ,
             PROJECT_WRITE,
             PROJECT_APPROVE,
+            CRM_READ,
+            CRM_WRITE,
         )
 }
