@@ -69,6 +69,8 @@ object Permissions {
     const val HR_WRITE = "hr:write"
     const val HR_APPROVE = "hr:approve"
 
+    const val ATTACHMENT_READ = "attachment:read"
+    const val ATTACHMENT_WRITE = "attachment:write"
     const val HR_RECRUITMENT_READ = "hr-recruitment:read"
     const val HR_RECRUITMENT_WRITE = "hr-recruitment:write"
     const val HR_RECRUITMENT_APPROVE = "hr-recruitment:approve"
@@ -135,6 +137,8 @@ object Permissions {
             HR_READ,
             HR_WRITE,
             HR_APPROVE,
+            ATTACHMENT_READ,
+            ATTACHMENT_WRITE,
             HR_RECRUITMENT_READ,
             HR_RECRUITMENT_WRITE,
             HR_RECRUITMENT_APPROVE,
