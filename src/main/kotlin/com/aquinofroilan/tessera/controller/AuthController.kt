@@ -2,6 +2,7 @@ package com.aquinofroilan.tessera.controller
 
 import com.aquinofroilan.tessera.annotation.LogLevel
 import com.aquinofroilan.tessera.annotation.Loggable
+import com.aquinofroilan.tessera.dto.CallerPermissionsResponse
 import com.aquinofroilan.tessera.dto.ChangePasswordRequest
 import com.aquinofroilan.tessera.dto.ConsumeLoginLinkRequest
 import com.aquinofroilan.tessera.dto.ForgotPasswordRequest
@@ -14,6 +15,7 @@ import com.aquinofroilan.tessera.dto.ResetPasswordRequest
 import com.aquinofroilan.tessera.dto.SwitchOrganizationRequest
 import com.aquinofroilan.tessera.exception.AuthenticationException
 import com.aquinofroilan.tessera.model.User
+import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.security.SessionContext
 import com.aquinofroilan.tessera.service.AuthService
 import com.aquinofroilan.tessera.service.LoginLinkService
@@ -39,6 +41,7 @@ import java.util.concurrent.TimeUnit
 class AuthController(
     private val authService: AuthService,
     private val loginLinkService: LoginLinkService,
+    private val authContext: AuthenticationContext,
 ) {
     private val log = LoggerFactory.getLogger(AuthController::class.java)
 
@@ -213,6 +216,20 @@ class AuthController(
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(mapOf("error" to (e.message ?: "Invalid or expired login link")))
         }
+
+    @GetMapping("/me/permissions")
+    fun myPermissions(): ResponseEntity<Any> {
+        val userId = authContext.userId() ?: return authContext.unauthorized()
+        val orgId = authContext.organizationId()
+        return ResponseEntity.ok(
+            CallerPermissionsResponse(
+                userId = userId,
+                organizationId = orgId,
+                roles = authContext.roles(),
+                permissions = authContext.permissions(),
+            ),
+        )
+    }
 
     @GetMapping("/organizations")
     fun listOrganizations(): ResponseEntity<Any> {
