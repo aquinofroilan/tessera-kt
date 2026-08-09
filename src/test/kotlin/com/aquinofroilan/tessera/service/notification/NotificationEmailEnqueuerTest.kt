@@ -3,10 +3,12 @@ package com.aquinofroilan.tessera.service.notification
 import com.aquinofroilan.tessera.config.NotificationEmailProperties
 import com.aquinofroilan.tessera.model.Notification
 import com.aquinofroilan.tessera.model.NotificationCategory
+import com.aquinofroilan.tessera.model.NotificationChannel
 import com.aquinofroilan.tessera.model.NotificationEmailOutbox
 import com.aquinofroilan.tessera.model.User
 import com.aquinofroilan.tessera.repository.NotificationEmailOutboxRepository
 import com.aquinofroilan.tessera.repository.UserRepository
+import com.aquinofroilan.tessera.service.NotificationPreferenceService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -21,6 +23,7 @@ import java.util.Optional
 class NotificationEmailEnqueuerTest {
     private lateinit var outboxRepository: NotificationEmailOutboxRepository
     private lateinit var userRepository: UserRepository
+    private lateinit var preferenceService: NotificationPreferenceService
     private lateinit var enqueuer: NotificationEmailEnqueuer
 
     private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000100")
@@ -30,8 +33,18 @@ class NotificationEmailEnqueuerTest {
     fun setup() {
         outboxRepository = mock(NotificationEmailOutboxRepository::class.java)
         userRepository = mock(UserRepository::class.java)
+        preferenceService = mock(NotificationPreferenceService::class.java)
         whenever(outboxRepository.save(any<NotificationEmailOutbox>())).thenAnswer { it.arguments[0] }
-        enqueuer = NotificationEmailEnqueuer(outboxRepository, userRepository, NotificationEmailProperties())
+        whenever(
+            preferenceService.isEnabled(any(), any(), any(), any<NotificationChannel>()),
+        ).thenReturn(true)
+        enqueuer =
+            NotificationEmailEnqueuer(
+                outboxRepository,
+                userRepository,
+                preferenceService,
+                NotificationEmailProperties(),
+            )
     }
 
     @Test
@@ -52,10 +65,23 @@ class NotificationEmailEnqueuerTest {
             NotificationEmailEnqueuer(
                 outboxRepository,
                 userRepository,
+                preferenceService,
                 NotificationEmailProperties(enabled = false),
             )
 
         disabled.enqueue(notification(id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")))
+
+        verify(outboxRepository, never()).save(any<NotificationEmailOutbox>())
+    }
+
+    @Test
+    fun `enqueue does nothing when the recipient opted out of this kind on EMAIL`() {
+        whenever(userRepository.findById(userId)).thenReturn(Optional.of(user(email = "alice@example.com")))
+        whenever(
+            preferenceService.isEnabled(userId, orgId, "test.kind", NotificationChannel.EMAIL),
+        ).thenReturn(false)
+
+        enqueuer.enqueue(notification(id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000102")))
 
         verify(outboxRepository, never()).save(any<NotificationEmailOutbox>())
     }
