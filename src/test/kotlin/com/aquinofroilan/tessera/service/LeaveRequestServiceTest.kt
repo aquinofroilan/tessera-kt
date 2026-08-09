@@ -1,6 +1,7 @@
 package com.aquinofroilan.tessera.service
 
 import com.aquinofroilan.tessera.dto.CreateLeaveRequestRequest
+import com.aquinofroilan.tessera.event.DomainEventPublisher
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.model.Employee
 import com.aquinofroilan.tessera.model.EmploymentStatus
@@ -25,6 +26,7 @@ class LeaveRequestServiceTest {
     private lateinit var repository: LeaveRequestRepository
     private lateinit var employeeService: EmployeeService
     private lateinit var leaveTypeService: LeaveTypeService
+    private lateinit var eventPublisher: DomainEventPublisher
     private lateinit var service: LeaveRequestService
 
     private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
@@ -36,13 +38,14 @@ class LeaveRequestServiceTest {
         repository = mock(LeaveRequestRepository::class.java)
         employeeService = mock(EmployeeService::class.java)
         leaveTypeService = mock(LeaveTypeService::class.java)
+        eventPublisher = mock(DomainEventPublisher::class.java)
         whenever(repository.save(any<LeaveRequest>())).thenAnswer { it.arguments[0] }
         whenever(employeeService.getEmployee(empId, orgId)).thenReturn(employee())
         whenever(leaveTypeService.getLeaveType(typeId, orgId)).thenReturn(leaveType(20))
         whenever(
             repository.findByOrganizationIdAndEmployeeIdAndLeaveTypeIdAndStatus(any(), any(), any(), any()),
         ).thenReturn(emptyList())
-        service = LeaveRequestService(repository, employeeService, leaveTypeService)
+        service = LeaveRequestService(repository, employeeService, leaveTypeService, eventPublisher)
     }
 
     private fun employee(status: EmploymentStatus = EmploymentStatus.ACTIVE) =

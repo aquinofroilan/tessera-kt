@@ -5,6 +5,7 @@ import com.aquinofroilan.tessera.dto.ConvertPurchaseRequestRequest
 import com.aquinofroilan.tessera.dto.CreatePurchaseOrderRequest
 import com.aquinofroilan.tessera.dto.CreatePurchaseRequestLineRequest
 import com.aquinofroilan.tessera.dto.CreatePurchaseRequestRequest
+import com.aquinofroilan.tessera.event.DomainEventPublisher
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import com.aquinofroilan.tessera.model.Product
@@ -35,6 +36,7 @@ class PurchaseRequestServiceTest {
     private lateinit var vendorService: VendorService
     private lateinit var warehouseService: WarehouseService
     private lateinit var purchaseOrderService: PurchaseOrderService
+    private lateinit var eventPublisher: DomainEventPublisher
     private lateinit var service: PurchaseRequestService
 
     private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
@@ -47,6 +49,7 @@ class PurchaseRequestServiceTest {
         vendorService = mock(VendorService::class.java)
         warehouseService = mock(WarehouseService::class.java)
         purchaseOrderService = mock(PurchaseOrderService::class.java)
+        eventPublisher = mock(DomainEventPublisher::class.java)
         whenever(repository.countByOrganizationId(orgId)).thenReturn(0L)
         whenever(repository.save(any<PurchaseRequest>())).thenAnswer { it.arguments[0] }
         whenever(productService.getProduct(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89"), orgId)).thenReturn(
@@ -71,7 +74,15 @@ class PurchaseRequestServiceTest {
                     organizationId = orgId,
                 ),
             )
-        service = PurchaseRequestService(repository, productService, vendorService, warehouseService, purchaseOrderService)
+        service =
+            PurchaseRequestService(
+                repository,
+                productService,
+                vendorService,
+                warehouseService,
+                purchaseOrderService,
+                eventPublisher,
+            )
     }
 
     private fun lineReq(
