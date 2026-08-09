@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 data class ManualMatchRequest(
     @field:NotBlank(message = "Journal entry ID is required")
-    val journalEntryId: String,
+    val journalEntryId: java.util.UUID,
 )
 
 data class AutoMatchRequest(
@@ -14,22 +14,22 @@ data class AutoMatchRequest(
 )
 
 data class MatchedLineResponse(
-    val statementLineId: String,
-    val journalEntryId: String,
+    val statementLineId: java.util.UUID,
+    val journalEntryId: java.util.UUID,
     val amount: BigDecimal,
     val driftDays: Int,
 )
 
 data class AutoMatchResponse(
-    val statementId: String,
+    val statementId: java.util.UUID,
     val matched: List<MatchedLineResponse>,
-    val unmatchedLineIds: List<String>,
-    val ambiguousLineIds: List<String>,
+    val unmatchedLineIds: List<java.util.UUID>,
+    val ambiguousLineIds: List<java.util.UUID>,
 )
 
 data class ReconciliationSummaryResponse(
-    val bankAccountId: String,
-    val glAccountId: String,
+    val bankAccountId: java.util.UUID,
+    val glAccountId: java.util.UUID,
     val bankSideBalance: BigDecimal,
     val glSideBalance: BigDecimal,
     val variance: BigDecimal,

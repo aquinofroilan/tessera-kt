@@ -25,8 +25,8 @@ class CashFlowForecastServiceTest {
     private lateinit var billRepository: BillRepository
     private lateinit var service: CashFlowForecastService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
+    private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000100")
+    private val userId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000101")
     private val asOf = LocalDate.of(2026, 6, 1)
     private val horizon = LocalDate.of(2026, 7, 31)
 
@@ -114,7 +114,7 @@ class CashFlowForecastServiceTest {
             listOf(bankAccount("MAIN", BigDecimal("0"))),
         )
         // Invoice fully paid -> remaining=0 -> skipped.
-        val fullyPaid = invoice(LocalDate.of(2026, 6, 15), BigDecimal("500")).copy(amountReceived = BigDecimal("500"))
+        val fullyPaid = invoice(LocalDate.of(2026, 6, 15), BigDecimal("500")).apply { this.amountReceived = BigDecimal("500") }
         whenever(invoiceRepository.findByOrganizationIdAndStatusIn(any(), any())).thenReturn(listOf(fullyPaid))
         whenever(billRepository.findByOrganizationIdAndStatusIn(any(), any())).thenReturn(emptyList())
 
@@ -130,7 +130,7 @@ class CashFlowForecastServiceTest {
         code = code,
         name = code,
         currency = "USD",
-        glAccountId = "gl-$code",
+        glAccountId = java.util.UUID.randomUUID(),
         currentBalance = balance,
         createdBy = userId,
     )
@@ -140,7 +140,7 @@ class CashFlowForecastServiceTest {
         amount: BigDecimal,
     ) = Invoice(
         invoiceNumber = "INV-1",
-        customerId = "c-1",
+        customerId = java.util.UUID.randomUUID(),
         customerName = "Customer 1",
         date = dueDate.minusDays(30),
         dueDate = dueDate,
@@ -161,7 +161,7 @@ class CashFlowForecastServiceTest {
         amount: BigDecimal,
     ) = Bill(
         billNumber = "BILL-1",
-        vendorId = "v-1",
+        vendorId = java.util.UUID.randomUUID(),
         vendorName = "Vendor 1",
         date = dueDate.minusDays(30),
         dueDate = dueDate,

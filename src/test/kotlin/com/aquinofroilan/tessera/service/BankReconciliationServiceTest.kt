@@ -26,10 +26,10 @@ class BankReconciliationServiceTest {
     private lateinit var journalEntryRepository: JournalEntryRepository
     private lateinit var service: BankReconciliationService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
-    private val bankId = "bank-1"
-    private val glAccountId = "acc-1000"
+    private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000100")
+    private val userId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000101")
+    private val bankId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000102")
+    private val glAccountId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000103")
 
     @BeforeEach
     fun setup() {
@@ -46,22 +46,35 @@ class BankReconciliationServiceTest {
         val stmt =
             statement(
                 listOf(
-                    line("l1", BigDecimal("100"), LocalDate.of(2026, 6, 5)),
+                    line(java.util.UUID.fromString("00000000-0000-0000-0000-000000000104"), BigDecimal("100"), LocalDate.of(2026, 6, 5)),
                 ),
             )
-        whenever(statementRepository.findById("s1")).thenReturn(Optional.of(stmt))
+        whenever(
+            statementRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000108")),
+        ).thenReturn(Optional.of(stmt))
         whenever(
             journalEntryRepository.findByOrganizationIdAndStatusAndDateBetween(any(), any(), any(), any()),
         ).thenReturn(
             listOf(
-                journalEntry("je1", LocalDate.of(2026, 6, 4), debit = BigDecimal("100"), credit = BigDecimal.ZERO),
+                journalEntry(
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000106"),
+                    LocalDate.of(2026, 6, 4),
+                    debit = BigDecimal("100"),
+                    credit = BigDecimal.ZERO,
+                ),
             ),
         )
 
-        val result = service.autoMatch("s1", orgId, userId, maxDateDriftDays = 5)
+        val result =
+            service.autoMatch(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000108"),
+                orgId,
+                userId,
+                maxDateDriftDays = 5,
+            )
 
         assertThat(result.matched).hasSize(1)
-        assertThat(result.matched[0].journalEntryId).isEqualTo("je1")
+        assertThat(result.matched[0].journalEntryId).isEqualTo(java.util.UUID.fromString("00000000-0000-0000-0000-000000000106"))
         assertThat(result.unmatchedLineIds).isEmpty()
         assertThat(result.ambiguousLineIds).isEmpty()
     }
@@ -71,23 +84,41 @@ class BankReconciliationServiceTest {
         val stmt =
             statement(
                 listOf(
-                    line("l1", BigDecimal("100"), LocalDate.of(2026, 6, 5)),
+                    line(java.util.UUID.fromString("00000000-0000-0000-0000-000000000104"), BigDecimal("100"), LocalDate.of(2026, 6, 5)),
                 ),
             )
-        whenever(statementRepository.findById("s1")).thenReturn(Optional.of(stmt))
+        whenever(
+            statementRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000108")),
+        ).thenReturn(Optional.of(stmt))
         whenever(
             journalEntryRepository.findByOrganizationIdAndStatusAndDateBetween(any(), any(), any(), any()),
         ).thenReturn(
             listOf(
-                journalEntry("je1", LocalDate.of(2026, 6, 4), debit = BigDecimal("100"), credit = BigDecimal.ZERO),
-                journalEntry("je2", LocalDate.of(2026, 6, 6), debit = BigDecimal("100"), credit = BigDecimal.ZERO),
+                journalEntry(
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000106"),
+                    LocalDate.of(2026, 6, 4),
+                    debit = BigDecimal("100"),
+                    credit = BigDecimal.ZERO,
+                ),
+                journalEntry(
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000107"),
+                    LocalDate.of(2026, 6, 6),
+                    debit = BigDecimal("100"),
+                    credit = BigDecimal.ZERO,
+                ),
             ),
         )
 
-        val result = service.autoMatch("s1", orgId, userId, maxDateDriftDays = 5)
+        val result =
+            service.autoMatch(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000108"),
+                orgId,
+                userId,
+                maxDateDriftDays = 5,
+            )
 
         assertThat(result.matched).isEmpty()
-        assertThat(result.ambiguousLineIds).containsExactly("l1")
+        assertThat(result.ambiguousLineIds).containsExactly(java.util.UUID.fromString("00000000-0000-0000-0000-000000000104"))
     }
 
     @Test
@@ -95,21 +126,34 @@ class BankReconciliationServiceTest {
         val stmt =
             statement(
                 listOf(
-                    line("l1", BigDecimal("100"), LocalDate.of(2026, 6, 5)),
+                    line(java.util.UUID.fromString("00000000-0000-0000-0000-000000000104"), BigDecimal("100"), LocalDate.of(2026, 6, 5)),
                 ),
             )
-        whenever(statementRepository.findById("s1")).thenReturn(Optional.of(stmt))
+        whenever(
+            statementRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000108")),
+        ).thenReturn(Optional.of(stmt))
         whenever(
             journalEntryRepository.findByOrganizationIdAndStatusAndDateBetween(any(), any(), any(), any()),
         ).thenReturn(
             listOf(
-                journalEntry("je1", LocalDate.of(2026, 6, 4), debit = BigDecimal("99"), credit = BigDecimal.ZERO),
+                journalEntry(
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000106"),
+                    LocalDate.of(2026, 6, 4),
+                    debit = BigDecimal("99"),
+                    credit = BigDecimal.ZERO,
+                ),
             ),
         )
 
-        val result = service.autoMatch("s1", orgId, userId, maxDateDriftDays = 5)
+        val result =
+            service.autoMatch(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000108"),
+                orgId,
+                userId,
+                maxDateDriftDays = 5,
+            )
 
-        assertThat(result.unmatchedLineIds).containsExactly("l1")
+        assertThat(result.unmatchedLineIds).containsExactly(java.util.UUID.fromString("00000000-0000-0000-0000-000000000104"))
     }
 
     @Test
@@ -117,15 +161,31 @@ class BankReconciliationServiceTest {
         val stmt =
             statement(
                 listOf(
-                    line("l1", BigDecimal("100"), LocalDate.of(2026, 6, 5)),
+                    line(java.util.UUID.fromString("00000000-0000-0000-0000-000000000104"), BigDecimal("100"), LocalDate.of(2026, 6, 5)),
                 ),
             )
-        whenever(statementRepository.findById("s1")).thenReturn(Optional.of(stmt))
-        whenever(journalEntryRepository.findById("je1")).thenReturn(
-            Optional.of(journalEntry("je1", LocalDate.of(2026, 6, 5), debit = BigDecimal("50"), credit = BigDecimal.ZERO)),
+        whenever(
+            statementRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000108")),
+        ).thenReturn(Optional.of(stmt))
+        whenever(journalEntryRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000106"))).thenReturn(
+            Optional.of(
+                journalEntry(
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000106"),
+                    LocalDate.of(2026, 6, 5),
+                    debit = BigDecimal("50"),
+                    credit = BigDecimal.ZERO,
+                ),
+            ),
         )
-        assertThatThrownBy { service.manualMatch("s1", "l1", "je1", orgId, userId) }
-            .isInstanceOf(BusinessRuleException::class.java)
+        assertThatThrownBy {
+            service.manualMatch(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000108"),
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000104"),
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000106"),
+                orgId,
+                userId,
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
             .hasMessageContaining("Amount mismatch")
     }
 
@@ -134,14 +194,16 @@ class BankReconciliationServiceTest {
         val stmt =
             statement(
                 listOf(
-                    line("l1", BigDecimal("100"), LocalDate.of(2026, 6, 5)),
+                    line(java.util.UUID.fromString("00000000-0000-0000-0000-000000000104"), BigDecimal("100"), LocalDate.of(2026, 6, 5)),
                 ),
             )
-        whenever(statementRepository.findById("s1")).thenReturn(Optional.of(stmt))
-        whenever(journalEntryRepository.findById("je1")).thenReturn(
+        whenever(
+            statementRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000108")),
+        ).thenReturn(Optional.of(stmt))
+        whenever(journalEntryRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000106"))).thenReturn(
             Optional.of(
                 journalEntry(
-                    "je1",
+                    java.util.UUID.fromString("00000000-0000-0000-0000-000000000106"),
                     LocalDate.of(2026, 6, 5),
                     debit = BigDecimal("100"),
                     credit = BigDecimal.ZERO,
@@ -149,22 +211,36 @@ class BankReconciliationServiceTest {
                 ),
             ),
         )
-        assertThatThrownBy { service.manualMatch("s1", "l1", "je1", orgId, userId) }
-            .isInstanceOf(BusinessRuleException::class.java)
+        assertThatThrownBy {
+            service.manualMatch(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000108"),
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000104"),
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000106"),
+                orgId,
+                userId,
+            )
+        }.isInstanceOf(BusinessRuleException::class.java)
     }
 
     @Test
     fun `unmatch clears reconciliation fields`() {
         val matched =
-            line("l1", BigDecimal("100"), LocalDate.of(2026, 6, 5)).copy(
+            line(java.util.UUID.fromString("00000000-0000-0000-0000-000000000104"), BigDecimal("100"), LocalDate.of(2026, 6, 5)).copy(
                 reconciled = true,
-                reconciledJournalEntryId = "je1",
+                reconciledJournalEntryId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000106"),
             )
         val stmt = statement(listOf(matched))
-        whenever(statementRepository.findById("s1")).thenReturn(Optional.of(stmt))
+        whenever(
+            statementRepository.findById(java.util.UUID.fromString("00000000-0000-0000-0000-000000000108")),
+        ).thenReturn(Optional.of(stmt))
 
-        val updated = service.unmatch("s1", "l1", orgId)
-        val cleared = updated.lines.first { it.id == "l1" }
+        val updated =
+            service.unmatch(
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000108"),
+                java.util.UUID.fromString("00000000-0000-0000-0000-000000000104"),
+                orgId,
+            )
+        val cleared = updated.lines.first { it.id == java.util.UUID.fromString("00000000-0000-0000-0000-000000000104") }
         assertThat(cleared.reconciled).isFalse
         assertThat(cleared.reconciledJournalEntryId).isNull()
     }
@@ -183,7 +259,7 @@ class BankReconciliationServiceTest {
 
     private fun statement(lines: List<BankStatementLine>) =
         BankStatement(
-            id = "s1",
+            id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000108"),
             organizationId = orgId,
             bankAccountId = bankId,
             statementDate = LocalDate.of(2026, 6, 30),
@@ -195,7 +271,7 @@ class BankReconciliationServiceTest {
         )
 
     private fun line(
-        id: String,
+        id: java.util.UUID,
         amount: BigDecimal,
         date: LocalDate,
     ) = BankStatementLine(
@@ -207,7 +283,7 @@ class BankReconciliationServiceTest {
     )
 
     private fun journalEntry(
-        id: String,
+        id: java.util.UUID,
         date: LocalDate,
         debit: BigDecimal,
         credit: BigDecimal,
@@ -229,7 +305,7 @@ class BankReconciliationServiceTest {
                     credit = credit,
                 ),
                 JournalEntryLine(
-                    accountId = "acc-other",
+                    accountId = java.util.UUID.randomUUID(),
                     accountCode = "4000",
                     accountName = "Revenue",
                     debit = credit,

@@ -33,7 +33,7 @@ class PaymentRunController(
         @Valid @RequestBody request: CreatePaymentRunRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: return authContext.unauthorized()
         val r = paymentRunService.createPaymentRun(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(PaymentRunResponse.from(r))
     }
@@ -60,7 +60,7 @@ class PaymentRunController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('bank:read')")
     fun get(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(PaymentRunResponse.from(paymentRunService.getPaymentRun(id, orgId)))
@@ -69,30 +69,30 @@ class PaymentRunController(
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasAuthority('bank:approve')")
     fun approve(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(PaymentRunResponse.from(paymentRunService.approvePaymentRun(id, orgId, userId)))
     }
 
     @PostMapping("/{id}/execute")
     @PreAuthorize("hasAuthority('bank:approve')")
     fun execute(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(PaymentRunResponse.from(paymentRunService.executePaymentRun(id, orgId, userId)))
     }
 
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('bank:write')")
     fun cancel(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(PaymentRunResponse.from(paymentRunService.cancelPaymentRun(id, orgId, userId)))
     }
 }

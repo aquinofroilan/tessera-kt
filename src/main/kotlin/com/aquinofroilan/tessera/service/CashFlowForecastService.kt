@@ -34,7 +34,7 @@ class CashFlowForecastService(
     private val billRepository: BillRepository,
 ) {
     fun forecast(
-        organizationId: String,
+        organizationId: java.util.UUID,
         asOfDate: LocalDate?,
         horizonEnd: LocalDate?,
     ): CashFlowForecastResponse {

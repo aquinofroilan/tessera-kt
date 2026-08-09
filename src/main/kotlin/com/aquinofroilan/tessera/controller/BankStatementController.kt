@@ -31,7 +31,7 @@ class BankStatementController(
         @Valid @RequestBody request: ImportStatementRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: return authContext.unauthorized()
         val s = statementService.importStatement(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(BankStatementResponse.from(s))
     }
@@ -39,7 +39,7 @@ class BankStatementController(
     @GetMapping
     @PreAuthorize("hasAuthority('bank:read')")
     fun list(
-        @RequestParam(required = false) bankAccountId: String?,
+        @RequestParam(required = false) bankAccountId: java.util.UUID?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(statementService.listStatements(orgId, bankAccountId).map { BankStatementResponse.from(it) })
@@ -48,7 +48,7 @@ class BankStatementController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('bank:read')")
     fun get(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(BankStatementResponse.from(statementService.getStatement(id, orgId)))

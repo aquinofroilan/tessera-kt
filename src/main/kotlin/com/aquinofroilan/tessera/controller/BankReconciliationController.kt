@@ -30,11 +30,11 @@ class BankReconciliationController(
     @PostMapping("/statements/{statementId}/auto-match")
     @PreAuthorize("hasAuthority('bank:approve')")
     fun autoMatch(
-        @PathVariable statementId: String,
+        @PathVariable statementId: java.util.UUID,
         @Valid @RequestBody(required = false) request: AutoMatchRequest?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: return authContext.unauthorized()
         val drift = request?.maxDateDriftDays ?: 5
         return ResponseEntity.ok(reconciliationService.autoMatch(statementId, orgId, userId, drift))
     }
@@ -42,12 +42,12 @@ class BankReconciliationController(
     @PostMapping("/statements/{statementId}/lines/{lineId}/match")
     @PreAuthorize("hasAuthority('bank:approve')")
     fun manualMatch(
-        @PathVariable statementId: String,
-        @PathVariable lineId: String,
+        @PathVariable statementId: java.util.UUID,
+        @PathVariable lineId: java.util.UUID,
         @Valid @RequestBody request: ManualMatchRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: return authContext.unauthorized()
         val updated = reconciliationService.manualMatch(statementId, lineId, request.journalEntryId, orgId, userId)
         return ResponseEntity.ok(BankStatementResponse.from(updated))
     }
@@ -55,8 +55,8 @@ class BankReconciliationController(
     @PostMapping("/statements/{statementId}/lines/{lineId}/unmatch")
     @PreAuthorize("hasAuthority('bank:approve')")
     fun unmatch(
-        @PathVariable statementId: String,
-        @PathVariable lineId: String,
+        @PathVariable statementId: java.util.UUID,
+        @PathVariable lineId: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val updated = reconciliationService.unmatch(statementId, lineId, orgId)
@@ -66,7 +66,7 @@ class BankReconciliationController(
     @GetMapping("/bank-accounts/{bankAccountId}/summary")
     @PreAuthorize("hasAuthority('bank:read')")
     fun summary(
-        @PathVariable bankAccountId: String,
+        @PathVariable bankAccountId: java.util.UUID,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) asOf: LocalDate?,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()

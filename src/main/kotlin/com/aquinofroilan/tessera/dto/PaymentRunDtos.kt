@@ -14,24 +14,24 @@ data class CreatePaymentRunRequest(
     @field:NotBlank(message = "Code is required")
     val code: String,
     @field:NotBlank(message = "Bank account ID is required")
-    val bankAccountId: String,
+    val bankAccountId: java.util.UUID,
     @field:NotNull(message = "Run date is required")
     val runDate: LocalDate?,
     @field:NotEmpty(message = "At least one bill ID is required")
-    val billIds: List<String>,
+    val billIds: List<java.util.UUID>,
     val notes: String? = null,
 )
 
 data class PaymentRunLineResponse(
-    val id: String,
+    val id: java.util.UUID,
     val lineNumber: Int,
-    val billId: String,
-    val vendorId: String,
+    val billId: java.util.UUID,
+    val vendorId: java.util.UUID,
     val vendorName: String,
     val billNumber: String,
     val amount: BigDecimal,
     val status: PaymentRunLineStatus,
-    val billPaymentId: String?,
+    val billPaymentId: java.util.UUID?,
     val notes: String?,
 ) {
     companion object {
@@ -52,9 +52,9 @@ data class PaymentRunLineResponse(
 }
 
 data class PaymentRunResponse(
-    val id: String,
+    val id: java.util.UUID,
     val code: String,
-    val bankAccountId: String,
+    val bankAccountId: java.util.UUID,
     val runDate: LocalDate,
     val status: PaymentRunStatus,
     val totalAmount: BigDecimal,

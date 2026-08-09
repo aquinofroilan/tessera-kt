@@ -22,7 +22,7 @@ data class ImportStatementLineRequest(
 
 data class ImportStatementRequest(
     @field:NotBlank(message = "Bank account ID is required")
-    val bankAccountId: String,
+    val bankAccountId: java.util.UUID,
     @field:NotNull(message = "Statement date is required")
     val statementDate: LocalDate?,
     @field:NotNull(message = "Opening balance is required")
@@ -37,14 +37,14 @@ data class ImportStatementRequest(
 )
 
 data class BankStatementLineResponse(
-    val id: String,
+    val id: java.util.UUID,
     val lineNumber: Int,
     val postedDate: LocalDate,
     val description: String,
     val reference: String?,
     val amount: BigDecimal,
     val reconciled: Boolean,
-    val reconciledJournalEntryId: String?,
+    val reconciledJournalEntryId: java.util.UUID?,
     val reconciledAt: LocalDateTime?,
 ) {
     companion object {
@@ -64,8 +64,8 @@ data class BankStatementLineResponse(
 }
 
 data class BankStatementResponse(
-    val id: String,
-    val bankAccountId: String,
+    val id: java.util.UUID,
+    val bankAccountId: java.util.UUID,
     val statementDate: LocalDate,
     val openingBalance: BigDecimal,
     val closingBalance: BigDecimal,

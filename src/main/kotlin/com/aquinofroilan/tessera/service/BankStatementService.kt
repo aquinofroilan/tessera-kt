@@ -18,8 +18,8 @@ class BankStatementService(
     @Transactional
     fun importStatement(
         request: ImportStatementRequest,
-        organizationId: String,
-        userId: String,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): BankStatement {
         val statementDate = request.statementDate ?: throw BusinessRuleException("statementDate is required")
         val opening = request.openingBalance ?: throw BusinessRuleException("openingBalance is required")
@@ -84,8 +84,8 @@ class BankStatementService(
     }
 
     fun getStatement(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): BankStatement {
         val s =
             statementRepository.findById(id).orElseThrow {
@@ -98,8 +98,8 @@ class BankStatementService(
     }
 
     fun listStatements(
-        organizationId: String,
-        bankAccountId: String?,
+        organizationId: java.util.UUID,
+        bankAccountId: java.util.UUID?,
     ): List<BankStatement> =
         if (bankAccountId != null) {
             statementRepository.findByOrganizationIdAndBankAccountIdOrderByStatementDateDesc(organizationId, bankAccountId)

@@ -35,9 +35,9 @@ class BankReconciliationService(
 ) {
     @Transactional
     fun autoMatch(
-        statementId: String,
-        organizationId: String,
-        userId: String,
+        statementId: java.util.UUID,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
         maxDateDriftDays: Int,
     ): AutoMatchResponse {
         if (maxDateDriftDays < 0) throw BusinessRuleException("maxDateDriftDays must be >= 0")
@@ -65,8 +65,8 @@ class BankReconciliationService(
 
         val alreadyMatched = statement.lines.mapNotNull { it.reconciledJournalEntryId }.toMutableSet()
         val matched = mutableListOf<MatchedLineResponse>()
-        val unmatched = mutableListOf<String>()
-        val ambiguous = mutableListOf<String>()
+        val unmatched = mutableListOf<java.util.UUID>()
+        val ambiguous = mutableListOf<java.util.UUID>()
 
         val now = LocalDateTime.now()
         val updatedLines =
@@ -116,11 +116,11 @@ class BankReconciliationService(
 
     @Transactional
     fun manualMatch(
-        statementId: String,
-        lineId: String,
-        journalEntryId: String,
-        organizationId: String,
-        userId: String,
+        statementId: java.util.UUID,
+        lineId: java.util.UUID,
+        journalEntryId: java.util.UUID,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): BankStatement {
         val statement = getStatement(statementId, organizationId)
         val bank = bankAccountService.getBankAccount(statement.bankAccountId, organizationId)
@@ -170,9 +170,9 @@ class BankReconciliationService(
 
     @Transactional
     fun unmatch(
-        statementId: String,
-        lineId: String,
-        organizationId: String,
+        statementId: java.util.UUID,
+        lineId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): BankStatement {
         val statement = getStatement(statementId, organizationId)
         val line =
@@ -196,8 +196,8 @@ class BankReconciliationService(
     }
 
     fun summary(
-        bankAccountId: String,
-        organizationId: String,
+        bankAccountId: java.util.UUID,
+        organizationId: java.util.UUID,
         asOfDate: LocalDate?,
     ): ReconciliationSummaryResponse {
         val bank = bankAccountService.getBankAccount(bankAccountId, organizationId)
@@ -236,7 +236,7 @@ class BankReconciliationService(
 
     private fun signedAmountFor(
         je: JournalEntry,
-        glAccountId: String,
+        glAccountId: java.util.UUID,
     ): BigDecimal {
         // A debit to the bank GL increases cash (positive); a credit decreases (negative).
         var net = BigDecimal.ZERO
@@ -247,8 +247,8 @@ class BankReconciliationService(
     }
 
     private fun getStatement(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): BankStatement {
         val s =
             statementRepository.findById(id).orElseThrow {

@@ -23,7 +23,7 @@ import java.util.UUID
 data class BankStatementLine(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: java.util.UUID = java.util.UUID.randomUUID(),
     @Column(name = "line_number")
     val lineNumber: Int,
     @Column(name = "posted_date")
@@ -33,11 +33,11 @@ data class BankStatementLine(
     val amount: BigDecimal,
     val reconciled: Boolean = false,
     @Column(name = "reconciled_journal_entry_id", columnDefinition = "uuid")
-    val reconciledJournalEntryId: String? = null,
+    val reconciledJournalEntryId: java.util.UUID? = null,
     @Column(name = "reconciled_at")
     val reconciledAt: LocalDateTime? = null,
     @Column(name = "reconciled_by", columnDefinition = "uuid")
-    val reconciledBy: String? = null,
+    val reconciledBy: java.util.UUID? = null,
 )
 
 @Entity
@@ -46,11 +46,11 @@ data class BankStatementLine(
 data class BankStatement(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: java.util.UUID = java.util.UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     @Column(name = "bank_account_id", columnDefinition = "uuid")
-    val bankAccountId: String,
+    val bankAccountId: java.util.UUID,
     @Column(name = "statement_date")
     val statementDate: LocalDate,
     @Column(name = "opening_balance")
@@ -61,7 +61,7 @@ data class BankStatement(
     val currency: String,
     val source: String = "CSV",
     @Column(name = "uploaded_by", columnDefinition = "uuid")
-    val uploadedBy: String,
+    val uploadedBy: java.util.UUID,
     val notes: String? = null,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "statement_id")

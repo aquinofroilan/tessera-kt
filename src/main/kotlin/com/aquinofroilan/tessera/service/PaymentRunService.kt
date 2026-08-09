@@ -27,8 +27,8 @@ class PaymentRunService(
     @Transactional
     fun createPaymentRun(
         request: CreatePaymentRunRequest,
-        organizationId: String,
-        userId: String,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): PaymentRun {
         val runDate = request.runDate ?: throw BusinessRuleException("runDate is required")
         if (request.billIds.isEmpty()) throw BusinessRuleException("At least one bill ID is required")
@@ -91,8 +91,8 @@ class PaymentRunService(
     }
 
     fun getPaymentRun(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): PaymentRun {
         val r =
             paymentRunRepository.findById(id).orElseThrow {
@@ -105,7 +105,7 @@ class PaymentRunService(
     }
 
     fun listPaymentRuns(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: PaymentRunStatus?,
     ): List<PaymentRun> =
         if (status != null) {
@@ -116,9 +116,9 @@ class PaymentRunService(
 
     @Transactional
     fun approvePaymentRun(
-        id: String,
-        organizationId: String,
-        userId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): PaymentRun {
         val run = getPaymentRun(id, organizationId)
         if (run.status != PaymentRunStatus.DRAFT) {
@@ -135,9 +135,9 @@ class PaymentRunService(
 
     @Transactional
     fun executePaymentRun(
-        id: String,
-        organizationId: String,
-        userId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): PaymentRun {
         val run = getPaymentRun(id, organizationId)
         if (run.status != PaymentRunStatus.APPROVED) {
@@ -186,9 +186,9 @@ class PaymentRunService(
 
     @Transactional
     fun cancelPaymentRun(
-        id: String,
-        organizationId: String,
-        userId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): PaymentRun {
         val run = getPaymentRun(id, organizationId)
         if (run.status == PaymentRunStatus.EXECUTED) {

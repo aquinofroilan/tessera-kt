@@ -22,9 +22,9 @@ class BankStatementServiceTest {
     private lateinit var bankAccountService: BankAccountService
     private lateinit var service: BankStatementService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
-    private val bankId = "bank-1"
+    private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000100")
+    private val userId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000101")
+    private val bankId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000102")
 
     @BeforeEach
     fun setup() {
@@ -134,7 +134,7 @@ class BankStatementServiceTest {
             code = "MAIN",
             name = "Main",
             currency = "USD",
-            glAccountId = "acc-1000",
+            glAccountId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000103"),
             isActive = true,
             createdBy = userId,
         )

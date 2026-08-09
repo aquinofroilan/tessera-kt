@@ -5,11 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface BankStatementRepository : JpaRepository<BankStatement, String> {
-    fun findByOrganizationId(organizationId: String): List<BankStatement>
+interface BankStatementRepository : JpaRepository<BankStatement, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<BankStatement>
 
     fun findByOrganizationIdAndBankAccountIdOrderByStatementDateDesc(
-        organizationId: String,
-        bankAccountId: String,
+        organizationId: java.util.UUID,
+        bankAccountId: java.util.UUID,
     ): List<BankStatement>
 }

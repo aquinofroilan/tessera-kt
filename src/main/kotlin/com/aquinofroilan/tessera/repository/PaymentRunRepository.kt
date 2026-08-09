@@ -7,16 +7,16 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface PaymentRunRepository : JpaRepository<PaymentRun, String> {
-    fun findByOrganizationId(organizationId: String): List<PaymentRun>
+interface PaymentRunRepository : JpaRepository<PaymentRun, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<PaymentRun>
 
     fun findByOrganizationIdAndStatus(
-        organizationId: String,
+        organizationId: java.util.UUID,
         status: PaymentRunStatus,
     ): List<PaymentRun>
 
     fun findByOrganizationIdAndCode(
-        organizationId: String,
+        organizationId: java.util.UUID,
         code: String,
     ): Optional<PaymentRun>
 }

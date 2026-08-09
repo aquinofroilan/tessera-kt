@@ -39,13 +39,13 @@ enum class PaymentRunLineStatus {
 data class PaymentRunLine(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: java.util.UUID = java.util.UUID.randomUUID(),
     @Column(name = "line_number")
     val lineNumber: Int,
     @Column(name = "bill_id", columnDefinition = "uuid")
-    val billId: String,
+    val billId: java.util.UUID,
     @Column(name = "vendor_id", columnDefinition = "uuid")
-    val vendorId: String,
+    val vendorId: java.util.UUID,
     @Column(name = "vendor_name")
     val vendorName: String,
     @Column(name = "bill_number")
@@ -54,7 +54,7 @@ data class PaymentRunLine(
     @Enumerated(EnumType.STRING)
     val status: PaymentRunLineStatus = PaymentRunLineStatus.PENDING,
     @Column(name = "bill_payment_id", columnDefinition = "uuid")
-    val billPaymentId: String? = null,
+    val billPaymentId: java.util.UUID? = null,
     val notes: String? = null,
 )
 
@@ -64,12 +64,12 @@ data class PaymentRunLine(
 data class PaymentRun(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: java.util.UUID = java.util.UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val code: String,
     @Column(name = "bank_account_id", columnDefinition = "uuid")
-    val bankAccountId: String,
+    val bankAccountId: java.util.UUID,
     @Column(name = "run_date")
     val runDate: LocalDate,
     @Enumerated(EnumType.STRING)
@@ -80,19 +80,19 @@ data class PaymentRun(
     val currency: String,
     val notes: String? = null,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    val createdBy: java.util.UUID,
     @Column(name = "approved_at")
     val approvedAt: LocalDateTime? = null,
     @Column(name = "approved_by", columnDefinition = "uuid")
-    val approvedBy: String? = null,
+    val approvedBy: java.util.UUID? = null,
     @Column(name = "executed_at")
     val executedAt: LocalDateTime? = null,
     @Column(name = "executed_by", columnDefinition = "uuid")
-    val executedBy: String? = null,
+    val executedBy: java.util.UUID? = null,
     @Column(name = "cancelled_at")
     val cancelledAt: LocalDateTime? = null,
     @Column(name = "cancelled_by", columnDefinition = "uuid")
-    val cancelledBy: String? = null,
+    val cancelledBy: java.util.UUID? = null,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "payment_run_id")
     @OrderBy("lineNumber ASC")
