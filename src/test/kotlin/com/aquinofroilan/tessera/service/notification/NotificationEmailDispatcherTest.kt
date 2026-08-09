@@ -51,6 +51,7 @@ class NotificationEmailDispatcherTest {
                 outboxRepository,
                 notificationRepository,
                 emailSender,
+                NotificationEmailRenderer(NotificationEmailProperties()),
                 NotificationEmailProperties(),
             )
     }
@@ -58,7 +59,7 @@ class NotificationEmailDispatcherTest {
     @Test
     fun `successful send marks the row SENT with sent_at`() {
         givenPending(row(notificationId = notification.id))
-        whenever(emailSender.send(any(), any(), any())).thenReturn(true)
+        whenever(emailSender.send(any(), any<EmailContent>())).thenReturn(true)
 
         dispatcher.drain()
 
@@ -72,7 +73,7 @@ class NotificationEmailDispatcherTest {
     @Test
     fun `intentional skip from the sender marks the row SKIPPED`() {
         givenPending(row(notificationId = notification.id))
-        whenever(emailSender.send(any(), any(), any())).thenReturn(false)
+        whenever(emailSender.send(any(), any<EmailContent>())).thenReturn(false)
 
         dispatcher.drain()
 
@@ -84,7 +85,7 @@ class NotificationEmailDispatcherTest {
     @Test
     fun `transport failure with attempts left reschedules with linear backoff`() {
         givenPending(row(notificationId = notification.id))
-        whenever(emailSender.send(any(), any(), any()))
+        whenever(emailSender.send(any(), any<EmailContent>()))
             .thenThrow(RuntimeException("connection refused"))
 
         val beforeUtc = LocalDateTime.now(ZoneOffset.UTC)
@@ -101,7 +102,7 @@ class NotificationEmailDispatcherTest {
     @Test
     fun `transport failure on the last allowed attempt marks the row FAILED`() {
         givenPending(row(notificationId = notification.id, attempts = 4))
-        whenever(emailSender.send(any(), any(), any()))
+        whenever(emailSender.send(any(), any<EmailContent>()))
             .thenThrow(RuntimeException("550 mailbox unavailable"))
 
         dispatcher.drain()
@@ -123,7 +124,7 @@ class NotificationEmailDispatcherTest {
 
         val saved = capture()
         assertThat(saved.status).isEqualTo(EmailDeliveryStatus.FAILED)
-        verify(emailSender, org.mockito.Mockito.never()).send(any(), any(), any())
+        verify(emailSender, org.mockito.Mockito.never()).send(any(), any<EmailContent>())
     }
 
     @Test
@@ -132,7 +133,7 @@ class NotificationEmailDispatcherTest {
 
         dispatcher.drain()
 
-        verify(emailSender, org.mockito.Mockito.never()).send(any(), any(), any())
+        verify(emailSender, org.mockito.Mockito.never()).send(any(), any<EmailContent>())
         verify(outboxRepository, org.mockito.Mockito.never()).save(any<NotificationEmailOutbox>())
     }
 
