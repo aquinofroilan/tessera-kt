@@ -69,6 +69,9 @@ object Permissions {
     const val HR_WRITE = "hr:write"
     const val HR_APPROVE = "hr:approve"
 
+    const val BANK_READ = "bank:read"
+    const val BANK_WRITE = "bank:write"
+    const val BANK_APPROVE = "bank:approve"
     const val ATTACHMENT_READ = "attachment:read"
     const val ATTACHMENT_WRITE = "attachment:write"
     const val HR_RECRUITMENT_READ = "hr-recruitment:read"
@@ -83,6 +86,10 @@ object Permissions {
     const val PROJECT_APPROVE = "projects:approve"
     const val CRM_READ = "crm:read"
     const val CRM_WRITE = "crm:write"
+
+    const val NOTIFICATION_WRITE = "notification:write"
+
+    const val WORKFLOW_MANAGE = "workflow:manage"
 
     val ALL_PERMISSIONS =
         listOf(
@@ -137,6 +144,9 @@ object Permissions {
             HR_READ,
             HR_WRITE,
             HR_APPROVE,
+            BANK_READ,
+            BANK_WRITE,
+            BANK_APPROVE,
             ATTACHMENT_READ,
             ATTACHMENT_WRITE,
             HR_RECRUITMENT_READ,
@@ -148,7 +158,9 @@ object Permissions {
             PROJECT_READ,
             PROJECT_WRITE,
             PROJECT_APPROVE,
+            NOTIFICATION_WRITE,
             CRM_READ,
             CRM_WRITE,
+            WORKFLOW_MANAGE,
         )
 }

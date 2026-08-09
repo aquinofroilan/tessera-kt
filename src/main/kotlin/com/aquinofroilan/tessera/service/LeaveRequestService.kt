@@ -2,6 +2,9 @@ package com.aquinofroilan.tessera.service
 
 import com.aquinofroilan.tessera.dto.CreateLeaveRequestRequest
 import com.aquinofroilan.tessera.dto.LeaveBalanceResponse
+import com.aquinofroilan.tessera.event.DomainEventPublisher
+import com.aquinofroilan.tessera.event.LeaveRequestApprovedEvent
+import com.aquinofroilan.tessera.event.LeaveRequestRejectedEvent
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import com.aquinofroilan.tessera.model.EmploymentStatus
@@ -20,6 +23,7 @@ class LeaveRequestService(
     private val leaveRequestRepository: LeaveRequestRepository,
     private val employeeService: EmployeeService,
     private val leaveTypeService: LeaveTypeService,
+    private val domainEventPublisher: DomainEventPublisher,
 ) {
     @Transactional
     fun createLeaveRequest(
@@ -112,6 +116,16 @@ class LeaveRequestService(
                 employeeService.placeOnLeave(employee.id, organizationId)
             }
         }
+        domainEventPublisher.publish(
+            LeaveRequestApprovedEvent(
+                organizationId = organizationId,
+                leaveRequestId = approved.id,
+                requesterUserId = approved.requestedBy,
+                startDate = approved.startDate,
+                endDate = approved.endDate,
+                days = approved.days,
+            ),
+        )
         return approved
     }
 
@@ -130,7 +144,17 @@ class LeaveRequestService(
         req.decisionReason = reason
         req.decidedBy = decidedBy
         req.decidedAt = LocalDateTime.now(ZoneOffset.UTC)
-        return leaveRequestRepository.save(req)
+        val rejected = leaveRequestRepository.save(req)
+
+        domainEventPublisher.publish(
+            LeaveRequestRejectedEvent(
+                organizationId = organizationId,
+                leaveRequestId = rejected.id,
+                requesterUserId = rejected.requestedBy,
+                reason = reason,
+            ),
+        )
+        return rejected
     }
 
     @Transactional
