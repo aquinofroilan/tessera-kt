@@ -21,8 +21,8 @@ class NotificationPreferenceService(
     private val preferenceRepository: NotificationPreferenceRepository,
 ) {
     fun isEnabled(
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
         kind: String,
         channel: NotificationChannel,
     ): Boolean =
@@ -32,14 +32,14 @@ class NotificationPreferenceService(
             .orElse(true)
 
     fun listFor(
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): List<NotificationPreference> = preferenceRepository.findByUserIdAndOrganizationId(userId, organizationId)
 
     @Transactional
     fun upsertAll(
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
         entries: List<NotificationPreferenceEntry>,
     ): List<NotificationPreference> {
         entries.forEach { entry ->

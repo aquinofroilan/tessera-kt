@@ -20,8 +20,8 @@ class NotificationPreferenceServiceTest {
     private lateinit var repository: NotificationPreferenceRepository
     private lateinit var service: NotificationPreferenceService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
+    private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000100")
+    private val userId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000101")
 
     @BeforeEach
     fun setup() {

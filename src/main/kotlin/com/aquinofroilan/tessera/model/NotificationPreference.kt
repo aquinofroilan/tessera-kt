@@ -26,9 +26,9 @@ data class NotificationPreference(
     @Column(columnDefinition = "uuid")
     val id: String = UUID.randomUUID().toString(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     @Column(name = "user_id", columnDefinition = "uuid")
-    val userId: String,
+    val userId: java.util.UUID,
     val kind: String,
     @Enumerated(EnumType.STRING)
     val channel: NotificationChannel,

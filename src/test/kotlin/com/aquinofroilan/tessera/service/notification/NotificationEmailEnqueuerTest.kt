@@ -81,7 +81,7 @@ class NotificationEmailEnqueuerTest {
             preferenceService.isEnabled(userId, orgId, "test.kind", NotificationChannel.EMAIL),
         ).thenReturn(false)
 
-        enqueuer.enqueue(notification(id = "n1"))
+        enqueuer.enqueue(notification(id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000102")))
 
         verify(outboxRepository, never()).save(any<NotificationEmailOutbox>())
     }

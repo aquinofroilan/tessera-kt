@@ -9,13 +9,13 @@ import java.util.Optional
 @Repository
 interface NotificationPreferenceRepository : JpaRepository<NotificationPreference, String> {
     fun findByUserIdAndOrganizationId(
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
     ): List<NotificationPreference>
 
     fun findByUserIdAndOrganizationIdAndKindAndChannel(
-        userId: String,
-        organizationId: String,
+        userId: java.util.UUID,
+        organizationId: java.util.UUID,
         kind: String,
         channel: NotificationChannel,
     ): Optional<NotificationPreference>
