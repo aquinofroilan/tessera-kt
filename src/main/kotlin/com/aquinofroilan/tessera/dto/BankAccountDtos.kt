@@ -17,7 +17,7 @@ data class CreateBankAccountRequest(
     val accountNumberLast4: String? = null,
     val currency: String? = null,
     @field:NotBlank(message = "GL account ID is required")
-    val glAccountId: String,
+    val glAccountId: java.util.UUID,
     @field:PositiveOrZero(message = "Opening balance cannot be negative")
     val openingBalance: BigDecimal? = null,
     val notes: String? = null,
@@ -33,13 +33,13 @@ data class UpdateBankAccountRequest(
 )
 
 data class BankAccountResponse(
-    val id: String,
+    val id: java.util.UUID,
     val code: String,
     val name: String,
     val bankName: String?,
     val accountNumberLast4: String?,
     val currency: String,
-    val glAccountId: String,
+    val glAccountId: java.util.UUID,
     val openingBalance: BigDecimal,
     val currentBalance: BigDecimal,
     val isActive: Boolean,

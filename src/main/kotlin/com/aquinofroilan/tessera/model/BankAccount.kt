@@ -18,9 +18,9 @@ import java.util.UUID
 data class BankAccount(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: java.util.UUID = java.util.UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: java.util.UUID,
     val code: String,
     val name: String,
     @Column(name = "bank_name")
@@ -30,7 +30,7 @@ data class BankAccount(
     @Column(columnDefinition = "char(3)")
     val currency: String,
     @Column(name = "gl_account_id", columnDefinition = "uuid")
-    val glAccountId: String,
+    val glAccountId: java.util.UUID,
     @Column(name = "opening_balance")
     val openingBalance: BigDecimal = BigDecimal.ZERO,
     @Column(name = "current_balance")
@@ -39,7 +39,7 @@ data class BankAccount(
     val isActive: Boolean = true,
     val notes: String? = null,
     @Column(name = "created_by", columnDefinition = "uuid")
-    val createdBy: String,
+    val createdBy: java.util.UUID,
     @CreatedDate
     @Column(name = "created_at")
     val createdAt: LocalDateTime? = null,

@@ -22,8 +22,8 @@ class BankAccountService(
     @Transactional
     fun createBankAccount(
         request: CreateBankAccountRequest,
-        organizationId: String,
-        userId: String,
+        organizationId: java.util.UUID,
+        userId: java.util.UUID,
     ): BankAccount {
         val code = request.code.trim().uppercase()
         if (code.isBlank()) throw BusinessRuleException("Code cannot be blank")
@@ -61,8 +61,8 @@ class BankAccountService(
     }
 
     fun getBankAccount(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): BankAccount {
         val b =
             bankAccountRepository.findById(id).orElseThrow {
@@ -75,7 +75,7 @@ class BankAccountService(
     }
 
     fun listBankAccounts(
-        organizationId: String,
+        organizationId: java.util.UUID,
         activeOnly: Boolean,
     ): List<BankAccount> =
         if (activeOnly) {
@@ -86,9 +86,9 @@ class BankAccountService(
 
     @Transactional
     fun updateBankAccount(
-        id: String,
+        id: java.util.UUID,
         request: UpdateBankAccountRequest,
-        organizationId: String,
+        organizationId: java.util.UUID,
     ): BankAccount {
         val b = getBankAccount(id, organizationId)
         return bankAccountRepository.save(
@@ -104,8 +104,8 @@ class BankAccountService(
 
     @Transactional
     fun deactivateBankAccount(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
     ): BankAccount {
         val b = getBankAccount(id, organizationId)
         if (!b.isActive) throw BusinessRuleException("Bank account '${b.code}' is already inactive")
@@ -115,14 +115,14 @@ class BankAccountService(
     /** Applies a signed delta to the cached current_balance. Used by statement import / reconciliation. */
     @Transactional
     fun applyBalanceDelta(
-        id: String,
-        organizationId: String,
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
         delta: BigDecimal,
     ): BankAccount {
         val b = getBankAccount(id, organizationId)
         return bankAccountRepository.save(b.copy(currentBalance = b.currentBalance.add(delta)))
     }
 
-    private fun orgCurrency(organizationId: String): String =
+    private fun orgCurrency(organizationId: java.util.UUID): String =
         organizationRepository.findById(organizationId).map { it.baseCurrency }.orElse("USD")
 }

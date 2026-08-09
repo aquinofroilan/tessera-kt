@@ -25,10 +25,10 @@ class BankAccountServiceTest {
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var service: BankAccountService
 
-    private val orgId = "org-1"
-    private val userId = "user-1"
-    private val glAssetId = "acc-1000"
-    private val glLiabId = "acc-2000"
+    private val orgId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")
+    private val userId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000002")
+    private val glAssetId = java.util.UUID.fromString("00000000-0000-0000-0000-000000001000")
+    private val glLiabId = java.util.UUID.fromString("00000000-0000-0000-0000-000000002000")
 
     @BeforeEach
     fun setup() {
@@ -125,10 +125,11 @@ class BankAccountServiceTest {
 
     @Test
     fun `applyBalanceDelta updates current balance`() {
-        whenever(repository.findById("b1")).thenReturn(
+        val b1Id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000010")
+        whenever(repository.findById(b1Id)).thenReturn(
             Optional.of(
                 BankAccount(
-                    id = "b1",
+                    id = b1Id,
                     organizationId = orgId,
                     code = "MAIN",
                     name = "x",
@@ -139,16 +140,17 @@ class BankAccountServiceTest {
                 ),
             ),
         )
-        val updated = service.applyBalanceDelta("b1", orgId, BigDecimal("-100"))
+        val updated = service.applyBalanceDelta(b1Id, orgId, BigDecimal("-100"))
         assertThat(updated.currentBalance).isEqualByComparingTo(BigDecimal("400"))
     }
 
     @Test
     fun `deactivate rejects double-deactivation`() {
-        whenever(repository.findById("b1")).thenReturn(
+        val b1Id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000010")
+        whenever(repository.findById(b1Id)).thenReturn(
             Optional.of(
                 BankAccount(
-                    id = "b1",
+                    id = b1Id,
                     organizationId = orgId,
                     code = "MAIN",
                     name = "x",
@@ -159,12 +161,12 @@ class BankAccountServiceTest {
                 ),
             ),
         )
-        assertThatThrownBy { service.deactivateBankAccount("b1", orgId) }
+        assertThatThrownBy { service.deactivateBankAccount(b1Id, orgId) }
             .isInstanceOf(BusinessRuleException::class.java)
     }
 
     private fun account(
-        id: String,
+        id: java.util.UUID,
         code: String,
         type: AccountType,
         isActive: Boolean,

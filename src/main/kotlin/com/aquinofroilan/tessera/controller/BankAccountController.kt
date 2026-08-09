@@ -34,7 +34,7 @@ class BankAccountController(
         @Valid @RequestBody request: CreateBankAccountRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: "api-key"
+        val userId = authContext.userId() ?: return authContext.unauthorized()
         val b = bankAccountService.createBankAccount(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(BankAccountResponse.from(b))
     }
@@ -51,7 +51,7 @@ class BankAccountController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('bank:read')")
     fun get(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(BankAccountResponse.from(bankAccountService.getBankAccount(id, orgId)))
@@ -60,7 +60,7 @@ class BankAccountController(
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('bank:write')")
     fun update(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateBankAccountRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
@@ -70,7 +70,7 @@ class BankAccountController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('bank:write')")
     fun deactivate(
-        @PathVariable id: String,
+        @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         return ResponseEntity.ok(BankAccountResponse.from(bankAccountService.deactivateBankAccount(id, orgId)))
