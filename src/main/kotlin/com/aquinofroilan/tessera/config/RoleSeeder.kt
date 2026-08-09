@@ -102,6 +102,7 @@ class RoleSeeder(
                             Permissions.NOTIFICATION_WRITE,
                             Permissions.CRM_READ,
                             Permissions.CRM_WRITE,
+                            Permissions.WORKFLOW_MANAGE,
                         ),
                 ),
                 Role(
@@ -171,6 +172,7 @@ class RoleSeeder(
                             Permissions.NOTIFICATION_WRITE,
                             Permissions.CRM_READ,
                             Permissions.CRM_WRITE,
+                            Permissions.WORKFLOW_MANAGE,
                         ),
                 ),
                 Role(

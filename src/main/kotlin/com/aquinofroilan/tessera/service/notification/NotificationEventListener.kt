@@ -1,25 +1,23 @@
 package com.aquinofroilan.tessera.service.notification
 
 import com.aquinofroilan.tessera.dto.CreateNotificationRequest
+import com.aquinofroilan.tessera.event.DomainEvent
 import com.aquinofroilan.tessera.event.LeaveRequestApprovedEvent
 import com.aquinofroilan.tessera.event.LeaveRequestRejectedEvent
 import com.aquinofroilan.tessera.event.PurchaseRequestApprovedEvent
 import com.aquinofroilan.tessera.event.PurchaseRequestRejectedEvent
-import com.aquinofroilan.tessera.model.NotificationCategory
 import com.aquinofroilan.tessera.service.NotificationService
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
 
 /**
- * Translates domain events into notification rows. Runs on AFTER_COMMIT
- * so a rolled-back source transaction never produces a notification (or
- * the downstream email side-effect).
+ * Notifies the **requester** about the lifecycle decision on their own
+ * leave / purchase request. Runs on AFTER_COMMIT so a rolled-back source
+ * transaction never produces a notification or the downstream email.
  *
- * Each handler is intentionally a tiny mapper: source-domain payload →
- * \`CreateNotificationRequest\`. Per-user opt-out is handled inside
- * [NotificationService.publish] via the email enqueuer + preferences
- * service — listeners don't gate.
+ * Copy and link come from [NotificationTemplate.describe] so the
+ * requester-side message and the workflow-rule fan-out can't drift.
  */
 @Component
 class NotificationEventListener(
@@ -27,63 +25,51 @@ class NotificationEventListener(
 ) {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun on(event: LeaveRequestApprovedEvent) {
-        notificationService.publish(
-            CreateNotificationRequest(
-                recipientUserId = event.requesterUserId,
-                category = NotificationCategory.APPROVAL,
-                kind = NotificationKinds.LEAVE_REQUEST_APPROVED,
-                title = "Your leave request was approved",
-                body =
-                    "Your leave from ${event.startDate} to ${event.endDate} " +
-                        "(${event.days} day${if (event.days == 1) "" else "s"}) was approved.",
-                link = "/hr/leave-requests/${event.leaveRequestId}",
-            ),
-            event.organizationId,
-        )
+        publishToRequester(event, event.requesterUserId)
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun on(event: LeaveRequestRejectedEvent) {
-        notificationService.publish(
-            CreateNotificationRequest(
-                recipientUserId = event.requesterUserId,
-                category = NotificationCategory.APPROVAL,
-                kind = NotificationKinds.LEAVE_REQUEST_REJECTED,
-                title = "Your leave request was rejected",
-                body = event.reason?.takeIf { it.isNotBlank() }?.let { "Reason: $it" },
-                link = "/hr/leave-requests/${event.leaveRequestId}",
-            ),
-            event.organizationId,
-        )
+        publishToRequester(event, event.requesterUserId)
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun on(event: PurchaseRequestApprovedEvent) {
+        publishToRequester(event, event.requesterUserId)
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    fun on(event: PurchaseRequestRejectedEvent) {
+        publishToRequester(event, event.requesterUserId)
+    }
+
+    private fun publishToRequester(
+        event: DomainEvent,
+        requesterUserId: java.util.UUID,
+    ) {
+        val content = NotificationTemplate.describe(event)
         notificationService.publish(
             CreateNotificationRequest(
-                recipientUserId = event.requesterUserId,
-                category = NotificationCategory.APPROVAL,
-                kind = NotificationKinds.PURCHASE_REQUEST_APPROVED,
-                title = "Purchase request ${event.prNumber} approved",
-                body = "Your purchase request was approved and is ready to be converted into a PO.",
-                link = "/procurement/purchase-requests/${event.purchaseRequestId}",
+                recipientUserId = requesterUserId,
+                category = content.category,
+                kind = NotificationKinds.of(event),
+                title = personaliseForRequester(content.title),
+                body = content.body,
+                link = content.link,
             ),
             event.organizationId,
         )
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    fun on(event: PurchaseRequestRejectedEvent) {
-        notificationService.publish(
-            CreateNotificationRequest(
-                recipientUserId = event.requesterUserId,
-                category = NotificationCategory.APPROVAL,
-                kind = NotificationKinds.PURCHASE_REQUEST_REJECTED,
-                title = "Purchase request ${event.prNumber} rejected",
-                body = event.reason?.takeIf { it.isNotBlank() }?.let { "Reason: $it" },
-                link = "/procurement/purchase-requests/${event.purchaseRequestId}",
-            ),
-            event.organizationId,
-        )
-    }
+    /**
+     * The requester sees "Your leave request was approved", while the
+     * workflow fan-out (manager / finance / etc.) sees "Leave request
+     * approved". Same template, different lede.
+     */
+    private fun personaliseForRequester(generic: String): String =
+        when {
+            generic == "Leave request approved" -> "Your leave request was approved"
+            generic == "Leave request rejected" -> "Your leave request was rejected"
+            else -> generic
+        }
 }

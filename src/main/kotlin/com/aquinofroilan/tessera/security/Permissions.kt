@@ -89,6 +89,8 @@ object Permissions {
 
     const val NOTIFICATION_WRITE = "notification:write"
 
+    const val WORKFLOW_MANAGE = "workflow:manage"
+
     val ALL_PERMISSIONS =
         listOf(
             SESSION_READ,
@@ -159,5 +161,6 @@ object Permissions {
             NOTIFICATION_WRITE,
             CRM_READ,
             CRM_WRITE,
+            WORKFLOW_MANAGE,
         )
 }
