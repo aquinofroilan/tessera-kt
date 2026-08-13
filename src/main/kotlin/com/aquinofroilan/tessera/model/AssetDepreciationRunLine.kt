@@ -12,15 +12,15 @@ import java.util.UUID
 data class AssetDepreciationRunLine(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: UUID = UUID.randomUUID(),
     @Column(name = "run_id", columnDefinition = "uuid")
-    val runId: String,
+    val runId: UUID,
     @Column(name = "asset_id", columnDefinition = "uuid")
-    val assetId: String,
+    val assetId: UUID,
     @Column(name = "depreciation_amount")
     val depreciationAmount: BigDecimal,
     @Column(name = "debit_account_id", columnDefinition = "uuid")
-    val debitAccountId: String? = null,
+    val debitAccountId: UUID? = null,
     @Column(name = "credit_account_id", columnDefinition = "uuid")
-    val creditAccountId: String? = null,
+    val creditAccountId: UUID? = null,
 )

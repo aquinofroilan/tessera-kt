@@ -93,7 +93,7 @@ class DepreciationCalculatorTest {
         accumulatedDepreciation: BigDecimal = BigDecimal.ZERO,
     ): FixedAsset =
         FixedAsset(
-            organizationId = "org-1",
+            organizationId = java.util.UUID.randomUUID(),
             assetNumber = "FA-00001",
             name = "Test asset",
             acquisitionDate = acquisitionDate,

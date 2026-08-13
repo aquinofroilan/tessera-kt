@@ -18,6 +18,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.util.UUID
 
 /**
  * Asset disposal lifecycle. Two states: DRAFT (configured but not yet
@@ -47,13 +48,13 @@ class AssetDisposalService(
 ) {
     @Transactional
     fun createDisposal(
-        organizationId: String,
-        assetId: String,
+        organizationId: UUID,
+        assetId: UUID,
         disposalType: DisposalType,
         disposalDate: LocalDate,
         proceeds: BigDecimal,
-        gainLossAccountId: String?,
-        cashAccountId: String?,
+        gainLossAccountId: UUID?,
+        cashAccountId: UUID?,
         notes: String?,
     ): AssetDisposal {
         val asset = fixedAssetService.getAsset(assetId, organizationId)
@@ -80,12 +81,12 @@ class AssetDisposalService(
         )
     }
 
-    fun listDisposals(organizationId: String): List<AssetDisposal> =
+    fun listDisposals(organizationId: UUID): List<AssetDisposal> =
         disposalRepository.findByOrganizationIdOrderByDisposalDateDesc(organizationId)
 
     fun getDisposal(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): AssetDisposal {
         val disposal =
             disposalRepository.findById(id).orElseThrow {
@@ -99,9 +100,9 @@ class AssetDisposalService(
 
     @Transactional
     fun postDisposal(
-        id: String,
-        organizationId: String,
-        postedBy: String,
+        id: UUID,
+        organizationId: UUID,
+        postedBy: UUID,
     ): AssetDisposal {
         val disposal = getDisposal(id, organizationId)
         if (disposal.status != DisposalStatus.DRAFT) {
@@ -110,10 +111,10 @@ class AssetDisposalService(
         val asset = fixedAssetService.getAsset(disposal.assetId, organizationId)
 
         val assetAccountId =
-            asset.assetAccountId
+            asset.assetAccountId?.let { UUID.fromString(it) }
                 ?: throw BusinessRuleException("Asset ${asset.assetNumber} has no asset GL account configured")
         val accumulatedAccountId =
-            asset.accumulatedDepreciationAccountId
+            asset.accumulatedDepreciationAccountId?.let { UUID.fromString(it) }
                 ?: throw BusinessRuleException("Asset ${asset.assetNumber} has no accumulated-depreciation GL account configured")
         val gainLossAccountId =
             disposal.gainLossAccountId
@@ -129,7 +130,7 @@ class AssetDisposalService(
         val accountIds =
             listOfNotNull(assetAccountId, accumulatedAccountId, gainLossAccountId, cashAccountId)
         val accountsById = accountRepository.findAllById(accountIds).associateBy { it.id }
-        val asAccount = { aid: String ->
+        val asAccount = { aid: UUID ->
             accountsById[aid] ?: throw BusinessRuleException("Account $aid not found")
         }
 

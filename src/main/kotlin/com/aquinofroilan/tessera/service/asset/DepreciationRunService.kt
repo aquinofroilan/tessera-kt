@@ -20,6 +20,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
 import java.time.ZoneOffset
+import java.util.UUID
 
 /**
  * Monthly depreciation runs. The lifecycle is DRAFT → POSTED:
@@ -49,7 +50,7 @@ class DepreciationRunService(
 
     @Transactional
     fun createRun(
-        organizationId: String,
+        organizationId: UUID,
         year: Int,
         month: Int,
     ): AssetDepreciationRun {
@@ -78,8 +79,8 @@ class DepreciationRunService(
                         runId = existing?.id ?: PLACEHOLDER_RUN_ID,
                         assetId = asset.id,
                         depreciationAmount = amount,
-                        debitAccountId = asset.depreciationExpenseAccountId,
-                        creditAccountId = asset.accumulatedDepreciationAccountId,
+                        debitAccountId = asset.depreciationExpenseAccountId?.let { UUID.fromString(it) },
+                        creditAccountId = asset.accumulatedDepreciationAccountId?.let { UUID.fromString(it) },
                     )
                 }
 
@@ -106,12 +107,12 @@ class DepreciationRunService(
         return run
     }
 
-    fun listRuns(organizationId: String): List<AssetDepreciationRun> =
+    fun listRuns(organizationId: UUID): List<AssetDepreciationRun> =
         runRepository.findByOrganizationIdOrderByPeriodYearDescPeriodMonthDesc(organizationId)
 
     fun getRun(
-        id: String,
-        organizationId: String,
+        id: UUID,
+        organizationId: UUID,
     ): AssetDepreciationRun {
         val run =
             runRepository.findById(id).orElseThrow {
@@ -123,13 +124,13 @@ class DepreciationRunService(
         return run
     }
 
-    fun listLines(runId: String): List<AssetDepreciationRunLine> = lineRepository.findByRunId(runId)
+    fun listLines(runId: UUID): List<AssetDepreciationRunLine> = lineRepository.findByRunId(runId)
 
     @Transactional
     fun postRun(
-        id: String,
-        organizationId: String,
-        postedBy: String,
+        id: UUID,
+        organizationId: UUID,
+        postedBy: UUID,
     ): AssetDepreciationRun {
         val run = getRun(id, organizationId)
         if (run.status != DepreciationRunStatus.DRAFT) {
@@ -237,6 +238,6 @@ class DepreciationRunService(
     ): LocalDate = YearMonth.of(year, month).atEndOfMonth()
 
     companion object {
-        private const val PLACEHOLDER_RUN_ID = "00000000-0000-0000-0000-000000000000"
+        private val PLACEHOLDER_RUN_ID = UUID.fromString("00000000-0000-0000-0000-000000000000")
     }
 }

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/assets/disposals")
@@ -33,15 +34,23 @@ class AssetDisposalController(
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val date = request.disposalDate ?: throw BusinessRuleException("Disposal date is required")
         val type = request.disposalType ?: throw BusinessRuleException("Disposal type is required")
+        val assetUuid =
+            try {
+                UUID.fromString(request.assetId)
+            } catch (e: IllegalArgumentException) {
+                return ResponseEntity.badRequest().body(mapOf("error" to "Invalid asset ID"))
+            }
+        val gainLossUuid = request.gainLossAccountId?.let { UUID.fromString(it) }
+        val cashUuid = request.cashAccountId?.let { UUID.fromString(it) }
         val created =
             assetDisposalService.createDisposal(
                 organizationId = orgId,
-                assetId = request.assetId,
+                assetId = assetUuid,
                 disposalType = type,
                 disposalDate = date,
                 proceeds = request.proceeds,
-                gainLossAccountId = request.gainLossAccountId,
-                cashAccountId = request.cashAccountId,
+                gainLossAccountId = gainLossUuid,
+                cashAccountId = cashUuid,
                 notes = request.notes,
             )
         return ResponseEntity.status(HttpStatus.CREATED).body(AssetDisposalResponse.from(created))
@@ -62,7 +71,13 @@ class AssetDisposalController(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(AssetDisposalResponse.from(assetDisposalService.getDisposal(id, orgId)))
+        val disposalId =
+            try {
+                UUID.fromString(id)
+            } catch (e: IllegalArgumentException) {
+                return ResponseEntity.badRequest().body(mapOf("error" to "Invalid disposal ID"))
+            }
+        return ResponseEntity.ok(AssetDisposalResponse.from(assetDisposalService.getDisposal(disposalId, orgId)))
     }
 
     @PostMapping("/{id}/post")
@@ -72,8 +87,14 @@ class AssetDisposalController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: return authContext.unauthorized()
+        val disposalId =
+            try {
+                UUID.fromString(id)
+            } catch (e: IllegalArgumentException) {
+                return ResponseEntity.badRequest().body(mapOf("error" to "Invalid disposal ID"))
+            }
         return ResponseEntity.ok(
-            AssetDisposalResponse.from(assetDisposalService.postDisposal(id, orgId, userId)),
+            AssetDisposalResponse.from(assetDisposalService.postDisposal(disposalId, orgId, userId)),
         )
     }
 }

@@ -14,6 +14,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneOffset
+import java.util.UUID
 
 /**
  * Read-only reports over the fixed-asset state:
@@ -32,9 +33,9 @@ class AssetReportService(
     private val calculator: DepreciationCalculator,
 ) {
     fun assetRegister(
-        organizationId: String,
+        organizationId: UUID,
         status: AssetStatus? = null,
-        categoryId: String? = null,
+        categoryId: UUID? = null,
     ): AssetRegisterResponse {
         val assets =
             when {
@@ -54,7 +55,7 @@ class AssetReportService(
                 .map { asset ->
                     val category = asset.categoryId?.let { categoriesById[it] }
                     AssetRegisterRow(
-                        id = asset.id,
+                        id = asset.id.toString(),
                         assetNumber = asset.assetNumber,
                         name = asset.name,
                         categoryCode = category?.code,
@@ -84,8 +85,8 @@ class AssetReportService(
     }
 
     fun depreciationSchedule(
-        organizationId: String,
-        assetId: String? = null,
+        organizationId: UUID,
+        assetId: UUID? = null,
         months: Int = DEFAULT_SCHEDULE_MONTHS,
     ): DepreciationScheduleResponse {
         require(months in 1..MAX_SCHEDULE_MONTHS) { "months must be between 1 and $MAX_SCHEDULE_MONTHS" }
@@ -118,7 +119,7 @@ class AssetReportService(
                     } else {
                         cumulative = cumulative.add(amount)
                         DepreciationScheduleRow(
-                            assetId = asset.id,
+                            assetId = asset.id.toString(),
                             assetNumber = asset.assetNumber,
                             periodYear = period.year,
                             periodMonth = period.monthValue,

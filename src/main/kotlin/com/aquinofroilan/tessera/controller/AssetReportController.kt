@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/assets/reports")
@@ -35,7 +36,15 @@ class AssetReportController(
                     return ResponseEntity.badRequest().body(mapOf("error" to "Invalid status '$it'"))
                 }
             }
-        return ResponseEntity.ok(assetReportService.assetRegister(orgId, assetStatus, categoryId))
+        val categoryUuid =
+            categoryId?.let {
+                try {
+                    UUID.fromString(it)
+                } catch (e: IllegalArgumentException) {
+                    return ResponseEntity.badRequest().body(mapOf("error" to "Invalid category ID"))
+                }
+            }
+        return ResponseEntity.ok(assetReportService.assetRegister(orgId, assetStatus, categoryUuid))
     }
 
     @GetMapping("/depreciation-schedule")
@@ -45,6 +54,14 @@ class AssetReportController(
         @RequestParam(required = false, defaultValue = "12") months: Int,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(assetReportService.depreciationSchedule(orgId, assetId, months))
+        val assetUuid =
+            assetId?.let {
+                try {
+                    UUID.fromString(it)
+                } catch (e: IllegalArgumentException) {
+                    return ResponseEntity.badRequest().body(mapOf("error" to "Invalid asset ID"))
+                }
+            }
+        return ResponseEntity.ok(assetReportService.depreciationSchedule(orgId, assetUuid, months))
     }
 }
