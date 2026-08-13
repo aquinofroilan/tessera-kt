@@ -21,13 +21,14 @@ import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Optional
+import java.util.UUID
 
 class FixedAssetServiceTest {
     private lateinit var repository: FixedAssetRepository
     private lateinit var categoryService: AssetCategoryService
     private lateinit var service: FixedAssetService
 
-    private val orgId = "org-1"
+    private val orgId: UUID = UUID.randomUUID()
 
     @BeforeEach
     fun setup() {
@@ -81,12 +82,13 @@ class FixedAssetServiceTest {
 
     @Test
     fun `createAsset validates the referenced category lives in the same org`() {
-        whenever(categoryService.getCategory("c-1", orgId)).thenReturn(category(id = "c-1"))
+        val catId = UUID.randomUUID()
+        whenever(categoryService.getCategory(catId, orgId)).thenReturn(category(id = catId))
 
         service.createAsset(
             CreateFixedAssetRequest(
                 name = "X",
-                categoryId = "c-1",
+                categoryId = catId.toString(),
                 acquisitionDate = LocalDate.of(2026, 1, 1),
                 acquisitionCost = BigDecimal("100"),
                 usefulLifeMonths = 12,
@@ -94,26 +96,28 @@ class FixedAssetServiceTest {
             orgId,
         )
 
-        verify(categoryService).getCategory("c-1", orgId)
+        verify(categoryService).getCategory(catId, orgId)
     }
 
     @Test
     fun `getAsset 404s for cross-org access`() {
-        whenever(repository.findById("a-1")).thenReturn(
-            Optional.of(asset(id = "a-1", organizationId = "other-org")),
+        val assetId = UUID.randomUUID()
+        whenever(repository.findById(assetId)).thenReturn(
+            Optional.of(asset(id = assetId, organizationId = UUID.randomUUID())),
         )
 
-        assertThatThrownBy { service.getAsset("a-1", orgId) }
+        assertThatThrownBy { service.getAsset(assetId, orgId) }
             .isInstanceOf(ResourceNotFoundException::class.java)
     }
 
     @Test
     fun `updateAsset only overwrites fields that were sent`() {
-        val existing = asset(id = "a-1", name = "Original", location = "Building A")
-        whenever(repository.findById("a-1")).thenReturn(Optional.of(existing))
+        val assetId = UUID.randomUUID()
+        val existing = asset(id = assetId, name = "Original", location = "Building A")
+        whenever(repository.findById(assetId)).thenReturn(Optional.of(existing))
 
         service.updateAsset(
-            "a-1",
+            assetId,
             UpdateFixedAssetRequest(name = "Renamed"),
             orgId,
         )
@@ -125,8 +129,8 @@ class FixedAssetServiceTest {
     }
 
     private fun asset(
-        id: String = "a",
-        organizationId: String = orgId,
+        id: UUID = UUID.randomUUID(),
+        organizationId: UUID = orgId,
         name: String = "Asset",
         location: String? = null,
     ): FixedAsset =
@@ -141,7 +145,7 @@ class FixedAssetServiceTest {
             location = location,
         )
 
-    private fun category(id: String): AssetCategory =
+    private fun category(id: UUID = UUID.randomUUID()): AssetCategory =
         AssetCategory(
             id = id,
             organizationId = orgId,
