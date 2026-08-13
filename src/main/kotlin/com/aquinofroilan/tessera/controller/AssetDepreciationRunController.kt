@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/assets/depreciation-runs")
@@ -53,7 +54,13 @@ class AssetDepreciationRunController(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val run = depreciationRunService.getRun(id, orgId)
+        val runId =
+            try {
+                UUID.fromString(id)
+            } catch (e: IllegalArgumentException) {
+                return ResponseEntity.badRequest().body(mapOf("error" to "Invalid depreciation run ID"))
+            }
+        val run = depreciationRunService.getRun(runId, orgId)
         val lines = depreciationRunService.listLines(run.id)
         return ResponseEntity.ok(DepreciationRunResponse.from(run, lines))
     }
@@ -65,7 +72,13 @@ class AssetDepreciationRunController(
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val userId = authContext.userId() ?: return authContext.unauthorized()
-        val posted = depreciationRunService.postRun(id, orgId, userId)
+        val runId =
+            try {
+                UUID.fromString(id)
+            } catch (e: IllegalArgumentException) {
+                return ResponseEntity.badRequest().body(mapOf("error" to "Invalid depreciation run ID"))
+            }
+        val posted = depreciationRunService.postRun(runId, orgId, userId)
         val lines = depreciationRunService.listLines(posted.id)
         return ResponseEntity.ok(DepreciationRunResponse.from(posted, lines))
     }

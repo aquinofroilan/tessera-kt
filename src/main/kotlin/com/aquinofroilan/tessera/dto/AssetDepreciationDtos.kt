@@ -28,11 +28,11 @@ data class DepreciationRunLineResponse(
     companion object {
         fun from(line: AssetDepreciationRunLine) =
             DepreciationRunLineResponse(
-                id = line.id,
-                assetId = line.assetId,
+                id = line.id.toString(),
+                assetId = line.assetId.toString(),
                 depreciationAmount = line.depreciationAmount,
-                debitAccountId = line.debitAccountId,
-                creditAccountId = line.creditAccountId,
+                debitAccountId = line.debitAccountId?.toString(),
+                creditAccountId = line.creditAccountId?.toString(),
             )
     }
 }
@@ -56,15 +56,15 @@ data class DepreciationRunResponse(
             run: AssetDepreciationRun,
             lines: List<AssetDepreciationRunLine>? = null,
         ) = DepreciationRunResponse(
-            id = run.id,
+            id = run.id.toString(),
             periodYear = run.periodYear,
             periodMonth = run.periodMonth,
             status = run.status,
             totalDepreciation = run.totalDepreciation,
-            journalEntryId = run.journalEntryId,
+            journalEntryId = run.journalEntryId?.toString(),
             postedAt = run.postedAt?.toString(),
-            postedBy = run.postedBy,
-            organizationId = run.organizationId,
+            postedBy = run.postedBy?.toString(),
+            organizationId = run.organizationId.toString(),
             createdAt = run.createdAt?.toString(),
             updatedAt = (run.updatedAt ?: run.createdAt)?.toString(),
             lines = lines?.map { DepreciationRunLineResponse.from(it) },

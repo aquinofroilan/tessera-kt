@@ -26,9 +26,9 @@ enum class DepreciationRunStatus {
 data class AssetDepreciationRun(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: UUID = UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: UUID,
     @Column(name = "period_year")
     val periodYear: Int,
     @Column(name = "period_month")
@@ -38,11 +38,11 @@ data class AssetDepreciationRun(
     @Column(name = "total_depreciation")
     val totalDepreciation: BigDecimal = BigDecimal.ZERO,
     @Column(name = "journal_entry_id", columnDefinition = "uuid")
-    val journalEntryId: String? = null,
+    val journalEntryId: UUID? = null,
     @Column(name = "posted_at")
     val postedAt: LocalDateTime? = null,
     @Column(name = "posted_by", columnDefinition = "uuid")
-    val postedBy: String? = null,
+    val postedBy: UUID? = null,
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     val createdAt: LocalDateTime? = null,
