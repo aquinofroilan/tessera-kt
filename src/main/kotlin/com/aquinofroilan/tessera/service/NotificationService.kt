@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.util.UUID
 
 /**
  * In-app notification feed. Any service can call [publish] to drop a row
@@ -28,7 +29,7 @@ class NotificationService(
     @Transactional
     fun publish(
         request: CreateNotificationRequest,
-        organizationId: java.util.UUID,
+        organizationId: UUID,
     ): Notification {
         val saved =
             notificationRepository.save(
@@ -50,8 +51,8 @@ class NotificationService(
     }
 
     fun listFor(
-        recipientUserId: java.util.UUID,
-        organizationId: java.util.UUID,
+        recipientUserId: UUID,
+        organizationId: UUID,
     ): List<Notification> =
         notificationRepository.findByRecipientUserIdAndOrganizationIdOrderByCreatedAtDesc(
             recipientUserId,
@@ -59,8 +60,8 @@ class NotificationService(
         )
 
     fun unreadCountFor(
-        recipientUserId: java.util.UUID,
-        organizationId: java.util.UUID,
+        recipientUserId: UUID,
+        organizationId: UUID,
     ): Long =
         notificationRepository.countByRecipientUserIdAndOrganizationIdAndReadAtIsNull(
             recipientUserId,
@@ -69,9 +70,9 @@ class NotificationService(
 
     @Transactional
     fun markRead(
-        id: java.util.UUID,
-        recipientUserId: java.util.UUID,
-        organizationId: java.util.UUID,
+        id: UUID,
+        recipientUserId: UUID,
+        organizationId: UUID,
     ): Notification {
         val notification =
             notificationRepository.findById(id).orElseThrow {
@@ -91,8 +92,8 @@ class NotificationService(
 
     @Transactional
     fun markAllRead(
-        recipientUserId: java.util.UUID,
-        organizationId: java.util.UUID,
+        recipientUserId: UUID,
+        organizationId: UUID,
     ): Int {
         val touched =
             notificationRepository.markAllReadFor(
