@@ -10,6 +10,7 @@ import jakarta.validation.constraints.PositiveOrZero
 import jakarta.validation.constraints.Size
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 
 data class CreateFixedAssetRequest(
     @field:NotBlank(message = "Name is required")
@@ -54,7 +55,7 @@ data class UpdateFixedAssetRequest(
 )
 
 data class FixedAssetResponse(
-    val id: String,
+    val id: UUID,
     val assetNumber: String,
     val name: String,
     val description: String?,
@@ -72,7 +73,7 @@ data class FixedAssetResponse(
     val assetAccountId: String?,
     val accumulatedDepreciationAccountId: String?,
     val depreciationExpenseAccountId: String?,
-    val organizationId: String,
+    val organizationId: UUID,
     val createdAt: String?,
     val updatedAt: String?,
 ) {
@@ -83,7 +84,7 @@ data class FixedAssetResponse(
                 assetNumber = asset.assetNumber,
                 name = asset.name,
                 description = asset.description,
-                categoryId = asset.categoryId,
+                categoryId = asset.categoryId?.toString(),
                 acquisitionDate = asset.acquisitionDate.toString(),
                 acquisitionCost = asset.acquisitionCost,
                 salvageValue = asset.salvageValue,

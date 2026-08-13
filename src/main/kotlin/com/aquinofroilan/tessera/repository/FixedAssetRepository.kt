@@ -7,8 +7,8 @@ import org.springframework.stereotype.Repository
 import java.util.UUID
 
 @Repository
-interface FixedAssetRepository : JpaRepository<FixedAsset, String> {
-    fun findByOrganizationId(organizationId: String): List<FixedAsset>
+interface FixedAssetRepository : JpaRepository<FixedAsset, UUID> {
+    fun findByOrganizationId(organizationId: UUID): List<FixedAsset>
 
     fun findByOrganizationIdAndStatus(
         organizationId: UUID,
@@ -17,8 +17,8 @@ interface FixedAssetRepository : JpaRepository<FixedAsset, String> {
 
     fun findByOrganizationIdAndCategoryId(
         organizationId: UUID,
-        categoryId: String,
+        categoryId: UUID,
     ): List<FixedAsset>
 
-    fun countByOrganizationId(organizationId: String): Long
+    fun countByOrganizationId(organizationId: UUID): Long
 }

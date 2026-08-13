@@ -21,7 +21,7 @@ enum class DepreciationMethod {
 @Entity
 @Table(name = "asset_categories")
 @EntityListeners(AuditingEntityListener::class)
-class AssetCategory(
+data class AssetCategory(
     @Id
     @Column(columnDefinition = "uuid")
     var id: UUID = UUID.ofEpochMillis(System.currentTimeMillis()),

@@ -47,7 +47,7 @@ class AssetCategoryService(
         }
 
     fun getCategory(
-        id: String,
+        id: UUID,
         organizationId: UUID,
     ): AssetCategory {
         val category =

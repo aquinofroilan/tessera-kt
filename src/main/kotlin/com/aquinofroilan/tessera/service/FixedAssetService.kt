@@ -36,7 +36,7 @@ class FixedAssetService(
                 organizationId = organizationId,
                 name = request.name.trim(),
                 description = request.description?.trim()?.takeIf { it.isNotEmpty() },
-                categoryId = request.categoryId,
+                categoryId = request.categoryId?.let { UUID.fromString(it) },
                 acquisitionDate = acquisitionDate,
                 acquisitionCost = acquisitionCost,
                 salvageValue = request.salvageValue,
@@ -54,7 +54,7 @@ class FixedAssetService(
     fun listAssets(
         organizationId: UUID,
         status: AssetStatus? = null,
-        categoryId: String? = null,
+        categoryId: UUID? = null,
     ): List<FixedAsset> =
         when {
             status != null -> fixedAssetRepository.findByOrganizationIdAndStatus(organizationId, status)
@@ -63,7 +63,7 @@ class FixedAssetService(
         }
 
     fun getAsset(
-        id: String,
+        id: UUID,
         organizationId: UUID,
     ): FixedAsset {
         val asset =
@@ -78,7 +78,7 @@ class FixedAssetService(
 
     @Transactional
     fun updateAsset(
-        id: String,
+        id: UUID,
         request: UpdateFixedAssetRequest,
         organizationId: UUID,
     ): FixedAsset {
@@ -92,7 +92,7 @@ class FixedAssetService(
                         null -> existing.description
                         else -> d.trim().takeIf { it.isNotEmpty() }
                     },
-                categoryId = request.categoryId ?: existing.categoryId,
+                categoryId = request.categoryId?.let { UUID.fromString(it) } ?: existing.categoryId,
                 location =
                     when (val l = request.location) {
                         null -> existing.location
@@ -113,7 +113,7 @@ class FixedAssetService(
     }
 
     private fun saveWithRetry(
-        organizationId: String,
+        organizationId: UUID,
         build: (assetNumber: String) -> FixedAsset,
     ): FixedAsset {
         var attempts = 0
@@ -128,7 +128,7 @@ class FixedAssetService(
         throw BusinessRuleException("Couldn't allocate an asset number after $MAX_NUMBER_RETRIES attempts")
     }
 
-    private fun nextAssetNumber(organizationId: String): String {
+    private fun nextAssetNumber(organizationId: UUID): String {
         val count = fixedAssetRepository.countByOrganizationId(organizationId)
         return "FA-%05d".format(count + 1)
     }

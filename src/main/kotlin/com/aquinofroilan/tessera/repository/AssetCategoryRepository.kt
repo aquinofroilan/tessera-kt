@@ -7,7 +7,7 @@ import java.util.Optional
 import java.util.UUID
 
 @Repository
-interface AssetCategoryRepository : JpaRepository<AssetCategory, String> {
+interface AssetCategoryRepository : JpaRepository<AssetCategory, UUID> {
     fun findByOrganizationId(organizationId: UUID): List<AssetCategory>
 
     fun findByOrganizationIdAndIsActiveTrue(organizationId: UUID): List<AssetCategory>

@@ -24,18 +24,18 @@ enum class AssetStatus {
 @Entity
 @Table(name = "fixed_assets")
 @EntityListeners(AuditingEntityListener::class)
-class FixedAsset(
+data class FixedAsset(
     @Id
     @Column(columnDefinition = "uuid")
     var id: UUID = UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: String,
+    var organizationId: UUID,
     @Column(name = "asset_number")
     var assetNumber: String,
     var name: String,
     var description: String? = null,
     @Column(name = "category_id", columnDefinition = "uuid")
-    var categoryId: String? = null,
+    var categoryId: UUID? = null,
     @Column(name = "acquisition_date")
     var acquisitionDate: LocalDate,
     @Column(name = "acquisition_cost")
