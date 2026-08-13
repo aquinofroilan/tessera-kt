@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/assets")
@@ -54,8 +55,16 @@ class FixedAssetController(
                     return ResponseEntity.badRequest().body(mapOf("error" to "Invalid status '$it'"))
                 }
             }
+        val categoryUuid =
+            categoryId?.let {
+                try {
+                    UUID.fromString(it)
+                } catch (e: IllegalArgumentException) {
+                    return ResponseEntity.badRequest().body(mapOf("error" to "Invalid category ID"))
+                }
+            }
         return ResponseEntity.ok(
-            fixedAssetService.listAssets(orgId, assetStatus, categoryId).map { FixedAssetResponse.from(it) },
+            fixedAssetService.listAssets(orgId, assetStatus, categoryUuid).map { FixedAssetResponse.from(it) },
         )
     }
 
@@ -65,7 +74,13 @@ class FixedAssetController(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(FixedAssetResponse.from(fixedAssetService.getAsset(id, orgId)))
+        val assetId =
+            try {
+                UUID.fromString(id)
+            } catch (e: IllegalArgumentException) {
+                return ResponseEntity.badRequest().body(mapOf("error" to "Invalid asset ID"))
+            }
+        return ResponseEntity.ok(FixedAssetResponse.from(fixedAssetService.getAsset(assetId, orgId)))
     }
 
     @PatchMapping("/{id}")
@@ -75,6 +90,12 @@ class FixedAssetController(
         @Valid @RequestBody request: UpdateFixedAssetRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(FixedAssetResponse.from(fixedAssetService.updateAsset(id, request, orgId)))
+        val assetId =
+            try {
+                UUID.fromString(id)
+            } catch (e: IllegalArgumentException) {
+                return ResponseEntity.badRequest().body(mapOf("error" to "Invalid asset ID"))
+            }
+        return ResponseEntity.ok(FixedAssetResponse.from(fixedAssetService.updateAsset(assetId, request, orgId)))
     }
 }

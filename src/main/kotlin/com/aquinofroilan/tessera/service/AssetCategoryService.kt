@@ -62,7 +62,7 @@ class AssetCategoryService(
 
     @Transactional
     fun updateCategory(
-        id: String,
+        id: UUID,
         request: UpdateAssetCategoryRequest,
         organizationId: UUID,
     ): AssetCategory {

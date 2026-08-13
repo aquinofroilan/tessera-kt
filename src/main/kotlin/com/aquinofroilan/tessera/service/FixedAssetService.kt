@@ -28,7 +28,7 @@ class FixedAssetService(
         if (request.salvageValue > acquisitionCost) {
             throw BusinessRuleException("Salvage value cannot exceed acquisition cost")
         }
-        request.categoryId?.let { assetCategoryService.getCategory(it, organizationId) }
+        request.categoryId?.let { assetCategoryService.getCategory(UUID.fromString(it), organizationId) }
 
         return saveWithRetry(organizationId) { number ->
             FixedAsset(
@@ -83,7 +83,7 @@ class FixedAssetService(
         organizationId: UUID,
     ): FixedAsset {
         val existing = getAsset(id, organizationId)
-        request.categoryId?.let { assetCategoryService.getCategory(it, organizationId) }
+        request.categoryId?.let { assetCategoryService.getCategory(UUID.fromString(it), organizationId) }
         return fixedAssetRepository.save(
             existing.copy(
                 name = request.name?.trim()?.takeIf { it.isNotEmpty() } ?: existing.name,

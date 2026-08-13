@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/assets/categories")
@@ -54,7 +55,13 @@ class AssetCategoryController(
         @PathVariable id: String,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(AssetCategoryResponse.from(assetCategoryService.getCategory(id, orgId)))
+        val categoryId =
+            try {
+                UUID.fromString(id)
+            } catch (e: IllegalArgumentException) {
+                return ResponseEntity.badRequest().body(mapOf("error" to "Invalid category ID"))
+            }
+        return ResponseEntity.ok(AssetCategoryResponse.from(assetCategoryService.getCategory(categoryId, orgId)))
     }
 
     @PatchMapping("/{id}")
@@ -64,6 +71,12 @@ class AssetCategoryController(
         @Valid @RequestBody request: UpdateAssetCategoryRequest,
     ): ResponseEntity<Any> {
         val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(AssetCategoryResponse.from(assetCategoryService.updateCategory(id, request, orgId)))
+        val categoryId =
+            try {
+                UUID.fromString(id)
+            } catch (e: IllegalArgumentException) {
+                return ResponseEntity.badRequest().body(mapOf("error" to "Invalid category ID"))
+            }
+        return ResponseEntity.ok(AssetCategoryResponse.from(assetCategoryService.updateCategory(categoryId, request, orgId)))
     }
 }
