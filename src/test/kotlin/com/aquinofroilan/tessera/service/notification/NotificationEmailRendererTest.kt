@@ -48,10 +48,11 @@ class NotificationEmailRendererTest {
                 ),
             )
 
-        assertThat(content.html).isNotNull()
-        assertThat(content.html!!).contains("Your leave was approved")
-        assertThat(content.html!!).contains("/hr/leave-requests/lr-1")
-        assertThat(content.html!!).contains("Open in Tessera")
+        val html = content.html
+        assertThat(html).isNotNull
+        assertThat(html).contains("Your leave was approved")
+        assertThat(html).contains("/hr/leave-requests/lr-1")
+        assertThat(html).contains("Open in Tessera")
     }
 
     @Test
@@ -76,10 +77,12 @@ class NotificationEmailRendererTest {
                 ),
             )
 
-        assertThat(content.html!!).doesNotContain("<script>evil</script>")
-        assertThat(content.html!!).contains("&lt;script&gt;evil&lt;/script&gt;")
-        assertThat(content.html!!).contains("a &amp; b &lt; c")
-        assertThat(content.html!!).contains("https://example.com/?q=&quot;x&quot;")
+        val html = content.html
+        assertThat(html).isNotNull
+        assertThat(html).doesNotContain("<script>evil</script>")
+        assertThat(html).contains("&lt;script&gt;evil&lt;/script&gt;")
+        assertThat(html).contains("a &amp; b &lt; c")
+        assertThat(html).contains("https://example.com/?q=&quot;x&quot;")
     }
 
     private fun notification(
