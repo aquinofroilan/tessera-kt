@@ -33,11 +33,11 @@ enum class DisposalStatus {
 data class AssetDisposal(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: String = UUID.randomUUID().toString(),
+    val id: UUID = UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    val organizationId: String,
+    val organizationId: UUID,
     @Column(name = "asset_id", columnDefinition = "uuid")
-    val assetId: String,
+    val assetId: UUID,
     @Column(name = "disposal_date")
     val disposalDate: LocalDate,
     @Enumerated(EnumType.STRING)
@@ -47,16 +47,16 @@ data class AssetDisposal(
     @Enumerated(EnumType.STRING)
     val status: DisposalStatus = DisposalStatus.DRAFT,
     @Column(name = "journal_entry_id", columnDefinition = "uuid")
-    val journalEntryId: String? = null,
+    val journalEntryId: UUID? = null,
     @Column(name = "gain_loss_account_id", columnDefinition = "uuid")
-    val gainLossAccountId: String? = null,
+    val gainLossAccountId: UUID? = null,
     @Column(name = "cash_account_id", columnDefinition = "uuid")
-    val cashAccountId: String? = null,
+    val cashAccountId: UUID? = null,
     val notes: String? = null,
     @Column(name = "posted_at")
     val postedAt: LocalDateTime? = null,
     @Column(name = "posted_by", columnDefinition = "uuid")
-    val postedBy: String? = null,
+    val postedBy: UUID? = null,
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     val createdAt: LocalDateTime? = null,

@@ -45,19 +45,19 @@ data class AssetDisposalResponse(
     companion object {
         fun from(disposal: AssetDisposal) =
             AssetDisposalResponse(
-                id = disposal.id,
-                assetId = disposal.assetId,
+                id = disposal.id.toString(),
+                assetId = disposal.assetId.toString(),
                 disposalDate = disposal.disposalDate.toString(),
                 disposalType = disposal.disposalType,
                 proceeds = disposal.proceeds,
                 status = disposal.status,
-                journalEntryId = disposal.journalEntryId,
-                gainLossAccountId = disposal.gainLossAccountId,
-                cashAccountId = disposal.cashAccountId,
+                journalEntryId = disposal.journalEntryId?.toString(),
+                gainLossAccountId = disposal.gainLossAccountId?.toString(),
+                cashAccountId = disposal.cashAccountId?.toString(),
                 notes = disposal.notes,
                 postedAt = disposal.postedAt?.toString(),
-                postedBy = disposal.postedBy,
-                organizationId = disposal.organizationId,
+                postedBy = disposal.postedBy?.toString(),
+                organizationId = disposal.organizationId.toString(),
                 createdAt = disposal.createdAt?.toString(),
                 updatedAt = (disposal.updatedAt ?: disposal.createdAt)?.toString(),
             )
