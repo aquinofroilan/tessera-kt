@@ -1,6 +1,6 @@
 package com.aquinofroilan.tessera.security
 
-import com.aquinofroilan.tessera.model.User
+import com.aquinofroilan.tessera.domain.auth.model.User
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder

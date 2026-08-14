@@ -1,7 +1,7 @@
 package com.aquinofroilan.tessera.config
 
-import com.aquinofroilan.tessera.model.Currency
-import com.aquinofroilan.tessera.repository.CurrencyRepository
+import com.aquinofroilan.tessera.domain.finance.model.Currency
+import com.aquinofroilan.tessera.domain.finance.repository.CurrencyRepository
 import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner

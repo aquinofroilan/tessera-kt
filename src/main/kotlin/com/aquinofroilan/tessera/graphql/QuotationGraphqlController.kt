@@ -1,9 +1,9 @@
 package com.aquinofroilan.tessera.graphql
 
-import com.aquinofroilan.tessera.controller.QuotationController
-import com.aquinofroilan.tessera.dto.ConvertQuotationRequest
-import com.aquinofroilan.tessera.dto.CreateQuotationRequest
-import com.aquinofroilan.tessera.dto.RejectQuotationRequest
+import com.aquinofroilan.tessera.domain.sales.controller.QuotationController
+import com.aquinofroilan.tessera.domain.sales.dto.ConvertQuotationRequest
+import com.aquinofroilan.tessera.domain.sales.dto.CreateQuotationRequest
+import com.aquinofroilan.tessera.domain.sales.dto.RejectQuotationRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping

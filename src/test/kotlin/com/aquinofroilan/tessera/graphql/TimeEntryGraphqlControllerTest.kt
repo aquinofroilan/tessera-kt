@@ -1,7 +1,7 @@
 package com.aquinofroilan.tessera.graphql
 
 import com.aquinofroilan.tessera.config.TestSecurityConfig
-import com.aquinofroilan.tessera.controller.TimeEntryController
+import com.aquinofroilan.tessera.domain.project.controller.TimeEntryController
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`

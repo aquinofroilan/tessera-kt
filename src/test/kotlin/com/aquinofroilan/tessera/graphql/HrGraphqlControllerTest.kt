@@ -1,13 +1,13 @@
 package com.aquinofroilan.tessera.graphql
 
 import com.aquinofroilan.tessera.config.TestSecurityConfig
-import com.aquinofroilan.tessera.controller.DepartmentController
-import com.aquinofroilan.tessera.controller.EmployeeCompensationController
-import com.aquinofroilan.tessera.controller.EmployeeController
-import com.aquinofroilan.tessera.controller.LeaveRequestController
-import com.aquinofroilan.tessera.controller.LeaveTypeController
-import com.aquinofroilan.tessera.controller.PayrollRunController
-import com.aquinofroilan.tessera.controller.PositionController
+import com.aquinofroilan.tessera.domain.hr.controller.DepartmentController
+import com.aquinofroilan.tessera.domain.hr.controller.EmployeeCompensationController
+import com.aquinofroilan.tessera.domain.hr.controller.EmployeeController
+import com.aquinofroilan.tessera.domain.hr.controller.LeaveRequestController
+import com.aquinofroilan.tessera.domain.hr.controller.LeaveTypeController
+import com.aquinofroilan.tessera.domain.hr.controller.PayrollRunController
+import com.aquinofroilan.tessera.domain.hr.controller.PositionController
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`

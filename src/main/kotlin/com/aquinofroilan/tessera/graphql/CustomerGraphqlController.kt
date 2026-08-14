@@ -1,11 +1,11 @@
 package com.aquinofroilan.tessera.graphql
 
-import com.aquinofroilan.tessera.dto.CreateCustomerRequest
-import com.aquinofroilan.tessera.dto.UpdateCustomerRequest
+import com.aquinofroilan.tessera.domain.sales.dto.CreateCustomerRequest
+import com.aquinofroilan.tessera.domain.sales.dto.UpdateCustomerRequest
+import com.aquinofroilan.tessera.domain.sales.model.Customer
+import com.aquinofroilan.tessera.domain.sales.service.CustomerService
 import com.aquinofroilan.tessera.exception.AuthenticationException
-import com.aquinofroilan.tessera.model.Customer
 import com.aquinofroilan.tessera.security.AuthenticationContext
-import com.aquinofroilan.tessera.service.CustomerService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Min

@@ -1,7 +1,7 @@
 package com.aquinofroilan.tessera.graphql
 
-import com.aquinofroilan.tessera.controller.ProjectBudgetController
-import com.aquinofroilan.tessera.dto.SetProjectBudgetRequest
+import com.aquinofroilan.tessera.domain.project.controller.ProjectBudgetController
+import com.aquinofroilan.tessera.domain.project.dto.SetProjectBudgetRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
