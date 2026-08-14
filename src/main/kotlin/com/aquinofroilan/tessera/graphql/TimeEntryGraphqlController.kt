@@ -1,8 +1,8 @@
 package com.aquinofroilan.tessera.graphql
 
-import com.aquinofroilan.tessera.controller.TimeEntryController
-import com.aquinofroilan.tessera.dto.CreateTimeEntryRequest
-import com.aquinofroilan.tessera.dto.UpdateTimeEntryRequest
+import com.aquinofroilan.tessera.domain.project.controller.TimeEntryController
+import com.aquinofroilan.tessera.domain.project.dto.CreateTimeEntryRequest
+import com.aquinofroilan.tessera.domain.project.dto.UpdateTimeEntryRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping

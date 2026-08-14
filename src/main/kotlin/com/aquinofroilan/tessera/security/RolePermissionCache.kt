@@ -1,6 +1,6 @@
 package com.aquinofroilan.tessera.security
 
-import com.aquinofroilan.tessera.repository.RoleRepository
+import com.aquinofroilan.tessera.domain.auth.repository.RoleRepository
 import com.github.benmanes.caffeine.cache.Caffeine
 import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Component

@@ -1,9 +1,9 @@
 package com.aquinofroilan.tessera.graphql
 
-import com.aquinofroilan.tessera.controller.PurchaseRequestController
-import com.aquinofroilan.tessera.dto.ConvertPurchaseRequestRequest
-import com.aquinofroilan.tessera.dto.CreatePurchaseRequestRequest
-import com.aquinofroilan.tessera.dto.RejectPurchaseRequestRequest
+import com.aquinofroilan.tessera.domain.procurement.controller.PurchaseRequestController
+import com.aquinofroilan.tessera.domain.procurement.dto.ConvertPurchaseRequestRequest
+import com.aquinofroilan.tessera.domain.procurement.dto.CreatePurchaseRequestRequest
+import com.aquinofroilan.tessera.domain.procurement.dto.RejectPurchaseRequestRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping

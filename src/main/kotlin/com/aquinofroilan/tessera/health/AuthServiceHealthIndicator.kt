@@ -1,6 +1,6 @@
 package com.aquinofroilan.tessera.health
 
-import com.aquinofroilan.tessera.repository.UserRepository
+import com.aquinofroilan.tessera.domain.auth.repository.UserRepository
 import org.springframework.boot.health.contributor.Health
 import org.springframework.boot.health.contributor.HealthIndicator
 import org.springframework.stereotype.Component

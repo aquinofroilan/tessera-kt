@@ -1,13 +1,13 @@
 package com.aquinofroilan.tessera.graphql
 
 import com.aquinofroilan.tessera.config.TestSecurityConfig
-import com.aquinofroilan.tessera.controller.CurrencyController
-import com.aquinofroilan.tessera.controller.ExchangeRateController
-import com.aquinofroilan.tessera.controller.InventoryReorderRuleController
-import com.aquinofroilan.tessera.controller.InventoryReportsController
-import com.aquinofroilan.tessera.controller.ProductController
-import com.aquinofroilan.tessera.controller.StockMovementController
-import com.aquinofroilan.tessera.controller.WarehouseController
+import com.aquinofroilan.tessera.domain.finance.controller.CurrencyController
+import com.aquinofroilan.tessera.domain.finance.controller.ExchangeRateController
+import com.aquinofroilan.tessera.domain.inventory.controller.InventoryReorderRuleController
+import com.aquinofroilan.tessera.domain.inventory.controller.InventoryReportsController
+import com.aquinofroilan.tessera.domain.inventory.controller.ProductController
+import com.aquinofroilan.tessera.domain.inventory.controller.StockMovementController
+import com.aquinofroilan.tessera.domain.inventory.controller.WarehouseController
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`

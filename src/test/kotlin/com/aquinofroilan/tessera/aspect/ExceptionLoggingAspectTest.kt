@@ -1,6 +1,6 @@
 package com.aquinofroilan.tessera.aspect
 
-import com.aquinofroilan.tessera.service.PostHogLoggingService
+import com.aquinofroilan.tessera.domain.platform.service.PostHogLoggingService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock

@@ -1,8 +1,8 @@
 package com.aquinofroilan.tessera.config
 
-import com.aquinofroilan.tessera.model.Role
-import com.aquinofroilan.tessera.model.RoleLevel
-import com.aquinofroilan.tessera.repository.RoleRepository
+import com.aquinofroilan.tessera.domain.auth.model.Role
+import com.aquinofroilan.tessera.domain.auth.model.RoleLevel
+import com.aquinofroilan.tessera.domain.auth.repository.RoleRepository
 import com.aquinofroilan.tessera.security.Permissions
 import com.aquinofroilan.tessera.security.RolePermissionCache
 import org.assertj.core.api.Assertions.assertThat

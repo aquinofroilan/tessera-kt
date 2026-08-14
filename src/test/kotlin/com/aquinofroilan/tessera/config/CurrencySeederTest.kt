@@ -1,7 +1,7 @@
 package com.aquinofroilan.tessera.config
 
-import com.aquinofroilan.tessera.model.Currency
-import com.aquinofroilan.tessera.repository.CurrencyRepository
+import com.aquinofroilan.tessera.domain.finance.model.Currency
+import com.aquinofroilan.tessera.domain.finance.repository.CurrencyRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

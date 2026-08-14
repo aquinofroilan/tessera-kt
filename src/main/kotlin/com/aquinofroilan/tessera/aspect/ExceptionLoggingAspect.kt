@@ -1,6 +1,6 @@
 package com.aquinofroilan.tessera.aspect
 
-import com.aquinofroilan.tessera.service.PostHogLoggingService
+import com.aquinofroilan.tessera.domain.platform.service.PostHogLoggingService
 import org.aspectj.lang.annotation.AfterThrowing
 import org.aspectj.lang.annotation.Aspect
 import org.slf4j.Logger
