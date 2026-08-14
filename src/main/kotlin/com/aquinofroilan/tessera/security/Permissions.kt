@@ -91,6 +91,10 @@ object Permissions {
 
     const val WORKFLOW_MANAGE = "workflow:manage"
 
+    const val ASSETS_READ = "assets:read"
+    const val ASSETS_WRITE = "assets:write"
+    const val ASSETS_APPROVE = "assets:approve"
+
     val ALL_PERMISSIONS =
         listOf(
             SESSION_READ,
@@ -162,5 +166,8 @@ object Permissions {
             CRM_READ,
             CRM_WRITE,
             WORKFLOW_MANAGE,
+            ASSETS_READ,
+            ASSETS_WRITE,
+            ASSETS_APPROVE,
         )
 }
