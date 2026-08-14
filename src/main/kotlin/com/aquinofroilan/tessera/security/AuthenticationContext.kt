@@ -26,4 +26,31 @@ class AuthenticationContext {
         ResponseEntity
             .status(HttpStatus.UNAUTHORIZED)
             .body(mapOf("error" to "Authentication required"))
+
+    /**
+     * Effective permission strings for the caller. Read from the granted
+     * authorities populated by [com.aquinofroilan.tessera.config.TokenAuthenticationFilter],
+     * which prefixes role names with \`ROLE_\` and leaves permission strings
+     * bare — so we filter the prefix out here.
+     */
+    fun permissions(): List<String> {
+        val authentication = SecurityContextHolder.getContext().authentication ?: return emptyList()
+        return authentication.authorities
+            .mapNotNull { it.authority }
+            .filter { !it.startsWith("ROLE_") }
+            .sorted()
+    }
+
+    /**
+     * Role names (sans the \`ROLE_\` prefix). Useful for the frontend when
+     * gating role-scoped admin UI without enumerating every permission.
+     */
+    fun roles(): List<String> {
+        val authentication = SecurityContextHolder.getContext().authentication ?: return emptyList()
+        return authentication.authorities
+            .mapNotNull { it.authority }
+            .filter { it.startsWith("ROLE_") }
+            .map { it.removePrefix("ROLE_") }
+            .sorted()
+    }
 }
