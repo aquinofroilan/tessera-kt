@@ -13,14 +13,13 @@ class AuthenticationContext {
         return when (val details = authentication.details) {
             is SessionContext -> details.organizationId
             is ApiKeyContext -> details.organizationId
-            else -> java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
+            else -> null
         }
     }
 
     fun userId(): java.util.UUID? {
         val authentication = SecurityContextHolder.getContext().authentication ?: return null
         return (authentication.principal as? User)?.uuid
-            ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
     }
 
     fun unauthorized(): ResponseEntity<Any> =
