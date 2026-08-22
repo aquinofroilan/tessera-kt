@@ -7,6 +7,7 @@ import com.aquinofroilan.tessera.domain.platform.dto.GenerateProjectInvoiceReque
 import com.aquinofroilan.tessera.domain.project.service.ProjectBillingService
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -30,18 +31,17 @@ class ProjectBillingController(
     @PreAuthorize("hasAuthority('projects:write')")
     fun generateInvoice(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @PathVariable projectId: java.util.UUID,
         @Valid @RequestBody(required = false) request: GenerateProjectInvoiceRequest?,
     ): ResponseEntity<Any> {
-        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val invoice =
             projectBillingService.generateInvoice(
                 projectId,
                 request ?: GenerateProjectInvoiceRequest(),
                 orgId,
-                createdBy,
+                userId,
             )
-        // Reuse the invoice controller's mapping for a consistent InvoiceResponse.
         return ResponseEntity.status(HttpStatus.CREATED).body(invoiceController.getInvoice(orgId, invoice.id).body)
     }
 }

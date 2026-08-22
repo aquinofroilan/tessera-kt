@@ -37,10 +37,10 @@ class PurchaseOrderController(
     @PreAuthorize("hasAuthority('procurement:write')")
     fun createPurchaseOrder(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @Valid @RequestBody request: CreatePurchaseOrderRequest,
     ): ResponseEntity<Any> {
-        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        val po = purchaseOrderService.createPurchaseOrder(request, orgId, createdBy)
+        val po = purchaseOrderService.createPurchaseOrder(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(PurchaseOrderResponse.from(po))
     }
 
@@ -76,11 +76,9 @@ class PurchaseOrderController(
     @PreAuthorize("hasAuthority('procurement:approve')")
     fun approvePurchaseOrder(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val approvedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        return ResponseEntity.ok(PurchaseOrderResponse.from(purchaseOrderService.approvePurchaseOrder(id, orgId, approvedBy)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(PurchaseOrderResponse.from(purchaseOrderService.approvePurchaseOrder(id, orgId, userId)))
 
     @PostMapping("/{id}/receive")
     @PreAuthorize("hasAuthority('procurement:receive')")
@@ -104,11 +102,11 @@ class PurchaseOrderController(
     @PreAuthorize("hasAuthority('procurement:receive')")
     fun generateBill(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody(required = false) request: GenerateBillRequest?,
     ): ResponseEntity<Any> {
-        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        val bill = purchaseOrderService.generateBill(id, request, orgId, createdBy)
+        val bill = purchaseOrderService.generateBill(id, request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("billId" to bill.id, "billNumber" to bill.billNumber))
     }
 

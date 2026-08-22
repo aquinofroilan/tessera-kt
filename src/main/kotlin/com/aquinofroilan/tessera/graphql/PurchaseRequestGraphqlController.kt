@@ -39,7 +39,11 @@ class PurchaseRequestGraphqlController(
         @Argument input: Any,
     ): Any =
         support.unwrap(
-            purchaseRequestController.createPurchaseRequest(support.orgId(), support.toRequest<CreatePurchaseRequestRequest>(input)),
+            purchaseRequestController.createPurchaseRequest(
+                support.orgId(),
+                support.userId(),
+                support.toRequest<CreatePurchaseRequestRequest>(input),
+            ),
         )
 
     @MutationMapping
@@ -52,7 +56,7 @@ class PurchaseRequestGraphqlController(
     @PreAuthorize("hasAuthority('procurement:approve')")
     fun approvePurchaseRequest(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(purchaseRequestController.approvePurchaseRequest(support.orgId(), id))
+    ): Any = support.unwrap(purchaseRequestController.approvePurchaseRequest(support.orgId(), support.userId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:approve')")
@@ -61,7 +65,7 @@ class PurchaseRequestGraphqlController(
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<RejectPurchaseRequestRequest>(it) }
-        return support.unwrap(purchaseRequestController.rejectPurchaseRequest(support.orgId(), id, request))
+        return support.unwrap(purchaseRequestController.rejectPurchaseRequest(support.orgId(), support.userId(), id, request))
     }
 
     @MutationMapping
@@ -77,6 +81,6 @@ class PurchaseRequestGraphqlController(
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<ConvertPurchaseRequestRequest>(it) }
-        return support.unwrap(purchaseRequestController.convertPurchaseRequest(support.orgId(), id, request))
+        return support.unwrap(purchaseRequestController.convertPurchaseRequest(support.orgId(), support.userId(), id, request))
     }
 }

@@ -51,7 +51,7 @@ class TimeEntryGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["projects:approve"])
     fun `approveTimeEntry mutation should bridge to controller`() {
-        `when`(timeEntryController.approveTimeEntry(anyOrNull(), anyOrNull()))
+        `when`(timeEntryController.approveTimeEntry(anyOrNull(), anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "APPROVED")))
 
         graphQlTester

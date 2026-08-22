@@ -43,11 +43,10 @@ class InvoiceController(
     @PreAuthorize("hasAuthority('ar:create')")
     fun createInvoice(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @Valid @RequestBody request: CreateInvoiceRequest,
     ): ResponseEntity<Any> {
-        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-
-        val invoice = invoiceService.createInvoice(request, orgId, createdBy)
+        val invoice = invoiceService.createInvoice(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(invoice.toResponse())
     }
 
@@ -112,12 +111,11 @@ class InvoiceController(
     @PreAuthorize("hasAuthority('ar:receive')")
     fun recordReceipt(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: RecordReceiptRequest,
     ): ResponseEntity<Any> {
-        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-
-        val receipt = invoiceService.recordReceipt(id, request, orgId, createdBy)
+        val receipt = invoiceService.recordReceipt(id, request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(receipt.toResponse())
     }
 

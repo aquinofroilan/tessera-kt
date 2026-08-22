@@ -11,6 +11,7 @@ import com.aquinofroilan.tessera.domain.finance.model.JournalEntryStatus
 import com.aquinofroilan.tessera.domain.finance.service.JournalEntryService
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -37,11 +38,10 @@ class JournalEntryController(
     @PreAuthorize("hasAuthority('journal:create')")
     fun createJournalEntry(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @Valid @RequestBody request: CreateJournalEntryRequest,
     ): ResponseEntity<Any> {
-        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-
-        val entry = journalEntryService.createJournalEntry(request, orgId, createdBy)
+        val entry = journalEntryService.createJournalEntry(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(entry.toResponse())
     }
 

@@ -7,6 +7,7 @@ import com.aquinofroilan.tessera.domain.hr.dto.EmployeeCompensationResponse
 import com.aquinofroilan.tessera.domain.hr.service.EmployeeCompensationService
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -33,11 +34,11 @@ class EmployeeCompensationController(
     @PreAuthorize("hasAuthority('hr:write')")
     fun addCompensation(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @PathVariable employeeId: java.util.UUID,
         @Valid @RequestBody request: CreateEmployeeCompensationRequest,
     ): ResponseEntity<Any> {
-        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        val comp = compensationService.addCompensation(employeeId, request, orgId, createdBy)
+        val comp = compensationService.addCompensation(employeeId, request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(EmployeeCompensationResponse.from(comp))
     }
 

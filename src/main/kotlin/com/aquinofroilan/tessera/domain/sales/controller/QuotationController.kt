@@ -11,6 +11,7 @@ import com.aquinofroilan.tessera.domain.sales.model.QuotationStatus
 import com.aquinofroilan.tessera.domain.sales.service.QuotationService
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -36,10 +37,10 @@ class QuotationController(
     @PreAuthorize("hasAuthority('sales:write')")
     fun createQuotation(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @Valid @RequestBody request: CreateQuotationRequest,
     ): ResponseEntity<Any> {
-        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        val created = quotationService.createQuotation(request, orgId, createdBy)
+        val created = quotationService.createQuotation(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(QuotationResponse.from(created))
     }
 
@@ -105,11 +106,11 @@ class QuotationController(
     @PreAuthorize("hasAuthority('sales:write')")
     fun convertQuotation(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody(required = false) request: ConvertQuotationRequest?,
     ): ResponseEntity<Any> {
-        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        val salesOrder = quotationService.convertToSalesOrder(id, request ?: ConvertQuotationRequest(), orgId, createdBy)
+        val salesOrder = quotationService.convertToSalesOrder(id, request ?: ConvertQuotationRequest(), orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(SalesOrderResponse.from(salesOrder))
     }
 }

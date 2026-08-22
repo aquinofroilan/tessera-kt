@@ -24,6 +24,6 @@ class ProjectBillingGraphqlController(
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<GenerateProjectInvoiceRequest>(it) }
-        return support.unwrap(projectBillingController.generateInvoice(support.orgId(), projectId, request))
+        return support.unwrap(projectBillingController.generateInvoice(support.orgId(), support.userId(), projectId, request))
     }
 }

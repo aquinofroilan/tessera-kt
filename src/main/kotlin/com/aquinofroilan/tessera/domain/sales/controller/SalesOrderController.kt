@@ -36,10 +36,10 @@ class SalesOrderController(
     @PreAuthorize("hasAuthority('sales:write')")
     fun createSalesOrder(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @Valid @RequestBody request: CreateSalesOrderRequest,
     ): ResponseEntity<Any> {
-        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        val so = salesOrderService.createSalesOrder(request, orgId, createdBy)
+        val so = salesOrderService.createSalesOrder(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(SalesOrderResponse.from(so))
     }
 
@@ -75,11 +75,9 @@ class SalesOrderController(
     @PreAuthorize("hasAuthority('sales:approve')")
     fun approveSalesOrder(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val approvedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        return ResponseEntity.ok(SalesOrderResponse.from(salesOrderService.approveSalesOrder(id, orgId, approvedBy)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(SalesOrderResponse.from(salesOrderService.approveSalesOrder(id, orgId, userId)))
 
     @PostMapping("/{id}/fulfill")
     @PreAuthorize("hasAuthority('sales:fulfill')")
@@ -94,11 +92,11 @@ class SalesOrderController(
     @PreAuthorize("hasAuthority('sales:fulfill')")
     fun generateInvoice(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody(required = false) request: GenerateInvoiceRequest?,
     ): ResponseEntity<Any> {
-        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        val invoice = salesOrderService.generateInvoice(id, request, orgId, createdBy)
+        val invoice = salesOrderService.generateInvoice(id, request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("invoiceId" to invoice.id, "invoiceNumber" to invoice.invoiceNumber))
     }
 
