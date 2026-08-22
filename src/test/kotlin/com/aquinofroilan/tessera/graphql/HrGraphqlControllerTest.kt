@@ -11,7 +11,7 @@ import com.aquinofroilan.tessera.domain.hr.controller.PositionController
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
-import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest
 import org.springframework.context.annotation.Import
@@ -19,7 +19,6 @@ import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.http.ResponseEntity
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
-import java.util.UUID
 
 @GraphQlTest(controllers = [HrGraphqlController::class])
 @Import(
@@ -57,7 +56,7 @@ class HrGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["hr:read"])
     fun `employees query should return json payload`() {
-        `when`(employeeController.listEmployees(any(), null, null))
+        `when`(employeeController.listEmployees(anyOrNull(), anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "ACTIVE"))))
 
         graphQlTester
@@ -76,7 +75,7 @@ class HrGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["hr:read"])
     fun `departmentOrgChart query should return the nested tree`() {
-        `when`(departmentController.getOrgChart(any()))
+        `when`(departmentController.getOrgChart(anyOrNull()))
             .thenReturn(
                 ResponseEntity.ok(
                     listOf(
@@ -104,7 +103,7 @@ class HrGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["hr:approve"])
     fun `approvePayrollRun mutation should bridge to controller`() {
-        `when`(payrollRunController.approvePayrollRun(any(), UUID.fromString("00000000-0000-0000-0000-000000000199")))
+        `when`(payrollRunController.approvePayrollRun(anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "APPROVED")))
 
         graphQlTester

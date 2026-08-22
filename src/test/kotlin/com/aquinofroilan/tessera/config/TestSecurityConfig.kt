@@ -1,5 +1,6 @@
 package com.aquinofroilan.tessera.config
 
+import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -33,4 +34,9 @@ class TestSecurityConfig {
         handler.setPermissionEvaluator(permissionEvaluator)
         return handler
     }
+
+    @Bean
+    fun authenticationContext(): com.aquinofroilan.tessera.security.AuthenticationContext =
+        com.aquinofroilan.tessera.security
+            .AuthenticationContext()
 }

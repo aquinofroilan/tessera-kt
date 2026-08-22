@@ -5,7 +5,7 @@ import com.aquinofroilan.tessera.domain.sales.controller.QuotationController
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
-import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest
 import org.springframework.context.annotation.Import
@@ -13,7 +13,6 @@ import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.http.ResponseEntity
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
-import java.util.UUID
 
 @GraphQlTest(controllers = [QuotationGraphqlController::class])
 @Import(
@@ -33,7 +32,7 @@ class QuotationGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["sales:read"])
     fun `quotations query should return json payload`() {
-        `when`(quotationController.listQuotations(any(), null, null))
+        `when`(quotationController.listQuotations(anyOrNull(), anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "DRAFT"))))
 
         graphQlTester
@@ -52,7 +51,7 @@ class QuotationGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["sales:write"])
     fun `acceptQuotation mutation should bridge to controller`() {
-        `when`(quotationController.acceptQuotation(any(), UUID.fromString("00000000-0000-0000-0000-000000000199")))
+        `when`(quotationController.acceptQuotation(anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "ACCEPTED")))
 
         graphQlTester

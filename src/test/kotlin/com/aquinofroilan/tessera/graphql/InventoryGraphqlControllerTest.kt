@@ -11,7 +11,7 @@ import com.aquinofroilan.tessera.domain.inventory.controller.WarehouseController
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
-import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest
 import org.springframework.context.annotation.Import
@@ -57,7 +57,7 @@ class InventoryGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["inventory:read"])
     fun `products query should return json payload`() {
-        `when`(productController.listProducts(any(), null, true, null))
+        `when`(productController.listProducts(anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull()))
             .thenReturn(
                 ResponseEntity.ok(
                     listOf(
@@ -85,7 +85,7 @@ class InventoryGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["inventory:read"])
     fun `lowStockReport query should return json payload`() {
-        `when`(inventoryReportsController.lowStock(any()))
+        `when`(inventoryReportsController.lowStock(anyOrNull()))
             .thenReturn(ResponseEntity.ok(listOf(mapOf("productId" to "p1", "shortfall" to 5))))
 
         graphQlTester

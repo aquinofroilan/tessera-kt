@@ -2,11 +2,10 @@ package com.aquinofroilan.tessera.graphql
 
 import com.aquinofroilan.tessera.config.TestSecurityConfig
 import com.aquinofroilan.tessera.domain.hr.controller.AttendanceController
-import com.aquinofroilan.tessera.domain.hr.dto.ClockRequest
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
-import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest
 import org.springframework.context.annotation.Import
@@ -33,7 +32,7 @@ class AttendanceGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["hr:read"])
     fun `attendance query should return json payload`() {
-        `when`(attendanceController.listTimesheet(any(), null, null, null))
+        `when`(attendanceController.listTimesheet(anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "a1", "status" to "PRESENT"))))
 
         graphQlTester
@@ -52,7 +51,7 @@ class AttendanceGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["hr:write"])
     fun `clockIn mutation should bridge to controller`() {
-        `when`(attendanceController.clockIn(any(), any<ClockRequest>()))
+        `when`(attendanceController.clockIn(anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "a1", "status" to "PRESENT")))
 
         graphQlTester

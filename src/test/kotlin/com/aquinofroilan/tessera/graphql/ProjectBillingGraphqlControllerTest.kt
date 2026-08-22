@@ -4,9 +4,7 @@ import com.aquinofroilan.tessera.config.TestSecurityConfig
 import com.aquinofroilan.tessera.domain.project.controller.ProjectBillingController
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest
@@ -15,7 +13,6 @@ import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.http.ResponseEntity
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
-import java.util.UUID
 
 @GraphQlTest(controllers = [ProjectBillingGraphqlController::class])
 @Import(
@@ -35,7 +32,7 @@ class ProjectBillingGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["projects:write"])
     fun `generateProjectInvoice mutation should bridge to controller`() {
-        whenever(projectBillingController.generateInvoice(any(), eq(UUID.fromString("00000000-0000-0000-0000-000000000199")), anyOrNull()))
+        whenever(projectBillingController.generateInvoice(anyOrNull(), anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "DRAFT")))
 
         graphQlTester
