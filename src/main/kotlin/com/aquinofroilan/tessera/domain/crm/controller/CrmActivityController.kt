@@ -8,6 +8,8 @@ import com.aquinofroilan.tessera.domain.crm.dto.UpdateActivityRequest
 import com.aquinofroilan.tessera.domain.crm.model.CrmActivityType
 import com.aquinofroilan.tessera.domain.crm.service.CrmActivityService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/crm/activities")
@@ -33,10 +36,10 @@ class CrmActivityController(
     @PostMapping
     @PreAuthorize("hasAuthority('crm:write')")
     fun create(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateActivityRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
         val activity = activityService.createActivity(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(ActivityResponse.from(activity))
     }
@@ -44,13 +47,13 @@ class CrmActivityController(
     @GetMapping
     @PreAuthorize("hasAuthority('crm:read')")
     fun list(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) type: String?,
         @RequestParam(required = false) leadId: java.util.UUID?,
         @RequestParam(required = false) opportunityId: java.util.UUID?,
         @RequestParam(required = false) contactId: java.util.UUID?,
         @RequestParam(required = false) customerId: java.util.UUID?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val parsed =
             if (type != null) {
                 try {
@@ -70,47 +73,40 @@ class CrmActivityController(
 
     @GetMapping("/my-tasks")
     @PreAuthorize("hasAuthority('crm:read')")
-    fun listMyTasks(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(activityService.listMyOpenTasks(orgId, userId).map { ActivityResponse.from(it) })
-    }
+    fun listMyTasks(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> = ResponseEntity.ok(activityService.listMyOpenTasks(orgId, userId).map { ActivityResponse.from(it) })
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('crm:read')")
     fun get(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(ActivityResponse.from(activityService.getActivity(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(ActivityResponse.from(activityService.getActivity(id, orgId)))
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('crm:write')")
     fun update(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateActivityRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(ActivityResponse.from(activityService.updateActivity(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(ActivityResponse.from(activityService.updateActivity(id, request, orgId)))
 
     @PostMapping("/{id}/complete")
     @PreAuthorize("hasAuthority('crm:write')")
     fun complete(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(ActivityResponse.from(activityService.completeActivity(id, orgId, userId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(ActivityResponse.from(activityService.completeActivity(id, orgId, userId)))
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('crm:write')")
     fun delete(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         activityService.deleteActivity(id, orgId)
         return ResponseEntity.noContent().build()
     }

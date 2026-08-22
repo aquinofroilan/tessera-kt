@@ -7,6 +7,8 @@ import com.aquinofroilan.tessera.domain.crm.dto.CreateContactRequest
 import com.aquinofroilan.tessera.domain.crm.dto.UpdateContactRequest
 import com.aquinofroilan.tessera.domain.crm.service.ContactService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -32,10 +34,10 @@ class ContactController(
     @PostMapping
     @PreAuthorize("hasAuthority('crm:write')")
     fun create(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateContactRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val contact = contactService.createContact(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(ContactResponse.from(contact))
     }
@@ -43,10 +45,10 @@ class ContactController(
     @GetMapping
     @PreAuthorize("hasAuthority('crm:read')")
     fun list(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false, defaultValue = "true") activeOnly: Boolean,
         @RequestParam(required = false) customerId: UUID?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val contacts = contactService.listContacts(orgId, activeOnly, customerId)
         return ResponseEntity.ok(contacts.map { ContactResponse.from(it) })
     }
@@ -54,28 +56,22 @@ class ContactController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('crm:read')")
     fun get(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(ContactResponse.from(contactService.getContact(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(ContactResponse.from(contactService.getContact(id, orgId)))
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('crm:write')")
     fun update(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateContactRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(ContactResponse.from(contactService.updateContact(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(ContactResponse.from(contactService.updateContact(id, request, orgId)))
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('crm:write')")
     fun deactivate(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(ContactResponse.from(contactService.deactivateContact(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(ContactResponse.from(contactService.deactivateContact(id, orgId)))
 }

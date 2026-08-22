@@ -8,6 +8,8 @@ import com.aquinofroilan.tessera.domain.hr.dto.LeaveRequestResponse
 import com.aquinofroilan.tessera.domain.hr.service.SelfServiceService
 import com.aquinofroilan.tessera.domain.platform.dto.SubmitSelfLeaveRequest
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.time.ZoneOffset
+import java.util.UUID
 
 /**
  * Employee self-service surface. Open to any authenticated user; each endpoint
@@ -35,27 +38,25 @@ class SelfServiceController(
 ) {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    fun myProfile(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(EmployeeResponse.from(selfServiceService.myProfile(userId, orgId)))
-    }
+    fun myProfile(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> = ResponseEntity.ok(EmployeeResponse.from(selfServiceService.myProfile(userId, orgId)))
 
     @GetMapping("/leave-requests")
     @PreAuthorize("isAuthenticated()")
-    fun myLeaveRequests(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(selfServiceService.myLeaveRequests(userId, orgId).map { LeaveRequestResponse.from(it) })
-    }
+    fun myLeaveRequests(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> = ResponseEntity.ok(selfServiceService.myLeaveRequests(userId, orgId).map { LeaveRequestResponse.from(it) })
 
     @PostMapping("/leave-requests")
     @PreAuthorize("isAuthenticated()")
     fun submitLeave(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: SubmitSelfLeaveRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
         val created = selfServiceService.submitLeave(userId, orgId, request)
         return ResponseEntity.status(HttpStatus.CREATED).body(LeaveRequestResponse.from(created))
     }
@@ -63,32 +64,32 @@ class SelfServiceController(
     @GetMapping("/leave-balance")
     @PreAuthorize("isAuthenticated()")
     fun myLeaveBalance(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam leaveTypeId: java.util.UUID,
         @RequestParam(required = false) year: Int?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
         val resolvedYear = year ?: LocalDate.now(ZoneOffset.UTC).year
         return ResponseEntity.ok(selfServiceService.myLeaveBalance(userId, orgId, leaveTypeId, resolvedYear))
     }
 
     @GetMapping("/compensation")
     @PreAuthorize("isAuthenticated()")
-    fun myCompensationHistory(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(
+    fun myCompensationHistory(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> =
+        ResponseEntity.ok(
             selfServiceService.myCompensationHistory(userId, orgId).map { EmployeeCompensationResponse.from(it) },
         )
-    }
 
     @GetMapping("/compensation/current")
     @PreAuthorize("isAuthenticated()")
     fun myCurrentCompensation(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) asOf: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
         val resolved = asOf ?: LocalDate.now(ZoneOffset.UTC)
         return ResponseEntity.ok(EmployeeCompensationResponse.from(selfServiceService.myCurrentCompensation(userId, orgId, resolved)))
     }

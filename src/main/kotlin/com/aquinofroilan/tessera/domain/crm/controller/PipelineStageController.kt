@@ -7,6 +7,7 @@ import com.aquinofroilan.tessera.domain.crm.dto.PipelineStageResponse
 import com.aquinofroilan.tessera.domain.crm.dto.UpdatePipelineStageRequest
 import com.aquinofroilan.tessera.domain.crm.service.PipelineStageService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -32,9 +33,9 @@ class PipelineStageController(
     @PostMapping
     @PreAuthorize("hasAuthority('crm:write')")
     fun create(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreatePipelineStageRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val stage = pipelineStageService.createStage(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(PipelineStageResponse.from(stage))
     }
@@ -42,9 +43,9 @@ class PipelineStageController(
     @GetMapping
     @PreAuthorize("hasAuthority('crm:read')")
     fun list(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false, defaultValue = "true") activeOnly: Boolean,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val stages = pipelineStageService.listStages(orgId, activeOnly)
         return ResponseEntity.ok(stages.map { PipelineStageResponse.from(it) })
     }
@@ -52,28 +53,22 @@ class PipelineStageController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('crm:read')")
     fun get(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(PipelineStageResponse.from(pipelineStageService.getStage(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(PipelineStageResponse.from(pipelineStageService.getStage(id, orgId)))
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('crm:write')")
     fun update(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdatePipelineStageRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(PipelineStageResponse.from(pipelineStageService.updateStage(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(PipelineStageResponse.from(pipelineStageService.updateStage(id, request, orgId)))
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('crm:write')")
     fun deactivate(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(PipelineStageResponse.from(pipelineStageService.deactivateStage(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(PipelineStageResponse.from(pipelineStageService.deactivateStage(id, orgId)))
 }

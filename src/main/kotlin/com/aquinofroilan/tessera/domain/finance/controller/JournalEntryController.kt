@@ -10,6 +10,7 @@ import com.aquinofroilan.tessera.domain.finance.model.JournalEntry
 import com.aquinofroilan.tessera.domain.finance.model.JournalEntryStatus
 import com.aquinofroilan.tessera.domain.finance.service.JournalEntryService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/finance/journal")
@@ -34,9 +36,9 @@ class JournalEntryController(
     @PostMapping
     @PreAuthorize("hasAuthority('journal:create')")
     fun createJournalEntry(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateJournalEntryRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
 
         val entry = journalEntryService.createJournalEntry(request, orgId, createdBy)
@@ -46,12 +48,11 @@ class JournalEntryController(
     @GetMapping
     @PreAuthorize("hasAuthority('journal:read')")
     fun listJournalEntries(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) startDate: LocalDate?,
         @RequestParam(required = false) endDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val entryStatus =
             if (status != null) {
                 try {
@@ -72,10 +73,9 @@ class JournalEntryController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('journal:read')")
     fun getJournalEntry(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val entry = journalEntryService.getJournalEntry(id, orgId)
         return ResponseEntity.ok(entry.toResponse())
     }
@@ -83,10 +83,9 @@ class JournalEntryController(
     @PostMapping("/{id}/post")
     @PreAuthorize("hasAuthority('journal:post')")
     fun postJournalEntry(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val entry = journalEntryService.postJournalEntry(id, orgId)
         return ResponseEntity.ok(entry.toResponse())
     }
@@ -94,11 +93,10 @@ class JournalEntryController(
     @PostMapping("/{id}/void")
     @PreAuthorize("hasAuthority('journal:void')")
     fun voidJournalEntry(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: VoidJournalEntryRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val entry = journalEntryService.voidJournalEntry(id, orgId, request.reason)
         return ResponseEntity.ok(entry.toResponse())
     }
@@ -106,9 +104,9 @@ class JournalEntryController(
     @GetMapping("/trial-balance")
     @PreAuthorize("hasAuthority('journal:read')")
     fun getTrialBalance(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) asOfDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val trialBalance = journalEntryService.getTrialBalance(orgId, asOfDate)
         return ResponseEntity.ok(trialBalance)
     }

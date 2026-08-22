@@ -8,6 +8,7 @@ import com.aquinofroilan.tessera.domain.procurement.dto.VendorResponse
 import com.aquinofroilan.tessera.domain.procurement.model.Vendor
 import com.aquinofroilan.tessera.domain.procurement.service.VendorService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/procurement/vendors")
@@ -31,17 +33,18 @@ class VendorController(
     @PostMapping
     @PreAuthorize("hasAuthority('ap:create')")
     fun createVendor(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateVendorRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val vendor = vendorService.createVendor(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(vendor.toResponse())
     }
 
     @GetMapping
     @PreAuthorize("hasAuthority('ap:read')")
-    fun listVendors(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+    fun listVendors(
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> {
         val vendors = vendorService.listVendors(orgId)
         return ResponseEntity.ok(vendors.map { it.toResponse() })
     }
@@ -49,9 +52,9 @@ class VendorController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ap:read')")
     fun getVendor(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val vendor = vendorService.getVendor(id, orgId)
         return ResponseEntity.ok(vendor.toResponse())
     }
@@ -59,10 +62,10 @@ class VendorController(
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ap:create')")
     fun updateVendor(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateVendorRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val vendor = vendorService.updateVendor(id, request, orgId)
         return ResponseEntity.ok(vendor.toResponse())
     }
@@ -70,9 +73,9 @@ class VendorController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ap:create')")
     fun deleteVendor(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val vendor = vendorService.deleteVendor(id, orgId)
         return ResponseEntity.ok(vendor.toResponse())
     }

@@ -7,6 +7,8 @@ import com.aquinofroilan.tessera.domain.assets.dto.CreateAssetDisposalRequest
 import com.aquinofroilan.tessera.domain.assets.service.AssetDisposalService
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -29,9 +31,9 @@ class AssetDisposalController(
     @PostMapping
     @PreAuthorize("hasAuthority('assets:write')")
     fun createDisposal(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateAssetDisposalRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val date = request.disposalDate ?: throw BusinessRuleException("Disposal date is required")
         val type = request.disposalType ?: throw BusinessRuleException("Disposal type is required")
         val assetUuid =
@@ -58,19 +60,19 @@ class AssetDisposalController(
 
     @GetMapping
     @PreAuthorize("hasAuthority('assets:read')")
-    fun listDisposals(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(
+    fun listDisposals(
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> =
+        ResponseEntity.ok(
             assetDisposalService.listDisposals(orgId).map { AssetDisposalResponse.from(it) },
         )
-    }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('assets:read')")
     fun getDisposal(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val disposalId =
             try {
                 UUID.fromString(id)
@@ -83,10 +85,10 @@ class AssetDisposalController(
     @PostMapping("/{id}/post")
     @PreAuthorize("hasAuthority('assets:approve')")
     fun postDisposal(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
         val disposalId =
             try {
                 UUID.fromString(id)

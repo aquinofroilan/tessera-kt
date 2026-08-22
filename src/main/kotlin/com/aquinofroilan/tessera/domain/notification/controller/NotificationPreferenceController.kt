@@ -6,6 +6,8 @@ import com.aquinofroilan.tessera.domain.notification.dto.NotificationPreferenceR
 import com.aquinofroilan.tessera.domain.notification.dto.UpdateNotificationPreferencesRequest
 import com.aquinofroilan.tessera.domain.notification.service.NotificationPreferenceService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/notifications/preferences")
@@ -24,25 +27,24 @@ class NotificationPreferenceController(
 ) {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    fun listMine(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(
+    fun listMine(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> =
+        ResponseEntity.ok(
             preferenceService.listFor(userId, orgId).map { NotificationPreferenceResponse.from(it) },
         )
-    }
 
     @PutMapping
     @PreAuthorize("isAuthenticated()")
     fun updateMine(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: UpdateNotificationPreferencesRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(
+    ): ResponseEntity<Any> =
+        ResponseEntity.ok(
             preferenceService.upsertAll(userId, orgId, request.preferences).map {
                 NotificationPreferenceResponse.from(it)
             },
         )
-    }
 }

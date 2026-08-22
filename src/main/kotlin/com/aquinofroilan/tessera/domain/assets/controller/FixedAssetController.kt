@@ -8,6 +8,7 @@ import com.aquinofroilan.tessera.domain.assets.dto.UpdateFixedAssetRequest
 import com.aquinofroilan.tessera.domain.assets.model.AssetStatus
 import com.aquinofroilan.tessera.domain.assets.service.FixedAssetService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -33,9 +34,9 @@ class FixedAssetController(
     @PostMapping
     @PreAuthorize("hasAuthority('assets:write')")
     fun createAsset(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateFixedAssetRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val created = fixedAssetService.createAsset(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(FixedAssetResponse.from(created))
     }
@@ -43,10 +44,10 @@ class FixedAssetController(
     @GetMapping
     @PreAuthorize("hasAuthority('assets:read')")
     fun listAssets(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) categoryId: String?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val assetStatus =
             status?.let {
                 try {
@@ -71,9 +72,9 @@ class FixedAssetController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('assets:read')")
     fun getAsset(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val assetId =
             try {
                 UUID.fromString(id)
@@ -86,10 +87,10 @@ class FixedAssetController(
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('assets:write')")
     fun updateAsset(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: String,
         @Valid @RequestBody request: UpdateFixedAssetRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val assetId =
             try {
                 UUID.fromString(id)

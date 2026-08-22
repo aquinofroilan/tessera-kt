@@ -7,6 +7,7 @@ import com.aquinofroilan.tessera.domain.workflow.dto.UpdateWorkflowRuleRequest
 import com.aquinofroilan.tessera.domain.workflow.dto.WorkflowRuleResponse
 import com.aquinofroilan.tessera.domain.workflow.service.WorkflowRuleService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/workflow/rules")
@@ -31,9 +33,9 @@ class WorkflowRuleController(
     @PostMapping
     @PreAuthorize("hasAuthority('workflow:manage')")
     fun createRule(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateWorkflowRuleRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val created = workflowRuleService.createRule(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(WorkflowRuleResponse.from(created))
     }
@@ -41,39 +43,34 @@ class WorkflowRuleController(
     @GetMapping
     @PreAuthorize("hasAuthority('workflow:manage')")
     fun listRules(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) eventKind: String?,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(
+    ): ResponseEntity<Any> =
+        ResponseEntity.ok(
             workflowRuleService.listRules(orgId, eventKind).map { WorkflowRuleResponse.from(it) },
         )
-    }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('workflow:manage')")
     fun getRule(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(WorkflowRuleResponse.from(workflowRuleService.getRule(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(WorkflowRuleResponse.from(workflowRuleService.getRule(id, orgId)))
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('workflow:manage')")
     fun updateRule(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateWorkflowRuleRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(WorkflowRuleResponse.from(workflowRuleService.updateRule(id, orgId, request)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(WorkflowRuleResponse.from(workflowRuleService.updateRule(id, orgId, request)))
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('workflow:manage')")
     fun deleteRule(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         workflowRuleService.deleteRule(id, orgId)
         return ResponseEntity.noContent().build()
     }

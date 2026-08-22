@@ -24,48 +24,48 @@ class ProjectGraphqlController(
     fun projects(
         @Argument status: String?,
         @Argument customerId: java.util.UUID?,
-    ): Any = support.unwrap(projectController.listProjects(status, customerId))
+    ): Any = support.unwrap(projectController.listProjects(support.orgId(), status, customerId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('projects:read')")
     fun project(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(projectController.getProject(id))
+    ): Any = support.unwrap(projectController.getProject(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun createProject(
         @Argument input: Any,
-    ): Any = support.unwrap(projectController.createProject(support.toRequest<CreateProjectRequest>(input)))
+    ): Any = support.unwrap(projectController.createProject(support.orgId(), support.toRequest<CreateProjectRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun updateProject(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(projectController.updateProject(id, support.toRequest<UpdateProjectRequest>(input)))
+    ): Any = support.unwrap(projectController.updateProject(support.orgId(), id, support.toRequest<UpdateProjectRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun activateProject(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(projectController.activateProject(id))
+    ): Any = support.unwrap(projectController.activateProject(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun holdProject(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(projectController.holdProject(id))
+    ): Any = support.unwrap(projectController.holdProject(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun closeProject(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(projectController.closeProject(id))
+    ): Any = support.unwrap(projectController.closeProject(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun cancelProject(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(projectController.cancelProject(id))
+    ): Any = support.unwrap(projectController.cancelProject(support.orgId(), id))
 }

@@ -8,6 +8,7 @@ import com.aquinofroilan.tessera.domain.inventory.dto.UpdateReorderRuleRequest
 import com.aquinofroilan.tessera.domain.inventory.model.InventoryReorderRule
 import com.aquinofroilan.tessera.domain.inventory.service.InventoryReorderRuleService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/inventory/reorder-rules")
@@ -31,45 +33,40 @@ class InventoryReorderRuleController(
     @PostMapping
     @PreAuthorize("hasAuthority('inventory:write')")
     fun createRule(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateReorderRuleRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val rule = reorderRuleService.createRule(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(rule.toResponse())
     }
 
     @GetMapping
     @PreAuthorize("hasAuthority('inventory:read')")
-    fun listRules(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(reorderRuleService.listRules(orgId).map { it.toResponse() })
-    }
+    fun listRules(
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> = ResponseEntity.ok(reorderRuleService.listRules(orgId).map { it.toResponse() })
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun getRule(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(reorderRuleService.getRule(id, orgId).toResponse())
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(reorderRuleService.getRule(id, orgId).toResponse())
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun updateRule(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateReorderRuleRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(reorderRuleService.updateRule(id, request, orgId).toResponse())
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(reorderRuleService.updateRule(id, request, orgId).toResponse())
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun deleteRule(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         reorderRuleService.deleteRule(id, orgId)
         return ResponseEntity.noContent().build()
     }

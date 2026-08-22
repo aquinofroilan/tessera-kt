@@ -2,6 +2,7 @@ package com.aquinofroilan.tessera.domain.finance.controller
 
 import com.aquinofroilan.tessera.aspect.LoggingAspect
 import com.aquinofroilan.tessera.config.TestSecurityConfig
+import com.aquinofroilan.tessera.config.WebMvcConfig
 import com.aquinofroilan.tessera.domain.auth.model.RoleAssignment
 import com.aquinofroilan.tessera.domain.auth.model.User
 import com.aquinofroilan.tessera.domain.auth.repository.ApiKeyRepository
@@ -48,7 +49,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 @WebMvcTest(controllers = [FinancialReportController::class])
-@Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
+@Import(WebMvcConfig::class, LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
 @ActiveProfiles("test")
 class FinancialReportControllerTest {
     @Autowired

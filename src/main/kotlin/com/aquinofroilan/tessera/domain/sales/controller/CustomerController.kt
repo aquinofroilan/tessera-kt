@@ -8,6 +8,7 @@ import com.aquinofroilan.tessera.domain.sales.dto.UpdateCustomerRequest
 import com.aquinofroilan.tessera.domain.sales.model.Customer
 import com.aquinofroilan.tessera.domain.sales.service.CustomerService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/sales/customers")
@@ -31,18 +33,18 @@ class CustomerController(
     @PostMapping
     @PreAuthorize("hasAuthority('ar:create')")
     fun createCustomer(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateCustomerRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val customer = customerService.createCustomer(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(customer.toResponse())
     }
 
     @GetMapping
     @PreAuthorize("hasAuthority('ar:read')")
-    fun listCustomers(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+    fun listCustomers(
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> {
         val customers = customerService.listCustomers(orgId)
         return ResponseEntity.ok(customers.map { it.toResponse() })
     }
@@ -50,10 +52,9 @@ class CustomerController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ar:read')")
     fun getCustomer(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val customer = customerService.getCustomer(id, orgId)
         return ResponseEntity.ok(customer.toResponse())
     }
@@ -61,11 +62,10 @@ class CustomerController(
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ar:create')")
     fun updateCustomer(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateCustomerRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val customer = customerService.updateCustomer(id, request, orgId)
         return ResponseEntity.ok(customer.toResponse())
     }
@@ -73,10 +73,9 @@ class CustomerController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ar:create')")
     fun deleteCustomer(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val customer = customerService.deleteCustomer(id, orgId)
         return ResponseEntity.ok(customer.toResponse())
     }

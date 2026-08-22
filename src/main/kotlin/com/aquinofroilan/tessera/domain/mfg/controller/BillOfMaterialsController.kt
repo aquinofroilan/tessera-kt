@@ -8,6 +8,8 @@ import com.aquinofroilan.tessera.domain.finance.dto.UpdateBomRequest
 import com.aquinofroilan.tessera.domain.mfg.model.BomStatus
 import com.aquinofroilan.tessera.domain.mfg.service.BillOfMaterialsService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/mfg/boms")
@@ -33,10 +36,10 @@ class BillOfMaterialsController(
     @PostMapping
     @PreAuthorize("hasAuthority('mfg:write')")
     fun create(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateBomRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val bom = bomService.createBom(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(BomResponse.from(bom))
     }
@@ -44,10 +47,10 @@ class BillOfMaterialsController(
     @GetMapping
     @PreAuthorize("hasAuthority('mfg:read')")
     fun list(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) productId: java.util.UUID?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val parsed =
             if (status != null) {
                 try {
@@ -65,49 +68,41 @@ class BillOfMaterialsController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:read')")
     fun get(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(BomResponse.from(bomService.getBom(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(BomResponse.from(bomService.getBom(id, orgId)))
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun update(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateBomRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(BomResponse.from(bomService.updateBom(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(BomResponse.from(bomService.updateBom(id, request, orgId)))
 
     @PostMapping("/{id}/activate")
     @PreAuthorize("hasAuthority('mfg:approve')")
     fun activate(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @RequestParam(required = false, defaultValue = "false") makeDefault: Boolean,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        return ResponseEntity.ok(BomResponse.from(bomService.activateBom(id, orgId, userId, makeDefault)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(BomResponse.from(bomService.activateBom(id, orgId, userId, makeDefault)))
 
     @PostMapping("/{id}/obsolete")
     @PreAuthorize("hasAuthority('mfg:approve')")
     fun obsolete(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        return ResponseEntity.ok(BomResponse.from(bomService.obsoleteBom(id, orgId, userId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(BomResponse.from(bomService.obsoleteBom(id, orgId, userId)))
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun delete(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         bomService.deleteBom(id, orgId)
         return ResponseEntity.noContent().build()
     }

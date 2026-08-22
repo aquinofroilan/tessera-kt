@@ -8,6 +8,8 @@ import com.aquinofroilan.tessera.domain.notification.dto.NotificationResponse
 import com.aquinofroilan.tessera.domain.notification.dto.NotificationUnreadCountResponse
 import com.aquinofroilan.tessera.domain.notification.service.NotificationService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 /**
  * In-app notification feed for the authenticated caller. Every endpoint
@@ -38,44 +41,39 @@ class NotificationController(
 ) {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    fun listMine(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(notificationService.listFor(userId, orgId).map { NotificationResponse.from(it) })
-    }
+    fun listMine(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> = ResponseEntity.ok(notificationService.listFor(userId, orgId).map { NotificationResponse.from(it) })
 
     @GetMapping("/unread-count")
     @PreAuthorize("isAuthenticated()")
-    fun unreadCount(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(NotificationUnreadCountResponse(notificationService.unreadCountFor(userId, orgId)))
-    }
+    fun unreadCount(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> = ResponseEntity.ok(NotificationUnreadCountResponse(notificationService.unreadCountFor(userId, orgId)))
 
     @PostMapping("/{id}/read")
     @PreAuthorize("isAuthenticated()")
     fun markRead(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(NotificationResponse.from(notificationService.markRead(id, userId, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(NotificationResponse.from(notificationService.markRead(id, userId, orgId)))
 
     @PostMapping("/read-all")
     @PreAuthorize("isAuthenticated()")
-    fun markAllRead(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(NotificationMarkAllReadResponse(notificationService.markAllRead(userId, orgId)))
-    }
+    fun markAllRead(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> = ResponseEntity.ok(NotificationMarkAllReadResponse(notificationService.markAllRead(userId, orgId)))
 
     @PostMapping
     @PreAuthorize("hasAuthority('notification:write')")
     fun publish(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateNotificationRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val created = notificationService.publish(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(NotificationResponse.from(created))
     }

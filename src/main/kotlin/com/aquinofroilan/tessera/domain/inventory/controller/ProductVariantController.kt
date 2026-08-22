@@ -7,6 +7,7 @@ import com.aquinofroilan.tessera.domain.inventory.dto.ProductVariantResponse
 import com.aquinofroilan.tessera.domain.inventory.dto.UpdateProductVariantRequest
 import com.aquinofroilan.tessera.domain.inventory.service.ProductVariantService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -31,10 +32,10 @@ class ProductVariantController(
     @PostMapping
     @PreAuthorize("hasAuthority('inventory:write')")
     fun create(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable productId: UUID,
         @Valid @RequestBody request: CreateProductVariantRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val v = variantService.createVariant(productId, request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(ProductVariantResponse.from(v))
     }
@@ -42,40 +43,32 @@ class ProductVariantController(
     @GetMapping
     @PreAuthorize("hasAuthority('inventory:read')")
     fun list(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable productId: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(variantService.listVariants(productId, orgId).map { ProductVariantResponse.from(it) })
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(variantService.listVariants(productId, orgId).map { ProductVariantResponse.from(it) })
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun get(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable productId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(ProductVariantResponse.from(variantService.getVariant(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(ProductVariantResponse.from(variantService.getVariant(id, orgId)))
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun update(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable productId: UUID,
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateProductVariantRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(ProductVariantResponse.from(variantService.updateVariant(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(ProductVariantResponse.from(variantService.updateVariant(id, request, orgId)))
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun deactivate(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable productId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(ProductVariantResponse.from(variantService.deactivateVariant(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(ProductVariantResponse.from(variantService.deactivateVariant(id, orgId)))
 }

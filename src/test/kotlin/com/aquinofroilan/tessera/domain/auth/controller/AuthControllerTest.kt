@@ -2,6 +2,7 @@ package com.aquinofroilan.tessera.domain.auth.controller
 
 import com.aquinofroilan.tessera.aspect.LoggingAspect
 import com.aquinofroilan.tessera.config.TestSecurityConfig
+import com.aquinofroilan.tessera.config.WebMvcConfig
 import com.aquinofroilan.tessera.domain.auth.dto.AuthResponse
 import com.aquinofroilan.tessera.domain.auth.dto.LoginRequest
 import com.aquinofroilan.tessera.domain.auth.dto.RegisterRequest
@@ -49,7 +50,7 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 @WebMvcTest(controllers = [AuthController::class])
-@Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
+@Import(WebMvcConfig::class, LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
 @ActiveProfiles("test")
 class AuthControllerTest {
     @Autowired

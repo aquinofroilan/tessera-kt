@@ -7,6 +7,8 @@ import com.aquinofroilan.tessera.domain.finance.dto.BankStatementResponse
 import com.aquinofroilan.tessera.domain.finance.dto.ManualMatchRequest
 import com.aquinofroilan.tessera.domain.finance.service.BankReconciliationService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/finance/reconciliation")
@@ -30,11 +33,11 @@ class BankReconciliationController(
     @PostMapping("/statements/{statementId}/auto-match")
     @PreAuthorize("hasAuthority('bank:approve')")
     fun autoMatch(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable statementId: java.util.UUID,
         @Valid @RequestBody(required = false) request: AutoMatchRequest?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
         val drift = request?.maxDateDriftDays ?: 5
         return ResponseEntity.ok(reconciliationService.autoMatch(statementId, orgId, userId, drift))
     }
@@ -42,12 +45,12 @@ class BankReconciliationController(
     @PostMapping("/statements/{statementId}/lines/{lineId}/match")
     @PreAuthorize("hasAuthority('bank:approve')")
     fun manualMatch(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable statementId: java.util.UUID,
         @PathVariable lineId: java.util.UUID,
         @Valid @RequestBody request: ManualMatchRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
         val updated = reconciliationService.manualMatch(statementId, lineId, request.journalEntryId, orgId, userId)
         return ResponseEntity.ok(BankStatementResponse.from(updated))
     }
@@ -55,10 +58,10 @@ class BankReconciliationController(
     @PostMapping("/statements/{statementId}/lines/{lineId}/unmatch")
     @PreAuthorize("hasAuthority('bank:approve')")
     fun unmatch(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable statementId: java.util.UUID,
         @PathVariable lineId: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val updated = reconciliationService.unmatch(statementId, lineId, orgId)
         return ResponseEntity.ok(BankStatementResponse.from(updated))
     }
@@ -66,10 +69,8 @@ class BankReconciliationController(
     @GetMapping("/bank-accounts/{bankAccountId}/summary")
     @PreAuthorize("hasAuthority('bank:read')")
     fun summary(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable bankAccountId: java.util.UUID,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) asOf: LocalDate?,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(reconciliationService.summary(bankAccountId, orgId, asOf))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(reconciliationService.summary(bankAccountId, orgId, asOf))
 }
