@@ -103,7 +103,7 @@ class HrGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["hr:approve"])
     fun `approvePayrollRun mutation should bridge to controller`() {
-        `when`(payrollRunController.approvePayrollRun(anyOrNull(), anyOrNull()))
+        `when`(payrollRunController.approvePayrollRun(anyOrNull(), anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "APPROVED")))
 
         graphQlTester

@@ -51,7 +51,7 @@ class PurchaseRequestGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["procurement:approve"])
     fun `approvePurchaseRequest mutation should bridge to controller`() {
-        `when`(purchaseRequestController.approvePurchaseRequest(anyOrNull(), anyOrNull()))
+        `when`(purchaseRequestController.approvePurchaseRequest(anyOrNull(), anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "APPROVED")))
 
         graphQlTester

@@ -9,6 +9,7 @@ import com.aquinofroilan.tessera.domain.project.model.TimeEntryStatus
 import com.aquinofroilan.tessera.domain.project.service.TimeEntryService
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -90,19 +91,15 @@ class TimeEntryController(
     @PreAuthorize("hasAuthority('projects:approve')")
     fun approveTimeEntry(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val approvedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        return ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.approveTimeEntry(id, orgId, approvedBy)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.approveTimeEntry(id, orgId, userId)))
 
     @PostMapping("/{id}/reject")
     @PreAuthorize("hasAuthority('projects:approve')")
     fun rejectTimeEntry(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val decidedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        return ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.rejectTimeEntry(id, orgId, decidedBy)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.rejectTimeEntry(id, orgId, userId)))
 }

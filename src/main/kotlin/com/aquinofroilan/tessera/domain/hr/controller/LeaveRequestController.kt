@@ -9,6 +9,7 @@ import com.aquinofroilan.tessera.domain.hr.model.LeaveRequestStatus
 import com.aquinofroilan.tessera.domain.hr.service.LeaveRequestService
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -36,10 +37,10 @@ class LeaveRequestController(
     @PreAuthorize("hasAuthority('hr:write')")
     fun createLeaveRequest(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @Valid @RequestBody request: CreateLeaveRequestRequest,
     ): ResponseEntity<Any> {
-        val requestedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        val created = leaveRequestService.createLeaveRequest(request, orgId, requestedBy)
+        val created = leaveRequestService.createLeaveRequest(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(LeaveRequestResponse.from(created))
     }
 
@@ -88,24 +89,21 @@ class LeaveRequestController(
     @PreAuthorize("hasAuthority('hr:approve')")
     fun approveLeaveRequest(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val decidedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        return ResponseEntity.ok(LeaveRequestResponse.from(leaveRequestService.approveLeaveRequest(id, orgId, decidedBy)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(LeaveRequestResponse.from(leaveRequestService.approveLeaveRequest(id, orgId, userId)))
 
     @PostMapping("/{id}/reject")
     @PreAuthorize("hasAuthority('hr:approve')")
     fun rejectLeaveRequest(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @PathVariable id: java.util.UUID,
         @RequestBody(required = false) request: RejectLeaveRequestRequest?,
-    ): ResponseEntity<Any> {
-        val decidedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        return ResponseEntity.ok(
-            LeaveRequestResponse.from(leaveRequestService.rejectLeaveRequest(id, request?.reason, orgId, decidedBy)),
+    ): ResponseEntity<Any> =
+        ResponseEntity.ok(
+            LeaveRequestResponse.from(leaveRequestService.rejectLeaveRequest(id, request?.reason, orgId, userId)),
         )
-    }
 
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('hr:write')")

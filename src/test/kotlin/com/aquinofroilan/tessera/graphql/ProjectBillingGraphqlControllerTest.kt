@@ -32,7 +32,7 @@ class ProjectBillingGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["projects:write"])
     fun `generateProjectInvoice mutation should bridge to controller`() {
-        whenever(projectBillingController.generateInvoice(anyOrNull(), anyOrNull(), anyOrNull()))
+        whenever(projectBillingController.generateInvoice(anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "DRAFT")))
 
         graphQlTester

@@ -8,6 +8,7 @@ import com.aquinofroilan.tessera.domain.hr.model.PayrollRunStatus
 import com.aquinofroilan.tessera.domain.hr.service.PayrollRunService
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -33,10 +34,10 @@ class PayrollRunController(
     @PreAuthorize("hasAuthority('hr:write')")
     fun createPayrollRun(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @Valid @RequestBody request: CreatePayrollRunRequest,
     ): ResponseEntity<Any> {
-        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        val run = payrollRunService.createPayrollRun(request, orgId, createdBy)
+        val run = payrollRunService.createPayrollRun(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(PayrollRunResponse.from(run))
     }
 
@@ -70,21 +71,17 @@ class PayrollRunController(
     @PreAuthorize("hasAuthority('hr:approve')")
     fun approvePayrollRun(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val approvedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        return ResponseEntity.ok(PayrollRunResponse.from(payrollRunService.approvePayrollRun(id, orgId, approvedBy)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(PayrollRunResponse.from(payrollRunService.approvePayrollRun(id, orgId, userId)))
 
     @PostMapping("/{id}/pay")
     @PreAuthorize("hasAuthority('hr:approve')")
     fun payPayrollRun(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val paidBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        return ResponseEntity.ok(PayrollRunResponse.from(payrollRunService.payPayrollRun(id, orgId, paidBy)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(PayrollRunResponse.from(payrollRunService.payPayrollRun(id, orgId, userId)))
 
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('hr:write')")

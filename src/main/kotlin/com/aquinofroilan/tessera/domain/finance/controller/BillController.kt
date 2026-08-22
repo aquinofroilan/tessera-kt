@@ -43,11 +43,10 @@ class BillController(
     @PreAuthorize("hasAuthority('ap:create')")
     fun createBill(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @Valid @RequestBody request: CreateBillRequest,
     ): ResponseEntity<Any> {
-        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-
-        val bill = billService.createBill(request, orgId, createdBy)
+        val bill = billService.createBill(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(bill.toResponse())
     }
 
@@ -112,12 +111,11 @@ class BillController(
     @PreAuthorize("hasAuthority('ap:pay')")
     fun recordPayment(
         @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: RecordPaymentRequest,
     ): ResponseEntity<Any> {
-        val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-
-        val payment = billService.recordPayment(id, request, orgId, createdBy)
+        val payment = billService.recordPayment(id, request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(payment.toResponse())
     }
 

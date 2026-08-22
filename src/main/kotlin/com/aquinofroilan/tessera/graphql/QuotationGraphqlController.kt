@@ -37,7 +37,10 @@ class QuotationGraphqlController(
     @PreAuthorize("hasAuthority('sales:write')")
     fun createQuotation(
         @Argument input: Any,
-    ): Any = support.unwrap(quotationController.createQuotation(support.orgId(), support.toRequest<CreateQuotationRequest>(input)))
+    ): Any =
+        support.unwrap(
+            quotationController.createQuotation(support.orgId(), support.userId(), support.toRequest<CreateQuotationRequest>(input)),
+        )
 
     @MutationMapping
     @PreAuthorize("hasAuthority('sales:write')")
@@ -74,6 +77,6 @@ class QuotationGraphqlController(
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<ConvertQuotationRequest>(it) }
-        return support.unwrap(quotationController.convertQuotation(support.orgId(), id, request))
+        return support.unwrap(quotationController.convertQuotation(support.orgId(), support.userId(), id, request))
     }
 }

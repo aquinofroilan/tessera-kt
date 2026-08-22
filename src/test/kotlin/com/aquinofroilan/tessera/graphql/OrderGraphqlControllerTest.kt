@@ -55,7 +55,7 @@ class OrderGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["sales:approve"])
     fun `approveSalesOrder mutation should bridge to controller`() {
-        `when`(salesOrderController.approveSalesOrder(anyOrNull(), anyOrNull()))
+        `when`(salesOrderController.approveSalesOrder(anyOrNull(), anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "APPROVED")))
 
         graphQlTester

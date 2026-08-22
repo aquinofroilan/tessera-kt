@@ -61,19 +61,22 @@ class HrGraphqlController(
     @PreAuthorize("hasAuthority('hr:write')")
     fun createPayrollRun(
         @Argument input: Any,
-    ): Any = support.unwrap(payrollRunController.createPayrollRun(support.orgId(), support.toRequest<CreatePayrollRunRequest>(input)))
+    ): Any =
+        support.unwrap(
+            payrollRunController.createPayrollRun(support.orgId(), support.userId(), support.toRequest<CreatePayrollRunRequest>(input)),
+        )
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:approve')")
     fun approvePayrollRun(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(payrollRunController.approvePayrollRun(support.orgId(), id))
+    ): Any = support.unwrap(payrollRunController.approvePayrollRun(support.orgId(), support.userId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:approve')")
     fun payPayrollRun(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(payrollRunController.payPayrollRun(support.orgId(), id))
+    ): Any = support.unwrap(payrollRunController.payPayrollRun(support.orgId(), support.userId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
@@ -265,13 +268,20 @@ class HrGraphqlController(
     @PreAuthorize("hasAuthority('hr:write')")
     fun createLeaveRequest(
         @Argument input: Any,
-    ): Any = support.unwrap(leaveRequestController.createLeaveRequest(support.orgId(), support.toRequest<CreateLeaveRequestRequest>(input)))
+    ): Any =
+        support.unwrap(
+            leaveRequestController.createLeaveRequest(
+                support.orgId(),
+                support.userId(),
+                support.toRequest<CreateLeaveRequestRequest>(input),
+            ),
+        )
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:approve')")
     fun approveLeaveRequest(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(leaveRequestController.approveLeaveRequest(support.orgId(), id))
+    ): Any = support.unwrap(leaveRequestController.approveLeaveRequest(support.orgId(), support.userId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:approve')")
@@ -282,6 +292,7 @@ class HrGraphqlController(
         support.unwrap(
             leaveRequestController.rejectLeaveRequest(
                 support.orgId(),
+                support.userId(),
                 id,
                 input?.let {
                     support.toRequest<RejectLeaveRequestRequest>(it)
@@ -317,6 +328,7 @@ class HrGraphqlController(
         support.unwrap(
             employeeCompensationController.addCompensation(
                 support.orgId(),
+                support.userId(),
                 employeeId,
                 support.toRequest<CreateEmployeeCompensationRequest>(input),
             ),

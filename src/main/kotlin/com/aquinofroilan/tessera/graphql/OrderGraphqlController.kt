@@ -44,13 +44,19 @@ class OrderGraphqlController(
     fun createPurchaseOrder(
         @Argument input: Any,
     ): Any =
-        support.unwrap(purchaseOrderController.createPurchaseOrder(support.orgId(), support.toRequest<CreatePurchaseOrderRequest>(input)))
+        support.unwrap(
+            purchaseOrderController.createPurchaseOrder(
+                support.orgId(),
+                support.userId(),
+                support.toRequest<CreatePurchaseOrderRequest>(input),
+            ),
+        )
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:approve')")
     fun approvePurchaseOrder(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(purchaseOrderController.approvePurchaseOrder(support.orgId(), id))
+    ): Any = support.unwrap(purchaseOrderController.approvePurchaseOrder(support.orgId(), support.userId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:receive')")
@@ -85,6 +91,7 @@ class OrderGraphqlController(
         support.unwrap(
             purchaseOrderController.generateBill(
                 support.orgId(),
+                support.userId(),
                 id,
                 input?.let {
                     support.toRequest<GenerateBillRequest>(it)
@@ -121,13 +128,16 @@ class OrderGraphqlController(
     @PreAuthorize("hasAuthority('sales:write')")
     fun createSalesOrder(
         @Argument input: Any,
-    ): Any = support.unwrap(salesOrderController.createSalesOrder(support.orgId(), support.toRequest<CreateSalesOrderRequest>(input)))
+    ): Any =
+        support.unwrap(
+            salesOrderController.createSalesOrder(support.orgId(), support.userId(), support.toRequest<CreateSalesOrderRequest>(input)),
+        )
 
     @MutationMapping
     @PreAuthorize("hasAuthority('sales:approve')")
     fun approveSalesOrder(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(salesOrderController.approveSalesOrder(support.orgId(), id))
+    ): Any = support.unwrap(salesOrderController.approveSalesOrder(support.orgId(), support.userId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('sales:fulfill')")
@@ -155,6 +165,7 @@ class OrderGraphqlController(
         support.unwrap(
             salesOrderController.generateInvoice(
                 support.orgId(),
+                support.userId(),
                 id,
                 input?.let {
                     support.toRequest<GenerateInvoiceRequest>(it)

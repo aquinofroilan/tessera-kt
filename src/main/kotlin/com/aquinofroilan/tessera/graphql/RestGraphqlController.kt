@@ -270,7 +270,14 @@ class RestGraphqlController(
     @PreAuthorize("hasAuthority('journal:create')")
     fun createJournalEntry(
         @Argument input: Any,
-    ): Any = support.unwrap(journalEntryController.createJournalEntry(support.orgId(), support.toRequest<CreateJournalEntryRequest>(input)))
+    ): Any =
+        support.unwrap(
+            journalEntryController.createJournalEntry(
+                support.orgId(),
+                support.userId(),
+                support.toRequest<CreateJournalEntryRequest>(input),
+            ),
+        )
 
     @QueryMapping
     @PreAuthorize("hasAuthority('journal:read')")
@@ -461,7 +468,7 @@ class RestGraphqlController(
     @PreAuthorize("hasAuthority('ap:create')")
     fun createBill(
         @Argument input: Any,
-    ): Any = support.unwrap(billController.createBill(support.orgId(), support.toRequest<CreateBillRequest>(input)))
+    ): Any = support.unwrap(billController.createBill(support.orgId(), support.userId(), support.toRequest<CreateBillRequest>(input)))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ap:read')")
@@ -494,7 +501,15 @@ class RestGraphqlController(
     fun recordBillPayment(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(billController.recordPayment(support.orgId(), id, support.toRequest<RecordPaymentRequest>(input)))
+    ): Any =
+        support.unwrap(
+            billController.recordPayment(
+                support.orgId(),
+                support.userId(),
+                id,
+                support.toRequest<RecordPaymentRequest>(input),
+            ),
+        )
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ap:read')")
@@ -512,7 +527,14 @@ class RestGraphqlController(
     @PreAuthorize("hasAuthority('ar:create')")
     fun createInvoice(
         @Argument input: Any,
-    ): Any = support.unwrap(invoiceController.createInvoice(support.orgId(), support.toRequest<CreateInvoiceRequest>(input)))
+    ): Any =
+        support.unwrap(
+            invoiceController.createInvoice(
+                support.orgId(),
+                support.userId(),
+                support.toRequest<CreateInvoiceRequest>(input),
+            ),
+        )
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ar:read')")
@@ -546,7 +568,15 @@ class RestGraphqlController(
     fun recordInvoiceReceipt(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(invoiceController.recordReceipt(support.orgId(), id, support.toRequest<RecordReceiptRequest>(input)))
+    ): Any =
+        support.unwrap(
+            invoiceController.recordReceipt(
+                support.orgId(),
+                support.userId(),
+                id,
+                support.toRequest<RecordReceiptRequest>(input),
+            ),
+        )
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ar:read')")

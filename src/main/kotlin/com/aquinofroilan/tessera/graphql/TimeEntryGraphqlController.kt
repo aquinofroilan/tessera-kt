@@ -56,11 +56,11 @@ class TimeEntryGraphqlController(
     @PreAuthorize("hasAuthority('projects:approve')")
     fun approveTimeEntry(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(timeEntryController.approveTimeEntry(support.orgId(), id))
+    ): Any = support.unwrap(timeEntryController.approveTimeEntry(support.orgId(), support.userId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:approve')")
     fun rejectTimeEntry(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(timeEntryController.rejectTimeEntry(support.orgId(), id))
+    ): Any = support.unwrap(timeEntryController.rejectTimeEntry(support.orgId(), support.userId(), id))
 }
