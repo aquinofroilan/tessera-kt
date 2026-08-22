@@ -1,8 +1,8 @@
 package com.aquinofroilan.tessera.graphql
 
 import com.aquinofroilan.tessera.config.TestSecurityConfig
-import com.aquinofroilan.tessera.controller.AttendanceController
-import com.aquinofroilan.tessera.dto.ClockRequest
+import com.aquinofroilan.tessera.domain.hr.controller.AttendanceController
+import com.aquinofroilan.tessera.domain.hr.dto.ClockRequest
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`

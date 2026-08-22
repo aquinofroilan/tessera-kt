@@ -1,11 +1,11 @@
 package com.aquinofroilan.tessera.graphql
 
 import com.aquinofroilan.tessera.config.TestSecurityConfig
-import com.aquinofroilan.tessera.dto.CreateCustomerRequest
-import com.aquinofroilan.tessera.model.Customer
+import com.aquinofroilan.tessera.domain.sales.dto.CreateCustomerRequest
+import com.aquinofroilan.tessera.domain.sales.model.Customer
+import com.aquinofroilan.tessera.domain.sales.service.CustomerService
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
-import com.aquinofroilan.tessera.service.CustomerService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

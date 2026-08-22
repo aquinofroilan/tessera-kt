@@ -1,8 +1,8 @@
 package com.aquinofroilan.tessera.security
 
-import com.aquinofroilan.tessera.model.Role
-import com.aquinofroilan.tessera.model.RoleLevel
-import com.aquinofroilan.tessera.repository.RoleRepository
+import com.aquinofroilan.tessera.domain.auth.model.Role
+import com.aquinofroilan.tessera.domain.auth.model.RoleLevel
+import com.aquinofroilan.tessera.domain.auth.repository.RoleRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

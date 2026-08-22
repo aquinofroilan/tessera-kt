@@ -1,0 +1,90 @@
+package com.aquinofroilan.tessera.domain.hr.service
+
+import com.aquinofroilan.tessera.domain.hr.dto.CreatePositionRequest
+import com.aquinofroilan.tessera.domain.hr.dto.UpdatePositionRequest
+import com.aquinofroilan.tessera.domain.hr.model.Position
+import com.aquinofroilan.tessera.domain.hr.repository.PositionRepository
+import com.aquinofroilan.tessera.exception.BusinessRuleException
+import com.aquinofroilan.tessera.exception.ResourceNotFoundException
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+
+@Service
+class PositionService(
+    private val positionRepository: PositionRepository,
+    private val departmentService: DepartmentService,
+) {
+    @Transactional
+    fun createPosition(
+        request: CreatePositionRequest,
+        organizationId: java.util.UUID,
+    ): Position {
+        val code = request.code.trim()
+        if (positionRepository.findByOrganizationIdAndCode(organizationId, code).isPresent) {
+            throw BusinessRuleException("Position code '$code' already exists")
+        }
+        request.departmentId?.let { departmentService.getDepartment(it, organizationId) }
+        return positionRepository.save(
+            Position(
+                code = code,
+                title = request.title.trim(),
+                departmentId = request.departmentId,
+                payGrade = request.payGrade?.trim(),
+                organizationId = organizationId,
+            ),
+        )
+    }
+
+    fun getPosition(
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+    ): Position {
+        val position =
+            positionRepository.findById(id).orElseThrow {
+                ResourceNotFoundException("Position not found")
+            }
+        if (position.organizationId != organizationId) {
+            throw ResourceNotFoundException("Position not found")
+        }
+        return position
+    }
+
+    fun listPositions(
+        organizationId: java.util.UUID,
+        activeOnly: Boolean = false,
+    ): List<Position> =
+        if (activeOnly) {
+            positionRepository.findByOrganizationIdAndIsActive(organizationId, true)
+        } else {
+            positionRepository.findByOrganizationId(organizationId)
+        }
+
+    @Transactional
+    fun updatePosition(
+        id: java.util.UUID,
+        request: UpdatePositionRequest,
+        organizationId: java.util.UUID,
+    ): Position {
+        val position = getPosition(id, organizationId)
+        request.departmentId?.let { departmentService.getDepartment(it, organizationId) }
+        position.apply {
+            title = request.title?.trim() ?: position.title
+            departmentId = request.departmentId ?: position.departmentId
+            payGrade = request.payGrade?.trim() ?: position.payGrade
+        }
+        return positionRepository.save(position)
+    }
+
+    @Transactional
+    fun deactivatePosition(
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+    ): Position {
+        val position = getPosition(id, organizationId)
+        if (!position.isActive) {
+            throw BusinessRuleException("Position is already inactive")
+        }
+        position.isActive = false
+        return positionRepository.save(position)
+    }
+}

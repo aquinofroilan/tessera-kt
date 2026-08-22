@@ -1,14 +1,14 @@
 package com.aquinofroilan.tessera.graphql
 
-import com.aquinofroilan.tessera.controller.PurchaseOrderController
-import com.aquinofroilan.tessera.controller.SalesOrderController
-import com.aquinofroilan.tessera.dto.BillMatchRequest
-import com.aquinofroilan.tessera.dto.CreatePurchaseOrderRequest
-import com.aquinofroilan.tessera.dto.CreateSalesOrderRequest
-import com.aquinofroilan.tessera.dto.FulfillSalesOrderRequest
-import com.aquinofroilan.tessera.dto.GenerateBillRequest
-import com.aquinofroilan.tessera.dto.GenerateInvoiceRequest
-import com.aquinofroilan.tessera.dto.ReceivePurchaseOrderRequest
+import com.aquinofroilan.tessera.domain.procurement.controller.PurchaseOrderController
+import com.aquinofroilan.tessera.domain.procurement.dto.BillMatchRequest
+import com.aquinofroilan.tessera.domain.procurement.dto.CreatePurchaseOrderRequest
+import com.aquinofroilan.tessera.domain.procurement.dto.GenerateBillRequest
+import com.aquinofroilan.tessera.domain.procurement.dto.ReceivePurchaseOrderRequest
+import com.aquinofroilan.tessera.domain.sales.controller.SalesOrderController
+import com.aquinofroilan.tessera.domain.sales.dto.CreateSalesOrderRequest
+import com.aquinofroilan.tessera.domain.sales.dto.FulfillSalesOrderRequest
+import com.aquinofroilan.tessera.domain.sales.dto.GenerateInvoiceRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping

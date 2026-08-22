@@ -1,8 +1,8 @@
 package com.aquinofroilan.tessera.graphql
 
-import com.aquinofroilan.tessera.controller.ProjectController
-import com.aquinofroilan.tessera.dto.CreateProjectRequest
-import com.aquinofroilan.tessera.dto.UpdateProjectRequest
+import com.aquinofroilan.tessera.domain.project.controller.ProjectController
+import com.aquinofroilan.tessera.domain.project.dto.CreateProjectRequest
+import com.aquinofroilan.tessera.domain.project.dto.UpdateProjectRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping

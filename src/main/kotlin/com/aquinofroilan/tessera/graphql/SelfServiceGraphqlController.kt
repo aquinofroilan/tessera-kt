@@ -1,7 +1,7 @@
 package com.aquinofroilan.tessera.graphql
 
-import com.aquinofroilan.tessera.controller.SelfServiceController
-import com.aquinofroilan.tessera.dto.SubmitSelfLeaveRequest
+import com.aquinofroilan.tessera.domain.hr.controller.SelfServiceController
+import com.aquinofroilan.tessera.domain.platform.dto.SubmitSelfLeaveRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping

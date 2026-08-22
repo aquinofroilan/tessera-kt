@@ -1,8 +1,8 @@
 package com.aquinofroilan.tessera.graphql
 
-import com.aquinofroilan.tessera.controller.AttendanceController
-import com.aquinofroilan.tessera.dto.ClockRequest
-import com.aquinofroilan.tessera.dto.RecordAttendanceRequest
+import com.aquinofroilan.tessera.domain.hr.controller.AttendanceController
+import com.aquinofroilan.tessera.domain.hr.dto.ClockRequest
+import com.aquinofroilan.tessera.domain.hr.dto.RecordAttendanceRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
