@@ -8,6 +8,8 @@ import com.aquinofroilan.tessera.domain.inventory.dto.RecordCountRequest
 import com.aquinofroilan.tessera.domain.inventory.model.InventoryCountStatus
 import com.aquinofroilan.tessera.domain.inventory.service.InventoryCountSessionService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -32,10 +34,10 @@ class InventoryCountController(
     @PostMapping
     @PreAuthorize("hasAuthority('inventory:write')")
     fun create(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateCountSessionRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
         val s = countService.createSession(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(CountSessionResponse.from(s))
     }
@@ -43,9 +45,9 @@ class InventoryCountController(
     @GetMapping
     @PreAuthorize("hasAuthority('inventory:read')")
     fun list(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) status: String?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val parsed =
             if (status != null) {
                 try {
@@ -62,39 +64,31 @@ class InventoryCountController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun get(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(CountSessionResponse.from(countService.getSession(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(CountSessionResponse.from(countService.getSession(id, orgId)))
 
     @PostMapping("/{id}/lines/{lineId}/record-count")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun recordCount(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
         @PathVariable lineId: UUID,
         @Valid @RequestBody request: RecordCountRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(CountSessionResponse.from(countService.recordCount(id, lineId, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(CountSessionResponse.from(countService.recordCount(id, lineId, request, orgId)))
 
     @PostMapping("/{id}/post")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun post(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(CountSessionResponse.from(countService.postSession(id, orgId, userId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(CountSessionResponse.from(countService.postSession(id, orgId, userId)))
 
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun cancel(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(CountSessionResponse.from(countService.cancelSession(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(CountSessionResponse.from(countService.cancelSession(id, orgId)))
 }

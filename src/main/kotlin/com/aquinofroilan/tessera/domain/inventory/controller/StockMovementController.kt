@@ -9,6 +9,8 @@ import com.aquinofroilan.tessera.domain.inventory.model.StockMovement
 import com.aquinofroilan.tessera.domain.inventory.model.StockMovementType
 import com.aquinofroilan.tessera.domain.inventory.service.StockMovementService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDateTime
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/inventory")
@@ -33,10 +36,10 @@ class StockMovementController(
     @PostMapping("/movements")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun createMovement(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateStockMovementRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
         val movement = stockMovementService.createMovement(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(movement.toResponse())
     }
@@ -44,10 +47,10 @@ class StockMovementController(
     @PostMapping("/movements/{id}/reverse")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun reverseMovement(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
         val reversal = stockMovementService.reverseMovement(id, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(reversal.toResponse())
     }
@@ -55,6 +58,7 @@ class StockMovementController(
     @GetMapping("/movements")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun listMovements(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) productId: java.util.UUID?,
         @RequestParam(required = false) warehouseId: java.util.UUID?,
         @RequestParam(required = false) type: StockMovementType?,
@@ -65,7 +69,6 @@ class StockMovementController(
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         to: LocalDateTime?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val movements = stockMovementService.listMovements(orgId, productId, warehouseId, type, from, to)
         return ResponseEntity.ok(movements.map { it.toResponse() })
     }
@@ -73,10 +76,10 @@ class StockMovementController(
     @GetMapping("/stock-on-hand")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun onHand(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam productId: java.util.UUID,
         @RequestParam warehouseId: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val qty = stockMovementService.onHand(orgId, productId, warehouseId)
         return ResponseEntity.ok(OnHandResponse(productId = productId, warehouseId = warehouseId, quantity = qty))
     }

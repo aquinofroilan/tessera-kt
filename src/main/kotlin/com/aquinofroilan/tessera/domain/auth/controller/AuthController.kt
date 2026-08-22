@@ -18,6 +18,8 @@ import com.aquinofroilan.tessera.domain.platform.dto.LoginLinkIssuedResponse
 import com.aquinofroilan.tessera.domain.platform.dto.RequestLoginLinkRequest
 import com.aquinofroilan.tessera.exception.AuthenticationException
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import com.aquinofroilan.tessera.security.SessionContext
 import com.github.benmanes.caffeine.cache.Caffeine
 import jakarta.servlet.http.HttpServletRequest
@@ -33,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.Locale
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 @RestController
@@ -218,10 +221,11 @@ class AuthController(
         }
 
     @GetMapping("/me/permissions")
-    fun myPermissions(): ResponseEntity<Any> {
-        val userId = authContext.userId() ?: return authContext.unauthorized()
-        val orgId = authContext.organizationId()
-        return ResponseEntity.ok(
+    fun myPermissions(
+        @CurrentOrganizationId orgId: UUID,
+        @CurrentUserId userId: UUID,
+    ): ResponseEntity<Any> =
+        ResponseEntity.ok(
             CallerPermissionsResponse(
                 userId = userId,
                 organizationId = orgId,
@@ -229,7 +233,6 @@ class AuthController(
                 permissions = authContext.permissions(),
             ),
         )
-    }
 
     @GetMapping("/organizations")
     fun listOrganizations(): ResponseEntity<Any> {

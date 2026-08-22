@@ -8,6 +8,8 @@ import com.aquinofroilan.tessera.domain.mfg.dto.UpdateRoutingRequest
 import com.aquinofroilan.tessera.domain.mfg.model.RoutingStatus
 import com.aquinofroilan.tessera.domain.mfg.service.RoutingService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/mfg/routings")
@@ -33,21 +36,21 @@ class RoutingController(
     @PostMapping
     @PreAuthorize("hasAuthority('mfg:write')")
     fun create(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateRoutingRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId()?.toString() ?: "api-key"
-        val routing = routingService.createRouting(request, orgId, userId)
+        val routing = routingService.createRouting(request, orgId, userId.toString())
         return ResponseEntity.status(HttpStatus.CREATED).body(RoutingResponse.from(routing))
     }
 
     @GetMapping
     @PreAuthorize("hasAuthority('mfg:read')")
     fun list(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) productId: java.util.UUID?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val parsed =
             if (status != null) {
                 try {
@@ -64,49 +67,42 @@ class RoutingController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:read')")
     fun get(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(RoutingResponse.from(routingService.getRouting(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(RoutingResponse.from(routingService.getRouting(id, orgId)))
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun update(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateRoutingRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(RoutingResponse.from(routingService.updateRouting(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(RoutingResponse.from(routingService.updateRouting(id, request, orgId)))
 
     @PostMapping("/{id}/activate")
     @PreAuthorize("hasAuthority('mfg:approve')")
     fun activate(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @RequestParam(required = false, defaultValue = "false") makeDefault: Boolean,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId()?.toString() ?: "api-key"
-        return ResponseEntity.ok(RoutingResponse.from(routingService.activateRouting(id, orgId, userId, makeDefault)))
-    }
+    ): ResponseEntity<Any> =
+        ResponseEntity.ok(RoutingResponse.from(routingService.activateRouting(id, orgId, userId.toString(), makeDefault)))
 
     @PostMapping("/{id}/obsolete")
     @PreAuthorize("hasAuthority('mfg:approve')")
     fun obsolete(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId()?.toString() ?: "api-key"
-        return ResponseEntity.ok(RoutingResponse.from(routingService.obsoleteRouting(id, orgId, userId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(RoutingResponse.from(routingService.obsoleteRouting(id, orgId, userId.toString())))
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun delete(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         routingService.deleteRouting(id, orgId)
         return ResponseEntity.noContent().build()
     }

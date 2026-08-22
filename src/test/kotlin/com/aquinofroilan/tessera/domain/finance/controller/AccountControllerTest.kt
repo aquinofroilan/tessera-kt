@@ -2,6 +2,7 @@ package com.aquinofroilan.tessera.domain.finance.controller
 
 import com.aquinofroilan.tessera.aspect.LoggingAspect
 import com.aquinofroilan.tessera.config.TestSecurityConfig
+import com.aquinofroilan.tessera.config.WebMvcConfig
 import com.aquinofroilan.tessera.domain.auth.model.RoleAssignment
 import com.aquinofroilan.tessera.domain.auth.model.User
 import com.aquinofroilan.tessera.domain.auth.repository.InvitationRepository
@@ -47,7 +48,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.util.UUID
 
 @WebMvcTest(controllers = [AccountController::class])
-@Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
+@Import(WebMvcConfig::class, LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
 @ActiveProfiles("test")
 class AccountControllerTest {
     @Autowired

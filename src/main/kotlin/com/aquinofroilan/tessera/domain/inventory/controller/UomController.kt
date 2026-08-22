@@ -7,6 +7,7 @@ import com.aquinofroilan.tessera.domain.inventory.dto.UomResponse
 import com.aquinofroilan.tessera.domain.inventory.dto.UpdateUomRequest
 import com.aquinofroilan.tessera.domain.inventory.service.UnitOfMeasureService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -33,9 +34,9 @@ class UomController(
     @PostMapping
     @PreAuthorize("hasAuthority('inventory:write')")
     fun create(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateUomRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val u = uomService.createUom(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(UomResponse.from(u))
     }
@@ -43,48 +44,40 @@ class UomController(
     @GetMapping
     @PreAuthorize("hasAuthority('inventory:read')")
     fun list(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false, defaultValue = "true") activeOnly: Boolean,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(uomService.listUoms(orgId, activeOnly).map { UomResponse.from(it) })
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(uomService.listUoms(orgId, activeOnly).map { UomResponse.from(it) })
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun get(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(UomResponse.from(uomService.getUom(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(UomResponse.from(uomService.getUom(id, orgId)))
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun update(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateUomRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(UomResponse.from(uomService.updateUom(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(UomResponse.from(uomService.updateUom(id, request, orgId)))
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun deactivate(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(UomResponse.from(uomService.deactivateUom(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(UomResponse.from(uomService.deactivateUom(id, orgId)))
 
     @GetMapping("/convert")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun convert(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam quantity: BigDecimal,
         @RequestParam fromUomId: UUID,
         @RequestParam toUomId: UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val result = uomService.convert(quantity, fromUomId, toUomId, orgId)
         return ResponseEntity.ok(mapOf("converted" to result, "fromUomId" to fromUomId, "toUomId" to toUomId))
     }

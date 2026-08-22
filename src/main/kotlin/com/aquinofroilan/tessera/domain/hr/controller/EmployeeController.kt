@@ -9,6 +9,7 @@ import com.aquinofroilan.tessera.domain.hr.dto.UpdateEmployeeRequest
 import com.aquinofroilan.tessera.domain.hr.model.EmploymentStatus
 import com.aquinofroilan.tessera.domain.hr.service.EmployeeService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/hr/employees")
@@ -33,9 +35,9 @@ class EmployeeController(
     @PostMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun createEmployee(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateEmployeeRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val employee = employeeService.createEmployee(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(EmployeeResponse.from(employee))
     }
@@ -43,10 +45,10 @@ class EmployeeController(
     @GetMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun listEmployees(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) departmentId: java.util.UUID?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val employmentStatus =
             if (status != null) {
                 try {
@@ -63,57 +65,47 @@ class EmployeeController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:read')")
     fun getEmployee(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(EmployeeResponse.from(employeeService.getEmployee(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(EmployeeResponse.from(employeeService.getEmployee(id, orgId)))
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:write')")
     fun updateEmployee(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateEmployeeRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(EmployeeResponse.from(employeeService.updateEmployee(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(EmployeeResponse.from(employeeService.updateEmployee(id, request, orgId)))
 
     @PostMapping("/{id}/assign-department")
     @PreAuthorize("hasAuthority('hr:write')")
     fun assignDepartment(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @RequestParam(required = false) departmentId: java.util.UUID?,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(EmployeeResponse.from(employeeService.assignDepartment(id, departmentId, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(EmployeeResponse.from(employeeService.assignDepartment(id, departmentId, orgId)))
 
     @PostMapping("/{id}/leave")
     @PreAuthorize("hasAuthority('hr:write')")
     fun placeOnLeave(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(EmployeeResponse.from(employeeService.placeOnLeave(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(EmployeeResponse.from(employeeService.placeOnLeave(id, orgId)))
 
     @PostMapping("/{id}/return")
     @PreAuthorize("hasAuthority('hr:write')")
     fun returnFromLeave(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(EmployeeResponse.from(employeeService.returnFromLeave(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(EmployeeResponse.from(employeeService.returnFromLeave(id, orgId)))
 
     @PostMapping("/{id}/terminate")
     @PreAuthorize("hasAuthority('hr:write')")
     fun terminate(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: TerminateEmployeeRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val date = request.terminationDate ?: return ResponseEntity.badRequest().body(mapOf("error" to "terminationDate is required"))
         return ResponseEntity.ok(EmployeeResponse.from(employeeService.terminate(id, date, orgId)))
     }

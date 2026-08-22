@@ -33,7 +33,7 @@ class AttendanceGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["hr:read"])
     fun `attendance query should return json payload`() {
-        `when`(attendanceController.listTimesheet(null, null, null))
+        `when`(attendanceController.listTimesheet(any(), null, null, null))
             .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "a1", "status" to "PRESENT"))))
 
         graphQlTester
@@ -52,7 +52,7 @@ class AttendanceGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["hr:write"])
     fun `clockIn mutation should bridge to controller`() {
-        `when`(attendanceController.clockIn(any<ClockRequest>()))
+        `when`(attendanceController.clockIn(any(), any<ClockRequest>()))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "a1", "status" to "PRESENT")))
 
         graphQlTester

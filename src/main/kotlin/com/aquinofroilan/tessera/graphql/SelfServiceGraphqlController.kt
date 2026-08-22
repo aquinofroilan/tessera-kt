@@ -22,32 +22,35 @@ class SelfServiceGraphqlController(
 ) {
     @QueryMapping
     @PreAuthorize("isAuthenticated()")
-    fun me(): Any = support.unwrap(selfServiceController.myProfile())
+    fun me(): Any = support.unwrap(selfServiceController.myProfile(support.userId(), support.orgId()))
 
     @QueryMapping
     @PreAuthorize("isAuthenticated()")
-    fun myLeaveRequests(): Any = support.unwrap(selfServiceController.myLeaveRequests())
+    fun myLeaveRequests(): Any = support.unwrap(selfServiceController.myLeaveRequests(support.userId(), support.orgId()))
 
     @QueryMapping
     @PreAuthorize("isAuthenticated()")
     fun myLeaveBalance(
         @Argument leaveTypeId: java.util.UUID,
         @Argument year: Int?,
-    ): Any = support.unwrap(selfServiceController.myLeaveBalance(leaveTypeId, year))
+    ): Any = support.unwrap(selfServiceController.myLeaveBalance(support.userId(), support.orgId(), leaveTypeId, year))
 
     @QueryMapping
     @PreAuthorize("isAuthenticated()")
-    fun myCompensation(): Any = support.unwrap(selfServiceController.myCompensationHistory())
+    fun myCompensation(): Any = support.unwrap(selfServiceController.myCompensationHistory(support.userId(), support.orgId()))
 
     @QueryMapping
     @PreAuthorize("isAuthenticated()")
     fun myCurrentCompensation(
         @Argument asOf: String?,
-    ): Any = support.unwrap(selfServiceController.myCurrentCompensation(asOf?.let(LocalDate::parse)))
+    ): Any = support.unwrap(selfServiceController.myCurrentCompensation(support.userId(), support.orgId(), asOf?.let(LocalDate::parse)))
 
     @MutationMapping
     @PreAuthorize("isAuthenticated()")
     fun submitMyLeave(
         @Argument input: Any,
-    ): Any = support.unwrap(selfServiceController.submitLeave(support.toRequest<SubmitSelfLeaveRequest>(input)))
+    ): Any =
+        support.unwrap(
+            selfServiceController.submitLeave(support.userId(), support.orgId(), support.toRequest<SubmitSelfLeaveRequest>(input)),
+        )
 }

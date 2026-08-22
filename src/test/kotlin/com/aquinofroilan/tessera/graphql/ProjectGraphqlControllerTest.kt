@@ -5,6 +5,7 @@ import com.aquinofroilan.tessera.domain.project.controller.ProjectController
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest
 import org.springframework.context.annotation.Import
@@ -32,7 +33,7 @@ class ProjectGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["projects:read"])
     fun `projects query should return json payload`() {
-        `when`(projectController.listProjects(null, null))
+        `when`(projectController.listProjects(any(), null, null))
             .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "PLANNED"))))
 
         graphQlTester
@@ -51,7 +52,7 @@ class ProjectGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["projects:write"])
     fun `activateProject mutation should bridge to controller`() {
-        `when`(projectController.activateProject(UUID.fromString("00000000-0000-0000-0000-000000000199")))
+        `when`(projectController.activateProject(any(), UUID.fromString("00000000-0000-0000-0000-000000000199")))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "ACTIVE")))
 
         graphQlTester

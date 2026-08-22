@@ -10,6 +10,8 @@ import com.aquinofroilan.tessera.domain.mfg.model.WorkOrderStatus
 import com.aquinofroilan.tessera.domain.mfg.service.WorkOrderExecutionService
 import com.aquinofroilan.tessera.domain.mfg.service.WorkOrderService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/mfg/work-orders")
@@ -34,21 +37,21 @@ class WorkOrderController(
     @PostMapping
     @PreAuthorize("hasAuthority('mfg:write')")
     fun create(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateWorkOrderRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId()?.toString() ?: "api-key"
-        val wo = workOrderService.createWorkOrder(request, orgId, userId)
+        val wo = workOrderService.createWorkOrder(request, orgId, userId.toString())
         return ResponseEntity.status(HttpStatus.CREATED).body(WorkOrderResponse.from(wo))
     }
 
     @GetMapping
     @PreAuthorize("hasAuthority('mfg:read')")
     fun list(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) productId: java.util.UUID?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val parsed =
             if (status != null) {
                 try {
@@ -66,53 +69,47 @@ class WorkOrderController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('mfg:read')")
     fun get(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(WorkOrderResponse.from(workOrderService.getWorkOrder(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(WorkOrderResponse.from(workOrderService.getWorkOrder(id, orgId)))
 
     @PostMapping("/{id}/release")
     @PreAuthorize("hasAuthority('mfg:approve')")
     fun release(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId()?.toString() ?: "api-key"
-        return ResponseEntity.ok(WorkOrderResponse.from(workOrderService.releaseWorkOrder(id, orgId, userId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(WorkOrderResponse.from(workOrderService.releaseWorkOrder(id, orgId, userId.toString())))
 
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun cancel(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId()?.toString() ?: "api-key"
-        return ResponseEntity.ok(WorkOrderResponse.from(workOrderService.cancelWorkOrder(id, orgId, userId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(WorkOrderResponse.from(workOrderService.cancelWorkOrder(id, orgId, userId.toString())))
 
     @PostMapping("/{id}/issue-material")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun issueMaterial(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: IssueMaterialRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId()?.toString() ?: "api-key"
-        val wo = workOrderExecutionService.issueMaterial(id, request, orgId, userId)
+        val wo = workOrderExecutionService.issueMaterial(id, request, orgId, userId.toString())
         return ResponseEntity.ok(WorkOrderResponse.from(wo))
     }
 
     @PostMapping("/{id}/complete")
     @PreAuthorize("hasAuthority('mfg:approve')")
     fun complete(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: CompleteWorkOrderRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId()?.toString() ?: "api-key"
-        val wo = workOrderExecutionService.completeProduction(id, request, orgId, userId)
+        val wo = workOrderExecutionService.completeProduction(id, request, orgId, userId.toString())
         return ResponseEntity.ok(WorkOrderResponse.from(wo))
     }
 }

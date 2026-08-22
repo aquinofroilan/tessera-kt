@@ -7,6 +7,7 @@ import com.aquinofroilan.tessera.domain.finance.service.ExchangeRateService
 import com.aquinofroilan.tessera.domain.platform.dto.CreateExchangeRateRequest
 import com.aquinofroilan.tessera.domain.platform.dto.ExchangeRateResponse
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/finance/exchange-rates")
@@ -32,9 +34,9 @@ class ExchangeRateController(
     @PostMapping
     @PreAuthorize("hasAuthority('fx:create')")
     fun createRate(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateExchangeRateRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val rate = exchangeRateService.createManualRate(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(rate.toResponse())
     }
@@ -42,11 +44,11 @@ class ExchangeRateController(
     @GetMapping
     @PreAuthorize("hasAuthority('fx:read')")
     fun listRates(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) from: String?,
         @RequestParam(required = false) to: String?,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) asOfDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         if ((from == null) != (to == null)) {
             return ResponseEntity.badRequest().body(mapOf("error" to "from and to must be provided together"))
         }
@@ -73,9 +75,9 @@ class ExchangeRateController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('fx:create')")
     fun deleteRate(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         exchangeRateService.deleteRate(id, orgId)
         return ResponseEntity.noContent().build()
     }

@@ -10,6 +10,7 @@ import com.aquinofroilan.tessera.domain.procurement.dto.RejectPurchaseRequestReq
 import com.aquinofroilan.tessera.domain.procurement.model.PurchaseRequestStatus
 import com.aquinofroilan.tessera.domain.procurement.service.PurchaseRequestService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/procurement/purchase-requests")
@@ -33,9 +35,9 @@ class PurchaseRequestController(
     @PostMapping
     @PreAuthorize("hasAuthority('procurement:write')")
     fun createPurchaseRequest(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreatePurchaseRequestRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val requestedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val created = purchaseRequestService.createPurchaseRequest(request, orgId, requestedBy)
         return ResponseEntity.status(HttpStatus.CREATED).body(PurchaseRequestResponse.from(created))
@@ -44,10 +46,10 @@ class PurchaseRequestController(
     @GetMapping
     @PreAuthorize("hasAuthority('procurement:read')")
     fun listPurchaseRequests(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) requestedBy: java.util.UUID?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val prStatus =
             if (status != null) {
                 try {
@@ -66,27 +68,23 @@ class PurchaseRequestController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('procurement:read')")
     fun getPurchaseRequest(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(PurchaseRequestResponse.from(purchaseRequestService.getPurchaseRequest(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(PurchaseRequestResponse.from(purchaseRequestService.getPurchaseRequest(id, orgId)))
 
     @PostMapping("/{id}/submit")
     @PreAuthorize("hasAuthority('procurement:write')")
     fun submitPurchaseRequest(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(PurchaseRequestResponse.from(purchaseRequestService.submitPurchaseRequest(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(PurchaseRequestResponse.from(purchaseRequestService.submitPurchaseRequest(id, orgId)))
 
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasAuthority('procurement:approve')")
     fun approvePurchaseRequest(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val decidedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         return ResponseEntity.ok(PurchaseRequestResponse.from(purchaseRequestService.approvePurchaseRequest(id, orgId, decidedBy)))
     }
@@ -94,10 +92,10 @@ class PurchaseRequestController(
     @PostMapping("/{id}/reject")
     @PreAuthorize("hasAuthority('procurement:approve')")
     fun rejectPurchaseRequest(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @RequestBody(required = false) request: RejectPurchaseRequestRequest?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val decidedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         return ResponseEntity.ok(
             PurchaseRequestResponse.from(purchaseRequestService.rejectPurchaseRequest(id, request?.reason, orgId, decidedBy)),
@@ -107,19 +105,17 @@ class PurchaseRequestController(
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('procurement:write')")
     fun cancelPurchaseRequest(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(PurchaseRequestResponse.from(purchaseRequestService.cancelPurchaseRequest(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(PurchaseRequestResponse.from(purchaseRequestService.cancelPurchaseRequest(id, orgId)))
 
     @PostMapping("/{id}/convert")
     @PreAuthorize("hasAuthority('procurement:write')")
     fun convertPurchaseRequest(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody(required = false) request: ConvertPurchaseRequestRequest?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val po =
             purchaseRequestService.convertToPurchaseOrder(

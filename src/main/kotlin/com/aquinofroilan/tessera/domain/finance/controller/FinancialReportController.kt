@@ -4,6 +4,7 @@ import com.aquinofroilan.tessera.annotation.LogLevel
 import com.aquinofroilan.tessera.annotation.Loggable
 import com.aquinofroilan.tessera.domain.finance.service.FinancialReportService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/finance/reports")
@@ -23,10 +25,10 @@ class FinancialReportController(
     @GetMapping("/trial-balance")
     @PreAuthorize("hasAuthority('journal:read')")
     fun getTrialBalance(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) asOfDate: LocalDate?,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) compareAsOfDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val report = financialReportService.getComparativeTrialBalance(orgId, asOfDate, compareAsOfDate)
         return ResponseEntity.ok(report)
     }
@@ -34,12 +36,12 @@ class FinancialReportController(
     @GetMapping("/income-statement")
     @PreAuthorize("hasAuthority('journal:read')")
     fun getIncomeStatement(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) compareStartDate: LocalDate?,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) compareEndDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val report =
             financialReportService.getIncomeStatement(
                 organizationId = orgId,
@@ -54,10 +56,10 @@ class FinancialReportController(
     @GetMapping("/balance-sheet")
     @PreAuthorize("hasAuthority('journal:read')")
     fun getBalanceSheet(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) asOfDate: LocalDate,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) compareAsOfDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val report =
             financialReportService.getBalanceSheet(
                 organizationId = orgId,

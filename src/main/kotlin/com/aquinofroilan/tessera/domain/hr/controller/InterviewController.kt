@@ -8,6 +8,8 @@ import com.aquinofroilan.tessera.domain.hr.dto.InterviewResponse
 import com.aquinofroilan.tessera.domain.hr.dto.RescheduleInterviewRequest
 import com.aquinofroilan.tessera.domain.hr.service.InterviewService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -32,10 +34,10 @@ class InterviewController(
     @PostMapping
     @PreAuthorize("hasAuthority('hr-recruitment:write')")
     fun schedule(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateInterviewRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
         val i = interviewService.scheduleInterview(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(InterviewResponse.from(i))
     }
@@ -43,49 +45,40 @@ class InterviewController(
     @GetMapping
     @PreAuthorize("hasAuthority('hr-recruitment:read')")
     fun listForApplication(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam applicationId: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(
+    ): ResponseEntity<Any> =
+        ResponseEntity.ok(
             interviewService.listInterviewsForApplication(orgId, applicationId).map { InterviewResponse.from(it) },
         )
-    }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('hr-recruitment:read')")
     fun get(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(InterviewResponse.from(interviewService.getInterview(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(InterviewResponse.from(interviewService.getInterview(id, orgId)))
 
     @PutMapping("/{id}/reschedule")
     @PreAuthorize("hasAuthority('hr-recruitment:write')")
     fun reschedule(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
         @Valid @RequestBody request: RescheduleInterviewRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(InterviewResponse.from(interviewService.rescheduleInterview(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(InterviewResponse.from(interviewService.rescheduleInterview(id, request, orgId)))
 
     @PostMapping("/{id}/complete")
     @PreAuthorize("hasAuthority('hr-recruitment:approve')")
     fun complete(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
         @Valid @RequestBody request: CompleteInterviewRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(InterviewResponse.from(interviewService.completeInterview(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(InterviewResponse.from(interviewService.completeInterview(id, request, orgId)))
 
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('hr-recruitment:write')")
     fun cancel(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(InterviewResponse.from(interviewService.cancelInterview(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(InterviewResponse.from(interviewService.cancelInterview(id, orgId)))
 }

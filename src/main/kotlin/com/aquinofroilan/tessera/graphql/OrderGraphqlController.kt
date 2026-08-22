@@ -31,25 +31,26 @@ class OrderGraphqlController(
     fun purchaseOrders(
         @Argument status: String?,
         @Argument vendorId: java.util.UUID?,
-    ): Any = support.unwrap(purchaseOrderController.listPurchaseOrders(status, vendorId))
+    ): Any = support.unwrap(purchaseOrderController.listPurchaseOrders(support.orgId(), status, vendorId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('procurement:read')")
     fun purchaseOrder(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(purchaseOrderController.getPurchaseOrder(id))
+    ): Any = support.unwrap(purchaseOrderController.getPurchaseOrder(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:write')")
     fun createPurchaseOrder(
         @Argument input: Any,
-    ): Any = support.unwrap(purchaseOrderController.createPurchaseOrder(support.toRequest<CreatePurchaseOrderRequest>(input)))
+    ): Any =
+        support.unwrap(purchaseOrderController.createPurchaseOrder(support.orgId(), support.toRequest<CreatePurchaseOrderRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:approve')")
     fun approvePurchaseOrder(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(purchaseOrderController.approvePurchaseOrder(id))
+    ): Any = support.unwrap(purchaseOrderController.approvePurchaseOrder(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:receive')")
@@ -57,82 +58,119 @@ class OrderGraphqlController(
         @Argument id: java.util.UUID,
         @Argument input: Any?,
     ): Any =
-        support.unwrap(purchaseOrderController.receivePurchaseOrder(id, input?.let { support.toRequest<ReceivePurchaseOrderRequest>(it) }))
+        support.unwrap(
+            purchaseOrderController.receivePurchaseOrder(
+                support.userId(),
+                support.orgId(),
+                id,
+                input?.let {
+                    support.toRequest<ReceivePurchaseOrderRequest>(it)
+                },
+            ),
+        )
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:read')")
     fun matchPurchaseOrderBill(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(purchaseOrderController.matchBill(id, support.toRequest<BillMatchRequest>(input)))
+    ): Any = support.unwrap(purchaseOrderController.matchBill(support.orgId(), id, support.toRequest<BillMatchRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:receive')")
     fun generatePurchaseOrderBill(
         @Argument id: java.util.UUID,
         @Argument input: Any?,
-    ): Any = support.unwrap(purchaseOrderController.generateBill(id, input?.let { support.toRequest<GenerateBillRequest>(it) }))
+    ): Any =
+        support.unwrap(
+            purchaseOrderController.generateBill(
+                support.orgId(),
+                id,
+                input?.let {
+                    support.toRequest<GenerateBillRequest>(it)
+                },
+            ),
+        )
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:write')")
     fun closePurchaseOrder(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(purchaseOrderController.closePurchaseOrder(id))
+    ): Any = support.unwrap(purchaseOrderController.closePurchaseOrder(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:write')")
     fun cancelPurchaseOrder(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(purchaseOrderController.cancelPurchaseOrder(id))
+    ): Any = support.unwrap(purchaseOrderController.cancelPurchaseOrder(support.userId(), support.orgId(), id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('sales:read')")
     fun salesOrders(
         @Argument status: String?,
         @Argument customerId: java.util.UUID?,
-    ): Any = support.unwrap(salesOrderController.listSalesOrders(status, customerId))
+    ): Any = support.unwrap(salesOrderController.listSalesOrders(support.orgId(), status, customerId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('sales:read')")
     fun salesOrder(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(salesOrderController.getSalesOrder(id))
+    ): Any = support.unwrap(salesOrderController.getSalesOrder(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('sales:write')")
     fun createSalesOrder(
         @Argument input: Any,
-    ): Any = support.unwrap(salesOrderController.createSalesOrder(support.toRequest<CreateSalesOrderRequest>(input)))
+    ): Any = support.unwrap(salesOrderController.createSalesOrder(support.orgId(), support.toRequest<CreateSalesOrderRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('sales:approve')")
     fun approveSalesOrder(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(salesOrderController.approveSalesOrder(id))
+    ): Any = support.unwrap(salesOrderController.approveSalesOrder(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('sales:fulfill')")
     fun fulfillSalesOrder(
         @Argument id: java.util.UUID,
         @Argument input: Any?,
-    ): Any = support.unwrap(salesOrderController.fulfillSalesOrder(id, input?.let { support.toRequest<FulfillSalesOrderRequest>(it) }))
+    ): Any =
+        support.unwrap(
+            salesOrderController.fulfillSalesOrder(
+                support.userId(),
+                support.orgId(),
+                id,
+                input?.let {
+                    support.toRequest<FulfillSalesOrderRequest>(it)
+                },
+            ),
+        )
 
     @MutationMapping
     @PreAuthorize("hasAuthority('sales:fulfill')")
     fun generateSalesOrderInvoice(
         @Argument id: java.util.UUID,
         @Argument input: Any?,
-    ): Any = support.unwrap(salesOrderController.generateInvoice(id, input?.let { support.toRequest<GenerateInvoiceRequest>(it) }))
+    ): Any =
+        support.unwrap(
+            salesOrderController.generateInvoice(
+                support.orgId(),
+                id,
+                input?.let {
+                    support.toRequest<GenerateInvoiceRequest>(it)
+                },
+            ),
+        )
 
     @MutationMapping
     @PreAuthorize("hasAuthority('sales:write')")
     fun closeSalesOrder(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(salesOrderController.closeSalesOrder(id))
+    ): Any = support.unwrap(salesOrderController.closeSalesOrder(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('sales:write')")
     fun cancelSalesOrder(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(salesOrderController.cancelSalesOrder(id))
+    ): Any = support.unwrap(salesOrderController.cancelSalesOrder(support.userId(), support.orgId(), id))
 }

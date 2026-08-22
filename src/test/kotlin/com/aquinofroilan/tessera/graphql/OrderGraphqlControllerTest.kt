@@ -6,6 +6,7 @@ import com.aquinofroilan.tessera.domain.sales.controller.SalesOrderController
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest
 import org.springframework.context.annotation.Import
@@ -36,7 +37,7 @@ class OrderGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["procurement:read"])
     fun `purchaseOrders query should return json payload`() {
-        `when`(purchaseOrderController.listPurchaseOrders(null, null))
+        `when`(purchaseOrderController.listPurchaseOrders(any(), null, null))
             .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "DRAFT"))))
 
         graphQlTester
@@ -55,7 +56,7 @@ class OrderGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["sales:approve"])
     fun `approveSalesOrder mutation should bridge to controller`() {
-        `when`(salesOrderController.approveSalesOrder(UUID.fromString("00000000-0000-0000-0000-000000000199")))
+        `when`(salesOrderController.approveSalesOrder(any(), UUID.fromString("00000000-0000-0000-0000-000000000199")))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "APPROVED")))
 
         graphQlTester

@@ -8,6 +8,7 @@ import com.aquinofroilan.tessera.domain.inventory.dto.UpdateProductRequest
 import com.aquinofroilan.tessera.domain.inventory.model.Product
 import com.aquinofroilan.tessera.domain.inventory.service.ProductService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -33,10 +34,9 @@ class ProductController(
     @PostMapping
     @PreAuthorize("hasAuthority('inventory:write')")
     fun createProduct(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateProductRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val product = productService.createProduct(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(product.toResponse())
     }
@@ -44,12 +44,11 @@ class ProductController(
     @GetMapping
     @PreAuthorize("hasAuthority('inventory:read')")
     fun listProducts(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) category: String?,
         @RequestParam(required = false, defaultValue = "true") isActive: Boolean,
         @RequestParam(required = false) search: String?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val products = productService.listProducts(orgId, category, isActive, search)
         return ResponseEntity.ok(products.map { it.toResponse() })
     }
@@ -57,10 +56,9 @@ class ProductController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun getProduct(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val product = productService.getProduct(id, orgId)
         return ResponseEntity.ok(product.toResponse())
     }
@@ -68,11 +66,10 @@ class ProductController(
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun updateProduct(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateProductRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val product = productService.updateProduct(id, request, orgId)
         return ResponseEntity.ok(product.toResponse())
     }
@@ -80,10 +77,9 @@ class ProductController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun deleteProduct(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val product = productService.deleteProduct(id, orgId)
         return ResponseEntity.ok(product.toResponse())
     }

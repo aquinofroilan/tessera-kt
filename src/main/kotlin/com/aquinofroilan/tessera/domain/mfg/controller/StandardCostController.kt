@@ -7,6 +7,8 @@ import com.aquinofroilan.tessera.domain.mfg.dto.RollupRequest
 import com.aquinofroilan.tessera.domain.mfg.dto.StandardCostResponse
 import com.aquinofroilan.tessera.domain.mfg.service.StandardCostService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/mfg/products")
@@ -28,40 +31,37 @@ class StandardCostController(
     @PostMapping("/{productId}/cost-rollup")
     @PreAuthorize("hasAuthority('mfg:approve')")
     fun rollup(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable productId: java.util.UUID,
         @Valid @RequestBody(required = false) request: RollupRequest?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId()?.toString() ?: "api-key"
-        val record = standardCostService.rollup(productId, request ?: RollupRequest(), orgId, userId)
+        val record = standardCostService.rollup(productId, request ?: RollupRequest(), orgId, userId.toString())
         return ResponseEntity.ok(StandardCostResponse.from(record))
     }
 
     @PutMapping("/{productId}/standard-cost")
     @PreAuthorize("hasAuthority('mfg:approve')")
     fun setManual(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable productId: java.util.UUID,
         @Valid @RequestBody request: ManualStandardCostRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId()?.toString() ?: "api-key"
-        val record = standardCostService.setManual(productId, request, orgId, userId)
+        val record = standardCostService.setManual(productId, request, orgId, userId.toString())
         return ResponseEntity.ok(StandardCostResponse.from(record))
     }
 
     @GetMapping("/{productId}/standard-cost")
     @PreAuthorize("hasAuthority('mfg:read')")
     fun get(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable productId: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(StandardCostResponse.from(standardCostService.getStandardCost(productId, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(StandardCostResponse.from(standardCostService.getStandardCost(productId, orgId)))
 
     @GetMapping("/standard-costs")
     @PreAuthorize("hasAuthority('mfg:read')")
-    fun list(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(standardCostService.listStandardCosts(orgId).map { StandardCostResponse.from(it) })
-    }
+    fun list(
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> = ResponseEntity.ok(standardCostService.listStandardCosts(orgId).map { StandardCostResponse.from(it) })
 }

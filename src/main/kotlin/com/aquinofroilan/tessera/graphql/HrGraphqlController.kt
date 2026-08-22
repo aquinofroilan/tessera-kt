@@ -49,66 +49,66 @@ class HrGraphqlController(
     @PreAuthorize("hasAuthority('hr:read')")
     fun payrollRuns(
         @Argument status: String?,
-    ): Any = support.unwrap(payrollRunController.listPayrollRuns(status))
+    ): Any = support.unwrap(payrollRunController.listPayrollRuns(support.orgId(), status))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun payrollRun(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(payrollRunController.getPayrollRun(id))
+    ): Any = support.unwrap(payrollRunController.getPayrollRun(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun createPayrollRun(
         @Argument input: Any,
-    ): Any = support.unwrap(payrollRunController.createPayrollRun(support.toRequest<CreatePayrollRunRequest>(input)))
+    ): Any = support.unwrap(payrollRunController.createPayrollRun(support.orgId(), support.toRequest<CreatePayrollRunRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:approve')")
     fun approvePayrollRun(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(payrollRunController.approvePayrollRun(id))
+    ): Any = support.unwrap(payrollRunController.approvePayrollRun(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:approve')")
     fun payPayrollRun(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(payrollRunController.payPayrollRun(id))
+    ): Any = support.unwrap(payrollRunController.payPayrollRun(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun cancelPayrollRun(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(payrollRunController.cancelPayrollRun(id))
+    ): Any = support.unwrap(payrollRunController.cancelPayrollRun(support.orgId(), id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun departments(
         @Argument activeOnly: Boolean,
-    ): Any = support.unwrap(departmentController.listDepartments(activeOnly))
+    ): Any = support.unwrap(departmentController.listDepartments(support.orgId(), activeOnly))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun department(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(departmentController.getDepartment(id))
+    ): Any = support.unwrap(departmentController.getDepartment(support.orgId(), id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
-    fun departmentOrgChart(): Any = support.unwrap(departmentController.getOrgChart())
+    fun departmentOrgChart(): Any = support.unwrap(departmentController.getOrgChart(support.orgId()))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun createDepartment(
         @Argument input: Any,
-    ): Any = support.unwrap(departmentController.createDepartment(support.toRequest<CreateDepartmentRequest>(input)))
+    ): Any = support.unwrap(departmentController.createDepartment(support.orgId(), support.toRequest<CreateDepartmentRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun updateDepartment(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(departmentController.updateDepartment(id, support.toRequest<UpdateDepartmentRequest>(input)))
+    ): Any = support.unwrap(departmentController.updateDepartment(support.orgId(), id, support.toRequest<UpdateDepartmentRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
@@ -117,141 +117,141 @@ class HrGraphqlController(
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<SetDepartmentParentRequest>(it) } ?: SetDepartmentParentRequest()
-        return support.unwrap(departmentController.setParent(id, request))
+        return support.unwrap(departmentController.setParent(support.orgId(), id, request))
     }
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun deactivateDepartment(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(departmentController.deactivateDepartment(id))
+    ): Any = support.unwrap(departmentController.deactivateDepartment(support.orgId(), id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun employees(
         @Argument status: String?,
         @Argument departmentId: java.util.UUID?,
-    ): Any = support.unwrap(employeeController.listEmployees(status, departmentId))
+    ): Any = support.unwrap(employeeController.listEmployees(support.orgId(), status, departmentId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun employee(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(employeeController.getEmployee(id))
+    ): Any = support.unwrap(employeeController.getEmployee(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun createEmployee(
         @Argument input: Any,
-    ): Any = support.unwrap(employeeController.createEmployee(support.toRequest<CreateEmployeeRequest>(input)))
+    ): Any = support.unwrap(employeeController.createEmployee(support.orgId(), support.toRequest<CreateEmployeeRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun updateEmployee(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(employeeController.updateEmployee(id, support.toRequest<UpdateEmployeeRequest>(input)))
+    ): Any = support.unwrap(employeeController.updateEmployee(support.orgId(), id, support.toRequest<UpdateEmployeeRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun assignEmployeeDepartment(
         @Argument id: java.util.UUID,
         @Argument departmentId: java.util.UUID?,
-    ): Any = support.unwrap(employeeController.assignDepartment(id, departmentId))
+    ): Any = support.unwrap(employeeController.assignDepartment(support.orgId(), id, departmentId))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun placeEmployeeOnLeave(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(employeeController.placeOnLeave(id))
+    ): Any = support.unwrap(employeeController.placeOnLeave(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun returnEmployeeFromLeave(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(employeeController.returnFromLeave(id))
+    ): Any = support.unwrap(employeeController.returnFromLeave(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun terminateEmployee(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(employeeController.terminate(id, support.toRequest<TerminateEmployeeRequest>(input)))
+    ): Any = support.unwrap(employeeController.terminate(support.orgId(), id, support.toRequest<TerminateEmployeeRequest>(input)))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun positions(
         @Argument activeOnly: Boolean,
-    ): Any = support.unwrap(positionController.listPositions(activeOnly))
+    ): Any = support.unwrap(positionController.listPositions(support.orgId(), activeOnly))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun position(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(positionController.getPosition(id))
+    ): Any = support.unwrap(positionController.getPosition(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun createPosition(
         @Argument input: Any,
-    ): Any = support.unwrap(positionController.createPosition(support.toRequest<CreatePositionRequest>(input)))
+    ): Any = support.unwrap(positionController.createPosition(support.orgId(), support.toRequest<CreatePositionRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun updatePosition(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(positionController.updatePosition(id, support.toRequest<UpdatePositionRequest>(input)))
+    ): Any = support.unwrap(positionController.updatePosition(support.orgId(), id, support.toRequest<UpdatePositionRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun deactivatePosition(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(positionController.deactivatePosition(id))
+    ): Any = support.unwrap(positionController.deactivatePosition(support.orgId(), id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun leaveTypes(
         @Argument activeOnly: Boolean,
-    ): Any = support.unwrap(leaveTypeController.listLeaveTypes(activeOnly))
+    ): Any = support.unwrap(leaveTypeController.listLeaveTypes(support.orgId(), activeOnly))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun leaveType(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(leaveTypeController.getLeaveType(id))
+    ): Any = support.unwrap(leaveTypeController.getLeaveType(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun createLeaveType(
         @Argument input: Any,
-    ): Any = support.unwrap(leaveTypeController.createLeaveType(support.toRequest<CreateLeaveTypeRequest>(input)))
+    ): Any = support.unwrap(leaveTypeController.createLeaveType(support.orgId(), support.toRequest<CreateLeaveTypeRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun updateLeaveType(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(leaveTypeController.updateLeaveType(id, support.toRequest<UpdateLeaveTypeRequest>(input)))
+    ): Any = support.unwrap(leaveTypeController.updateLeaveType(support.orgId(), id, support.toRequest<UpdateLeaveTypeRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun deactivateLeaveType(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(leaveTypeController.deactivateLeaveType(id))
+    ): Any = support.unwrap(leaveTypeController.deactivateLeaveType(support.orgId(), id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun leaveRequests(
         @Argument employeeId: java.util.UUID?,
         @Argument status: String?,
-    ): Any = support.unwrap(leaveRequestController.listLeaveRequests(employeeId, status))
+    ): Any = support.unwrap(leaveRequestController.listLeaveRequests(support.orgId(), employeeId, status))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun leaveRequest(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(leaveRequestController.getLeaveRequest(id))
+    ): Any = support.unwrap(leaveRequestController.getLeaveRequest(support.orgId(), id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
@@ -259,45 +259,54 @@ class HrGraphqlController(
         @Argument employeeId: java.util.UUID,
         @Argument leaveTypeId: java.util.UUID,
         @Argument year: Int?,
-    ): Any = support.unwrap(leaveRequestController.balance(employeeId, leaveTypeId, year))
+    ): Any = support.unwrap(leaveRequestController.balance(support.orgId(), employeeId, leaveTypeId, year))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun createLeaveRequest(
         @Argument input: Any,
-    ): Any = support.unwrap(leaveRequestController.createLeaveRequest(support.toRequest<CreateLeaveRequestRequest>(input)))
+    ): Any = support.unwrap(leaveRequestController.createLeaveRequest(support.orgId(), support.toRequest<CreateLeaveRequestRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:approve')")
     fun approveLeaveRequest(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(leaveRequestController.approveLeaveRequest(id))
+    ): Any = support.unwrap(leaveRequestController.approveLeaveRequest(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:approve')")
     fun rejectLeaveRequest(
         @Argument id: java.util.UUID,
         @Argument input: Any?,
-    ): Any = support.unwrap(leaveRequestController.rejectLeaveRequest(id, input?.let { support.toRequest<RejectLeaveRequestRequest>(it) }))
+    ): Any =
+        support.unwrap(
+            leaveRequestController.rejectLeaveRequest(
+                support.orgId(),
+                id,
+                input?.let {
+                    support.toRequest<RejectLeaveRequestRequest>(it)
+                },
+            ),
+        )
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun cancelLeaveRequest(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(leaveRequestController.cancelLeaveRequest(id))
+    ): Any = support.unwrap(leaveRequestController.cancelLeaveRequest(support.orgId(), id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun employeeCompensations(
         @Argument employeeId: java.util.UUID,
-    ): Any = support.unwrap(employeeCompensationController.listCompensation(employeeId))
+    ): Any = support.unwrap(employeeCompensationController.listCompensation(support.orgId(), employeeId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun currentEmployeeCompensation(
         @Argument employeeId: java.util.UUID,
         @Argument asOf: String?,
-    ): Any = support.unwrap(employeeCompensationController.currentCompensation(employeeId, asOf?.let(LocalDate::parse)))
+    ): Any = support.unwrap(employeeCompensationController.currentCompensation(support.orgId(), employeeId, asOf?.let(LocalDate::parse)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
@@ -306,6 +315,10 @@ class HrGraphqlController(
         @Argument input: Any,
     ): Any =
         support.unwrap(
-            employeeCompensationController.addCompensation(employeeId, support.toRequest<CreateEmployeeCompensationRequest>(input)),
+            employeeCompensationController.addCompensation(
+                support.orgId(),
+                employeeId,
+                support.toRequest<CreateEmployeeCompensationRequest>(input),
+            ),
         )
 }

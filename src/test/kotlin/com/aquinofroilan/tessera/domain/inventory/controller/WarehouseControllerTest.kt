@@ -2,6 +2,7 @@ package com.aquinofroilan.tessera.domain.inventory.controller
 
 import com.aquinofroilan.tessera.aspect.LoggingAspect
 import com.aquinofroilan.tessera.config.TestSecurityConfig
+import com.aquinofroilan.tessera.config.WebMvcConfig
 import com.aquinofroilan.tessera.domain.auth.model.RoleAssignment
 import com.aquinofroilan.tessera.domain.auth.model.User
 import com.aquinofroilan.tessera.domain.auth.repository.InvitationRepository
@@ -48,7 +49,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @WebMvcTest(controllers = [WarehouseController::class])
-@Import(LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
+@Import(WebMvcConfig::class, LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
 @ActiveProfiles("test")
 class WarehouseControllerTest {
     @Autowired

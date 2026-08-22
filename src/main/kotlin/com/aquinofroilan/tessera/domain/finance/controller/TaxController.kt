@@ -13,6 +13,7 @@ import com.aquinofroilan.tessera.domain.finance.model.TaxRate
 import com.aquinofroilan.tessera.domain.finance.service.TaxGroupService
 import com.aquinofroilan.tessera.domain.finance.service.TaxRateService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/finance/tax")
@@ -38,9 +40,9 @@ class TaxController(
     @PostMapping("/rates")
     @PreAuthorize("hasAuthority('tax:create')")
     fun createTaxRate(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateTaxRateRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val taxRate = taxRateService.createTaxRate(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(taxRate.toResponse())
     }
@@ -48,9 +50,9 @@ class TaxController(
     @GetMapping("/rates")
     @PreAuthorize("hasAuthority('tax:read')")
     fun listTaxRates(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) active: Boolean?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val rates = taxRateService.listTaxRates(orgId, active ?: false)
         return ResponseEntity.ok(rates.map { it.toResponse() })
     }
@@ -58,9 +60,9 @@ class TaxController(
     @GetMapping("/rates/{id}")
     @PreAuthorize("hasAuthority('tax:read')")
     fun getTaxRate(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val taxRate = taxRateService.getTaxRate(id, orgId)
         return ResponseEntity.ok(taxRate.toResponse())
     }
@@ -68,10 +70,10 @@ class TaxController(
     @PutMapping("/rates/{id}")
     @PreAuthorize("hasAuthority('tax:create')")
     fun updateTaxRate(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateTaxRateRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val taxRate = taxRateService.updateTaxRate(id, request, orgId)
         return ResponseEntity.ok(taxRate.toResponse())
     }
@@ -79,9 +81,9 @@ class TaxController(
     @DeleteMapping("/rates/{id}")
     @PreAuthorize("hasAuthority('tax:delete')")
     fun deleteTaxRate(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         taxRateService.deleteTaxRate(id, orgId)
         return ResponseEntity.ok(mapOf("message" to "Tax rate deactivated"))
     }
@@ -89,9 +91,9 @@ class TaxController(
     @PostMapping("/groups")
     @PreAuthorize("hasAuthority('tax:create')")
     fun createTaxGroup(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateTaxGroupRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val (taxGroup, rates) =
             taxGroupService.let {
                 val group = it.createTaxGroup(request, orgId)
@@ -103,9 +105,9 @@ class TaxController(
     @GetMapping("/groups")
     @PreAuthorize("hasAuthority('tax:read')")
     fun listTaxGroups(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) active: Boolean?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val groups = taxGroupService.listTaxGroups(orgId, active ?: false)
         val allRateIds = groups.flatMap { it.taxRateIds }.distinct()
         val allRates =
@@ -128,9 +130,9 @@ class TaxController(
     @GetMapping("/groups/{id}")
     @PreAuthorize("hasAuthority('tax:read')")
     fun getTaxGroup(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val (taxGroup, rates) = taxGroupService.getTaxGroupWithRates(id, orgId)
         return ResponseEntity.ok(taxGroup.toResponse(rates))
     }
@@ -138,10 +140,10 @@ class TaxController(
     @PutMapping("/groups/{id}")
     @PreAuthorize("hasAuthority('tax:create')")
     fun updateTaxGroup(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateTaxGroupRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val updated = taxGroupService.updateTaxGroup(id, request, orgId)
         val (_, rates) = taxGroupService.getTaxGroupWithRates(updated.id, orgId)
         return ResponseEntity.ok(updated.toResponse(rates))
@@ -150,9 +152,9 @@ class TaxController(
     @DeleteMapping("/groups/{id}")
     @PreAuthorize("hasAuthority('tax:delete')")
     fun deleteTaxGroup(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         taxGroupService.deleteTaxGroup(id, orgId)
         return ResponseEntity.ok(mapOf("message" to "Tax group deactivated"))
     }
@@ -160,10 +162,10 @@ class TaxController(
     @GetMapping("/summary")
     @PreAuthorize("hasAuthority('tax:read')")
     fun getTaxSummary(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam startDate: java.time.LocalDate,
         @RequestParam endDate: java.time.LocalDate,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val summary = taxGroupService.getTaxSummary(orgId, startDate, endDate)
         return ResponseEntity.ok(summary)
     }

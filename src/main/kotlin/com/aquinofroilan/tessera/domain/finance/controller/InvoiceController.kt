@@ -14,6 +14,8 @@ import com.aquinofroilan.tessera.domain.finance.model.InvoiceReceipt
 import com.aquinofroilan.tessera.domain.finance.model.InvoiceStatus
 import com.aquinofroilan.tessera.domain.finance.service.InvoiceService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/finance/ar/invoices")
@@ -39,9 +42,9 @@ class InvoiceController(
     @PostMapping
     @PreAuthorize("hasAuthority('ar:create')")
     fun createInvoice(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateInvoiceRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
 
         val invoice = invoiceService.createInvoice(request, orgId, createdBy)
@@ -51,11 +54,10 @@ class InvoiceController(
     @GetMapping
     @PreAuthorize("hasAuthority('ar:read')")
     fun listInvoices(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) customerId: java.util.UUID?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val invoiceStatus =
             if (status != null) {
                 try {
@@ -76,10 +78,9 @@ class InvoiceController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ar:read')")
     fun getInvoice(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val invoice = invoiceService.getInvoice(id, orgId)
         return ResponseEntity.ok(invoice.toResponse())
     }
@@ -87,11 +88,10 @@ class InvoiceController(
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasAuthority('ar:approve')")
     fun approveInvoice(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-
         val invoice = invoiceService.approveInvoice(id, orgId, userId)
         return ResponseEntity.ok(invoice.toResponse())
     }
@@ -99,12 +99,11 @@ class InvoiceController(
     @PostMapping("/{id}/void")
     @PreAuthorize("hasAuthority('ar:void')")
     fun voidInvoice(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: VoidInvoiceRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-
         val invoice = invoiceService.voidInvoice(id, orgId, request.reason, userId)
         return ResponseEntity.ok(invoice.toResponse())
     }
@@ -112,10 +111,10 @@ class InvoiceController(
     @PostMapping("/{id}/receipts")
     @PreAuthorize("hasAuthority('ar:receive')")
     fun recordReceipt(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: RecordReceiptRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val createdBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
 
         val receipt = invoiceService.recordReceipt(id, request, orgId, createdBy)
@@ -125,10 +124,9 @@ class InvoiceController(
     @GetMapping("/{id}/receipts")
     @PreAuthorize("hasAuthority('ar:read')")
     fun listReceipts(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val receipts = invoiceService.getReceipts(id, orgId)
         return ResponseEntity.ok(receipts.map { it.toResponse() })
     }
@@ -136,9 +134,9 @@ class InvoiceController(
     @GetMapping("/aging")
     @PreAuthorize("hasAuthority('ar:read')")
     fun getAgingReport(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) asOfDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val report = invoiceService.getAgingReport(orgId, asOfDate ?: LocalDate.now(ZoneOffset.UTC))
         return ResponseEntity.ok(report)
     }

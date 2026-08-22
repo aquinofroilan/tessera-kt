@@ -9,6 +9,8 @@ import com.aquinofroilan.tessera.domain.platform.dto.FiscalPeriodResponse
 import com.aquinofroilan.tessera.domain.platform.dto.FiscalYearResponse
 import com.aquinofroilan.tessera.domain.platform.dto.FiscalYearSummaryResponse
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/finance/fiscal")
@@ -30,18 +33,18 @@ class FiscalYearController(
     @PostMapping
     @PreAuthorize("hasAuthority('fiscal:create')")
     fun createFiscalYear(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateFiscalYearRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val fiscalYear = fiscalYearService.createFiscalYear(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(fiscalYear.toResponse())
     }
 
     @GetMapping
     @PreAuthorize("hasAuthority('fiscal:read')")
-    fun listFiscalYears(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
+    fun listFiscalYears(
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> {
         val fiscalYears = fiscalYearService.listFiscalYears(orgId)
         return ResponseEntity.ok(fiscalYears.map { it.toSummaryResponse() })
     }
@@ -49,10 +52,9 @@ class FiscalYearController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('fiscal:read')")
     fun getFiscalYear(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val fiscalYear = fiscalYearService.getFiscalYear(id, orgId)
         return ResponseEntity.ok(fiscalYear.toResponse())
     }
@@ -60,12 +62,11 @@ class FiscalYearController(
     @PostMapping("/{id}/periods/{periodId}/close")
     @PreAuthorize("hasAuthority('fiscal:close')")
     fun closePeriod(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @PathVariable periodId: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-
         val fiscalYear = fiscalYearService.closePeriod(id, periodId, orgId, userId)
         return ResponseEntity.ok(fiscalYear.toResponse())
     }
@@ -73,12 +74,11 @@ class FiscalYearController(
     @PostMapping("/{id}/periods/{periodId}/reopen")
     @PreAuthorize("hasAuthority('fiscal:close')")
     fun reopenPeriod(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @PathVariable periodId: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-
         val fiscalYear = fiscalYearService.reopenPeriod(id, periodId, orgId, userId)
         return ResponseEntity.ok(fiscalYear.toResponse())
     }
@@ -86,11 +86,10 @@ class FiscalYearController(
     @PostMapping("/{id}/close")
     @PreAuthorize("hasAuthority('fiscal:close')")
     fun closeYear(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-
         val fiscalYear = fiscalYearService.closeYear(id, orgId, userId)
         return ResponseEntity.ok(fiscalYear.toResponse())
     }

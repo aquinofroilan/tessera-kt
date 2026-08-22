@@ -5,6 +5,7 @@ import com.aquinofroilan.tessera.annotation.Loggable
 import com.aquinofroilan.tessera.domain.assets.model.AssetStatus
 import com.aquinofroilan.tessera.domain.assets.service.AssetReportService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -24,10 +25,10 @@ class AssetReportController(
     @GetMapping("/register")
     @PreAuthorize("hasAuthority('assets:read')")
     fun assetRegister(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) categoryId: String?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val assetStatus =
             status?.let {
                 try {
@@ -50,10 +51,10 @@ class AssetReportController(
     @GetMapping("/depreciation-schedule")
     @PreAuthorize("hasAuthority('assets:read')")
     fun depreciationSchedule(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) assetId: String?,
         @RequestParam(required = false, defaultValue = "12") months: Int,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val assetUuid =
             assetId?.let {
                 try {

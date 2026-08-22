@@ -26,29 +26,32 @@ class AttendanceGraphqlController(
         @Argument employeeId: java.util.UUID?,
         @Argument from: String?,
         @Argument to: String?,
-    ): Any = support.unwrap(attendanceController.listTimesheet(employeeId, from?.let(LocalDate::parse), to?.let(LocalDate::parse)))
+    ): Any =
+        support.unwrap(
+            attendanceController.listTimesheet(support.orgId(), employeeId, from?.let(LocalDate::parse), to?.let(LocalDate::parse)),
+        )
 
     @QueryMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun attendanceRecord(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(attendanceController.getAttendance(id))
+    ): Any = support.unwrap(attendanceController.getAttendance(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun clockIn(
         @Argument input: Any,
-    ): Any = support.unwrap(attendanceController.clockIn(support.toRequest<ClockRequest>(input)))
+    ): Any = support.unwrap(attendanceController.clockIn(support.orgId(), support.toRequest<ClockRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun clockOut(
         @Argument input: Any,
-    ): Any = support.unwrap(attendanceController.clockOut(support.toRequest<ClockRequest>(input)))
+    ): Any = support.unwrap(attendanceController.clockOut(support.orgId(), support.toRequest<ClockRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun recordAttendance(
         @Argument input: Any,
-    ): Any = support.unwrap(attendanceController.recordAttendance(support.toRequest<RecordAttendanceRequest>(input)))
+    ): Any = support.unwrap(attendanceController.recordAttendance(support.orgId(), support.toRequest<RecordAttendanceRequest>(input)))
 }

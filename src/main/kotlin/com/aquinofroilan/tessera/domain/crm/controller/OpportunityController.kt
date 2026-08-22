@@ -9,6 +9,8 @@ import com.aquinofroilan.tessera.domain.crm.dto.UpdateOpportunityRequest
 import com.aquinofroilan.tessera.domain.crm.model.OpportunityStatus
 import com.aquinofroilan.tessera.domain.crm.service.OpportunityService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -34,10 +36,10 @@ class OpportunityController(
     @PostMapping
     @PreAuthorize("hasAuthority('crm:write')")
     fun create(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateOpportunityRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         val opp = opportunityService.createOpportunity(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(OpportunityResponse.from(opp))
     }
@@ -45,12 +47,12 @@ class OpportunityController(
     @GetMapping
     @PreAuthorize("hasAuthority('crm:read')")
     fun list(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) customerId: UUID?,
         @RequestParam(required = false) stageId: UUID?,
         @RequestParam(required = false) ownerUserId: UUID?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val parsed =
             if (status != null) {
                 try {
@@ -71,40 +73,32 @@ class OpportunityController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('crm:read')")
     fun get(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(OpportunityResponse.from(opportunityService.getOpportunity(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(OpportunityResponse.from(opportunityService.getOpportunity(id, orgId)))
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('crm:write')")
     fun update(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateOpportunityRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(OpportunityResponse.from(opportunityService.updateOpportunity(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(OpportunityResponse.from(opportunityService.updateOpportunity(id, request, orgId)))
 
     @PostMapping("/{id}/close")
     @PreAuthorize("hasAuthority('crm:write')")
     fun close(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
         @Valid @RequestBody request: CloseOpportunityRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        return ResponseEntity.ok(OpportunityResponse.from(opportunityService.closeOpportunity(id, request, orgId, userId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(OpportunityResponse.from(opportunityService.closeOpportunity(id, request, orgId, userId)))
 
     @PostMapping("/{id}/abandon")
     @PreAuthorize("hasAuthority('crm:write')")
     fun abandon(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
-        return ResponseEntity.ok(OpportunityResponse.from(opportunityService.abandonOpportunity(id, orgId, userId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(OpportunityResponse.from(opportunityService.abandonOpportunity(id, orgId, userId)))
 }

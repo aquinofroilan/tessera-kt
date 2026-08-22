@@ -7,6 +7,7 @@ import com.aquinofroilan.tessera.domain.assets.dto.CreateAssetCategoryRequest
 import com.aquinofroilan.tessera.domain.assets.dto.UpdateAssetCategoryRequest
 import com.aquinofroilan.tessera.domain.assets.service.AssetCategoryService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -31,9 +32,9 @@ class AssetCategoryController(
     @PostMapping
     @PreAuthorize("hasAuthority('assets:write')")
     fun createCategory(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateAssetCategoryRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val created = assetCategoryService.createCategory(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(AssetCategoryResponse.from(created))
     }
@@ -41,20 +42,19 @@ class AssetCategoryController(
     @GetMapping
     @PreAuthorize("hasAuthority('assets:read')")
     fun listCategories(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false, defaultValue = "false") activeOnly: Boolean,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(
+    ): ResponseEntity<Any> =
+        ResponseEntity.ok(
             assetCategoryService.listCategories(orgId, activeOnly).map { AssetCategoryResponse.from(it) },
         )
-    }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('assets:read')")
     fun getCategory(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val categoryId =
             try {
                 UUID.fromString(id)
@@ -67,10 +67,10 @@ class AssetCategoryController(
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('assets:write')")
     fun updateCategory(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: String,
         @Valid @RequestBody request: UpdateAssetCategoryRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val categoryId =
             try {
                 UUID.fromString(id)

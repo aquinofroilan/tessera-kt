@@ -7,6 +7,7 @@ import com.aquinofroilan.tessera.domain.hr.dto.PositionResponse
 import com.aquinofroilan.tessera.domain.hr.dto.UpdatePositionRequest
 import com.aquinofroilan.tessera.domain.hr.service.PositionService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/hr/positions")
@@ -31,46 +33,37 @@ class PositionController(
     @PostMapping
     @PreAuthorize("hasAuthority('hr:write')")
     fun createPosition(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreatePositionRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.status(HttpStatus.CREATED).body(PositionResponse.from(positionService.createPosition(request, orgId)))
-    }
+    ): ResponseEntity<Any> =
+        ResponseEntity.status(HttpStatus.CREATED).body(PositionResponse.from(positionService.createPosition(request, orgId)))
 
     @GetMapping
     @PreAuthorize("hasAuthority('hr:read')")
     fun listPositions(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false, defaultValue = "false") activeOnly: Boolean,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(positionService.listPositions(orgId, activeOnly).map { PositionResponse.from(it) })
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(positionService.listPositions(orgId, activeOnly).map { PositionResponse.from(it) })
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:read')")
     fun getPosition(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(PositionResponse.from(positionService.getPosition(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(PositionResponse.from(positionService.getPosition(id, orgId)))
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:write')")
     fun updatePosition(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdatePositionRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(PositionResponse.from(positionService.updatePosition(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(PositionResponse.from(positionService.updatePosition(id, request, orgId)))
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('hr:write')")
     fun deactivatePosition(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(PositionResponse.from(positionService.deactivatePosition(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(PositionResponse.from(positionService.deactivatePosition(id, orgId)))
 }

@@ -2,16 +2,25 @@ package com.aquinofroilan.tessera.graphql
 
 import com.aquinofroilan.tessera.exception.AuthenticationException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
+import com.aquinofroilan.tessera.security.AuthenticationContext
 import jakarta.validation.Validator
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import tools.jackson.databind.ObjectMapper
+import java.util.UUID
 
 @Component
 class GraphqlBridgeSupport(
     private val objectMapper: ObjectMapper,
     private val validator: Validator,
+    private val authContext: AuthenticationContext,
 ) {
+    fun orgId(): UUID = authContext.organizationId() ?: throw AuthenticationException("Authentication required")
+
+    fun userId(): UUID = authContext.userId() ?: throw AuthenticationException("Authentication required")
+
+    fun userIdString(): String = userId().toString()
+
     fun <T : Any> toRequest(
         input: Any,
         type: Class<T>,
@@ -27,7 +36,7 @@ class GraphqlBridgeSupport(
 
     fun unwrap(response: ResponseEntity<*>): Any {
         if (response.statusCode.is2xxSuccessful) {
-            return response.body ?: emptyMap<java.util.UUID, Any>()
+            return response.body ?: emptyMap<UUID, Any>()
         }
 
         val message =

@@ -10,6 +10,8 @@ import com.aquinofroilan.tessera.domain.platform.dto.CreateMpsEntryRequest
 import com.aquinofroilan.tessera.domain.platform.dto.MpsEntryResponse
 import com.aquinofroilan.tessera.domain.platform.dto.UpdateMpsEntryRequest
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/mfg/planning")
@@ -40,20 +43,20 @@ class PlanningController(
     @PostMapping("/mps")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun createMps(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateMpsEntryRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId()?.toString() ?: "api-key"
-        val entry = mpsService.create(request, orgId, userId)
+        val entry = mpsService.create(request, orgId, userId.toString())
         return ResponseEntity.status(HttpStatus.CREATED).body(MpsEntryResponse.from(entry))
     }
 
     @GetMapping("/mps")
     @PreAuthorize("hasAuthority('mfg:read')")
     fun listMps(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) status: String?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val parsed =
             if (status != null) {
                 try {
@@ -70,28 +73,24 @@ class PlanningController(
     @GetMapping("/mps/{id}")
     @PreAuthorize("hasAuthority('mfg:read')")
     fun getMps(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(MpsEntryResponse.from(mpsService.get(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(MpsEntryResponse.from(mpsService.get(id, orgId)))
 
     @PutMapping("/mps/{id}")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun updateMps(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateMpsEntryRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(MpsEntryResponse.from(mpsService.update(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(MpsEntryResponse.from(mpsService.update(id, request, orgId)))
 
     @DeleteMapping("/mps/{id}")
     @PreAuthorize("hasAuthority('mfg:write')")
     fun deleteMps(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         mpsService.delete(id, orgId)
         return ResponseEntity.noContent().build()
     }
@@ -99,19 +98,15 @@ class PlanningController(
     @PostMapping("/mrp/run")
     @PreAuthorize("hasAuthority('mfg:read')")
     fun runMrp(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) horizonEnd: LocalDate?,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(mrpService.run(orgId, horizonEnd))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(mrpService.run(orgId, horizonEnd))
 
     @PostMapping("/crp/run")
     @PreAuthorize("hasAuthority('mfg:read')")
     fun runCrp(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) horizonEnd: LocalDate?,
         @RequestParam(required = false, defaultValue = "8") capacityHoursPerWorkingDay: BigDecimal,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(crpService.run(orgId, horizonEnd, capacityHoursPerWorkingDay))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(crpService.run(orgId, horizonEnd, capacityHoursPerWorkingDay))
 }

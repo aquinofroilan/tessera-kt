@@ -7,6 +7,8 @@ import com.aquinofroilan.tessera.domain.assets.dto.DepreciationRunResponse
 import com.aquinofroilan.tessera.domain.assets.service.DepreciationRunService
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -29,9 +31,9 @@ class AssetDepreciationRunController(
     @PostMapping
     @PreAuthorize("hasAuthority('assets:write')")
     fun createRun(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateDepreciationRunRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val year = request.periodYear ?: throw BusinessRuleException("Period year is required")
         val month = request.periodMonth ?: throw BusinessRuleException("Period month is required")
         val run = depreciationRunService.createRun(orgId, year, month)
@@ -41,19 +43,19 @@ class AssetDepreciationRunController(
 
     @GetMapping
     @PreAuthorize("hasAuthority('assets:read')")
-    fun listRuns(): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(
+    fun listRuns(
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> =
+        ResponseEntity.ok(
             depreciationRunService.listRuns(orgId).map { DepreciationRunResponse.from(it) },
         )
-    }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('assets:read')")
     fun getRun(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val runId =
             try {
                 UUID.fromString(id)
@@ -68,10 +70,10 @@ class AssetDepreciationRunController(
     @PostMapping("/{id}/post")
     @PreAuthorize("hasAuthority('assets:approve')")
     fun postRun(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: String,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
         val runId =
             try {
                 UUID.fromString(id)

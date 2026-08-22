@@ -8,6 +8,7 @@ import com.aquinofroilan.tessera.domain.project.dto.UpdateTimeEntryRequest
 import com.aquinofroilan.tessera.domain.project.model.TimeEntryStatus
 import com.aquinofroilan.tessera.domain.project.service.TimeEntryService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/projects/time-entries")
@@ -32,9 +34,9 @@ class TimeEntryController(
     @PostMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun createTimeEntry(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateTimeEntryRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val created = timeEntryService.createTimeEntry(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(TimeEntryResponse.from(created))
     }
@@ -42,11 +44,11 @@ class TimeEntryController(
     @GetMapping
     @PreAuthorize("hasAuthority('projects:read')")
     fun listTimeEntries(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) employeeId: java.util.UUID?,
         @RequestParam(required = false) projectId: java.util.UUID?,
         @RequestParam(required = false) status: String?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val entryStatus =
             if (status != null) {
                 try {
@@ -65,37 +67,31 @@ class TimeEntryController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('projects:read')")
     fun getTimeEntry(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.getTimeEntry(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.getTimeEntry(id, orgId)))
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('projects:write')")
     fun updateTimeEntry(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateTimeEntryRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.updateTimeEntry(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.updateTimeEntry(id, request, orgId)))
 
     @PostMapping("/{id}/submit")
     @PreAuthorize("hasAuthority('projects:write')")
     fun submitTimeEntry(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.submitTimeEntry(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.submitTimeEntry(id, orgId)))
 
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasAuthority('projects:approve')")
     fun approveTimeEntry(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val approvedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         return ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.approveTimeEntry(id, orgId, approvedBy)))
     }
@@ -103,9 +99,9 @@ class TimeEntryController(
     @PostMapping("/{id}/reject")
     @PreAuthorize("hasAuthority('projects:approve')")
     fun rejectTimeEntry(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val decidedBy = authContext.userId() ?: java.util.UUID.fromString("00000000-0000-0000-0000-000000000000")
         return ResponseEntity.ok(TimeEntryResponse.from(timeEntryService.rejectTimeEntry(id, orgId, decidedBy)))
     }

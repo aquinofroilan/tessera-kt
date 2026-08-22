@@ -8,6 +8,7 @@ import com.aquinofroilan.tessera.domain.inventory.dto.WarehouseResponse
 import com.aquinofroilan.tessera.domain.inventory.model.Warehouse
 import com.aquinofroilan.tessera.domain.inventory.service.WarehouseService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/inventory/warehouses")
@@ -32,9 +34,9 @@ class WarehouseController(
     @PostMapping
     @PreAuthorize("hasAuthority('inventory:write')")
     fun createWarehouse(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateWarehouseRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val warehouse = warehouseService.createWarehouse(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(warehouse.toResponse())
     }
@@ -42,10 +44,10 @@ class WarehouseController(
     @GetMapping
     @PreAuthorize("hasAuthority('inventory:read')")
     fun listWarehouses(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false, defaultValue = "true") isActive: Boolean,
         @RequestParam(required = false) search: String?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val warehouses = warehouseService.listWarehouses(orgId, isActive, search)
         return ResponseEntity.ok(warehouses.map { it.toResponse() })
     }
@@ -53,9 +55,9 @@ class WarehouseController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:read')")
     fun getWarehouse(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val warehouse = warehouseService.getWarehouse(id, orgId)
         return ResponseEntity.ok(warehouse.toResponse())
     }
@@ -63,10 +65,10 @@ class WarehouseController(
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun updateWarehouse(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateWarehouseRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val warehouse = warehouseService.updateWarehouse(id, request, orgId)
         return ResponseEntity.ok(warehouse.toResponse())
     }
@@ -74,9 +76,9 @@ class WarehouseController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:write')")
     fun deleteWarehouse(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val warehouse = warehouseService.deleteWarehouse(id, orgId)
         return ResponseEntity.ok(warehouse.toResponse())
     }

@@ -10,6 +10,7 @@ import com.aquinofroilan.tessera.domain.finance.model.AccountType
 import com.aquinofroilan.tessera.domain.finance.service.AccountService
 import com.aquinofroilan.tessera.domain.finance.service.JournalEntryService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.util.Locale
+import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/finance/accounts")
@@ -37,10 +39,9 @@ class AccountController(
     @PostMapping
     @PreAuthorize("hasAuthority('account:create')")
     fun createAccount(
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateAccountRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val account = accountService.createAccount(request, orgId)
         return ResponseEntity.status(HttpStatus.CREATED).body(account.toResponse())
     }
@@ -48,11 +49,10 @@ class AccountController(
     @GetMapping
     @PreAuthorize("hasAuthority('account:read')")
     fun listAccounts(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) type: String?,
         @RequestParam(required = false) parentId: java.util.UUID?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val accountType =
             if (type != null) {
                 try {
@@ -73,10 +73,9 @@ class AccountController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('account:read')")
     fun getAccount(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val account = accountService.getAccount(id, orgId)
         return ResponseEntity.ok(account.toResponse())
     }
@@ -84,11 +83,10 @@ class AccountController(
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('account:update')")
     fun updateAccount(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @Valid @RequestBody request: UpdateAccountRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val account = accountService.updateAccount(id, request, orgId)
         return ResponseEntity.ok(account.toResponse())
     }
@@ -96,10 +94,9 @@ class AccountController(
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('account:delete')")
     fun deleteAccount(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         accountService.deleteAccount(id, orgId)
         return ResponseEntity.ok(mapOf("message" to "Account deactivated"))
     }
@@ -107,11 +104,10 @@ class AccountController(
     @GetMapping("/{id}/balance")
     @PreAuthorize("hasAuthority('account:read')")
     fun getAccountBalance(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: java.util.UUID,
         @RequestParam(required = false) asOfDate: LocalDate?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-
         val balance = journalEntryService.getAccountBalance(id, orgId, asOfDate)
         return ResponseEntity.ok(balance)
     }

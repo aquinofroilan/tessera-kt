@@ -24,27 +24,28 @@ class ProjectTaskGraphqlController(
     @PreAuthorize("hasAuthority('projects:read')")
     fun projectTasks(
         @Argument projectId: java.util.UUID,
-    ): Any = support.unwrap(projectTaskController.listTasks(projectId))
+    ): Any = support.unwrap(projectTaskController.listTasks(support.orgId(), projectId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('projects:read')")
     fun projectTaskTree(
         @Argument projectId: java.util.UUID,
-    ): Any = support.unwrap(projectTaskController.taskTree(projectId))
+    ): Any = support.unwrap(projectTaskController.taskTree(support.orgId(), projectId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('projects:read')")
     fun projectTask(
         @Argument projectId: java.util.UUID,
         @Argument taskId: java.util.UUID,
-    ): Any = support.unwrap(projectTaskController.getTask(projectId, taskId))
+    ): Any = support.unwrap(projectTaskController.getTask(support.orgId(), projectId, taskId))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun createProjectTask(
         @Argument projectId: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(projectTaskController.createTask(projectId, support.toRequest<CreateProjectTaskRequest>(input)))
+    ): Any =
+        support.unwrap(projectTaskController.createTask(support.orgId(), projectId, support.toRequest<CreateProjectTaskRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
@@ -52,7 +53,10 @@ class ProjectTaskGraphqlController(
         @Argument projectId: java.util.UUID,
         @Argument taskId: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(projectTaskController.updateTask(projectId, taskId, support.toRequest<UpdateProjectTaskRequest>(input)))
+    ): Any =
+        support.unwrap(
+            projectTaskController.updateTask(support.orgId(), projectId, taskId, support.toRequest<UpdateProjectTaskRequest>(input)),
+        )
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
@@ -62,6 +66,6 @@ class ProjectTaskGraphqlController(
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<SetTaskParentRequest>(it) } ?: SetTaskParentRequest()
-        return support.unwrap(projectTaskController.setParent(projectId, taskId, request))
+        return support.unwrap(projectTaskController.setParent(support.orgId(), projectId, taskId, request))
     }
 }

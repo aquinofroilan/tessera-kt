@@ -8,6 +8,8 @@ import com.aquinofroilan.tessera.domain.hr.dto.UpdateJobPostingRequest
 import com.aquinofroilan.tessera.domain.hr.model.JobPostingStatus
 import com.aquinofroilan.tessera.domain.hr.service.JobPostingService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -33,10 +35,10 @@ class JobPostingController(
     @PostMapping
     @PreAuthorize("hasAuthority('hr-recruitment:write')")
     fun create(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateJobPostingRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
         val p = jobPostingService.createPosting(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(JobPostingResponse.from(p))
     }
@@ -44,9 +46,9 @@ class JobPostingController(
     @GetMapping
     @PreAuthorize("hasAuthority('hr-recruitment:read')")
     fun list(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) status: String?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val parsed =
             if (status != null) {
                 try {
@@ -63,46 +65,36 @@ class JobPostingController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('hr-recruitment:read')")
     fun get(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(JobPostingResponse.from(jobPostingService.getPosting(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(JobPostingResponse.from(jobPostingService.getPosting(id, orgId)))
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('hr-recruitment:write')")
     fun update(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateJobPostingRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(JobPostingResponse.from(jobPostingService.updatePosting(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(JobPostingResponse.from(jobPostingService.updatePosting(id, request, orgId)))
 
     @PostMapping("/{id}/open")
     @PreAuthorize("hasAuthority('hr-recruitment:approve')")
     fun open(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(JobPostingResponse.from(jobPostingService.openPosting(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(JobPostingResponse.from(jobPostingService.openPosting(id, orgId)))
 
     @PostMapping("/{id}/close")
     @PreAuthorize("hasAuthority('hr-recruitment:approve')")
     fun close(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(JobPostingResponse.from(jobPostingService.closePosting(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(JobPostingResponse.from(jobPostingService.closePosting(id, orgId)))
 
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('hr-recruitment:write')")
     fun cancel(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(JobPostingResponse.from(jobPostingService.cancelPosting(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(JobPostingResponse.from(jobPostingService.cancelPosting(id, orgId)))
 }

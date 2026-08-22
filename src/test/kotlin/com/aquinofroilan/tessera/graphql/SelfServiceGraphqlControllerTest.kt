@@ -33,7 +33,7 @@ class SelfServiceGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["hr:read"])
     fun `me query returns the caller profile`() {
-        `when`(selfServiceController.myProfile())
+        `when`(selfServiceController.myProfile(any(), any()))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "e1", "firstName" to "Ada")))
 
         graphQlTester
@@ -52,7 +52,7 @@ class SelfServiceGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["hr:read"])
     fun `submitMyLeave mutation bridges to controller`() {
-        `when`(selfServiceController.submitLeave(any<SubmitSelfLeaveRequest>()))
+        `when`(selfServiceController.submitLeave(any(), any(), any<SubmitSelfLeaveRequest>()))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "lr1", "status" to "PENDING")))
 
         graphQlTester

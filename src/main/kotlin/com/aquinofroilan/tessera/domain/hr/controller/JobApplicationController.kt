@@ -9,6 +9,8 @@ import com.aquinofroilan.tessera.domain.hr.dto.UpdateApplicationRequest
 import com.aquinofroilan.tessera.domain.hr.model.JobApplicationStatus
 import com.aquinofroilan.tessera.domain.hr.service.JobApplicationService
 import com.aquinofroilan.tessera.security.AuthenticationContext
+import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.security.CurrentUserId
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -34,10 +36,10 @@ class JobApplicationController(
     @PostMapping
     @PreAuthorize("hasAuthority('hr-recruitment:write')")
     fun create(
+        @CurrentUserId userId: UUID,
+        @CurrentOrganizationId orgId: UUID,
         @Valid @RequestBody request: CreateApplicationRequest,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        val userId = authContext.userId() ?: return authContext.unauthorized()
         val a = applicationService.createApplication(request, orgId, userId)
         return ResponseEntity.status(HttpStatus.CREATED).body(ApplicationResponse.from(a))
     }
@@ -45,10 +47,10 @@ class JobApplicationController(
     @GetMapping
     @PreAuthorize("hasAuthority('hr-recruitment:read')")
     fun list(
+        @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) jobPostingId: UUID?,
     ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
         val parsed =
             if (status != null) {
                 try {
@@ -67,29 +69,23 @@ class JobApplicationController(
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('hr-recruitment:read')")
     fun get(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(ApplicationResponse.from(applicationService.getApplication(id, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(ApplicationResponse.from(applicationService.getApplication(id, orgId)))
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('hr-recruitment:write')")
     fun update(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateApplicationRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(ApplicationResponse.from(applicationService.updateApplication(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(ApplicationResponse.from(applicationService.updateApplication(id, request, orgId)))
 
     @PostMapping("/{id}/advance")
     @PreAuthorize("hasAuthority('hr-recruitment:approve')")
     fun advance(
+        @CurrentOrganizationId orgId: UUID,
         @PathVariable id: UUID,
         @Valid @RequestBody request: AdvanceApplicationRequest,
-    ): ResponseEntity<Any> {
-        val orgId = authContext.organizationId() ?: return authContext.unauthorized()
-        return ResponseEntity.ok(ApplicationResponse.from(applicationService.advanceApplication(id, request, orgId)))
-    }
+    ): ResponseEntity<Any> = ResponseEntity.ok(ApplicationResponse.from(applicationService.advanceApplication(id, request, orgId)))
 }
