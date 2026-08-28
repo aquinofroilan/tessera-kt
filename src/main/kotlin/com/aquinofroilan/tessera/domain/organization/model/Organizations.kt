@@ -31,6 +31,8 @@ class Organizations(
     @Column(name = "fiscal_year_start")
     var fiscalYearStart: LocalDateTime,
     var timezone: String,
+    @Column(name = "logo_url")
+    var logoUrl: String? = null,
     var status: String = "ACTIVE",
     @Column(name = "inventory_costing_method")
     @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
