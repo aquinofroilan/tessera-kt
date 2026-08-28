@@ -1,10 +1,11 @@
 package com.aquinofroilan.tessera.graphql
 
 import com.aquinofroilan.tessera.config.TestSecurityConfig
-import com.aquinofroilan.tessera.controller.TimeEntryController
+import com.aquinofroilan.tessera.domain.project.controller.TimeEntryController
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.anyOrNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest
 import org.springframework.context.annotation.Import
@@ -12,7 +13,6 @@ import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.http.ResponseEntity
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
-import java.util.UUID
 
 @GraphQlTest(controllers = [TimeEntryGraphqlController::class])
 @Import(
@@ -32,7 +32,7 @@ class TimeEntryGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["projects:read"])
     fun `timeEntries query should return json payload`() {
-        `when`(timeEntryController.listTimeEntries(null, null, null))
+        `when`(timeEntryController.listTimeEntries(anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "DRAFT"))))
 
         graphQlTester
@@ -51,7 +51,7 @@ class TimeEntryGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["projects:approve"])
     fun `approveTimeEntry mutation should bridge to controller`() {
-        `when`(timeEntryController.approveTimeEntry(UUID.fromString("00000000-0000-0000-0000-000000000199")))
+        `when`(timeEntryController.approveTimeEntry(anyOrNull(), anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "APPROVED")))
 
         graphQlTester

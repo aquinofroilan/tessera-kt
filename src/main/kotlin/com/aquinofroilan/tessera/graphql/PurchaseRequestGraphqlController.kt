@@ -1,9 +1,9 @@
 package com.aquinofroilan.tessera.graphql
 
-import com.aquinofroilan.tessera.controller.PurchaseRequestController
-import com.aquinofroilan.tessera.dto.ConvertPurchaseRequestRequest
-import com.aquinofroilan.tessera.dto.CreatePurchaseRequestRequest
-import com.aquinofroilan.tessera.dto.RejectPurchaseRequestRequest
+import com.aquinofroilan.tessera.domain.procurement.controller.PurchaseRequestController
+import com.aquinofroilan.tessera.domain.procurement.dto.ConvertPurchaseRequestRequest
+import com.aquinofroilan.tessera.domain.procurement.dto.CreatePurchaseRequestRequest
+import com.aquinofroilan.tessera.domain.procurement.dto.RejectPurchaseRequestRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -25,31 +25,38 @@ class PurchaseRequestGraphqlController(
     fun purchaseRequests(
         @Argument status: String?,
         @Argument requestedBy: java.util.UUID?,
-    ): Any = support.unwrap(purchaseRequestController.listPurchaseRequests(status, requestedBy))
+    ): Any = support.unwrap(purchaseRequestController.listPurchaseRequests(support.orgId(), status, requestedBy))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('procurement:read')")
     fun purchaseRequest(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(purchaseRequestController.getPurchaseRequest(id))
+    ): Any = support.unwrap(purchaseRequestController.getPurchaseRequest(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:write')")
     fun createPurchaseRequest(
         @Argument input: Any,
-    ): Any = support.unwrap(purchaseRequestController.createPurchaseRequest(support.toRequest<CreatePurchaseRequestRequest>(input)))
+    ): Any =
+        support.unwrap(
+            purchaseRequestController.createPurchaseRequest(
+                support.orgId(),
+                support.userId(),
+                support.toRequest<CreatePurchaseRequestRequest>(input),
+            ),
+        )
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:write')")
     fun submitPurchaseRequest(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(purchaseRequestController.submitPurchaseRequest(id))
+    ): Any = support.unwrap(purchaseRequestController.submitPurchaseRequest(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:approve')")
     fun approvePurchaseRequest(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(purchaseRequestController.approvePurchaseRequest(id))
+    ): Any = support.unwrap(purchaseRequestController.approvePurchaseRequest(support.orgId(), support.userId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:approve')")
@@ -58,14 +65,14 @@ class PurchaseRequestGraphqlController(
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<RejectPurchaseRequestRequest>(it) }
-        return support.unwrap(purchaseRequestController.rejectPurchaseRequest(id, request))
+        return support.unwrap(purchaseRequestController.rejectPurchaseRequest(support.orgId(), support.userId(), id, request))
     }
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:write')")
     fun cancelPurchaseRequest(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(purchaseRequestController.cancelPurchaseRequest(id))
+    ): Any = support.unwrap(purchaseRequestController.cancelPurchaseRequest(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('procurement:write')")
@@ -74,6 +81,6 @@ class PurchaseRequestGraphqlController(
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<ConvertPurchaseRequestRequest>(it) }
-        return support.unwrap(purchaseRequestController.convertPurchaseRequest(id, request))
+        return support.unwrap(purchaseRequestController.convertPurchaseRequest(support.orgId(), support.userId(), id, request))
     }
 }

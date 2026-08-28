@@ -1,12 +1,11 @@
 package com.aquinofroilan.tessera.graphql
 
 import com.aquinofroilan.tessera.config.TestSecurityConfig
-import com.aquinofroilan.tessera.controller.SelfServiceController
-import com.aquinofroilan.tessera.dto.SubmitSelfLeaveRequest
+import com.aquinofroilan.tessera.domain.hr.controller.SelfServiceController
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
-import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest
 import org.springframework.context.annotation.Import
@@ -33,7 +32,7 @@ class SelfServiceGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["hr:read"])
     fun `me query returns the caller profile`() {
-        `when`(selfServiceController.myProfile())
+        `when`(selfServiceController.myProfile(anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "e1", "firstName" to "Ada")))
 
         graphQlTester
@@ -52,7 +51,7 @@ class SelfServiceGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["hr:read"])
     fun `submitMyLeave mutation bridges to controller`() {
-        `when`(selfServiceController.submitLeave(any<SubmitSelfLeaveRequest>()))
+        `when`(selfServiceController.submitLeave(anyOrNull(), anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(mapOf("id" to "lr1", "status" to "PENDING")))
 
         graphQlTester

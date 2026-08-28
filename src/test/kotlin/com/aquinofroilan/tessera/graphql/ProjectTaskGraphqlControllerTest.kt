@@ -1,10 +1,11 @@
 package com.aquinofroilan.tessera.graphql
 
 import com.aquinofroilan.tessera.config.TestSecurityConfig
-import com.aquinofroilan.tessera.controller.ProjectTaskController
+import com.aquinofroilan.tessera.domain.project.controller.ProjectTaskController
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.anyOrNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest
 import org.springframework.context.annotation.Import
@@ -12,7 +13,6 @@ import org.springframework.graphql.test.tester.GraphQlTester
 import org.springframework.http.ResponseEntity
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
-import java.util.UUID
 
 @GraphQlTest(controllers = [ProjectTaskGraphqlController::class])
 @Import(
@@ -32,7 +32,7 @@ class ProjectTaskGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["projects:read"])
     fun `projectTasks query should return json payload`() {
-        `when`(projectTaskController.listTasks(UUID.fromString("00000000-0000-0000-0000-000000000199")))
+        `when`(projectTaskController.listTasks(anyOrNull(), anyOrNull()))
             .thenReturn(ResponseEntity.ok(listOf(mapOf("id" to "00000000-0000-0000-0000-000000000199", "status" to "TODO"))))
 
         graphQlTester

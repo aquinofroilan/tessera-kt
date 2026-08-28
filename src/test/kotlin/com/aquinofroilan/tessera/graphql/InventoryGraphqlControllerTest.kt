@@ -1,16 +1,17 @@
 package com.aquinofroilan.tessera.graphql
 
 import com.aquinofroilan.tessera.config.TestSecurityConfig
-import com.aquinofroilan.tessera.controller.CurrencyController
-import com.aquinofroilan.tessera.controller.ExchangeRateController
-import com.aquinofroilan.tessera.controller.InventoryReorderRuleController
-import com.aquinofroilan.tessera.controller.InventoryReportsController
-import com.aquinofroilan.tessera.controller.ProductController
-import com.aquinofroilan.tessera.controller.StockMovementController
-import com.aquinofroilan.tessera.controller.WarehouseController
+import com.aquinofroilan.tessera.domain.finance.controller.CurrencyController
+import com.aquinofroilan.tessera.domain.finance.controller.ExchangeRateController
+import com.aquinofroilan.tessera.domain.inventory.controller.InventoryReorderRuleController
+import com.aquinofroilan.tessera.domain.inventory.controller.InventoryReportsController
+import com.aquinofroilan.tessera.domain.inventory.controller.ProductController
+import com.aquinofroilan.tessera.domain.inventory.controller.StockMovementController
+import com.aquinofroilan.tessera.domain.inventory.controller.WarehouseController
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.anyOrNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest
 import org.springframework.context.annotation.Import
@@ -56,7 +57,7 @@ class InventoryGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["inventory:read"])
     fun `products query should return json payload`() {
-        `when`(productController.listProducts(null, true, null))
+        `when`(productController.listProducts(anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull()))
             .thenReturn(
                 ResponseEntity.ok(
                     listOf(
@@ -84,7 +85,7 @@ class InventoryGraphqlControllerTest {
     @Test
     @WithMockUser(authorities = ["inventory:read"])
     fun `lowStockReport query should return json payload`() {
-        `when`(inventoryReportsController.lowStock())
+        `when`(inventoryReportsController.lowStock(anyOrNull()))
             .thenReturn(ResponseEntity.ok(listOf(mapOf("productId" to "p1", "shortfall" to 5))))
 
         graphQlTester

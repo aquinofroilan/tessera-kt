@@ -1,7 +1,7 @@
 package com.aquinofroilan.tessera.graphql
 
-import com.aquinofroilan.tessera.controller.ProjectBillingController
-import com.aquinofroilan.tessera.dto.GenerateProjectInvoiceRequest
+import com.aquinofroilan.tessera.domain.platform.dto.GenerateProjectInvoiceRequest
+import com.aquinofroilan.tessera.domain.project.controller.ProjectBillingController
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -24,6 +24,6 @@ class ProjectBillingGraphqlController(
         @Argument input: Any?,
     ): Any {
         val request = input?.let { support.toRequest<GenerateProjectInvoiceRequest>(it) }
-        return support.unwrap(projectBillingController.generateInvoice(projectId, request))
+        return support.unwrap(projectBillingController.generateInvoice(support.orgId(), support.userId(), projectId, request))
     }
 }

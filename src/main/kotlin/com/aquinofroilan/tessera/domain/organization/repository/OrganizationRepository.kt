@@ -1,0 +1,15 @@
+package com.aquinofroilan.tessera.domain.organization.repository
+
+import com.aquinofroilan.tessera.domain.organization.model.Organizations
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
+import java.util.Optional
+
+@Repository
+interface OrganizationRepository : JpaRepository<Organizations, java.util.UUID> {
+    fun findByOrgSlug(orgSlug: String): Optional<Organizations>
+
+    fun existsByOrgSlug(orgSlug: String): Boolean
+
+    fun existsByName(name: String): Boolean
+}

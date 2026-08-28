@@ -1,7 +1,7 @@
 package com.aquinofroilan.tessera.graphql
 
-import com.aquinofroilan.tessera.controller.ProjectBudgetController
-import com.aquinofroilan.tessera.dto.SetProjectBudgetRequest
+import com.aquinofroilan.tessera.domain.project.controller.ProjectBudgetController
+import com.aquinofroilan.tessera.domain.project.dto.SetProjectBudgetRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -22,18 +22,19 @@ class ProjectBudgetGraphqlController(
     @PreAuthorize("hasAuthority('projects:read')")
     fun projectBudgets(
         @Argument projectId: java.util.UUID,
-    ): Any = support.unwrap(projectBudgetController.listBudgets(projectId))
+    ): Any = support.unwrap(projectBudgetController.listBudgets(support.orgId(), projectId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('projects:read')")
     fun projectBudgetVsActual(
         @Argument projectId: java.util.UUID,
-    ): Any = support.unwrap(projectBudgetController.budgetVsActual(projectId))
+    ): Any = support.unwrap(projectBudgetController.budgetVsActual(support.orgId(), projectId))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun setProjectBudget(
         @Argument projectId: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(projectBudgetController.setBudget(projectId, support.toRequest<SetProjectBudgetRequest>(input)))
+    ): Any =
+        support.unwrap(projectBudgetController.setBudget(support.orgId(), projectId, support.toRequest<SetProjectBudgetRequest>(input)))
 }

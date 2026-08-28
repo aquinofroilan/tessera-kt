@@ -1,8 +1,8 @@
 package com.aquinofroilan.tessera.graphql
 
-import com.aquinofroilan.tessera.controller.TimeEntryController
-import com.aquinofroilan.tessera.dto.CreateTimeEntryRequest
-import com.aquinofroilan.tessera.dto.UpdateTimeEntryRequest
+import com.aquinofroilan.tessera.domain.project.controller.TimeEntryController
+import com.aquinofroilan.tessera.domain.project.dto.CreateTimeEntryRequest
+import com.aquinofroilan.tessera.domain.project.dto.UpdateTimeEntryRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -25,42 +25,42 @@ class TimeEntryGraphqlController(
         @Argument employeeId: java.util.UUID?,
         @Argument projectId: java.util.UUID?,
         @Argument status: String?,
-    ): Any = support.unwrap(timeEntryController.listTimeEntries(employeeId, projectId, status))
+    ): Any = support.unwrap(timeEntryController.listTimeEntries(support.orgId(), employeeId, projectId, status))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('projects:read')")
     fun timeEntry(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(timeEntryController.getTimeEntry(id))
+    ): Any = support.unwrap(timeEntryController.getTimeEntry(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun createTimeEntry(
         @Argument input: Any,
-    ): Any = support.unwrap(timeEntryController.createTimeEntry(support.toRequest<CreateTimeEntryRequest>(input)))
+    ): Any = support.unwrap(timeEntryController.createTimeEntry(support.orgId(), support.toRequest<CreateTimeEntryRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun updateTimeEntry(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(timeEntryController.updateTimeEntry(id, support.toRequest<UpdateTimeEntryRequest>(input)))
+    ): Any = support.unwrap(timeEntryController.updateTimeEntry(support.orgId(), id, support.toRequest<UpdateTimeEntryRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:write')")
     fun submitTimeEntry(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(timeEntryController.submitTimeEntry(id))
+    ): Any = support.unwrap(timeEntryController.submitTimeEntry(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:approve')")
     fun approveTimeEntry(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(timeEntryController.approveTimeEntry(id))
+    ): Any = support.unwrap(timeEntryController.approveTimeEntry(support.orgId(), support.userId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('projects:approve')")
     fun rejectTimeEntry(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(timeEntryController.rejectTimeEntry(id))
+    ): Any = support.unwrap(timeEntryController.rejectTimeEntry(support.orgId(), support.userId(), id))
 }

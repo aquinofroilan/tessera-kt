@@ -1,47 +1,47 @@
 package com.aquinofroilan.tessera.graphql
 
-import com.aquinofroilan.tessera.controller.AccountController
-import com.aquinofroilan.tessera.controller.ApiKeyController
-import com.aquinofroilan.tessera.controller.AuthController
-import com.aquinofroilan.tessera.controller.BillController
-import com.aquinofroilan.tessera.controller.EnvironmentController
-import com.aquinofroilan.tessera.controller.FinancialReportController
-import com.aquinofroilan.tessera.controller.FiscalYearController
-import com.aquinofroilan.tessera.controller.HealthController
-import com.aquinofroilan.tessera.controller.InvitationController
-import com.aquinofroilan.tessera.controller.InvoiceController
-import com.aquinofroilan.tessera.controller.JournalEntryController
-import com.aquinofroilan.tessera.controller.SessionController
-import com.aquinofroilan.tessera.controller.TaxController
-import com.aquinofroilan.tessera.controller.VendorController
-import com.aquinofroilan.tessera.dto.AcceptInvitationRequest
-import com.aquinofroilan.tessera.dto.ChangePasswordRequest
-import com.aquinofroilan.tessera.dto.CreateAccountRequest
-import com.aquinofroilan.tessera.dto.CreateApiKeyRequest
-import com.aquinofroilan.tessera.dto.CreateBillRequest
-import com.aquinofroilan.tessera.dto.CreateFiscalYearRequest
-import com.aquinofroilan.tessera.dto.CreateInvitationRequest
-import com.aquinofroilan.tessera.dto.CreateInvoiceRequest
-import com.aquinofroilan.tessera.dto.CreateJournalEntryRequest
-import com.aquinofroilan.tessera.dto.CreateTaxGroupRequest
-import com.aquinofroilan.tessera.dto.CreateTaxRateRequest
-import com.aquinofroilan.tessera.dto.CreateVendorRequest
-import com.aquinofroilan.tessera.dto.ForgotPasswordRequest
-import com.aquinofroilan.tessera.dto.LoginRequest
-import com.aquinofroilan.tessera.dto.RecordPaymentRequest
-import com.aquinofroilan.tessera.dto.RecordReceiptRequest
-import com.aquinofroilan.tessera.dto.RefreshRequest
-import com.aquinofroilan.tessera.dto.RegisterRequest
-import com.aquinofroilan.tessera.dto.ResetPasswordRequest
-import com.aquinofroilan.tessera.dto.SwitchOrganizationRequest
-import com.aquinofroilan.tessera.dto.UpdateAccountRequest
-import com.aquinofroilan.tessera.dto.UpdateTaxGroupRequest
-import com.aquinofroilan.tessera.dto.UpdateTaxRateRequest
-import com.aquinofroilan.tessera.dto.UpdateVendorRequest
-import com.aquinofroilan.tessera.dto.ValidateInvitationRequest
-import com.aquinofroilan.tessera.dto.VoidBillRequest
-import com.aquinofroilan.tessera.dto.VoidInvoiceRequest
-import com.aquinofroilan.tessera.dto.VoidJournalEntryRequest
+import com.aquinofroilan.tessera.domain.auth.controller.ApiKeyController
+import com.aquinofroilan.tessera.domain.auth.controller.AuthController
+import com.aquinofroilan.tessera.domain.auth.controller.InvitationController
+import com.aquinofroilan.tessera.domain.auth.controller.SessionController
+import com.aquinofroilan.tessera.domain.auth.dto.ChangePasswordRequest
+import com.aquinofroilan.tessera.domain.auth.dto.CreateApiKeyRequest
+import com.aquinofroilan.tessera.domain.auth.dto.ForgotPasswordRequest
+import com.aquinofroilan.tessera.domain.auth.dto.LoginRequest
+import com.aquinofroilan.tessera.domain.auth.dto.RefreshRequest
+import com.aquinofroilan.tessera.domain.auth.dto.RegisterRequest
+import com.aquinofroilan.tessera.domain.auth.dto.ResetPasswordRequest
+import com.aquinofroilan.tessera.domain.auth.dto.SwitchOrganizationRequest
+import com.aquinofroilan.tessera.domain.finance.controller.AccountController
+import com.aquinofroilan.tessera.domain.finance.controller.BillController
+import com.aquinofroilan.tessera.domain.finance.controller.FinancialReportController
+import com.aquinofroilan.tessera.domain.finance.controller.FiscalYearController
+import com.aquinofroilan.tessera.domain.finance.controller.InvoiceController
+import com.aquinofroilan.tessera.domain.finance.controller.JournalEntryController
+import com.aquinofroilan.tessera.domain.finance.controller.TaxController
+import com.aquinofroilan.tessera.domain.finance.dto.CreateAccountRequest
+import com.aquinofroilan.tessera.domain.finance.dto.CreateBillRequest
+import com.aquinofroilan.tessera.domain.finance.dto.CreateInvoiceRequest
+import com.aquinofroilan.tessera.domain.finance.dto.CreateJournalEntryRequest
+import com.aquinofroilan.tessera.domain.finance.dto.CreateTaxGroupRequest
+import com.aquinofroilan.tessera.domain.finance.dto.CreateTaxRateRequest
+import com.aquinofroilan.tessera.domain.finance.dto.RecordPaymentRequest
+import com.aquinofroilan.tessera.domain.finance.dto.RecordReceiptRequest
+import com.aquinofroilan.tessera.domain.finance.dto.UpdateAccountRequest
+import com.aquinofroilan.tessera.domain.finance.dto.UpdateTaxGroupRequest
+import com.aquinofroilan.tessera.domain.finance.dto.UpdateTaxRateRequest
+import com.aquinofroilan.tessera.domain.finance.dto.VoidBillRequest
+import com.aquinofroilan.tessera.domain.finance.dto.VoidInvoiceRequest
+import com.aquinofroilan.tessera.domain.finance.dto.VoidJournalEntryRequest
+import com.aquinofroilan.tessera.domain.organization.controller.EnvironmentController
+import com.aquinofroilan.tessera.domain.platform.controller.HealthController
+import com.aquinofroilan.tessera.domain.platform.dto.AcceptInvitationRequest
+import com.aquinofroilan.tessera.domain.platform.dto.CreateFiscalYearRequest
+import com.aquinofroilan.tessera.domain.platform.dto.CreateInvitationRequest
+import com.aquinofroilan.tessera.domain.platform.dto.ValidateInvitationRequest
+import com.aquinofroilan.tessera.domain.procurement.controller.VendorController
+import com.aquinofroilan.tessera.domain.procurement.dto.CreateVendorRequest
+import com.aquinofroilan.tessera.domain.procurement.dto.UpdateVendorRequest
 import graphql.schema.DataFetchingEnvironment
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.graphql.data.method.annotation.Argument
@@ -195,82 +195,89 @@ class RestGraphqlController(
     @PreAuthorize("hasAuthority('account:create')")
     fun createAccount(
         @Argument input: Any,
-    ): Any = support.unwrap(accountController.createAccount(support.toRequest<CreateAccountRequest>(input)))
+    ): Any = support.unwrap(accountController.createAccount(support.orgId(), support.toRequest<CreateAccountRequest>(input)))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('account:read')")
     fun accounts(
         @Argument type: String?,
         @Argument parentId: java.util.UUID?,
-    ): Any = support.unwrap(accountController.listAccounts(type, parentId))
+    ): Any = support.unwrap(accountController.listAccounts(support.orgId(), type, parentId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('account:read')")
     fun account(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(accountController.getAccount(id))
+    ): Any = support.unwrap(accountController.getAccount(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('account:update')")
     fun updateAccount(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(accountController.updateAccount(id, support.toRequest<UpdateAccountRequest>(input)))
+    ): Any = support.unwrap(accountController.updateAccount(support.orgId(), id, support.toRequest<UpdateAccountRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('account:delete')")
     fun deleteAccount(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(accountController.deleteAccount(id))
+    ): Any = support.unwrap(accountController.deleteAccount(support.orgId(), id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('account:read')")
     fun accountBalance(
         @Argument id: java.util.UUID,
         @Argument asOfDate: String?,
-    ): Any = support.unwrap(accountController.getAccountBalance(id, asOfDate?.let(LocalDate::parse)))
+    ): Any = support.unwrap(accountController.getAccountBalance(support.orgId(), id, asOfDate?.let(LocalDate::parse)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('fiscal:create')")
     fun createFiscalYear(
         @Argument input: Any,
-    ): Any = support.unwrap(fiscalYearController.createFiscalYear(support.toRequest<CreateFiscalYearRequest>(input)))
+    ): Any = support.unwrap(fiscalYearController.createFiscalYear(support.orgId(), support.toRequest<CreateFiscalYearRequest>(input)))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('fiscal:read')")
-    fun fiscalYears(): Any = support.unwrap(fiscalYearController.listFiscalYears())
+    fun fiscalYears(): Any = support.unwrap(fiscalYearController.listFiscalYears(support.orgId()))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('fiscal:read')")
     fun fiscalYear(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(fiscalYearController.getFiscalYear(id))
+    ): Any = support.unwrap(fiscalYearController.getFiscalYear(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('fiscal:close')")
     fun closePeriod(
         @Argument id: java.util.UUID,
         @Argument periodId: java.util.UUID,
-    ): Any = support.unwrap(fiscalYearController.closePeriod(id, periodId))
+    ): Any = support.unwrap(fiscalYearController.closePeriod(support.userId(), support.orgId(), id, periodId))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('fiscal:close')")
     fun reopenPeriod(
         @Argument id: java.util.UUID,
         @Argument periodId: java.util.UUID,
-    ): Any = support.unwrap(fiscalYearController.reopenPeriod(id, periodId))
+    ): Any = support.unwrap(fiscalYearController.reopenPeriod(support.userId(), support.orgId(), id, periodId))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('fiscal:close')")
     fun closeYear(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(fiscalYearController.closeYear(id))
+    ): Any = support.unwrap(fiscalYearController.closeYear(support.userId(), support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('journal:create')")
     fun createJournalEntry(
         @Argument input: Any,
-    ): Any = support.unwrap(journalEntryController.createJournalEntry(support.toRequest<CreateJournalEntryRequest>(input)))
+    ): Any =
+        support.unwrap(
+            journalEntryController.createJournalEntry(
+                support.orgId(),
+                support.userId(),
+                support.toRequest<CreateJournalEntryRequest>(input),
+            ),
+        )
 
     @QueryMapping
     @PreAuthorize("hasAuthority('journal:read')")
@@ -281,6 +288,7 @@ class RestGraphqlController(
     ): Any =
         support.unwrap(
             journalEntryController.listJournalEntries(
+                support.orgId(),
                 status,
                 startDate?.let(LocalDate::parse),
                 endDate?.let(LocalDate::parse),
@@ -291,26 +299,26 @@ class RestGraphqlController(
     @PreAuthorize("hasAuthority('journal:read')")
     fun journalEntry(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(journalEntryController.getJournalEntry(id))
+    ): Any = support.unwrap(journalEntryController.getJournalEntry(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('journal:post')")
     fun postJournalEntry(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(journalEntryController.postJournalEntry(id))
+    ): Any = support.unwrap(journalEntryController.postJournalEntry(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('journal:void')")
     fun voidJournalEntry(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(journalEntryController.voidJournalEntry(id, support.toRequest<VoidJournalEntryRequest>(input)))
+    ): Any = support.unwrap(journalEntryController.voidJournalEntry(support.orgId(), id, support.toRequest<VoidJournalEntryRequest>(input)))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('journal:read')")
     fun journalTrialBalance(
         @Argument asOfDate: String?,
-    ): Any = support.unwrap(journalEntryController.getTrialBalance(asOfDate?.let(LocalDate::parse)))
+    ): Any = support.unwrap(journalEntryController.getTrialBalance(support.orgId(), asOfDate?.let(LocalDate::parse)))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('journal:read')")
@@ -320,6 +328,7 @@ class RestGraphqlController(
     ): Any =
         support.unwrap(
             financialReportController.getTrialBalance(
+                support.orgId(),
                 asOfDate?.let(LocalDate::parse),
                 compareAsOfDate?.let(LocalDate::parse),
             ),
@@ -335,6 +344,7 @@ class RestGraphqlController(
     ): Any =
         support.unwrap(
             financialReportController.getIncomeStatement(
+                support.orgId(),
                 LocalDate.parse(startDate),
                 LocalDate.parse(endDate),
                 compareStartDate?.let(LocalDate::parse),
@@ -350,6 +360,7 @@ class RestGraphqlController(
     ): Any =
         support.unwrap(
             financialReportController.getBalanceSheet(
+                support.orgId(),
                 LocalDate.parse(asOfDate),
                 compareAsOfDate?.let(LocalDate::parse),
             ),
@@ -359,201 +370,225 @@ class RestGraphqlController(
     @PreAuthorize("hasAuthority('tax:create')")
     fun createTaxRate(
         @Argument input: Any,
-    ): Any = support.unwrap(taxController.createTaxRate(support.toRequest<CreateTaxRateRequest>(input)))
+    ): Any = support.unwrap(taxController.createTaxRate(support.orgId(), support.toRequest<CreateTaxRateRequest>(input)))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('tax:read')")
     fun taxRates(
         @Argument active: Boolean?,
-    ): Any = support.unwrap(taxController.listTaxRates(active))
+    ): Any = support.unwrap(taxController.listTaxRates(support.orgId(), active))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('tax:read')")
     fun taxRate(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(taxController.getTaxRate(id))
+    ): Any = support.unwrap(taxController.getTaxRate(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('tax:create')")
     fun updateTaxRate(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(taxController.updateTaxRate(id, support.toRequest<UpdateTaxRateRequest>(input)))
+    ): Any = support.unwrap(taxController.updateTaxRate(support.orgId(), id, support.toRequest<UpdateTaxRateRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('tax:delete')")
     fun deleteTaxRate(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(taxController.deleteTaxRate(id))
+    ): Any = support.unwrap(taxController.deleteTaxRate(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('tax:create')")
     fun createTaxGroup(
         @Argument input: Any,
-    ): Any = support.unwrap(taxController.createTaxGroup(support.toRequest<CreateTaxGroupRequest>(input)))
+    ): Any = support.unwrap(taxController.createTaxGroup(support.orgId(), support.toRequest<CreateTaxGroupRequest>(input)))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('tax:read')")
     fun taxGroups(
         @Argument active: Boolean?,
-    ): Any = support.unwrap(taxController.listTaxGroups(active))
+    ): Any = support.unwrap(taxController.listTaxGroups(support.orgId(), active))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('tax:read')")
     fun taxGroup(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(taxController.getTaxGroup(id))
+    ): Any = support.unwrap(taxController.getTaxGroup(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('tax:create')")
     fun updateTaxGroup(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(taxController.updateTaxGroup(id, support.toRequest<UpdateTaxGroupRequest>(input)))
+    ): Any = support.unwrap(taxController.updateTaxGroup(support.orgId(), id, support.toRequest<UpdateTaxGroupRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('tax:delete')")
     fun deleteTaxGroup(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(taxController.deleteTaxGroup(id))
+    ): Any = support.unwrap(taxController.deleteTaxGroup(support.orgId(), id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('tax:read')")
     fun taxSummary(
         @Argument startDate: String,
         @Argument endDate: String,
-    ): Any = support.unwrap(taxController.getTaxSummary(LocalDate.parse(startDate), LocalDate.parse(endDate)))
+    ): Any = support.unwrap(taxController.getTaxSummary(support.orgId(), LocalDate.parse(startDate), LocalDate.parse(endDate)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ap:create')")
     fun createVendor(
         @Argument input: Any,
-    ): Any = support.unwrap(vendorController.createVendor(support.toRequest<CreateVendorRequest>(input)))
+    ): Any = support.unwrap(vendorController.createVendor(support.orgId(), support.toRequest<CreateVendorRequest>(input)))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ap:read')")
-    fun vendors(): Any = support.unwrap(vendorController.listVendors())
+    fun vendors(): Any = support.unwrap(vendorController.listVendors(support.orgId()))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ap:read')")
     fun vendor(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(vendorController.getVendor(id))
+    ): Any = support.unwrap(vendorController.getVendor(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ap:create')")
     fun updateVendor(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(vendorController.updateVendor(id, support.toRequest<UpdateVendorRequest>(input)))
+    ): Any = support.unwrap(vendorController.updateVendor(support.orgId(), id, support.toRequest<UpdateVendorRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ap:create')")
     fun deleteVendor(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(vendorController.deleteVendor(id))
+    ): Any = support.unwrap(vendorController.deleteVendor(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ap:create')")
     fun createBill(
         @Argument input: Any,
-    ): Any = support.unwrap(billController.createBill(support.toRequest<CreateBillRequest>(input)))
+    ): Any = support.unwrap(billController.createBill(support.orgId(), support.userId(), support.toRequest<CreateBillRequest>(input)))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ap:read')")
     fun bills(
         @Argument status: String?,
         @Argument vendorId: java.util.UUID?,
-    ): Any = support.unwrap(billController.listBills(status, vendorId))
+    ): Any = support.unwrap(billController.listBills(support.orgId(), status, vendorId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ap:read')")
     fun bill(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(billController.getBill(id))
+    ): Any = support.unwrap(billController.getBill(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ap:approve')")
     fun approveBill(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(billController.approveBill(id))
+    ): Any = support.unwrap(billController.approveBill(support.userId(), support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ap:void')")
     fun voidBill(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(billController.voidBill(id, support.toRequest<VoidBillRequest>(input)))
+    ): Any = support.unwrap(billController.voidBill(support.userId(), support.orgId(), id, support.toRequest<VoidBillRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ap:pay')")
     fun recordBillPayment(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(billController.recordPayment(id, support.toRequest<RecordPaymentRequest>(input)))
+    ): Any =
+        support.unwrap(
+            billController.recordPayment(
+                support.orgId(),
+                support.userId(),
+                id,
+                support.toRequest<RecordPaymentRequest>(input),
+            ),
+        )
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ap:read')")
     fun billPayments(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(billController.listPayments(id))
+    ): Any = support.unwrap(billController.listPayments(support.orgId(), id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ap:read')")
     fun billAging(
         @Argument asOfDate: String?,
-    ): Any = support.unwrap(billController.getAgingReport(asOfDate?.let(LocalDate::parse)))
+    ): Any = support.unwrap(billController.getAgingReport(support.orgId(), asOfDate?.let(LocalDate::parse)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ar:create')")
     fun createInvoice(
         @Argument input: Any,
-    ): Any = support.unwrap(invoiceController.createInvoice(support.toRequest<CreateInvoiceRequest>(input)))
+    ): Any =
+        support.unwrap(
+            invoiceController.createInvoice(
+                support.orgId(),
+                support.userId(),
+                support.toRequest<CreateInvoiceRequest>(input),
+            ),
+        )
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ar:read')")
     fun invoices(
         @Argument status: String?,
         @Argument customerId: java.util.UUID?,
-    ): Any = support.unwrap(invoiceController.listInvoices(status, customerId))
+    ): Any = support.unwrap(invoiceController.listInvoices(support.orgId(), status, customerId))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ar:read')")
     fun invoice(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(invoiceController.getInvoice(id))
+    ): Any = support.unwrap(invoiceController.getInvoice(support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ar:approve')")
     fun approveInvoice(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(invoiceController.approveInvoice(id))
+    ): Any = support.unwrap(invoiceController.approveInvoice(support.userId(), support.orgId(), id))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ar:void')")
     fun voidInvoice(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(invoiceController.voidInvoice(id, support.toRequest<VoidInvoiceRequest>(input)))
+    ): Any =
+        support.unwrap(invoiceController.voidInvoice(support.userId(), support.orgId(), id, support.toRequest<VoidInvoiceRequest>(input)))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('ar:receive')")
     fun recordInvoiceReceipt(
         @Argument id: java.util.UUID,
         @Argument input: Any,
-    ): Any = support.unwrap(invoiceController.recordReceipt(id, support.toRequest<RecordReceiptRequest>(input)))
+    ): Any =
+        support.unwrap(
+            invoiceController.recordReceipt(
+                support.orgId(),
+                support.userId(),
+                id,
+                support.toRequest<RecordReceiptRequest>(input),
+            ),
+        )
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ar:read')")
     fun invoiceReceipts(
         @Argument id: java.util.UUID,
-    ): Any = support.unwrap(invoiceController.listReceipts(id))
+    ): Any = support.unwrap(invoiceController.listReceipts(support.orgId(), id))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('ar:read')")
     fun invoiceAging(
         @Argument asOfDate: String?,
-    ): Any = support.unwrap(invoiceController.getAgingReport(asOfDate?.let(LocalDate::parse)))
+    ): Any = support.unwrap(invoiceController.getAgingReport(support.orgId(), asOfDate?.let(LocalDate::parse)))
 
     private fun request(env: DataFetchingEnvironment): HttpServletRequest =
         env.graphQlContext.getOrDefault(HttpServletRequest::class.java, null)

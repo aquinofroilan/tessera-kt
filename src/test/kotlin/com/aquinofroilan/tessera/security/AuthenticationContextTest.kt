@@ -1,6 +1,6 @@
 package com.aquinofroilan.tessera.security
 
-import com.aquinofroilan.tessera.model.User
+import com.aquinofroilan.tessera.domain.auth.model.User
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
