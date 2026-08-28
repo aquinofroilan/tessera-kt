@@ -4,6 +4,8 @@ import com.aquinofroilan.tessera.domain.organization.dto.BatchSetFeatureOverride
 import com.aquinofroilan.tessera.domain.organization.dto.EffectiveFeaturesResponse
 import com.aquinofroilan.tessera.domain.organization.dto.FeatureFlagDetailDto
 import com.aquinofroilan.tessera.domain.organization.dto.OrganizationPlanResponse
+import com.aquinofroilan.tessera.domain.organization.model.AuditAction
+import com.aquinofroilan.tessera.domain.organization.model.AuditCategory
 import com.aquinofroilan.tessera.domain.organization.model.BillingPlan
 import com.aquinofroilan.tessera.domain.organization.model.FeatureFlag
 import com.aquinofroilan.tessera.domain.organization.model.OrganizationFeatureFlag
@@ -12,10 +14,12 @@ import com.aquinofroilan.tessera.domain.organization.repository.OrganizationRepo
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import com.github.benmanes.caffeine.cache.Caffeine
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.util.Optional
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -23,6 +27,8 @@ import java.util.concurrent.TimeUnit
 class OrganizationBillingFeatureService(
     private val organizationRepository: OrganizationRepository,
     private val featureFlagRepository: OrganizationFeatureFlagRepository,
+    @Autowired(required = false)
+    private val auditService: Optional<OrganizationAuditService> = Optional.empty(),
 ) {
     private val log = LoggerFactory.getLogger(OrganizationBillingFeatureService::class.java)
 
@@ -93,11 +99,25 @@ class OrganizationBillingFeatureService(
                 ResourceNotFoundException("Organization $organizationId not found")
             }
 
-        log.info("Updating organization {} billing plan from {} to {}", org.uuid, org.billingPlan, newPlan)
+        val oldPlan = org.billingPlan
+        log.info("Updating organization {} billing plan from {} to {}", org.uuid, oldPlan, newPlan)
         org.billingPlan = newPlan
         organizationRepository.save(org)
 
         effectiveFeatureCache.invalidate(organizationId)
+
+        auditService.ifPresent {
+            it.logEvent(
+                organizationId = organizationId,
+                action = AuditAction.BILLING_PLAN_UPDATED.name,
+                category = AuditCategory.BILLING,
+                entityType = "ORGANIZATION",
+                entityId = organizationId.toString(),
+                oldValue = mapOf("billingPlan" to oldPlan.name),
+                newValue = mapOf("billingPlan" to newPlan.name),
+            )
+        }
+
         return getPlan(organizationId)
     }
 
@@ -164,6 +184,8 @@ class OrganizationBillingFeatureService(
             }
 
         val existingOpt = featureFlagRepository.findByOrganizationIdAndFeatureKey(organizationId, featureKey)
+        val oldValue = existingOpt.map { it.enabled }.orElse(null)
+
         val flag =
             if (existingOpt.isPresent) {
                 val existing = existingOpt.get()
@@ -180,6 +202,18 @@ class OrganizationBillingFeatureService(
 
         featureFlagRepository.save(flag)
         effectiveFeatureCache.invalidate(organizationId)
+
+        auditService.ifPresent {
+            it.logEvent(
+                organizationId = organizationId,
+                action = AuditAction.FEATURE_FLAG_OVERRIDDEN.name,
+                category = AuditCategory.FEATURE_FLAGS,
+                entityType = "FEATURE_FLAG",
+                entityId = featureKey,
+                oldValue = oldValue?.let { v -> mapOf("enabled" to v) },
+                newValue = mapOf("enabled" to enabled),
+            )
+        }
 
         val planDefault = getDefaultPlanFeatures(org.billingPlan)[featureKey] ?: false
         return FeatureFlagDetailDto(
@@ -200,8 +234,23 @@ class OrganizationBillingFeatureService(
                 ResourceNotFoundException("Organization $organizationId not found")
             }
 
+        val existingOpt = featureFlagRepository.findByOrganizationIdAndFeatureKey(organizationId, featureKey)
+        val oldValue = existingOpt.map { it.enabled }.orElse(null)
+
         featureFlagRepository.deleteByOrganizationIdAndFeatureKey(organizationId, featureKey)
         effectiveFeatureCache.invalidate(organizationId)
+
+        auditService.ifPresent {
+            it.logEvent(
+                organizationId = organizationId,
+                action = AuditAction.FEATURE_FLAG_REVERTED.name,
+                category = AuditCategory.FEATURE_FLAGS,
+                entityType = "FEATURE_FLAG",
+                entityId = featureKey,
+                oldValue = oldValue?.let { v -> mapOf("enabled" to v) },
+                newValue = null,
+            )
+        }
 
         val planDefault = getDefaultPlanFeatures(org.billingPlan)[featureKey] ?: false
         return FeatureFlagDetailDto(
@@ -247,6 +296,18 @@ class OrganizationBillingFeatureService(
 
         featureFlagRepository.saveAll(toSave)
         effectiveFeatureCache.invalidate(organizationId)
+
+        auditService.ifPresent {
+            it.logEvent(
+                organizationId = organizationId,
+                action = AuditAction.FEATURE_FLAGS_BATCH_UPDATED.name,
+                category = AuditCategory.FEATURE_FLAGS,
+                entityType = "ORGANIZATION",
+                entityId = organizationId.toString(),
+                oldValue = null,
+                newValue = request.overrides,
+            )
+        }
 
         return getEffectiveFeatures(organizationId)
     }

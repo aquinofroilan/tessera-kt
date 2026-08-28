@@ -1,20 +1,26 @@
 package com.aquinofroilan.tessera.domain.organization.service
 
 import com.aquinofroilan.tessera.domain.organization.dto.OrganizationStatusResponse
+import com.aquinofroilan.tessera.domain.organization.model.AuditAction
+import com.aquinofroilan.tessera.domain.organization.model.AuditCategory
 import com.aquinofroilan.tessera.domain.organization.model.OrganizationStatus
 import com.aquinofroilan.tessera.domain.organization.repository.OrganizationRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import com.github.benmanes.caffeine.cache.Caffeine
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.Optional
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 @Service
 class OrganizationLifecycleService(
     private val organizationRepository: OrganizationRepository,
+    @Autowired(required = false)
+    private val auditService: Optional<OrganizationAuditService> = Optional.empty(),
 ) {
     private val log = LoggerFactory.getLogger(OrganizationLifecycleService::class.java)
 
@@ -82,6 +88,18 @@ class OrganizationLifecycleService(
 
         val saved = organizationRepository.save(org)
         statusCache.put(organizationId, targetStatus)
+
+        auditService.ifPresent {
+            it.logEvent(
+                organizationId = organizationId,
+                action = AuditAction.ORG_STATUS_CHANGED.name,
+                category = AuditCategory.LIFECYCLE,
+                entityType = "ORGANIZATION",
+                entityId = organizationId.toString(),
+                oldValue = mapOf("status" to currentStatus.name),
+                newValue = mapOf("status" to targetStatus.name, "reason" to reason),
+            )
+        }
 
         return OrganizationStatusResponse.from(saved, getAllowedTransitions(saved.status))
     }
