@@ -1,6 +1,7 @@
 package com.aquinofroilan.tessera.domain.organization.dto
 
 import com.aquinofroilan.tessera.domain.organization.model.InventoryCostingMethod
+import com.aquinofroilan.tessera.domain.organization.model.OrganizationStatus
 import com.aquinofroilan.tessera.domain.organization.model.Organizations
 import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
@@ -17,7 +18,7 @@ data class OrganizationSettingsResponse(
     val fiscalYearStart: LocalDateTime,
     val timezone: String,
     val logoUrl: String?,
-    val status: String,
+    val status: OrganizationStatus,
     val inventoryCostingMethod: InventoryCostingMethod,
     val inventoryGlPostingEnabled: Boolean,
     val createdAt: LocalDateTime,
