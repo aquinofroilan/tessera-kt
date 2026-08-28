@@ -8,7 +8,6 @@ import com.aquinofroilan.tessera.domain.organization.model.OrganizationAuditLog
 import com.aquinofroilan.tessera.domain.organization.repository.OrganizationAuditLogRepository
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import com.aquinofroilan.tessera.security.AuthenticationContext
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -24,6 +23,7 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
+import tools.jackson.databind.ObjectMapper
 import java.time.LocalDateTime
 import java.util.Optional
 import java.util.UUID
