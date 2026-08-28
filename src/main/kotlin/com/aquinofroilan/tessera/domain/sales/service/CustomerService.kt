@@ -28,6 +28,8 @@ class CustomerService(
                 paymentTermDays = request.paymentTermDays,
                 defaultRevenueAccountId = request.defaultRevenueAccountId,
                 organizationId = organizationId,
+                customerSegment = request.customerSegment,
+                defaultPriceListId = request.defaultPriceListId,
             )
 
         return try {
@@ -80,6 +82,8 @@ class CustomerService(
             contactPhone = request.contactPhone ?: customer.contactPhone
             paymentTermDays = request.paymentTermDays ?: customer.paymentTermDays
             defaultRevenueAccountId = request.defaultRevenueAccountId ?: customer.defaultRevenueAccountId
+            customerSegment = request.customerSegment ?: customer.customerSegment
+            defaultPriceListId = request.defaultPriceListId ?: customer.defaultPriceListId
         }
         return try {
             customerRepository.save(customer)

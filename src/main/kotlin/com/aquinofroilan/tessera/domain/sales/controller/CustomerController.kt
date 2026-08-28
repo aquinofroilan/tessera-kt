@@ -90,6 +90,8 @@ class CustomerController(
             paymentTermDays = paymentTermDays,
             defaultRevenueAccountId = defaultRevenueAccountId,
             organizationId = organizationId,
+            customerSegment = customerSegment,
+            defaultPriceListId = defaultPriceListId,
             isActive = isActive,
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),
