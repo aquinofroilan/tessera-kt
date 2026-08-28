@@ -33,7 +33,8 @@ class Organizations(
     var timezone: String,
     @Column(name = "logo_url")
     var logoUrl: String? = null,
-    var status: String = "ACTIVE",
+    @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
+    var status: OrganizationStatus = OrganizationStatus.ACTIVE,
     @Column(name = "inventory_costing_method")
     @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
     var inventoryCostingMethod: InventoryCostingMethod = InventoryCostingMethod.WEIGHTED_AVERAGE,
@@ -45,6 +46,12 @@ class Organizations(
     @Column(name = "is_active")
     var isActive: Boolean = true,
 )
+
+enum class OrganizationStatus {
+    ACTIVE,
+    SUSPENDED,
+    ARCHIVED,
+}
 
 enum class InventoryCostingMethod {
     FIFO,

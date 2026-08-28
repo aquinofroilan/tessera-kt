@@ -14,11 +14,10 @@ import com.aquinofroilan.tessera.domain.auth.service.ApiKeyService
 import com.aquinofroilan.tessera.domain.auth.service.AuthService
 import com.aquinofroilan.tessera.domain.finance.service.AccountService
 import com.aquinofroilan.tessera.domain.finance.service.JournalEntryService
-import com.aquinofroilan.tessera.domain.organization.dto.OrganizationSettingsResponse
-import com.aquinofroilan.tessera.domain.organization.model.InventoryCostingMethod
+import com.aquinofroilan.tessera.domain.organization.dto.OrganizationStatusResponse
 import com.aquinofroilan.tessera.domain.organization.model.OrganizationStatus
 import com.aquinofroilan.tessera.domain.organization.repository.OrganizationRepository
-import com.aquinofroilan.tessera.domain.organization.service.OrganizationSettingsService
+import com.aquinofroilan.tessera.domain.organization.service.OrganizationLifecycleService
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.security.RolePermissionCache
 import com.aquinofroilan.tessera.security.SessionContext
@@ -27,7 +26,7 @@ import com.aquinofroilan.tessera.util.TokenHasher
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
-import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
@@ -40,22 +39,20 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import java.time.LocalDateTime
 import java.util.UUID
 
-@WebMvcTest(controllers = [OrganizationSettingsController::class])
+@WebMvcTest(controllers = [OrganizationLifecycleController::class])
 @Import(WebMvcConfig::class, LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
 @ActiveProfiles("test")
-class OrganizationSettingsControllerTest {
+class OrganizationLifecycleControllerTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
     @MockitoBean
-    private lateinit var settingsService: OrganizationSettingsService
+    private lateinit var lifecycleService: OrganizationLifecycleService
 
     @MockitoBean
     private lateinit var authService: AuthService
@@ -130,103 +127,102 @@ class OrganizationSettingsControllerTest {
         SecurityContextHolder.getContext().authentication = authentication
     }
 
-    private fun createSettingsResponse() =
-        OrganizationSettingsResponse(
-            id = testOrgId,
+    private fun createStatusResponse(status: OrganizationStatus = OrganizationStatus.ACTIVE) =
+        OrganizationStatusResponse(
+            organizationId = testOrgId,
             orgSlug = "acme",
             name = "Acme Corp",
-            description = "Acme Corporation ERP",
-            legalName = "Acme Inc.",
-            tradeName = "Acme",
-            baseCurrency = "USD",
-            fiscalYearStart = LocalDateTime.of(2026, 1, 1, 0, 0),
-            timezone = "UTC",
-            logoUrl = "https://example.com/logo.png",
-            status = OrganizationStatus.ACTIVE,
-            inventoryCostingMethod = InventoryCostingMethod.WEIGHTED_AVERAGE,
-            inventoryGlPostingEnabled = true,
-            createdAt = LocalDateTime.of(2026, 1, 1, 0, 0),
+            status = status,
+            readOnly = status == OrganizationStatus.ARCHIVED,
+            accessBlocked = status == OrganizationStatus.SUSPENDED,
+            allowedTransitions =
+                when (status) {
+                    OrganizationStatus.ACTIVE -> listOf(OrganizationStatus.SUSPENDED, OrganizationStatus.ARCHIVED)
+                    OrganizationStatus.SUSPENDED -> listOf(OrganizationStatus.ACTIVE, OrganizationStatus.ARCHIVED)
+                    OrganizationStatus.ARCHIVED -> listOf(OrganizationStatus.ACTIVE, OrganizationStatus.SUSPENDED)
+                },
         )
 
     @Test
-    fun `GET settings should return 200 with organization settings`() {
-        `when`(settingsService.getSettings(testOrgId)).thenReturn(createSettingsResponse())
+    fun `GET status should return 200 with organization status`() {
+        `when`(lifecycleService.getStatus(testOrgId)).thenReturn(createStatusResponse())
 
         mockMvc
-            .perform(get("/api/v1/organization/settings"))
+            .perform(get("/api/v1/organization/status"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value(testOrgId.toString()))
-            .andExpect(jsonPath("$.orgSlug").value("acme"))
-            .andExpect(jsonPath("$.name").value("Acme Corp"))
-            .andExpect(jsonPath("$.baseCurrency").value("USD"))
-            .andExpect(jsonPath("$.timezone").value("UTC"))
-            .andExpect(jsonPath("$.logoUrl").value("https://example.com/logo.png"))
-            .andExpect(jsonPath("$.inventoryCostingMethod").value("WEIGHTED_AVERAGE"))
-            .andExpect(jsonPath("$.inventoryGlPostingEnabled").value(true))
+            .andExpect(jsonPath("$.organizationId").value(testOrgId.toString()))
+            .andExpect(jsonPath("$.status").value("ACTIVE"))
+            .andExpect(jsonPath("$.readOnly").value(false))
+            .andExpect(jsonPath("$.accessBlocked").value(false))
+            .andExpect(jsonPath("$.allowedTransitions.length()").value(2))
     }
 
     @Test
-    fun `PUT settings should return 200 when settings are updated`() {
-        val updatedResponse = createSettingsResponse().copy(name = "Acme Global", baseCurrency = "EUR")
-        `when`(settingsService.updateSettings(eq(testOrgId), any())).thenReturn(updatedResponse)
+    fun `POST suspend should return 200 with SUSPENDED status`() {
+        `when`(lifecycleService.transitionStatus(eq(testOrgId), eq(OrganizationStatus.SUSPENDED), anyOrNull()))
+            .thenReturn(createStatusResponse(OrganizationStatus.SUSPENDED))
 
         mockMvc
             .perform(
-                put("/api/v1/organization/settings")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(
-                        """{
-                            "name": "Acme Global",
-                            "baseCurrency": "EUR"
-                        }""",
-                    ),
+                post("/api/v1/organization/status/suspend")
+                    .param("reason", "Non-payment"),
             ).andExpect(status().isOk)
-            .andExpect(jsonPath("$.name").value("Acme Global"))
-            .andExpect(jsonPath("$.baseCurrency").value("EUR"))
+            .andExpect(jsonPath("$.status").value("SUSPENDED"))
+            .andExpect(jsonPath("$.accessBlocked").value(true))
     }
 
     @Test
-    fun `PATCH settings should return 200 when settings are updated`() {
-        val updatedResponse = createSettingsResponse().copy(logoUrl = "https://example.com/new.svg")
-        `when`(settingsService.updateSettings(eq(testOrgId), any())).thenReturn(updatedResponse)
+    fun `POST archive should return 200 with ARCHIVED status`() {
+        `when`(lifecycleService.transitionStatus(eq(testOrgId), eq(OrganizationStatus.ARCHIVED), anyOrNull()))
+            .thenReturn(createStatusResponse(OrganizationStatus.ARCHIVED))
+
+        mockMvc
+            .perform(post("/api/v1/organization/status/archive"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.status").value("ARCHIVED"))
+            .andExpect(jsonPath("$.readOnly").value(true))
+    }
+
+    @Test
+    fun `POST activate should return 200 with ACTIVE status`() {
+        `when`(lifecycleService.transitionStatus(eq(testOrgId), eq(OrganizationStatus.ACTIVE), anyOrNull()))
+            .thenReturn(createStatusResponse(OrganizationStatus.ACTIVE))
+
+        mockMvc
+            .perform(post("/api/v1/organization/status/activate"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.status").value("ACTIVE"))
+    }
+
+    @Test
+    fun `POST transition with body should return 200`() {
+        `when`(lifecycleService.transitionStatus(eq(testOrgId), eq(OrganizationStatus.SUSPENDED), eq("Audit")))
+            .thenReturn(createStatusResponse(OrganizationStatus.SUSPENDED))
 
         mockMvc
             .perform(
-                patch("/api/v1/organization/settings")
+                post("/api/v1/organization/status")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"logoUrl": "https://example.com/new.svg"}"""),
+                    .content("""{"targetStatus": "SUSPENDED", "reason": "Audit"}"""),
             ).andExpect(status().isOk)
-            .andExpect(jsonPath("$.logoUrl").value("https://example.com/new.svg"))
+            .andExpect(jsonPath("$.status").value("SUSPENDED"))
     }
 
     @Test
-    fun `GET settings should return 403 when missing organization read permission`() {
-        setupAuthWithPermissions("organization:write")
+    fun `GET status should return 403 when missing organization read`() {
+        setupAuthWithPermissions("inventory:read")
 
         mockMvc
-            .perform(get("/api/v1/organization/settings"))
+            .perform(get("/api/v1/organization/status"))
             .andExpect(status().isForbidden)
     }
 
     @Test
-    fun `PUT settings should return 403 when missing organization write permission`() {
+    fun `POST suspend should return 403 when missing organization write`() {
         setupAuthWithPermissions("organization:read")
 
         mockMvc
-            .perform(
-                put("/api/v1/organization/settings")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"name": "New Name"}"""),
-            ).andExpect(status().isForbidden)
-    }
-
-    @Test
-    fun `PUT settings should return 400 when baseCurrency length is invalid`() {
-        mockMvc
-            .perform(
-                put("/api/v1/organization/settings")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"baseCurrency": "US"}"""),
-            ).andExpect(status().isBadRequest)
+            .perform(post("/api/v1/organization/status/suspend"))
+            .andExpect(status().isForbidden)
     }
 }

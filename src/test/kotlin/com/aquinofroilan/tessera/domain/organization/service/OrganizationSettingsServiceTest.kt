@@ -3,6 +3,7 @@ package com.aquinofroilan.tessera.domain.organization.service
 import com.aquinofroilan.tessera.domain.finance.repository.CurrencyRepository
 import com.aquinofroilan.tessera.domain.organization.dto.UpdateOrganizationSettingsRequest
 import com.aquinofroilan.tessera.domain.organization.model.InventoryCostingMethod
+import com.aquinofroilan.tessera.domain.organization.model.OrganizationStatus
 import com.aquinofroilan.tessera.domain.organization.model.Organizations
 import com.aquinofroilan.tessera.domain.organization.repository.OrganizationRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -46,7 +47,7 @@ class OrganizationSettingsServiceTest {
             fiscalYearStart = LocalDateTime.of(2026, 1, 1, 0, 0),
             timezone = "UTC",
             logoUrl = "https://example.com/logo.png",
-            status = "ACTIVE",
+            status = OrganizationStatus.ACTIVE,
             inventoryCostingMethod = InventoryCostingMethod.WEIGHTED_AVERAGE,
             inventoryGlPostingEnabled = false,
         )
