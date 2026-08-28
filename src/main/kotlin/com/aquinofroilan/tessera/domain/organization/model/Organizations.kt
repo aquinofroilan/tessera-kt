@@ -35,6 +35,9 @@ class Organizations(
     var logoUrl: String? = null,
     @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
     var status: OrganizationStatus = OrganizationStatus.ACTIVE,
+    @Column(name = "billing_plan")
+    @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
+    var billingPlan: BillingPlan = BillingPlan.FREE,
     @Column(name = "inventory_costing_method")
     @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
     var inventoryCostingMethod: InventoryCostingMethod = InventoryCostingMethod.WEIGHTED_AVERAGE,
@@ -51,6 +54,24 @@ enum class OrganizationStatus {
     ACTIVE,
     SUSPENDED,
     ARCHIVED,
+}
+
+enum class BillingPlan {
+    FREE,
+    STARTER,
+    ENTERPRISE,
+}
+
+enum class FeatureFlag {
+    API_KEYS,
+    MULTI_CURRENCY,
+    ADVANCED_ANALYTICS,
+    CUSTOM_ROLES,
+    MFG_MODULE,
+    ASSET_MANAGEMENT,
+    WORKFLOW_AUTOMATION,
+    AUDIT_EXPORT,
+    CUSTOM,
 }
 
 enum class InventoryCostingMethod {
