@@ -67,13 +67,13 @@ data class Routing(
     val name: String,
     val version: Int = 1,
     @Enumerated(EnumType.STRING)
-    val status: RoutingStatus = RoutingStatus.DRAFT,
+    var status: RoutingStatus = RoutingStatus.DRAFT,
     @Column(name = "is_default")
-    val isDefault: Boolean = false,
+    var isDefault: Boolean = false,
     @Column(name = "effective_from")
-    val effectiveFrom: LocalDate? = null,
+    var effectiveFrom: LocalDate? = null,
     @Column(name = "effective_to")
-    val effectiveTo: LocalDate? = null,
+    var effectiveTo: LocalDate? = null,
     val notes: String? = null,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "routing_id")
@@ -82,13 +82,13 @@ data class Routing(
     @Column(name = "created_by", columnDefinition = "uuid")
     val createdBy: String,
     @Column(name = "activated_at")
-    val activatedAt: LocalDateTime? = null,
+    var activatedAt: LocalDateTime? = null,
     @Column(name = "activated_by", columnDefinition = "uuid")
-    val activatedBy: String? = null,
+    var activatedBy: String? = null,
     @Column(name = "obsoleted_at")
-    val obsoletedAt: LocalDateTime? = null,
+    var obsoletedAt: LocalDateTime? = null,
     @Column(name = "obsoleted_by", columnDefinition = "uuid")
-    val obsoletedBy: String? = null,
+    var obsoletedBy: String? = null,
     @CreatedDate
     @Column(name = "created_at")
     val createdAt: LocalDateTime? = null,
