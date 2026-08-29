@@ -16,34 +16,37 @@ import javax.crypto.spec.SecretKeySpec
 @Component
 class NotificationWebhookConsumer(
     private val notificationRepository: NotificationRepository,
-    private val webhookRepository: WebhookEndpointRepository
+    private val webhookRepository: WebhookEndpointRepository,
 ) {
     private val log = LoggerFactory.getLogger(NotificationWebhookConsumer::class.java)
-    
+
     private val restTemplate = RestTemplate()
 
     @RabbitListener(queues = [RabbitMqConfig.WEBHOOK_QUEUE])
     fun consume(message: WebhookNotificationMessage) {
         log.debug("Received webhook notification message for notification {}", message.notificationId)
 
-        val notification = notificationRepository.findById(message.notificationId).orElse(null)
-            ?: run {
-                log.warn("Message references missing notification {} — skipping", message.notificationId)
-                return
-            }
+        val notification =
+            notificationRepository.findById(message.notificationId).orElse(null)
+                ?: run {
+                    log.warn("Message references missing notification {} — skipping", message.notificationId)
+                    return
+                }
 
-        val webhook = webhookRepository.findById(message.webhookId).orElse(null)
-            ?: run {
-                log.warn("Message references missing webhook {} — skipping", message.webhookId)
-                return
-            }
+        val webhook =
+            webhookRepository.findById(message.webhookId).orElse(null)
+                ?: run {
+                    log.warn("Message references missing webhook {} — skipping", message.webhookId)
+                    return
+                }
 
         if (!webhook.isActive) {
             log.debug("Webhook {} is no longer active — skipping", webhook.id)
             return
         }
 
-        val payload = """
+        val payload =
+            """
             {
                 "id": "${notification.id}",
                 "kind": "${notification.kind}",
@@ -51,11 +54,11 @@ class NotificationWebhookConsumer(
                 "body": "${notification.body?.replace("\"", "\\\"") ?: ""}",
                 "link": "${notification.link ?: ""}"
             }
-        """.trimIndent()
+            """.trimIndent()
 
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_JSON
-        
+
         webhook.secret?.takeIf { it.isNotBlank() }?.let { secret ->
             val signature = calculateHmacSha256(payload, secret)
             headers.set("X-Tessera-Signature", signature)
@@ -77,7 +80,10 @@ class NotificationWebhookConsumer(
         }
     }
 
-    private fun calculateHmacSha256(payload: String, secret: String): String {
+    private fun calculateHmacSha256(
+        payload: String,
+        secret: String,
+    ): String {
         val mac = Mac.getInstance("HmacSHA256")
         val secretKeySpec = SecretKeySpec(secret.toByteArray(), "HmacSHA256")
         mac.init(secretKeySpec)

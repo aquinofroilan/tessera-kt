@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component
 class NotificationEmailConsumer(
     private val notificationRepository: NotificationRepository,
     private val emailSender: EmailSender,
-    private val renderer: NotificationEmailRenderer
+    private val renderer: NotificationEmailRenderer,
 ) {
     private val log = LoggerFactory.getLogger(NotificationEmailConsumer::class.java)
 
@@ -24,11 +24,12 @@ class NotificationEmailConsumer(
     fun consume(message: EmailNotificationMessage) {
         log.debug("Received email notification message for notification {}", message.notificationId)
 
-        val notification = notificationRepository.findById(message.notificationId).orElse(null)
-            ?: run {
-                log.warn("Message references missing notification {} — skipping", message.notificationId)
-                return
-            }
+        val notification =
+            notificationRepository.findById(message.notificationId).orElse(null)
+                ?: run {
+                    log.warn("Message references missing notification {} — skipping", message.notificationId)
+                    return
+                }
 
         try {
             val delivered = emailSender.send(message.recipientEmail, renderer.render(notification))

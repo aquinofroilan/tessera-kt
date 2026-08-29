@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 
 data class EmailNotificationMessage(
     val notificationId: java.util.UUID,
-    val recipientEmail: String
+    val recipientEmail: String,
 )
 
 @Component
@@ -19,22 +19,23 @@ class NotificationEmailEnqueuer(
     private val userRepository: UserRepository,
     private val preferenceService: NotificationPreferenceService,
     private val properties: NotificationEmailProperties,
-    private val rabbitTemplate: RabbitTemplate
+    private val rabbitTemplate: RabbitTemplate,
 ) {
     private val log = LoggerFactory.getLogger(NotificationEmailEnqueuer::class.java)
 
     fun enqueue(notification: Notification) {
         if (!properties.enabled) return
 
-        val user = userRepository.findById(notification.recipientUserId).orElse(null)
-            ?: run {
-                log.warn(
-                    "Skipping email enqueue for notification {}: recipient user {} not found",
-                    notification.id,
-                    notification.recipientUserId,
-                )
-                return
-            }
+        val user =
+            userRepository.findById(notification.recipientUserId).orElse(null)
+                ?: run {
+                    log.warn(
+                        "Skipping email enqueue for notification {}: recipient user {} not found",
+                        notification.id,
+                        notification.recipientUserId,
+                    )
+                    return
+                }
 
         val email = user.email
         if (email.isBlank()) {
@@ -46,12 +47,13 @@ class NotificationEmailEnqueuer(
             return
         }
 
-        val enabled = preferenceService.isEnabled(
-            userId = notification.recipientUserId,
-            organizationId = notification.organizationId,
-            kind = notification.kind,
-            channel = NotificationChannel.EMAIL,
-        )
+        val enabled =
+            preferenceService.isEnabled(
+                userId = notification.recipientUserId,
+                organizationId = notification.organizationId,
+                kind = notification.kind,
+                channel = NotificationChannel.EMAIL,
+            )
         if (!enabled) {
             log.debug(
                 "Skipping email enqueue for notification {}: recipient {} opted out of kind '{}'",
@@ -62,17 +64,18 @@ class NotificationEmailEnqueuer(
             return
         }
 
-        val message = EmailNotificationMessage(
-            notificationId = notification.id,
-            recipientEmail = email
-        )
-        
+        val message =
+            EmailNotificationMessage(
+                notificationId = notification.id,
+                recipientEmail = email,
+            )
+
         rabbitTemplate.convertAndSend(
             RabbitMqConfig.NOTIFICATION_EXCHANGE,
             RabbitMqConfig.EMAIL_ROUTING_KEY,
-            message
+            message,
         )
-        
+
         log.debug("Published email notification message to RabbitMQ for notification {}", notification.id)
     }
 }
