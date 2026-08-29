@@ -36,4 +36,10 @@ class GlobalExceptionHandler {
         ResponseEntity
             .status(HttpStatus.UNPROCESSABLE_ENTITY)
             .body(mapOf("error" to (e.message ?: "Unable to process request")))
+
+    @ExceptionHandler(FeatureNotEnabledException::class)
+    fun handleFeatureNotEnabled(e: FeatureNotEnabledException): ResponseEntity<Map<String, String>> =
+        ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(mapOf("error" to (e.message ?: "Feature is not enabled for your organization's billing plan")))
 }

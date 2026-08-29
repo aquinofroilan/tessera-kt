@@ -18,4 +18,9 @@ interface ContactRepository : JpaRepository<Contact, UUID> {
         organizationId: UUID,
         customerId: UUID,
     ): List<Contact>
+
+    fun findByIdAndOrganizationId(
+        id: UUID,
+        organizationId: UUID,
+    ): java.util.Optional<Contact>
 }

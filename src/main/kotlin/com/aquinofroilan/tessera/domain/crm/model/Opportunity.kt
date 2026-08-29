@@ -1,6 +1,5 @@
 package com.aquinofroilan.tessera.domain.crm.model
 
-import com.github.f4b6a3.uuid.UuidCreator
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
@@ -29,7 +28,7 @@ enum class OpportunityStatus {
 data class Opportunity(
     @Id
     @Column(columnDefinition = "uuid")
-    val id: UUID = UuidCreator.getTimeOrderedEpoch(),
+    val id: UUID = UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
     val organizationId: UUID,
     val name: String,

@@ -31,6 +31,11 @@ class Customer(
     var defaultRevenueAccountId: java.util.UUID? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
     var organizationId: java.util.UUID,
+    @Column(name = "customer_segment")
+    @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
+    var customerSegment: CustomerSegment = CustomerSegment.RETAIL,
+    @Column(name = "default_price_list_id", columnDefinition = "uuid")
+    var defaultPriceListId: java.util.UUID? = null,
     @Column(name = "is_active")
     var isActive: Boolean = true,
     @CreatedDate
@@ -40,3 +45,12 @@ class Customer(
     @Column(name = "updated_at")
     var updatedAt: LocalDateTime? = null,
 )
+
+enum class CustomerSegment {
+    RETAIL,
+    WHOLESALE,
+    DISTRIBUTOR,
+    VIP,
+    ENTERPRISE,
+    INTERNAL,
+}

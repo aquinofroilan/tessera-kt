@@ -6,6 +6,13 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface CustomerRepository : JpaRepository<Customer, java.util.UUID> {
+    fun findByOrganizationId(organizationId: java.util.UUID): List<Customer>
+
+    fun findByIdAndOrganizationId(
+        id: java.util.UUID,
+        organizationId: java.util.UUID,
+    ): java.util.Optional<Customer>
+
     fun findByOrganizationIdAndIsActive(
         organizationId: java.util.UUID,
         isActive: Boolean,
