@@ -1,51 +1,40 @@
 package com.aquinofroilan.tessera.domain.notification.service
 
 import com.aquinofroilan.tessera.config.NotificationEmailProperties
+import com.aquinofroilan.tessera.config.RabbitMqConfig
 import com.aquinofroilan.tessera.domain.auth.repository.UserRepository
 import com.aquinofroilan.tessera.domain.notification.model.Notification
 import com.aquinofroilan.tessera.domain.notification.model.NotificationChannel
-import com.aquinofroilan.tessera.domain.notification.model.NotificationEmailOutbox
-import com.aquinofroilan.tessera.domain.notification.repository.NotificationEmailOutboxRepository
 import org.slf4j.LoggerFactory
+import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Transactional
 
-/**
- * Sits between [com.aquinofroilan.tessera.service.NotificationService] and the
- * outbox table. Snapshots the recipient's email at enqueue time so a later
- * address change doesn't silently retarget queued mail. Drops cleanly (no
- * row written) when:
- *
- * - the email channel is disabled in config,
- * - the recipient user can't be found, or
- * - the recipient has no email address on file.
- *
- * Per-user delivery preferences land in sub-PR #3 — until then this is the
- * one place to gate email.
- */
+data class EmailNotificationMessage(
+    val notificationId: java.util.UUID,
+    val recipientEmail: String
+)
+
 @Component
 class NotificationEmailEnqueuer(
-    private val outboxRepository: NotificationEmailOutboxRepository,
     private val userRepository: UserRepository,
     private val preferenceService: NotificationPreferenceService,
     private val properties: NotificationEmailProperties,
+    private val rabbitTemplate: RabbitTemplate
 ) {
     private val log = LoggerFactory.getLogger(NotificationEmailEnqueuer::class.java)
 
-    @Transactional
     fun enqueue(notification: Notification) {
         if (!properties.enabled) return
 
-        val user =
-            userRepository.findById(notification.recipientUserId).orElse(null)
-                ?: run {
-                    log.warn(
-                        "Skipping email enqueue for notification {}: recipient user {} not found",
-                        notification.id,
-                        notification.recipientUserId,
-                    )
-                    return
-                }
+        val user = userRepository.findById(notification.recipientUserId).orElse(null)
+            ?: run {
+                log.warn(
+                    "Skipping email enqueue for notification {}: recipient user {} not found",
+                    notification.id,
+                    notification.recipientUserId,
+                )
+                return
+            }
 
         val email = user.email
         if (email.isBlank()) {
@@ -57,13 +46,12 @@ class NotificationEmailEnqueuer(
             return
         }
 
-        val enabled =
-            preferenceService.isEnabled(
-                userId = notification.recipientUserId,
-                organizationId = notification.organizationId,
-                kind = notification.kind,
-                channel = NotificationChannel.EMAIL,
-            )
+        val enabled = preferenceService.isEnabled(
+            userId = notification.recipientUserId,
+            organizationId = notification.organizationId,
+            kind = notification.kind,
+            channel = NotificationChannel.EMAIL,
+        )
         if (!enabled) {
             log.debug(
                 "Skipping email enqueue for notification {}: recipient {} opted out of kind '{}'",
@@ -74,11 +62,17 @@ class NotificationEmailEnqueuer(
             return
         }
 
-        outboxRepository.save(
-            NotificationEmailOutbox(
-                notificationId = notification.id,
-                recipientEmail = email,
-            ),
+        val message = EmailNotificationMessage(
+            notificationId = notification.id,
+            recipientEmail = email
         )
+        
+        rabbitTemplate.convertAndSend(
+            RabbitMqConfig.NOTIFICATION_EXCHANGE,
+            RabbitMqConfig.EMAIL_ROUTING_KEY,
+            message
+        )
+        
+        log.debug("Published email notification message to RabbitMQ for notification {}", notification.id)
     }
 }
