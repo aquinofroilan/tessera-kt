@@ -21,6 +21,7 @@ import java.util.Optional
 class NotificationServiceTest {
     private lateinit var repository: NotificationRepository
     private lateinit var emailEnqueuer: NotificationEmailEnqueuer
+    private lateinit var webhookEnqueuer: NotificationWebhookEnqueuer
     private lateinit var streamRegistry: NotificationStreamRegistry
     private lateinit var service: NotificationService
 
@@ -31,9 +32,10 @@ class NotificationServiceTest {
     fun setup() {
         repository = mock(NotificationRepository::class.java)
         emailEnqueuer = mock(NotificationEmailEnqueuer::class.java)
+        webhookEnqueuer = mock(NotificationWebhookEnqueuer::class.java)
         streamRegistry = mock(NotificationStreamRegistry::class.java)
         whenever(repository.save(any<Notification>())).thenAnswer { it.arguments[0] }
-        service = NotificationService(repository, emailEnqueuer, streamRegistry)
+        service = NotificationService(repository, emailEnqueuer, webhookEnqueuer, streamRegistry)
     }
 
     @Test
