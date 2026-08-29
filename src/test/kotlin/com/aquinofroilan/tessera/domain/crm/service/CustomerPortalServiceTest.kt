@@ -172,9 +172,8 @@ class CustomerPortalServiceTest {
 
         val mockTicketResponse =
             SupportTicketResponse(
-                id = UUID.randomUUID(),
+                id = 1L,
                 organizationId = orgId,
-                ticketNumber = 1,
                 customerId = customerId,
                 customerName = "Acme Corp",
                 contactId = null,
@@ -202,7 +201,7 @@ class CustomerPortalServiceTest {
 
         val response = service.createMyTicket(orgId, userId, request)
 
-        assertEquals(1, response.ticketNumber)
+        assertEquals(1L, response.id)
         assertEquals("Order question", response.subject)
     }
 }

@@ -60,7 +60,7 @@ class SupportTicketService(
 
     @Transactional(readOnly = true)
     fun getTicket(
-        id: UUID,
+        id: Long,
         organizationId: UUID,
         includeInternalNotes: Boolean = true,
     ): SupportTicketResponse {
@@ -104,12 +104,9 @@ class SupportTicketService(
             }
         }
 
-        val nextTicketNumber = supportTicketRepository.findMaxTicketNumberByOrganizationId(organizationId) + 1
-
         val ticket =
             SupportTicket(
                 organizationId = organizationId,
-                ticketNumber = nextTicketNumber,
                 customerId = customer.id,
                 contactId = request.contactId,
                 subject = request.subject.trim(),
@@ -124,7 +121,7 @@ class SupportTicketService(
         val initialMessage =
             SupportTicketMessage(
                 organizationId = organizationId,
-                ticketId = ticket.id,
+                ticketId = 0L,
                 senderId = createdByUserId,
                 senderType = senderType,
                 message = request.description.trim(),
@@ -138,7 +135,7 @@ class SupportTicketService(
 
     @Transactional
     fun updateTicket(
-        id: UUID,
+        id: Long,
         organizationId: UUID,
         request: UpdateSupportTicketRequest,
     ): SupportTicketResponse {
@@ -173,7 +170,7 @@ class SupportTicketService(
 
     @Transactional
     fun addMessage(
-        id: UUID,
+        id: Long,
         organizationId: UUID,
         senderId: UUID,
         senderType: TicketSenderType,
@@ -222,7 +219,7 @@ class SupportTicketService(
 
     @Transactional
     fun assignTicket(
-        id: UUID,
+        id: Long,
         organizationId: UUID,
         assignedToUserId: UUID,
     ): SupportTicketResponse {
@@ -251,7 +248,7 @@ class SupportTicketService(
 
     @Transactional
     fun resolveTicket(
-        id: UUID,
+        id: Long,
         organizationId: UUID,
     ): SupportTicketResponse {
         val ticket =
@@ -267,7 +264,7 @@ class SupportTicketService(
 
     @Transactional
     fun closeTicket(
-        id: UUID,
+        id: Long,
         organizationId: UUID,
     ): SupportTicketResponse {
         val ticket =

@@ -213,9 +213,8 @@ class CustomerPortalControllerTest {
     fun `POST portal tickets creates support ticket`() {
         val ticketResponse =
             SupportTicketResponse(
-                id = UUID.randomUUID(),
+                id = 1L,
                 organizationId = testOrgId,
-                ticketNumber = 1,
                 customerId = testCustomerId,
                 customerName = "Acme Corp",
                 contactId = null,
@@ -249,6 +248,6 @@ class CustomerPortalControllerTest {
                         """.trimIndent(),
                     ),
             ).andExpect(status().isCreated)
-            .andExpect(jsonPath("$.ticketNumber").value(1))
+            .andExpect(jsonPath("$.id").value(1))
     }
 }

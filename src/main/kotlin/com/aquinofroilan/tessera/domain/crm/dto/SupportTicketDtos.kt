@@ -13,7 +13,7 @@ import java.util.UUID
 
 data class SupportTicketMessageDto(
     val id: UUID,
-    val ticketId: UUID,
+    val ticketId: Long,
     val senderId: UUID,
     val senderType: TicketSenderType,
     val message: String,
@@ -35,9 +35,8 @@ data class SupportTicketMessageDto(
 }
 
 data class SupportTicketResponse(
-    val id: UUID,
+    val id: Long,
     val organizationId: UUID,
-    val ticketNumber: Int,
     val customerId: UUID,
     val customerName: String?,
     val contactId: UUID?,
@@ -69,7 +68,6 @@ data class SupportTicketResponse(
             return SupportTicketResponse(
                 id = ticket.id,
                 organizationId = ticket.organizationId,
-                ticketNumber = ticket.ticketNumber,
                 customerId = ticket.customerId,
                 customerName = customerName,
                 contactId = ticket.contactId,

@@ -16,9 +16,8 @@ CREATE INDEX IF NOT EXISTS idx_cust_portal_users_user ON customer_portal_users(u
 
 -- Support tickets
 CREATE TABLE IF NOT EXISTS support_tickets (
-    id uuid PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     organization_id uuid NOT NULL REFERENCES organizations(uuid) ON DELETE CASCADE,
-    ticket_number integer NOT NULL,
     customer_id uuid NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
     contact_id uuid REFERENCES crm_contacts(id) ON DELETE SET NULL,
     subject text NOT NULL,
@@ -32,7 +31,6 @@ CREATE TABLE IF NOT EXISTS support_tickets (
     closed_at timestamp with time zone,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
     updated_at timestamp with time zone NOT NULL DEFAULT now(),
-    CONSTRAINT uq_support_tickets_org_num UNIQUE (organization_id, ticket_number),
     CONSTRAINT chk_support_ticket_status CHECK (status IN ('OPEN', 'IN_PROGRESS', 'WAITING_FOR_CUSTOMER', 'RESOLVED', 'CLOSED')),
     CONSTRAINT chk_support_ticket_priority CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH', 'URGENT')),
     CONSTRAINT chk_support_ticket_category CHECK (category IN ('BILLING', 'ORDER_INQUIRY', 'TECHNICAL_SUPPORT', 'PRODUCT_DEFECT', 'GENERAL_INQUIRY', 'FEATURE_REQUEST', 'OTHER'))
@@ -47,7 +45,7 @@ CREATE INDEX IF NOT EXISTS idx_support_tickets_assignee ON support_tickets(assig
 CREATE TABLE IF NOT EXISTS support_ticket_messages (
     id uuid PRIMARY KEY,
     organization_id uuid NOT NULL REFERENCES organizations(uuid) ON DELETE CASCADE,
-    ticket_id uuid NOT NULL REFERENCES support_tickets(id) ON DELETE CASCADE,
+    ticket_id bigint NOT NULL REFERENCES support_tickets(id) ON DELETE CASCADE,
     sender_id uuid NOT NULL REFERENCES users(uuid) ON DELETE CASCADE,
     sender_type text NOT NULL,
     message text NOT NULL,

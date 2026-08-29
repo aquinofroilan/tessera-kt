@@ -94,7 +94,7 @@ class CustomerPortalController(
     fun getMyTicket(
         @CurrentOrganizationId orgId: UUID,
         @CurrentUserId userId: UUID,
-        @PathVariable id: UUID,
+        @PathVariable id: Long,
     ): ResponseEntity<SupportTicketResponse> = ResponseEntity.ok(customerPortalService.getMyTicket(orgId, userId, id))
 
     @PostMapping("/tickets")
@@ -113,7 +113,7 @@ class CustomerPortalController(
     fun addMyTicketMessage(
         @CurrentOrganizationId orgId: UUID,
         @CurrentUserId userId: UUID,
-        @PathVariable id: UUID,
+        @PathVariable id: Long,
         @Valid @RequestBody request: AddTicketMessageRequest,
     ): ResponseEntity<SupportTicketResponse> =
         ResponseEntity.ok(customerPortalService.addMyTicketMessage(orgId, userId, id, request.message))
@@ -123,6 +123,6 @@ class CustomerPortalController(
     fun closeMyTicket(
         @CurrentOrganizationId orgId: UUID,
         @CurrentUserId userId: UUID,
-        @PathVariable id: UUID,
+        @PathVariable id: Long,
     ): ResponseEntity<SupportTicketResponse> = ResponseEntity.ok(customerPortalService.closeMyTicket(orgId, userId, id))
 }

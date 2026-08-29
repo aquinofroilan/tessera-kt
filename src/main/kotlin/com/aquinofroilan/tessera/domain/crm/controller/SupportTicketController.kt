@@ -46,7 +46,7 @@ class SupportTicketController(
     @PreAuthorize("hasAuthority('crm:read') or hasAuthority('sales:read') or hasAuthority('organization:read') or hasRole('SUPER_ADMIN')")
     fun getTicket(
         @CurrentOrganizationId orgId: UUID,
-        @PathVariable id: UUID,
+        @PathVariable id: Long,
     ): ResponseEntity<SupportTicketResponse> = ResponseEntity.ok(supportTicketService.getTicket(id, orgId, includeInternalNotes = true))
 
     @PostMapping
@@ -68,7 +68,7 @@ class SupportTicketController(
     )
     fun updateTicket(
         @CurrentOrganizationId orgId: UUID,
-        @PathVariable id: UUID,
+        @PathVariable id: Long,
         @Valid @RequestBody request: UpdateSupportTicketRequest,
     ): ResponseEntity<SupportTicketResponse> = ResponseEntity.ok(supportTicketService.updateTicket(id, orgId, request))
 
@@ -79,7 +79,7 @@ class SupportTicketController(
     fun addMessage(
         @CurrentOrganizationId orgId: UUID,
         @CurrentUserId userId: UUID,
-        @PathVariable id: UUID,
+        @PathVariable id: Long,
         @Valid @RequestBody request: AddTicketMessageRequest,
     ): ResponseEntity<SupportTicketResponse> =
         ResponseEntity.ok(supportTicketService.addMessage(id, orgId, userId, TicketSenderType.AGENT, request))
@@ -90,7 +90,7 @@ class SupportTicketController(
     )
     fun assignTicket(
         @CurrentOrganizationId orgId: UUID,
-        @PathVariable id: UUID,
+        @PathVariable id: Long,
         @Valid @RequestBody request: AssignTicketRequest,
     ): ResponseEntity<SupportTicketResponse> = ResponseEntity.ok(supportTicketService.assignTicket(id, orgId, request.assignedToUserId))
 
@@ -100,7 +100,7 @@ class SupportTicketController(
     )
     fun resolveTicket(
         @CurrentOrganizationId orgId: UUID,
-        @PathVariable id: UUID,
+        @PathVariable id: Long,
     ): ResponseEntity<SupportTicketResponse> = ResponseEntity.ok(supportTicketService.resolveTicket(id, orgId))
 
     @PostMapping("/{id}/close")
@@ -109,6 +109,6 @@ class SupportTicketController(
     )
     fun closeTicket(
         @CurrentOrganizationId orgId: UUID,
-        @PathVariable id: UUID,
+        @PathVariable id: Long,
     ): ResponseEntity<SupportTicketResponse> = ResponseEntity.ok(supportTicketService.closeTicket(id, orgId))
 }

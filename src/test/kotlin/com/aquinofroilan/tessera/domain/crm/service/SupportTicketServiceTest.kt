@@ -38,7 +38,7 @@ class SupportTicketServiceTest {
     private val orgId = UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216")
     private val userId = UUID.fromString("bc17c97c-3d89-7d43-b7e0-7ca0266eafa8")
     private val customerId = UUID.fromString("11111111-2222-3333-4444-555555555555")
-    private val ticketId = UUID.fromString("22222222-3333-4444-5555-666666666666")
+    private val ticketId = 1L
 
     @BeforeEach
     fun setUp() {
@@ -68,7 +68,6 @@ class SupportTicketServiceTest {
         SupportTicket(
             id = ticketId,
             organizationId = orgId,
-            ticketNumber = 1,
             customerId = customerId,
             subject = "Cannot access invoice",
             description = "Error when viewing PDF",
@@ -101,12 +100,15 @@ class SupportTicketServiceTest {
             )
 
         `when`(customerRepository.findByIdAndOrganizationId(customerId, orgId)).thenReturn(Optional.of(createCustomer()))
-        `when`(supportTicketRepository.findMaxTicketNumberByOrganizationId(orgId)).thenReturn(0)
-        `when`(supportTicketRepository.save(any<SupportTicket>())).thenAnswer { it.arguments[0] }
+        `when`(supportTicketRepository.save(any<SupportTicket>())).thenAnswer {
+            val t = it.arguments[0] as SupportTicket
+            t.id = 1L
+            t
+        }
 
         val response = service.createTicket(orgId, userId, request, senderType = TicketSenderType.CUSTOMER)
 
-        assertEquals(1, response.ticketNumber)
+        assertEquals(1L, response.id)
         assertEquals(TicketStatus.OPEN, response.status)
         assertEquals("Cannot access invoice", response.subject)
         assertEquals(1, response.messages.size)

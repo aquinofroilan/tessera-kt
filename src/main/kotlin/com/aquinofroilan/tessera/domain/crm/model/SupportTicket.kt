@@ -7,6 +7,8 @@ import jakarta.persistence.EntityListeners
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToMany
@@ -58,8 +60,8 @@ class SupportTicketMessage(
     var id: UUID = UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", nullable = false, columnDefinition = "uuid")
     var organizationId: UUID,
-    @Column(name = "ticket_id", nullable = false, columnDefinition = "uuid")
-    var ticketId: UUID,
+    @Column(name = "ticket_id", nullable = false)
+    var ticketId: Long = 0L,
     @Column(name = "sender_id", nullable = false, columnDefinition = "uuid")
     var senderId: UUID,
     @Enumerated(EnumType.STRING)
@@ -79,12 +81,10 @@ class SupportTicketMessage(
 @EntityListeners(AuditingEntityListener::class)
 class SupportTicket(
     @Id
-    @Column(columnDefinition = "uuid")
-    var id: UUID = UUID.ofEpochMillis(System.currentTimeMillis()),
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long = 0L,
     @Column(name = "organization_id", nullable = false, columnDefinition = "uuid")
     var organizationId: UUID,
-    @Column(name = "ticket_number", nullable = false)
-    var ticketNumber: Int,
     @Column(name = "customer_id", nullable = false, columnDefinition = "uuid")
     var customerId: UUID,
     @Column(name = "contact_id", columnDefinition = "uuid")

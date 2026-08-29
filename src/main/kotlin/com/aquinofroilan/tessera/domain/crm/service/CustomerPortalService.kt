@@ -260,7 +260,7 @@ class CustomerPortalService(
     fun getMyTicket(
         organizationId: UUID,
         userId: UUID,
-        ticketId: UUID,
+        ticketId: Long,
     ): SupportTicketResponse {
         val customer = resolveCustomerForUser(organizationId, userId)
         val ticket =
@@ -296,7 +296,7 @@ class CustomerPortalService(
     fun addMyTicketMessage(
         organizationId: UUID,
         userId: UUID,
-        ticketId: UUID,
+        ticketId: Long,
         message: String,
     ): SupportTicketResponse {
         val customer = resolveCustomerForUser(organizationId, userId)
@@ -323,7 +323,7 @@ class CustomerPortalService(
     fun closeMyTicket(
         organizationId: UUID,
         userId: UUID,
-        ticketId: UUID,
+        ticketId: Long,
     ): SupportTicketResponse {
         val customer = resolveCustomerForUser(organizationId, userId)
         val ticket =

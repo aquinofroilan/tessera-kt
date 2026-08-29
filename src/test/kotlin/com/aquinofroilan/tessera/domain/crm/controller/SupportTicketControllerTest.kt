@@ -102,7 +102,7 @@ class SupportTicketControllerTest {
     private val testOrgId = UUID.fromString("4abe9f6d-6df3-6e5c-953e-3695db9a5216")
     private val testUserId = UUID.fromString("bc17c97c-3d89-7d43-b7e0-7ca0266eafa8")
     private val testCustomerId = UUID.fromString("11111111-2222-3333-4444-555555555555")
-    private val testTicketId = UUID.fromString("22222222-3333-4444-5555-666666666666")
+    private val testTicketId = 1L
 
     private val testUser =
         User(
@@ -135,7 +135,6 @@ class SupportTicketControllerTest {
         SupportTicketResponse(
             id = testTicketId,
             organizationId = testOrgId,
-            ticketNumber = 1,
             customerId = testCustomerId,
             customerName = "Acme Corp",
             contactId = null,
@@ -172,8 +171,7 @@ class SupportTicketControllerTest {
         mockMvc
             .perform(get("/api/v1/crm/tickets"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$[0].id").value(testTicketId.toString()))
-            .andExpect(jsonPath("$[0].ticketNumber").value(1))
+            .andExpect(jsonPath("$[0].id").value(1))
     }
 
     @Test
@@ -197,7 +195,7 @@ class SupportTicketControllerTest {
                         """.trimIndent(),
                     ),
             ).andExpect(status().isCreated)
-            .andExpect(jsonPath("$.id").value(testTicketId.toString()))
+            .andExpect(jsonPath("$.id").value(1))
     }
 
     @Test
@@ -217,7 +215,7 @@ class SupportTicketControllerTest {
                         """.trimIndent(),
                     ),
             ).andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value(testTicketId.toString()))
+            .andExpect(jsonPath("$.id").value(1))
     }
 
     @Test

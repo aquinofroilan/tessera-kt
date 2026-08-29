@@ -7,7 +7,7 @@ import java.util.UUID
 
 @Repository
 interface SupportTicketMessageRepository : JpaRepository<SupportTicketMessage, UUID> {
-    fun findByTicketIdOrderByCreatedAtAsc(ticketId: UUID): List<SupportTicketMessage>
+    fun findByTicketIdOrderByCreatedAtAsc(ticketId: Long): List<SupportTicketMessage>
 
-    fun findByTicketIdAndIsInternalNoteFalseOrderByCreatedAtAsc(ticketId: UUID): List<SupportTicketMessage>
+    fun findByTicketIdAndIsInternalNoteFalseOrderByCreatedAtAsc(ticketId: Long): List<SupportTicketMessage>
 }
