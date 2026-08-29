@@ -62,13 +62,13 @@ data class BillOfMaterials(
     val name: String,
     val version: Int = 1,
     @Enumerated(EnumType.STRING)
-    val status: BomStatus = BomStatus.DRAFT,
+    var status: BomStatus = BomStatus.DRAFT,
     @Column(name = "is_default")
-    val isDefault: Boolean = false,
+    var isDefault: Boolean = false,
     @Column(name = "effective_from")
-    val effectiveFrom: LocalDate? = null,
+    var effectiveFrom: LocalDate? = null,
     @Column(name = "effective_to")
-    val effectiveTo: LocalDate? = null,
+    var effectiveTo: LocalDate? = null,
     val notes: String? = null,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "bom_id")
@@ -77,13 +77,13 @@ data class BillOfMaterials(
     @Column(name = "created_by", columnDefinition = "uuid")
     val createdBy: java.util.UUID,
     @Column(name = "activated_at")
-    val activatedAt: LocalDateTime? = null,
+    var activatedAt: LocalDateTime? = null,
     @Column(name = "activated_by", columnDefinition = "uuid")
-    val activatedBy: java.util.UUID? = null,
+    var activatedBy: java.util.UUID? = null,
     @Column(name = "obsoleted_at")
-    val obsoletedAt: LocalDateTime? = null,
+    var obsoletedAt: LocalDateTime? = null,
     @Column(name = "obsoleted_by", columnDefinition = "uuid")
-    val obsoletedBy: java.util.UUID? = null,
+    var obsoletedBy: java.util.UUID? = null,
     @CreatedDate
     @Column(name = "created_at")
     val createdAt: LocalDateTime? = null,
