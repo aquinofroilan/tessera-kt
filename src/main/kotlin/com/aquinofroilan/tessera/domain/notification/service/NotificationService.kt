@@ -22,6 +22,7 @@ import java.util.UUID
 class NotificationService(
     private val notificationRepository: NotificationRepository,
     private val emailEnqueuer: NotificationEmailEnqueuer,
+    private val webhookEnqueuer: NotificationWebhookEnqueuer,
     private val streamRegistry: NotificationStreamRegistry,
 ) {
     @Transactional
@@ -42,6 +43,7 @@ class NotificationService(
                 ),
             )
         emailEnqueuer.enqueue(saved)
+        webhookEnqueuer.enqueue(saved)
         val unread = unreadCountFor(saved.recipientUserId, saved.organizationId)
         streamRegistry.broadcastNotification(saved.recipientUserId, saved.organizationId, saved)
         streamRegistry.broadcastUnread(saved.recipientUserId, saved.organizationId, unread)
