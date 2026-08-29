@@ -24,31 +24,39 @@ import java.util.UUID
 class EngineeringChangeOrderService(
     private val ecoRepository: EngineeringChangeOrderRepository,
     private val bomRepository: BillOfMaterialsRepository,
-    private val routingRepository: RoutingRepository
+    private val routingRepository: RoutingRepository,
 ) {
-
     @Transactional
-    fun createEco(organizationId: UUID, requestedBy: UUID, request: CreateEcoRequest): EngineeringChangeOrderDto {
+    fun createEco(
+        organizationId: UUID,
+        requestedBy: UUID,
+        request: CreateEcoRequest,
+    ): EngineeringChangeOrderDto {
         val existingEco = ecoRepository.findByOrganizationIdAndEcoNumber(organizationId, request.ecoNumber)
         if (existingEco != null) {
             throw BusinessRuleException("ECO number ${request.ecoNumber} already exists.")
         }
 
-        val eco = EngineeringChangeOrder(
-            organizationId = organizationId,
-            ecoNumber = request.ecoNumber,
-            title = request.title,
-            description = request.description,
-            effectiveDate = request.effectiveDate,
-            requestedBy = requestedBy
-        )
+        val eco =
+            EngineeringChangeOrder(
+                organizationId = organizationId,
+                ecoNumber = request.ecoNumber,
+                title = request.title,
+                description = request.description,
+                effectiveDate = request.effectiveDate,
+                requestedBy = requestedBy,
+            )
 
         val savedEco = ecoRepository.save(eco)
         return mapToDto(savedEco)
     }
 
     @Transactional
-    fun addAffectedItem(organizationId: UUID, ecoId: UUID, request: AddEcoItemRequest): EngineeringChangeOrderDto {
+    fun addAffectedItem(
+        organizationId: UUID,
+        ecoId: UUID,
+        request: AddEcoItemRequest,
+    ): EngineeringChangeOrderDto {
         val eco = getEcoOrThrow(organizationId, ecoId)
 
         if (eco.status != EcoStatus.DRAFT) {
@@ -58,23 +66,28 @@ class EngineeringChangeOrderService(
         // Validate that new version exists and is in DRAFT
         when (request.itemType) {
             EcoItemType.BOM -> {
-                val bom = bomRepository.findById(request.newVersionId)
-                    .orElseThrow { ResourceNotFoundException("BOM not found") }
+                val bom =
+                    bomRepository
+                        .findById(request.newVersionId)
+                        .orElseThrow { ResourceNotFoundException("BOM not found") }
                 if (bom.status != BomStatus.DRAFT) throw BusinessRuleException("New BOM version must be in DRAFT status.")
             }
             EcoItemType.ROUTING -> {
-                val routing = routingRepository.findById(request.newVersionId)
-                    .orElseThrow { ResourceNotFoundException("Routing not found") }
+                val routing =
+                    routingRepository
+                        .findById(request.newVersionId)
+                        .orElseThrow { ResourceNotFoundException("Routing not found") }
                 if (routing.status != RoutingStatus.DRAFT) throw BusinessRuleException("New Routing version must be in DRAFT status.")
             }
         }
 
-        val item = EcoAffectedItem(
-            itemType = request.itemType,
-            oldVersionId = request.oldVersionId,
-            newVersionId = request.newVersionId,
-            notes = request.notes
-        )
+        val item =
+            EcoAffectedItem(
+                itemType = request.itemType,
+                oldVersionId = request.oldVersionId,
+                newVersionId = request.newVersionId,
+                notes = request.notes,
+            )
 
         eco.addAffectedItem(item)
         val savedEco = ecoRepository.save(eco)
@@ -82,7 +95,10 @@ class EngineeringChangeOrderService(
     }
 
     @Transactional
-    fun submitForReview(organizationId: UUID, ecoId: UUID): EngineeringChangeOrderDto {
+    fun submitForReview(
+        organizationId: UUID,
+        ecoId: UUID,
+    ): EngineeringChangeOrderDto {
         val eco = getEcoOrThrow(organizationId, ecoId)
         if (eco.status != EcoStatus.DRAFT) {
             throw BusinessRuleException("Only DRAFT ECOs can be submitted for review.")
@@ -92,7 +108,11 @@ class EngineeringChangeOrderService(
     }
 
     @Transactional
-    fun approveEco(organizationId: UUID, ecoId: UUID, approvedBy: UUID): EngineeringChangeOrderDto {
+    fun approveEco(
+        organizationId: UUID,
+        ecoId: UUID,
+        approvedBy: UUID,
+    ): EngineeringChangeOrderDto {
         val eco = getEcoOrThrow(organizationId, ecoId)
         if (eco.status != EcoStatus.PENDING_REVIEW) {
             throw BusinessRuleException("Only PENDING_REVIEW ECOs can be approved.")
@@ -104,7 +124,11 @@ class EngineeringChangeOrderService(
     }
 
     @Transactional
-    fun applyEco(organizationId: UUID, ecoId: UUID, appliedBy: UUID): EngineeringChangeOrderDto {
+    fun applyEco(
+        organizationId: UUID,
+        ecoId: UUID,
+        appliedBy: UUID,
+    ): EngineeringChangeOrderDto {
         val eco = getEcoOrThrow(organizationId, ecoId)
         if (eco.status != EcoStatus.APPROVED) {
             throw BusinessRuleException("Only APPROVED ECOs can be applied.")
@@ -125,7 +149,11 @@ class EngineeringChangeOrderService(
                             bomRepository.save(oldBom)
                         }
                     }
-                    val newBom = bomRepository.findById(item.newVersionId).orElseThrow { ResourceNotFoundException("New BOM version not found") }
+                    val newBom =
+                        bomRepository
+                            .findById(
+                                item.newVersionId,
+                            ).orElseThrow { ResourceNotFoundException("New BOM version not found") }
                     newBom.status = BomStatus.ACTIVE
                     newBom.effectiveFrom = eco.effectiveDate ?: now.toLocalDate()
                     newBom.activatedAt = now
@@ -143,7 +171,11 @@ class EngineeringChangeOrderService(
                             routingRepository.save(oldRouting)
                         }
                     }
-                    val newRouting = routingRepository.findById(item.newVersionId).orElseThrow { ResourceNotFoundException("New Routing version not found") }
+                    val newRouting =
+                        routingRepository
+                            .findById(
+                                item.newVersionId,
+                            ).orElseThrow { ResourceNotFoundException("New Routing version not found") }
                     newRouting.status = RoutingStatus.ACTIVE
                     newRouting.effectiveFrom = eco.effectiveDate ?: now.toLocalDate()
                     newRouting.activatedAt = now
@@ -158,17 +190,22 @@ class EngineeringChangeOrderService(
         return mapToDto(ecoRepository.save(eco))
     }
 
-    private fun getEcoOrThrow(organizationId: UUID, ecoId: UUID): EngineeringChangeOrder {
-        val eco = ecoRepository.findById(ecoId)
-            .orElseThrow { ResourceNotFoundException("Engineering Change Order not found") }
+    private fun getEcoOrThrow(
+        organizationId: UUID,
+        ecoId: UUID,
+    ): EngineeringChangeOrder {
+        val eco =
+            ecoRepository
+                .findById(ecoId)
+                .orElseThrow { ResourceNotFoundException("Engineering Change Order not found") }
         if (eco.organizationId != organizationId) {
             throw BusinessRuleException("ECO does not belong to the organization.")
         }
         return eco
     }
 
-    private fun mapToDto(eco: EngineeringChangeOrder): EngineeringChangeOrderDto {
-        return EngineeringChangeOrderDto(
+    private fun mapToDto(eco: EngineeringChangeOrder): EngineeringChangeOrderDto =
+        EngineeringChangeOrderDto(
             id = eco.id,
             organizationId = eco.organizationId,
             ecoNumber = eco.ecoNumber,
@@ -180,15 +217,15 @@ class EngineeringChangeOrderService(
             approvedBy = eco.approvedBy,
             approvedAt = eco.approvedAt,
             implementedAt = eco.implementedAt,
-            affectedItems = eco.affectedItems.map {
-                EcoAffectedItemDto(
-                    id = it.id,
-                    itemType = it.itemType,
-                    oldVersionId = it.oldVersionId,
-                    newVersionId = it.newVersionId,
-                    notes = it.notes
-                )
-            }
+            affectedItems =
+                eco.affectedItems.map {
+                    EcoAffectedItemDto(
+                        id = it.id,
+                        itemType = it.itemType,
+                        oldVersionId = it.oldVersionId,
+                        newVersionId = it.newVersionId,
+                        notes = it.notes,
+                    )
+                },
         )
-    }
 }

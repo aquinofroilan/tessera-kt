@@ -18,14 +18,13 @@ import java.util.UUID
 @RestController
 @RequestMapping("/api/v1/organizations/{organizationId}/manufacturing/ecos")
 class EngineeringChangeOrderController(
-    private val ecoService: EngineeringChangeOrderService
+    private val ecoService: EngineeringChangeOrderService,
 ) {
-
     @PostMapping
     fun createEco(
         @PathVariable organizationId: UUID,
         @RequestBody request: CreateEcoRequest,
-        @AuthenticationPrincipal jwt: Jwt
+        @AuthenticationPrincipal jwt: Jwt,
     ): ResponseEntity<EngineeringChangeOrderDto> {
         val requestedBy = UUID.fromString(jwt.subject)
         val eco = ecoService.createEco(organizationId, requestedBy, request)
@@ -36,7 +35,7 @@ class EngineeringChangeOrderController(
     fun addAffectedItem(
         @PathVariable organizationId: UUID,
         @PathVariable ecoId: UUID,
-        @RequestBody request: AddEcoItemRequest
+        @RequestBody request: AddEcoItemRequest,
     ): ResponseEntity<EngineeringChangeOrderDto> {
         val eco = ecoService.addAffectedItem(organizationId, ecoId, request)
         return ResponseEntity.ok(eco)
@@ -45,7 +44,7 @@ class EngineeringChangeOrderController(
     @PostMapping("/{ecoId}/submit")
     fun submitForReview(
         @PathVariable organizationId: UUID,
-        @PathVariable ecoId: UUID
+        @PathVariable ecoId: UUID,
     ): ResponseEntity<EngineeringChangeOrderDto> {
         val eco = ecoService.submitForReview(organizationId, ecoId)
         return ResponseEntity.ok(eco)
@@ -55,7 +54,7 @@ class EngineeringChangeOrderController(
     fun approveEco(
         @PathVariable organizationId: UUID,
         @PathVariable ecoId: UUID,
-        @AuthenticationPrincipal jwt: Jwt
+        @AuthenticationPrincipal jwt: Jwt,
     ): ResponseEntity<EngineeringChangeOrderDto> {
         val approvedBy = UUID.fromString(jwt.subject)
         val eco = ecoService.approveEco(organizationId, ecoId, approvedBy)
@@ -66,7 +65,7 @@ class EngineeringChangeOrderController(
     fun applyEco(
         @PathVariable organizationId: UUID,
         @PathVariable ecoId: UUID,
-        @AuthenticationPrincipal jwt: Jwt
+        @AuthenticationPrincipal jwt: Jwt,
     ): ResponseEntity<EngineeringChangeOrderDto> {
         val appliedBy = UUID.fromString(jwt.subject)
         val eco = ecoService.applyEco(organizationId, ecoId, appliedBy)

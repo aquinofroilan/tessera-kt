@@ -18,7 +18,7 @@ data class EngineeringChangeOrderDto(
     val approvedBy: UUID?,
     val approvedAt: LocalDateTime?,
     val implementedAt: LocalDateTime?,
-    val affectedItems: List<EcoAffectedItemDto>
+    val affectedItems: List<EcoAffectedItemDto>,
 )
 
 data class EcoAffectedItemDto(
@@ -26,19 +26,19 @@ data class EcoAffectedItemDto(
     val itemType: EcoItemType,
     val oldVersionId: UUID?,
     val newVersionId: UUID,
-    val notes: String?
+    val notes: String?,
 )
 
 data class CreateEcoRequest(
     val ecoNumber: String,
     val title: String,
     val description: String?,
-    val effectiveDate: LocalDate?
+    val effectiveDate: LocalDate?,
 )
 
 data class AddEcoItemRequest(
     val itemType: EcoItemType,
     val oldVersionId: UUID?,
     val newVersionId: UUID,
-    val notes: String?
+    val notes: String?,
 )

@@ -1,6 +1,5 @@
 package com.aquinofroilan.tessera.domain.mfg.service
 
-import com.aquinofroilan.tessera.domain.mfg.dto.AddEcoItemRequest
 import com.aquinofroilan.tessera.domain.mfg.dto.CreateEcoRequest
 import com.aquinofroilan.tessera.domain.mfg.model.BillOfMaterials
 import com.aquinofroilan.tessera.domain.mfg.model.BomStatus
@@ -24,7 +23,6 @@ import java.util.Optional
 import java.util.UUID
 
 class EngineeringChangeOrderServiceTest {
-
     private val ecoRepository: EngineeringChangeOrderRepository = mock()
     private val bomRepository: BillOfMaterialsRepository = mock()
     private val routingRepository: RoutingRepository = mock()
@@ -54,7 +52,9 @@ class EngineeringChangeOrderServiceTest {
         val request = CreateEcoRequest("ECO-001", "Update BOM", "Description", LocalDate.now())
 
         whenever(ecoRepository.findByOrganizationIdAndEcoNumber(organizationId, "ECO-001"))
-            .thenReturn(EngineeringChangeOrder(organizationId = organizationId, ecoNumber = "ECO-001", title = "T", requestedBy = requestedBy))
+            .thenReturn(
+                EngineeringChangeOrder(organizationId = organizationId, ecoNumber = "ECO-001", title = "T", requestedBy = requestedBy),
+            )
 
         assertThrows(BusinessRuleException::class.java) {
             ecoService.createEco(organizationId, requestedBy, request)
@@ -70,45 +70,48 @@ class EngineeringChangeOrderServiceTest {
         val requestedBy = UUID.randomUUID()
         val appliedBy = UUID.randomUUID()
 
-        val eco = EngineeringChangeOrder(
-            id = ecoId,
-            organizationId = organizationId,
-            ecoNumber = "ECO-002",
-            title = "Test",
-            status = EcoStatus.APPROVED,
-            requestedBy = requestedBy,
-            effectiveDate = LocalDate.now()
-        )
+        val eco =
+            EngineeringChangeOrder(
+                id = ecoId,
+                organizationId = organizationId,
+                ecoNumber = "ECO-002",
+                title = "Test",
+                status = EcoStatus.APPROVED,
+                requestedBy = requestedBy,
+                effectiveDate = LocalDate.now(),
+            )
 
         eco.addAffectedItem(
             com.aquinofroilan.tessera.domain.mfg.model.EcoAffectedItem(
                 itemType = EcoItemType.BOM,
                 oldVersionId = oldBomId,
-                newVersionId = newBomId
+                newVersionId = newBomId,
+            ),
+        )
+
+        val oldBom =
+            BillOfMaterials(
+                id = oldBomId,
+                organizationId = organizationId,
+                productId = UUID.randomUUID(),
+                code = "BOM-01",
+                name = "Old BOM",
+                status = BomStatus.ACTIVE,
+                lines = emptyList(),
+                createdBy = UUID.randomUUID(),
             )
-        )
 
-        val oldBom = BillOfMaterials(
-            id = oldBomId,
-            organizationId = organizationId,
-            productId = UUID.randomUUID(),
-            code = "BOM-01",
-            name = "Old BOM",
-            status = BomStatus.ACTIVE,
-            lines = emptyList(),
-            createdBy = UUID.randomUUID()
-        )
-
-        val newBom = BillOfMaterials(
-            id = newBomId,
-            organizationId = organizationId,
-            productId = UUID.randomUUID(),
-            code = "BOM-02",
-            name = "New BOM",
-            status = BomStatus.DRAFT,
-            lines = emptyList(),
-            createdBy = UUID.randomUUID()
-        )
+        val newBom =
+            BillOfMaterials(
+                id = newBomId,
+                organizationId = organizationId,
+                productId = UUID.randomUUID(),
+                code = "BOM-02",
+                name = "New BOM",
+                status = BomStatus.DRAFT,
+                lines = emptyList(),
+                createdBy = UUID.randomUUID(),
+            )
 
         whenever(ecoRepository.findById(ecoId)).thenReturn(Optional.of(eco))
         whenever(bomRepository.findById(oldBomId)).thenReturn(Optional.of(oldBom))

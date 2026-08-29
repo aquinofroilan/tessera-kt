@@ -8,5 +8,9 @@ import java.util.UUID
 @Repository
 interface EngineeringChangeOrderRepository : JpaRepository<EngineeringChangeOrder, UUID> {
     fun findByOrganizationId(organizationId: UUID): List<EngineeringChangeOrder>
-    fun findByOrganizationIdAndEcoNumber(organizationId: UUID, ecoNumber: String): EngineeringChangeOrder?
+
+    fun findByOrganizationIdAndEcoNumber(
+        organizationId: UUID,
+        ecoNumber: String,
+    ): EngineeringChangeOrder?
 }
