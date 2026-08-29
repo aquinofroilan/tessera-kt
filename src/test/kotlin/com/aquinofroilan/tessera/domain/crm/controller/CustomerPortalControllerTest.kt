@@ -215,7 +215,7 @@ class CustomerPortalControllerTest {
             SupportTicketResponse(
                 id = UUID.randomUUID(),
                 organizationId = testOrgId,
-                ticketNumber = "TICK-00001",
+                ticketNumber = 1,
                 customerId = testCustomerId,
                 customerName = "Acme Corp",
                 contactId = null,
@@ -249,6 +249,6 @@ class CustomerPortalControllerTest {
                         """.trimIndent(),
                     ),
             ).andExpect(status().isCreated)
-            .andExpect(jsonPath("$.ticketNumber").value("TICK-00001"))
+            .andExpect(jsonPath("$.ticketNumber").value(1))
     }
 }

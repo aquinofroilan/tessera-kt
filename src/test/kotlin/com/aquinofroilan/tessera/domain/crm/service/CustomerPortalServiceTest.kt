@@ -174,7 +174,7 @@ class CustomerPortalServiceTest {
             SupportTicketResponse(
                 id = UUID.randomUUID(),
                 organizationId = orgId,
-                ticketNumber = "TICK-00001",
+                ticketNumber = 1,
                 customerId = customerId,
                 customerName = "Acme Corp",
                 contactId = null,
@@ -202,7 +202,7 @@ class CustomerPortalServiceTest {
 
         val response = service.createMyTicket(orgId, userId, request)
 
-        assertEquals("TICK-00001", response.ticketNumber)
+        assertEquals(1, response.ticketNumber)
         assertEquals("Order question", response.subject)
     }
 }

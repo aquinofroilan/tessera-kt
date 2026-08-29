@@ -84,7 +84,7 @@ class SupportTicket(
     @Column(name = "organization_id", nullable = false, columnDefinition = "uuid")
     var organizationId: UUID,
     @Column(name = "ticket_number", nullable = false)
-    var ticketNumber: String,
+    var ticketNumber: Int,
     @Column(name = "customer_id", nullable = false, columnDefinition = "uuid")
     var customerId: UUID,
     @Column(name = "contact_id", columnDefinition = "uuid")

@@ -68,7 +68,7 @@ class SupportTicketServiceTest {
         SupportTicket(
             id = ticketId,
             organizationId = orgId,
-            ticketNumber = "TICK-00001",
+            ticketNumber = 1,
             customerId = customerId,
             subject = "Cannot access invoice",
             description = "Error when viewing PDF",
@@ -101,12 +101,12 @@ class SupportTicketServiceTest {
             )
 
         `when`(customerRepository.findByIdAndOrganizationId(customerId, orgId)).thenReturn(Optional.of(createCustomer()))
-        `when`(supportTicketRepository.countByOrganizationId(orgId)).thenReturn(0L)
+        `when`(supportTicketRepository.findMaxTicketNumberByOrganizationId(orgId)).thenReturn(0)
         `when`(supportTicketRepository.save(any<SupportTicket>())).thenAnswer { it.arguments[0] }
 
         val response = service.createTicket(orgId, userId, request, senderType = TicketSenderType.CUSTOMER)
 
-        assertEquals("TICK-00001", response.ticketNumber)
+        assertEquals(1, response.ticketNumber)
         assertEquals(TicketStatus.OPEN, response.status)
         assertEquals("Cannot access invoice", response.subject)
         assertEquals(1, response.messages.size)

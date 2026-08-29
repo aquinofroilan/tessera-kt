@@ -18,7 +18,7 @@ CREATE INDEX IF NOT EXISTS idx_cust_portal_users_user ON customer_portal_users(u
 CREATE TABLE IF NOT EXISTS support_tickets (
     id uuid PRIMARY KEY,
     organization_id uuid NOT NULL REFERENCES organizations(uuid) ON DELETE CASCADE,
-    ticket_number text NOT NULL,
+    ticket_number integer NOT NULL,
     customer_id uuid NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
     contact_id uuid REFERENCES crm_contacts(id) ON DELETE SET NULL,
     subject text NOT NULL,

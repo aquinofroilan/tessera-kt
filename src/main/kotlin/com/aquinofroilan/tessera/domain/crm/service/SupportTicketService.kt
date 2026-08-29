@@ -104,13 +104,12 @@ class SupportTicketService(
             }
         }
 
-        val count = supportTicketRepository.countByOrganizationId(organizationId)
-        val ticketNumber = "TICK-%05d".format(count + 1)
+        val nextTicketNumber = supportTicketRepository.findMaxTicketNumberByOrganizationId(organizationId) + 1
 
         val ticket =
             SupportTicket(
                 organizationId = organizationId,
-                ticketNumber = ticketNumber,
+                ticketNumber = nextTicketNumber,
                 customerId = customer.id,
                 contactId = request.contactId,
                 subject = request.subject.trim(),

@@ -4,6 +4,7 @@ import com.aquinofroilan.tessera.domain.crm.model.SupportTicket
 import com.aquinofroilan.tessera.domain.crm.model.TicketStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
+import org.springframework.data.jpa.repository.Query
 import java.util.Optional
 import java.util.UUID
 
@@ -44,4 +45,14 @@ interface SupportTicketRepository : JpaRepository<SupportTicket, UUID> {
         customerId: UUID,
         statuses: List<TicketStatus>,
     ): Long
+
+    @Query(
+        "SELECT COALESCE(MAX(t.ticketNumber), 0) FROM SupportTicket t WHERE t.organizationId = :organizationId",
+    )
+    fun findMaxTicketNumberByOrganizationId(organizationId: UUID): Int
+
+    fun findByOrganizationIdAndTicketNumber(
+        organizationId: UUID,
+        ticketNumber: Int,
+    ): Optional<SupportTicket>
 }

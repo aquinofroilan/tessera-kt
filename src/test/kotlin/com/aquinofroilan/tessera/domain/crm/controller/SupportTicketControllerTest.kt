@@ -135,7 +135,7 @@ class SupportTicketControllerTest {
         SupportTicketResponse(
             id = testTicketId,
             organizationId = testOrgId,
-            ticketNumber = "TICK-00001",
+            ticketNumber = 1,
             customerId = testCustomerId,
             customerName = "Acme Corp",
             contactId = null,
@@ -173,7 +173,7 @@ class SupportTicketControllerTest {
             .perform(get("/api/v1/crm/tickets"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$[0].id").value(testTicketId.toString()))
-            .andExpect(jsonPath("$[0].ticketNumber").value("TICK-00001"))
+            .andExpect(jsonPath("$[0].ticketNumber").value(1))
     }
 
     @Test

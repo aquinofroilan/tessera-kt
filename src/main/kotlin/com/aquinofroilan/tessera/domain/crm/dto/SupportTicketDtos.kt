@@ -37,7 +37,7 @@ data class SupportTicketMessageDto(
 data class SupportTicketResponse(
     val id: UUID,
     val organizationId: UUID,
-    val ticketNumber: String,
+    val ticketNumber: Int,
     val customerId: UUID,
     val customerName: String?,
     val contactId: UUID?,
