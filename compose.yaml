@@ -7,6 +7,8 @@ services:
       - 'POSTGRES_PASSWORD=tessera'
     ports:
       - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U tessera']
       interval: 5s
@@ -21,8 +23,14 @@ services:
     ports:
       - '5672:5672'
       - '15672:15672'
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
       test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
       interval: 5s
       timeout: 5s
       retries: 5
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
