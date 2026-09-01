@@ -6,9 +6,11 @@ import com.aquinofroilan.tessera.domain.finance.repository.ExchangeRateRepositor
 import com.aquinofroilan.tessera.domain.organization.repository.OrganizationRepository
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
+import jakarta.annotation.PostConstruct
 import org.jobrunr.jobs.annotations.Job
-import org.jobrunr.jobs.annotations.Recurring
+import org.jobrunr.scheduling.JobScheduler
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
@@ -25,11 +27,19 @@ class FxAutoFetchJob(
     private val exchangeRateRepository: ExchangeRateRepository,
     private val frankfurterClient: FrankfurterClient,
     private val meterRegistry: MeterRegistry,
+    private val jobScheduler: JobScheduler,
+    @Value("\${tessera.fx.auto-fetch.cron:0 0 17 * * MON-FRI}") private val cronExpression: String,
 ) {
     private val log = LoggerFactory.getLogger(FxAutoFetchJob::class.java)
     private val jobTimer: Timer = meterRegistry.timer("tessera.fx.auto_fetch.job.duration")
 
-    @Recurring(id = "fx-auto-fetch", cron = "\${tessera.fx.auto-fetch.cron}", zoneId = "UTC")
+    @PostConstruct
+    fun scheduleJob() {
+        jobScheduler.scheduleRecurrently("fx-auto-fetch", cronExpression) {
+            fetchDailyRates()
+        }
+    }
+
     @Job(name = "FX Auto Fetch Daily Rates")
     fun fetchDailyRates() {
         meterRegistry.counter("tessera.fx.auto_fetch.job.runs").increment()
