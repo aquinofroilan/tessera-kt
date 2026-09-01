@@ -28,8 +28,10 @@ class FxAutoFetchJob(
     private val frankfurterClient: FrankfurterClient,
     private val meterRegistry: MeterRegistry,
     private val jobScheduler: JobScheduler,
-    @Value("\${tessera.fx.auto-fetch.cron:0 0 17 * * MON-FRI}") private val cronExpression: String,
 ) {
+    @Value("\${tessera.fx.auto-fetch.cron:0 0 17 * * MON-FRI}")
+    private lateinit var cronExpression: String
+
     private val log = LoggerFactory.getLogger(FxAutoFetchJob::class.java)
     private val jobTimer: Timer = meterRegistry.timer("tessera.fx.auto_fetch.job.duration")
 

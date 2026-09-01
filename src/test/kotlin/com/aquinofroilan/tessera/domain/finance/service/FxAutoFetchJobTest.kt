@@ -45,7 +45,6 @@ class FxAutoFetchJobTest {
                 frankfurterClient,
                 SimpleMeterRegistry(),
                 jobScheduler,
-                "0 0 17 * * MON-FRI",
             )
     }
 
