@@ -6,11 +6,11 @@ import com.aquinofroilan.tessera.domain.finance.repository.ExchangeRateRepositor
 import com.aquinofroilan.tessera.domain.organization.repository.OrganizationRepository
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
+import org.jobrunr.jobs.annotations.Job
+import org.jobrunr.jobs.annotations.Recurring
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.dao.DuplicateKeyException
-import org.jobrunr.jobs.annotations.Job
-import org.jobrunr.jobs.annotations.Recurring
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
