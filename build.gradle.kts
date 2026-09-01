@@ -41,6 +41,7 @@ repositories {
 dependencies {
     implementation("com.posthog.java:posthog:1.2.0")
     implementation("org.springframework.boot:spring-boot-starter-amqp")
+    implementation("org.jobrunr:jobrunr-spring-boot-3-starter:7.5.1")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("io.micrometer:micrometer-registry-prometheus")

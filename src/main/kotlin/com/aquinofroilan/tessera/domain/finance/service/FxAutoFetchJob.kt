@@ -9,7 +9,8 @@ import io.micrometer.core.instrument.Timer
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.dao.DuplicateKeyException
-import org.springframework.scheduling.annotation.Scheduled
+import org.jobrunr.jobs.annotations.Job
+import org.jobrunr.jobs.annotations.Recurring
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -28,7 +29,8 @@ class FxAutoFetchJob(
     private val log = LoggerFactory.getLogger(FxAutoFetchJob::class.java)
     private val jobTimer: Timer = meterRegistry.timer("tessera.fx.auto_fetch.job.duration")
 
-    @Scheduled(cron = "\${tessera.fx.auto-fetch.cron}", zone = "UTC")
+    @Recurring(id = "fx-auto-fetch", cron = "\${tessera.fx.auto-fetch.cron}", zoneId = "UTC")
+    @Job(name = "FX Auto Fetch Daily Rates")
     fun fetchDailyRates() {
         meterRegistry.counter("tessera.fx.auto_fetch.job.runs").increment()
         val sample = Timer.start(meterRegistry)
