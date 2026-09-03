@@ -7,6 +7,7 @@ import com.aquinofroilan.tessera.domain.organization.model.Organizations
 import com.aquinofroilan.tessera.domain.organization.repository.OrganizationRepository
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
+import org.jobrunr.scheduling.JobScheduler
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
@@ -26,6 +27,7 @@ class FxAutoFetchJobTest {
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var exchangeRateRepository: ExchangeRateRepository
     private lateinit var frankfurterClient: FrankfurterClient
+    private lateinit var jobScheduler: JobScheduler
 
     private val orgId = java.util.UUID.fromString("e5628ca4-87a8-3e6f-8ae2-20213cc7ef92")
 
@@ -34,7 +36,16 @@ class FxAutoFetchJobTest {
         organizationRepository = mock(OrganizationRepository::class.java)
         exchangeRateRepository = mock(ExchangeRateRepository::class.java)
         frankfurterClient = mock(FrankfurterClient::class.java)
-        job = FxAutoFetchJob(organizationRepository, exchangeRateRepository, frankfurterClient, SimpleMeterRegistry())
+        jobScheduler = mock(JobScheduler::class.java)
+
+        job =
+            FxAutoFetchJob(
+                organizationRepository,
+                exchangeRateRepository,
+                frankfurterClient,
+                SimpleMeterRegistry(),
+                jobScheduler,
+            )
     }
 
     @Test
