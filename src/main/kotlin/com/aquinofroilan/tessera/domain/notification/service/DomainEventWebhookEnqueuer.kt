@@ -3,12 +3,12 @@ package com.aquinofroilan.tessera.domain.notification.service
 import com.aquinofroilan.tessera.config.RabbitMqConfig
 import com.aquinofroilan.tessera.domain.notification.repository.WebhookEndpointRepository
 import com.aquinofroilan.tessera.event.DomainEvent
-import tools.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
+import tools.jackson.databind.ObjectMapper
 
 data class WebhookDomainEventMessage(
     val webhookId: java.util.UUID,
