@@ -5,11 +5,13 @@ import com.aquinofroilan.tessera.domain.notification.repository.NotificationRepo
 import com.aquinofroilan.tessera.domain.notification.repository.WebhookEndpointRepository
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.annotation.RabbitListener
+import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
-import org.springframework.web.client.RestTemplate
+import tools.jackson.databind.ObjectMapper
+import java.time.Duration
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
@@ -17,10 +19,16 @@ import javax.crypto.spec.SecretKeySpec
 class NotificationWebhookConsumer(
     private val notificationRepository: NotificationRepository,
     private val webhookRepository: WebhookEndpointRepository,
+    private val objectMapper: ObjectMapper,
+    restTemplateBuilder: RestTemplateBuilder,
 ) {
     private val log = LoggerFactory.getLogger(NotificationWebhookConsumer::class.java)
 
-    private val restTemplate = RestTemplate()
+    private val restTemplate =
+        restTemplateBuilder
+            .setConnectTimeout(Duration.ofSeconds(10))
+            .setReadTimeout(Duration.ofSeconds(10))
+            .build()
 
     @RabbitListener(queues = [RabbitMqConfig.WEBHOOK_QUEUE])
     fun consume(message: WebhookNotificationMessage) {
@@ -45,16 +53,16 @@ class NotificationWebhookConsumer(
             return
         }
 
-        val payload =
-            """
-            {
-                "id": "${notification.id}",
-                "kind": "${notification.kind}",
-                "title": "${notification.title}",
-                "body": "${notification.body?.replace("\"", "\\\"") ?: ""}",
-                "link": "${notification.link ?: ""}"
-            }
-            """.trimIndent()
+        val payloadMap =
+            mapOf(
+                "id" to notification.id.toString(),
+                "kind" to notification.kind,
+                "title" to notification.title,
+                "body" to (notification.body ?: ""),
+                "link" to (notification.link ?: ""),
+            )
+
+        val payload = objectMapper.writeValueAsString(payloadMap)
 
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_JSON

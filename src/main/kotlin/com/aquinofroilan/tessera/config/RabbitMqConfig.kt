@@ -41,6 +41,12 @@ class RabbitMqConfig {
     fun deadLetterQueue(): Queue = QueueBuilder.durable(DEAD_LETTER_QUEUE).build()
 
     @Bean
+    fun deadLetterBinding(
+        deadLetterQueue: Queue,
+        deadLetterExchange: DirectExchange,
+    ): Binding = BindingBuilder.bind(deadLetterQueue).to(deadLetterExchange).with(DEAD_LETTER_QUEUE)
+
+    @Bean
     fun emailQueue(): Queue =
         QueueBuilder
             .durable(EMAIL_QUEUE)

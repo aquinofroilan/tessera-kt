@@ -4,21 +4,27 @@ import com.aquinofroilan.tessera.config.RabbitMqConfig
 import com.aquinofroilan.tessera.domain.notification.repository.WebhookEndpointRepository
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.annotation.RabbitListener
+import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
-import org.springframework.web.client.RestTemplate
+import java.time.Duration
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 @Component
 class DomainEventWebhookConsumer(
     private val webhookRepository: WebhookEndpointRepository,
+    restTemplateBuilder: RestTemplateBuilder,
 ) {
     private val log = LoggerFactory.getLogger(DomainEventWebhookConsumer::class.java)
 
-    private val restTemplate = RestTemplate()
+    private val restTemplate =
+        restTemplateBuilder
+            .setConnectTimeout(Duration.ofSeconds(10))
+            .setReadTimeout(Duration.ofSeconds(10))
+            .build()
 
     @RabbitListener(queues = [RabbitMqConfig.DOMAIN_EVENT_WEBHOOK_QUEUE])
     fun consume(message: WebhookDomainEventMessage) {

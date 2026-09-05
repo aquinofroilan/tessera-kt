@@ -3,8 +3,6 @@ package com.aquinofroilan.tessera.domain.workflow.model
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OrderBy
@@ -18,7 +16,6 @@ import java.util.UUID
 @Table(name = "approval_workflows")
 data class ApprovalWorkflow(
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID = UUID.randomUUID(),
     @Column(name = "organization_id", nullable = false)
     val organizationId: UUID,

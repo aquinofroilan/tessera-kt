@@ -52,8 +52,11 @@ class SubcontractOrderService(
                     subcontractOrderRepository.findByOrganizationId(organizationId)
             }
 
+        val vendorIds = orders.map { it.vendorId }.distinct()
+        val vendors = vendorRepository.findAllById(vendorIds).associateBy { it.id }
+
         return orders.map { order ->
-            val vendorName = vendorRepository.findById(order.vendorId).map { it.name }.orElse(null)
+            val vendorName = vendors[order.vendorId]?.name
             SubcontractOrderResponse.from(order, vendorName)
         }
     }
