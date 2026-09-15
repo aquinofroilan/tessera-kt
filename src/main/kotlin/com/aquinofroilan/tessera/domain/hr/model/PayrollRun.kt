@@ -45,6 +45,10 @@ class PayrollRunLine(
     var compensationId: java.util.UUID,
     @Column(name = "gross_amount")
     var grossAmount: BigDecimal,
+    @Column(name = "deductions_amount")
+    var deductionsAmount: BigDecimal = BigDecimal.ZERO,
+    @Column(name = "net_amount")
+    var netAmount: BigDecimal = BigDecimal.ZERO,
 )
 
 @Entity
@@ -72,6 +76,10 @@ class PayrollRun(
     var lines: List<PayrollRunLine>,
     @Column(name = "total_gross")
     var totalGross: BigDecimal,
+    @Column(name = "total_deductions")
+    var totalDeductions: BigDecimal = BigDecimal.ZERO,
+    @Column(name = "total_net")
+    var totalNet: BigDecimal = BigDecimal.ZERO,
     var currency: String,
     @Column(name = "created_by", columnDefinition = "uuid")
     var createdBy: java.util.UUID,

@@ -12,6 +12,7 @@ import com.aquinofroilan.tessera.domain.hr.model.PayrollRun
 import com.aquinofroilan.tessera.domain.hr.model.PayrollRunLine
 import com.aquinofroilan.tessera.domain.hr.model.PayrollRunStatus
 import com.aquinofroilan.tessera.domain.hr.repository.PayrollRunRepository
+import com.aquinofroilan.tessera.domain.hr.service.BenefitService
 import com.aquinofroilan.tessera.domain.organization.repository.OrganizationRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
@@ -32,6 +33,7 @@ class PayrollRunService(
     private val organizationRepository: OrganizationRepository,
     private val accountRepository: AccountRepository,
     private val journalEntryService: JournalEntryService,
+    private val benefitService: BenefitService,
 ) {
     @Transactional
     fun createPayrollRun(
@@ -64,6 +66,13 @@ class PayrollRunService(
                     val gross = monthlyGross(comp.payRate, comp.payPeriod, decimals) ?: return@mapNotNull null
                     Triple(employee, comp.id, gross)
                 }.mapIndexed { index, (employee, compId, gross) ->
+                    val enrollments = benefitService.getActiveEnrollments(employee.id, organizationId)
+                    val deductions =
+                        enrollments.fold(BigDecimal.ZERO) { sum, enrollment ->
+                            val plan = benefitService.getPlan(enrollment.planId, organizationId)
+                            sum.add(plan.employeeContribution)
+                        }
+                    val net = gross.subtract(deductions)
                     PayrollRunLine(
                         lineNumber = index + 1,
                         employeeId = employee.id,
@@ -71,6 +80,8 @@ class PayrollRunService(
                         employeeName = "${employee.firstName} ${employee.lastName}",
                         compensationId = compId,
                         grossAmount = gross,
+                        deductionsAmount = deductions,
+                        netAmount = net,
                     )
                 }
 
@@ -78,7 +89,9 @@ class PayrollRunService(
             throw BusinessRuleException("No payable employees with $baseCurrency compensation effective by $periodEnd")
         }
 
-        val total = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.grossAmount) }
+        val totalGross = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.grossAmount) }
+        val totalDeductions = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.deductionsAmount) }
+        val totalNet = lines.fold(BigDecimal.ZERO) { sum, line -> sum.add(line.netAmount) }
 
         return saveWithRetry(organizationId) { number ->
             PayrollRun(
@@ -88,7 +101,9 @@ class PayrollRunService(
                 payDate = payDate,
                 organizationId = organizationId,
                 lines = lines,
-                totalGross = total,
+                totalGross = totalGross,
+                totalDeductions = totalDeductions,
+                totalNet = totalNet,
                 currency = baseCurrency,
                 createdBy = createdBy,
             )
@@ -131,15 +146,23 @@ class PayrollRunService(
         }
         val salaryExpense = account(organizationId, SALARY_EXPENSE_CODE)
         val wagesPayable = account(organizationId, WAGES_PAYABLE_CODE)
+        val benefitsPayable = if (run.totalDeductions > BigDecimal.ZERO) account(organizationId, BENEFITS_PAYABLE_CODE) else null
         val entry =
             journalEntryService.createSystemEntry(
                 date = run.periodEnd,
                 description = "Payroll accrual ${run.runNumber}",
                 organizationId = organizationId,
                 lines =
-                    listOf(
+                    listOfNotNull(
                         line(salaryExpense, debit = run.totalGross, description = "Payroll ${run.runNumber}"),
-                        line(wagesPayable, credit = run.totalGross, description = "Payroll ${run.runNumber}"),
+                        if (run.totalDeductions >
+                            BigDecimal.ZERO
+                        ) {
+                            line(benefitsPayable!!, credit = run.totalDeductions, description = "Payroll Deductions ${run.runNumber}")
+                        } else {
+                            null
+                        },
+                        line(wagesPayable, credit = run.totalNet, description = "Payroll Net ${run.runNumber}"),
                     ),
                 sourceReference = "PAYROLL-ACCRUAL-${run.id}",
                 createdBy = approvedBy,
@@ -170,8 +193,8 @@ class PayrollRunService(
                 organizationId = organizationId,
                 lines =
                     listOf(
-                        line(wagesPayable, debit = run.totalGross, description = "Payroll ${run.runNumber}"),
-                        line(cash, credit = run.totalGross, description = "Payroll ${run.runNumber}"),
+                        line(wagesPayable, debit = run.totalNet, description = "Payroll ${run.runNumber}"),
+                        line(cash, credit = run.totalNet, description = "Payroll ${run.runNumber}"),
                     ),
                 sourceReference = "PAYROLL-PAYMENT-${run.id}",
                 createdBy = paidBy,
@@ -257,6 +280,7 @@ class PayrollRunService(
     private companion object {
         const val SALARY_EXPENSE_CODE = "6000"
         const val WAGES_PAYABLE_CODE = "2200"
+        const val BENEFITS_PAYABLE_CODE = "2210"
         const val CASH_CODE = "1000"
     }
 }
