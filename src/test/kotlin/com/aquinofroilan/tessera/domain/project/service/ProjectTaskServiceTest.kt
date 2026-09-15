@@ -2,10 +2,14 @@ package com.aquinofroilan.tessera.domain.project.service
 
 import com.aquinofroilan.tessera.domain.hr.service.EmployeeService
 import com.aquinofroilan.tessera.domain.project.dto.CreateProjectTaskRequest
+import com.aquinofroilan.tessera.domain.project.dto.CreateTaskDependencyRequest
 import com.aquinofroilan.tessera.domain.project.dto.UpdateProjectTaskRequest
 import com.aquinofroilan.tessera.domain.project.model.Project
 import com.aquinofroilan.tessera.domain.project.model.ProjectTask
+import com.aquinofroilan.tessera.domain.project.model.ProjectTaskDependency
+import com.aquinofroilan.tessera.domain.project.model.TaskDependencyType
 import com.aquinofroilan.tessera.domain.project.model.TaskStatus
+import com.aquinofroilan.tessera.domain.project.repository.ProjectTaskDependencyRepository
 import com.aquinofroilan.tessera.domain.project.repository.ProjectTaskRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
@@ -21,6 +25,7 @@ import java.util.Optional
 
 class ProjectTaskServiceTest {
     private lateinit var repository: ProjectTaskRepository
+    private lateinit var dependencyRepository: ProjectTaskDependencyRepository
     private lateinit var projectService: ProjectService
     private lateinit var employeeService: EmployeeService
     private lateinit var service: ProjectTaskService
@@ -31,9 +36,11 @@ class ProjectTaskServiceTest {
     @BeforeEach
     fun setup() {
         repository = mock(ProjectTaskRepository::class.java)
+        dependencyRepository = mock(ProjectTaskDependencyRepository::class.java)
         projectService = mock(ProjectService::class.java)
         employeeService = mock(EmployeeService::class.java)
         whenever(repository.save(any<ProjectTask>())).thenAnswer { it.arguments[0] }
+        whenever(dependencyRepository.save(any<ProjectTaskDependency>())).thenAnswer { it.arguments[0] }
         whenever(projectService.getProject(projectId, orgId)).thenReturn(
             Project(
                 id = projectId,
@@ -43,7 +50,7 @@ class ProjectTaskServiceTest {
                 organizationId = orgId,
             ),
         )
-        service = ProjectTaskService(repository, projectService, employeeService)
+        service = ProjectTaskService(repository, dependencyRepository, projectService, employeeService)
     }
 
     private fun task(
@@ -179,5 +186,53 @@ class ProjectTaskServiceTest {
                 orgId,
             )
         assertThat(updated.status).isEqualTo(TaskStatus.DONE)
+    }
+
+    @Test
+    fun `addDependency creates a new predecessor link`() {
+        val t1 = task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))
+        val t2 = task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"))
+        whenever(repository.findById(t1.id)).thenReturn(Optional.of(t1))
+        whenever(repository.findById(t2.id)).thenReturn(Optional.of(t2))
+
+        val dep =
+            service.addDependency(
+                projectId,
+                t2.id,
+                CreateTaskDependencyRequest(t1.id, TaskDependencyType.FINISH_TO_START),
+                orgId,
+            )
+
+        assertThat(dep.predecessorTaskId).isEqualTo(t1.id)
+        assertThat(dep.successorTaskId).isEqualTo(t2.id)
+        assertThat(dep.dependencyType).isEqualTo(TaskDependencyType.FINISH_TO_START)
+    }
+
+    @Test
+    fun `recalculateSchedule updates start date based on finish-to-start dependency`() {
+        val t1 =
+            task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")).apply {
+                plannedFinishDate = LocalDate.of(2026, 1, 10)
+            }
+        val t2 =
+            task(java.util.UUID.fromString("00000000-0000-0000-0000-000000000002")).apply {
+                plannedStartDate = LocalDate.of(2026, 1, 5) // Earlier than t1 finish
+            }
+        whenever(repository.findById(t1.id)).thenReturn(Optional.of(t1))
+        whenever(repository.findById(t2.id)).thenReturn(Optional.of(t2))
+
+        val dep =
+            ProjectTaskDependency(
+                organizationId = orgId,
+                predecessorTaskId = t1.id,
+                successorTaskId = t2.id,
+                dependencyType = TaskDependencyType.FINISH_TO_START,
+            )
+        whenever(dependencyRepository.findByOrganizationIdAndSuccessorTaskId(orgId, t2.id)).thenReturn(listOf(dep))
+
+        val updated = service.recalculateSchedule(projectId, t2.id, orgId)
+
+        // Should be pushed to the predecessor's finish date
+        assertThat(updated.plannedStartDate).isEqualTo(LocalDate.of(2026, 1, 10))
     }
 }
