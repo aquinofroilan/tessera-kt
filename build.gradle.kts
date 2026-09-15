@@ -4,7 +4,6 @@ plugins {
     kotlin("jvm") version "2.3.0"
     kotlin("plugin.spring") version "2.3.0"
     kotlin("plugin.jpa") version "2.3.0"
-    kotlin("plugin.allopen") version "2.3.0"
     id("org.springframework.boot") version "4.0.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.jlleitschuh.gradle.ktlint") version "12.3.0"
@@ -91,6 +90,7 @@ tasks.named<Jar>("jar") {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    maxHeapSize = "2048m"
     maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
     systemProperty("junit.jupiter.execution.parallel.enabled", "true")
     systemProperty("junit.jupiter.execution.parallel.mode.default", "same_thread")
