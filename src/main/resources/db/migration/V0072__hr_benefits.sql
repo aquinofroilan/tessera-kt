@@ -1,6 +1,6 @@
 CREATE TABLE benefit_plans (
     id UUID PRIMARY KEY,
-    organization_id UUID NOT NULL REFERENCES organizations(id),
+    organization_id UUID NOT NULL REFERENCES organizations(uuid),
     name VARCHAR(255) NOT NULL,
     description TEXT,
     employee_contribution NUMERIC(15, 2) NOT NULL DEFAULT 0,
@@ -12,7 +12,7 @@ CREATE TABLE benefit_plans (
 
 CREATE TABLE benefit_enrollments (
     id UUID PRIMARY KEY,
-    organization_id UUID NOT NULL REFERENCES organizations(id),
+    organization_id UUID NOT NULL REFERENCES organizations(uuid),
     employee_id UUID NOT NULL REFERENCES employees(id),
     plan_id UUID NOT NULL REFERENCES benefit_plans(id),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
