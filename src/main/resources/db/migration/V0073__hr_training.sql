@@ -1,6 +1,6 @@
 CREATE TABLE training_courses (
     id UUID PRIMARY KEY,
-    organization_id UUID NOT NULL REFERENCES organizations(id),
+    organization_id UUID NOT NULL REFERENCES organizations(uuid),
     name VARCHAR(255) NOT NULL,
     description TEXT,
     provider VARCHAR(255),
@@ -10,7 +10,7 @@ CREATE TABLE training_courses (
 
 CREATE TABLE training_records (
     id UUID PRIMARY KEY,
-    organization_id UUID NOT NULL REFERENCES organizations(id),
+    organization_id UUID NOT NULL REFERENCES organizations(uuid),
     employee_id UUID NOT NULL REFERENCES employees(id),
     course_id UUID NOT NULL REFERENCES training_courses(id),
     completion_date DATE NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE training_records (
 
 CREATE TABLE certifications (
     id UUID PRIMARY KEY,
-    organization_id UUID NOT NULL REFERENCES organizations(id),
+    organization_id UUID NOT NULL REFERENCES organizations(uuid),
     employee_id UUID NOT NULL REFERENCES employees(id),
     name VARCHAR(255) NOT NULL,
     issuing_body VARCHAR(255),
