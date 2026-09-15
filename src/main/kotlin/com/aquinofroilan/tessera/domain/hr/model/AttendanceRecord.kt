@@ -42,6 +42,8 @@ class AttendanceRecord(
     var notes: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
     var organizationId: java.util.UUID,
+    @Column(name = "planned_shift_id", columnDefinition = "uuid")
+    var plannedShiftId: java.util.UUID? = null,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,
