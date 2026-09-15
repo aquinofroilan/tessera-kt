@@ -1,6 +1,6 @@
 CREATE TABLE appraisal_cycles (
     id UUID PRIMARY KEY,
-    organization_id UUID NOT NULL REFERENCES organizations(id),
+    organization_id UUID NOT NULL REFERENCES organizations(uuid),
     name VARCHAR(255) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE appraisal_cycles (
 
 CREATE TABLE appraisals (
     id UUID PRIMARY KEY,
-    organization_id UUID NOT NULL REFERENCES organizations(id),
+    organization_id UUID NOT NULL REFERENCES organizations(uuid),
     cycle_id UUID NOT NULL REFERENCES appraisal_cycles(id),
     employee_id UUID NOT NULL REFERENCES employees(id),
     manager_id UUID REFERENCES employees(id),
