@@ -17,6 +17,7 @@ import com.aquinofroilan.tessera.domain.hr.model.PayrollRun
 import com.aquinofroilan.tessera.domain.hr.model.PayrollRunLine
 import com.aquinofroilan.tessera.domain.hr.model.PayrollRunStatus
 import com.aquinofroilan.tessera.domain.hr.repository.PayrollRunRepository
+import com.aquinofroilan.tessera.domain.hr.service.BenefitService
 import com.aquinofroilan.tessera.domain.organization.model.Organizations
 import com.aquinofroilan.tessera.domain.organization.repository.OrganizationRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -42,6 +43,7 @@ class PayrollRunServiceTest {
     private lateinit var currencyService: CurrencyService
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var accountRepository: AccountRepository
+    private lateinit var benefitService: BenefitService
     private lateinit var journalEntryService: JournalEntryService
     private lateinit var service: PayrollRunService
 
@@ -60,6 +62,7 @@ class PayrollRunServiceTest {
         whenever(currencyService.getCurrency(any())).thenReturn(Currency("USD", "US Dollar", "$", 2))
         whenever(organizationRepository.findById(orgId)).thenReturn(Optional.of(organization()))
         accountRepository = mock(AccountRepository::class.java)
+        benefitService = mock(BenefitService::class.java)
         journalEntryService = mock(JournalEntryService::class.java)
         service =
             PayrollRunService(
@@ -70,6 +73,7 @@ class PayrollRunServiceTest {
                 organizationRepository,
                 accountRepository,
                 journalEntryService,
+                benefitService,
             )
     }
 
@@ -102,6 +106,7 @@ class PayrollRunServiceTest {
                     ),
                 ),
             totalGross = BigDecimal("15000"),
+            totalNet = BigDecimal("15000"),
             currency = "USD",
             createdBy = java.util.UUID.fromString("d4763ac6-a6a6-34ed-aeb4-dd91bdcf7fbb"),
         )
