@@ -32,7 +32,7 @@ CREATE TABLE employee_checklist_tasks (
     is_completed BOOLEAN NOT NULL DEFAULT FALSE,
     sort_order INT NOT NULL DEFAULT 0,
     completed_at TIMESTAMP,
-    completed_by UUID REFERENCES users(id)
+    completed_by UUID REFERENCES users(uuid)
 );
 
 CREATE INDEX idx_checklist_templates_org ON checklist_templates(organization_id);
