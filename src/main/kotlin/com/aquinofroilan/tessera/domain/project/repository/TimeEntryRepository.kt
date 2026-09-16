@@ -29,4 +29,11 @@ interface TimeEntryRepository : JpaRepository<TimeEntry, java.util.UUID> {
         projectId: java.util.UUID,
         status: TimeEntryStatus,
     ): List<TimeEntry>
+
+    fun findByOrganizationIdAndEmployeeIdAndEntryDateBetween(
+        organizationId: java.util.UUID,
+        employeeId: java.util.UUID,
+        startDate: java.time.LocalDate,
+        endDate: java.time.LocalDate,
+    ): List<TimeEntry>
 }
