@@ -1,9 +1,13 @@
 package com.aquinofroilan.tessera.domain.project.dto
 
 import com.aquinofroilan.tessera.domain.project.model.ProjectTask
+import com.aquinofroilan.tessera.domain.project.model.ProjectTaskDependency
+import com.aquinofroilan.tessera.domain.project.model.TaskDependencyType
 import com.aquinofroilan.tessera.domain.project.model.TaskStatus
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import java.math.BigDecimal
+import java.time.LocalDate
 
 data class CreateProjectTaskRequest(
     @field:NotBlank(message = "Name is required")
@@ -12,6 +16,8 @@ data class CreateProjectTaskRequest(
     val parentTaskId: java.util.UUID? = null,
     val assigneeEmployeeId: java.util.UUID? = null,
     val estimatedHours: BigDecimal? = null,
+    val plannedStartDate: LocalDate? = null,
+    val plannedFinishDate: LocalDate? = null,
 )
 
 data class UpdateProjectTaskRequest(
@@ -19,6 +25,10 @@ data class UpdateProjectTaskRequest(
     val description: String? = null,
     val assigneeEmployeeId: java.util.UUID? = null,
     val estimatedHours: BigDecimal? = null,
+    val plannedStartDate: LocalDate? = null,
+    val plannedFinishDate: LocalDate? = null,
+    val actualStartDate: LocalDate? = null,
+    val actualFinishDate: LocalDate? = null,
     val status: TaskStatus? = null,
 )
 
@@ -35,6 +45,10 @@ data class ProjectTaskResponse(
     val description: String?,
     val assigneeEmployeeId: java.util.UUID?,
     val estimatedHours: BigDecimal?,
+    val plannedStartDate: LocalDate?,
+    val plannedFinishDate: LocalDate?,
+    val actualStartDate: LocalDate?,
+    val actualFinishDate: LocalDate?,
     val status: TaskStatus,
     val organizationId: java.util.UUID,
     val createdAt: String?,
@@ -50,10 +64,38 @@ data class ProjectTaskResponse(
                 description = task.description,
                 assigneeEmployeeId = task.assigneeEmployeeId,
                 estimatedHours = task.estimatedHours,
+                plannedStartDate = task.plannedStartDate,
+                plannedFinishDate = task.plannedFinishDate,
+                actualStartDate = task.actualStartDate,
+                actualFinishDate = task.actualFinishDate,
                 status = task.status,
                 organizationId = task.organizationId,
                 createdAt = task.createdAt?.toString(),
                 updatedAt = task.updatedAt?.toString(),
+            )
+    }
+}
+
+data class CreateTaskDependencyRequest(
+    @field:NotNull(message = "Predecessor task is required")
+    val predecessorTaskId: java.util.UUID?,
+    @field:NotNull(message = "Dependency type is required")
+    val dependencyType: TaskDependencyType?,
+)
+
+data class TaskDependencyResponse(
+    val id: java.util.UUID,
+    val predecessorTaskId: java.util.UUID,
+    val successorTaskId: java.util.UUID,
+    val dependencyType: TaskDependencyType,
+) {
+    companion object {
+        fun from(dependency: ProjectTaskDependency) =
+            TaskDependencyResponse(
+                id = dependency.id,
+                predecessorTaskId = dependency.predecessorTaskId,
+                successorTaskId = dependency.successorTaskId,
+                dependencyType = dependency.dependencyType,
             )
     }
 }

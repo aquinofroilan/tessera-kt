@@ -83,4 +83,58 @@ class ProjectTaskController(
         ResponseEntity.ok(
             ProjectTaskResponse.from(projectTaskService.setParent(projectId, taskId, request.parentTaskId, orgId)),
         )
+
+    @PostMapping("/{taskId}/dependencies")
+    @PreAuthorize("hasAuthority('projects:write')")
+    fun addDependency(
+        @CurrentOrganizationId orgId: UUID,
+        @PathVariable projectId: UUID,
+        @PathVariable taskId: UUID,
+        @Valid @RequestBody request: com.aquinofroilan.tessera.domain.project.dto.CreateTaskDependencyRequest,
+    ): ResponseEntity<Any> {
+        val dep = projectTaskService.addDependency(projectId, taskId, request, orgId)
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+            com.aquinofroilan.tessera.domain.project.dto.TaskDependencyResponse
+                .from(dep),
+        )
+    }
+
+    @GetMapping("/{taskId}/predecessors")
+    @PreAuthorize("hasAuthority('projects:read')")
+    fun getPredecessors(
+        @CurrentOrganizationId orgId: UUID,
+        @PathVariable projectId: UUID,
+        @PathVariable taskId: UUID,
+    ): ResponseEntity<Any> =
+        ResponseEntity.ok(
+            projectTaskService.getPredecessors(projectId, taskId, orgId).map {
+                com.aquinofroilan.tessera.domain.project.dto.TaskDependencyResponse
+                    .from(it)
+            },
+        )
+
+    @GetMapping("/{taskId}/successors")
+    @PreAuthorize("hasAuthority('projects:read')")
+    fun getSuccessors(
+        @CurrentOrganizationId orgId: UUID,
+        @PathVariable projectId: UUID,
+        @PathVariable taskId: UUID,
+    ): ResponseEntity<Any> =
+        ResponseEntity.ok(
+            projectTaskService.getSuccessors(projectId, taskId, orgId).map {
+                com.aquinofroilan.tessera.domain.project.dto.TaskDependencyResponse
+                    .from(it)
+            },
+        )
+
+    @PostMapping("/{taskId}/recalculate")
+    @PreAuthorize("hasAuthority('projects:write')")
+    fun recalculateSchedule(
+        @CurrentOrganizationId orgId: UUID,
+        @PathVariable projectId: UUID,
+        @PathVariable taskId: UUID,
+    ): ResponseEntity<Any> {
+        val task = projectTaskService.recalculateSchedule(projectId, taskId, orgId)
+        return ResponseEntity.ok(ProjectTaskResponse.from(task))
+    }
 }
