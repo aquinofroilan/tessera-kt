@@ -3,8 +3,10 @@ package com.aquinofroilan.tessera.domain.project.dto
 import com.aquinofroilan.tessera.domain.project.model.Project
 import com.aquinofroilan.tessera.domain.project.model.ProjectBillingType
 import com.aquinofroilan.tessera.domain.project.model.ProjectStatus
+import com.aquinofroilan.tessera.domain.project.model.RevenueRecognitionMethod
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
+import java.math.BigDecimal
 import java.time.LocalDate
 
 data class CreateProjectRequest(
@@ -17,6 +19,8 @@ data class CreateProjectRequest(
     val startDate: LocalDate?,
     val endDate: LocalDate? = null,
     val billingType: ProjectBillingType? = null,
+    val contractAmount: BigDecimal? = null,
+    val revenueRecognitionMethod: RevenueRecognitionMethod? = null,
 )
 
 data class UpdateProjectRequest(
@@ -26,6 +30,8 @@ data class UpdateProjectRequest(
     val managerEmployeeId: java.util.UUID? = null,
     val endDate: LocalDate? = null,
     val billingType: ProjectBillingType? = null,
+    val contractAmount: BigDecimal? = null,
+    val revenueRecognitionMethod: RevenueRecognitionMethod? = null,
 )
 
 data class ProjectResponse(
@@ -39,6 +45,8 @@ data class ProjectResponse(
     val endDate: String?,
     val status: ProjectStatus,
     val billingType: ProjectBillingType,
+    val contractAmount: BigDecimal?,
+    val revenueRecognitionMethod: RevenueRecognitionMethod?,
     val organizationId: java.util.UUID,
     val createdAt: String?,
     val updatedAt: String?,
@@ -56,6 +64,8 @@ data class ProjectResponse(
                 endDate = project.endDate?.toString(),
                 status = project.status,
                 billingType = project.billingType,
+                contractAmount = project.contractAmount,
+                revenueRecognitionMethod = project.revenueRecognitionMethod,
                 organizationId = project.organizationId,
                 createdAt = project.createdAt?.toString(),
                 updatedAt = project.updatedAt?.toString(),
