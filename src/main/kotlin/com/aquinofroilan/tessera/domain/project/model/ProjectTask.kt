@@ -38,6 +38,14 @@ class ProjectTask(
     var assigneeEmployeeId: java.util.UUID? = null,
     @Column(name = "estimated_hours")
     var estimatedHours: BigDecimal? = null,
+    @Column(name = "planned_start_date")
+    var plannedStartDate: java.time.LocalDate? = null,
+    @Column(name = "planned_finish_date")
+    var plannedFinishDate: java.time.LocalDate? = null,
+    @Column(name = "actual_start_date")
+    var actualStartDate: java.time.LocalDate? = null,
+    @Column(name = "actual_finish_date")
+    var actualFinishDate: java.time.LocalDate? = null,
     @Enumerated(EnumType.STRING)
     var status: TaskStatus = TaskStatus.TODO,
     @Column(name = "organization_id", columnDefinition = "uuid")

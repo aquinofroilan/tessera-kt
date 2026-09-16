@@ -12,38 +12,32 @@ import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
 
-enum class AttendanceStatus {
-    PRESENT,
-    ABSENT,
-    ON_LEAVE,
+enum class DocumentCategory {
+    CONTRACT,
+    ID_DOCUMENT,
+    POLICY_ACKNOWLEDGMENT,
+    CERTIFICATION,
+    OTHER,
 }
 
 @Entity
-@Table(name = "attendance_records")
+@Table(name = "employee_documents")
 @EntityListeners(AuditingEntityListener::class)
-class AttendanceRecord(
+class EmployeeDocument(
     @Id
     @Column(columnDefinition = "uuid")
     var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
-    @Column(name = "employee_id", columnDefinition = "uuid")
-    var employeeId: java.util.UUID,
-    @Column(name = "work_date")
-    var workDate: LocalDate,
-    @Column(name = "clock_in")
-    var clockIn: LocalDateTime? = null,
-    @Column(name = "clock_out")
-    var clockOut: LocalDateTime? = null,
-    @Column(name = "worked_minutes")
-    var workedMinutes: Int? = null,
-    @Enumerated(EnumType.STRING)
-    var status: AttendanceStatus = AttendanceStatus.PRESENT,
-    var notes: String? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
     var organizationId: java.util.UUID,
-    @Column(name = "planned_shift_id", columnDefinition = "uuid")
-    var plannedShiftId: java.util.UUID? = null,
+    @Column(name = "employee_id", columnDefinition = "uuid")
+    var employeeId: java.util.UUID,
+    @Column(name = "attachment_id", columnDefinition = "uuid")
+    var attachmentId: java.util.UUID,
+    @Enumerated(EnumType.STRING)
+    var category: DocumentCategory,
+    @Column(name = "expiry_date")
+    var expiryDate: LocalDate? = null,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

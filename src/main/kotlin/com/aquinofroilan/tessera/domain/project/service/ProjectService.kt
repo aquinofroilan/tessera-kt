@@ -42,6 +42,8 @@ class ProjectService(
                 startDate = startDate,
                 endDate = request.endDate,
                 billingType = request.billingType ?: ProjectBillingType.TIME_AND_MATERIALS,
+                contractAmount = request.contractAmount,
+                revenueRecognitionMethod = request.revenueRecognitionMethod,
                 organizationId = organizationId,
             )
         }
@@ -92,6 +94,8 @@ class ProjectService(
             managerEmployeeId = request.managerEmployeeId ?: project.managerEmployeeId
             this.endDate = endDate
             billingType = request.billingType ?: project.billingType
+            contractAmount = request.contractAmount ?: project.contractAmount
+            revenueRecognitionMethod = request.revenueRecognitionMethod ?: project.revenueRecognitionMethod
         }
         return projectRepository.save(project)
     }

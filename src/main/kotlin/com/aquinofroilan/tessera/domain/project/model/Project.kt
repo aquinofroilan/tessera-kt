@@ -10,6 +10,7 @@ import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -26,6 +27,12 @@ enum class ProjectBillingType {
     TIME_AND_MATERIALS,
     FIXED_PRICE,
     MILESTONE,
+}
+
+enum class RevenueRecognitionMethod {
+    NONE,
+    PERCENT_COMPLETE,
+    COMPLETED_CONTRACT,
 }
 
 @Entity
@@ -52,6 +59,11 @@ class Project(
     @Enumerated(EnumType.STRING)
     @Column(name = "billing_type")
     var billingType: ProjectBillingType = ProjectBillingType.TIME_AND_MATERIALS,
+    @Column(name = "contract_amount")
+    var contractAmount: BigDecimal? = null,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "revenue_recognition_method")
+    var revenueRecognitionMethod: RevenueRecognitionMethod? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
     var organizationId: java.util.UUID,
     @CreatedDate

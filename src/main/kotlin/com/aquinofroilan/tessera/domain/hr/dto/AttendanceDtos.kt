@@ -23,6 +23,7 @@ data class RecordAttendanceRequest(
     val clockIn: LocalDateTime? = null,
     val clockOut: LocalDateTime? = null,
     val status: AttendanceStatus? = null,
+    val plannedShiftId: java.util.UUID? = null,
     val notes: String? = null,
 )
 

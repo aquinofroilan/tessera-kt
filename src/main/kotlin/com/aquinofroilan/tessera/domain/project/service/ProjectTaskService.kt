@@ -2,18 +2,24 @@ package com.aquinofroilan.tessera.domain.project.service
 
 import com.aquinofroilan.tessera.domain.hr.service.EmployeeService
 import com.aquinofroilan.tessera.domain.project.dto.CreateProjectTaskRequest
+import com.aquinofroilan.tessera.domain.project.dto.CreateTaskDependencyRequest
 import com.aquinofroilan.tessera.domain.project.dto.ProjectTaskTreeNode
 import com.aquinofroilan.tessera.domain.project.dto.UpdateProjectTaskRequest
 import com.aquinofroilan.tessera.domain.project.model.ProjectTask
+import com.aquinofroilan.tessera.domain.project.model.ProjectTaskDependency
+import com.aquinofroilan.tessera.domain.project.model.TaskDependencyType
+import com.aquinofroilan.tessera.domain.project.repository.ProjectTaskDependencyRepository
 import com.aquinofroilan.tessera.domain.project.repository.ProjectTaskRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 class ProjectTaskService(
     private val projectTaskRepository: ProjectTaskRepository,
+    private val projectTaskDependencyRepository: ProjectTaskDependencyRepository,
     private val projectService: ProjectService,
     private val employeeService: EmployeeService,
 ) {
@@ -34,6 +40,8 @@ class ProjectTaskService(
                 description = request.description,
                 assigneeEmployeeId = request.assigneeEmployeeId,
                 estimatedHours = request.estimatedHours,
+                plannedStartDate = request.plannedStartDate,
+                plannedFinishDate = request.plannedFinishDate,
                 organizationId = organizationId,
             ),
         )
@@ -62,7 +70,6 @@ class ProjectTaskService(
         return projectTaskRepository.findByOrganizationIdAndProjectId(organizationId, projectId)
     }
 
-    /** Builds the work-breakdown tree for a project: root tasks with nested children. */
     fun getTaskTree(
         projectId: java.util.UUID,
         organizationId: java.util.UUID,
@@ -92,15 +99,15 @@ class ProjectTaskService(
             description = request.description ?: task.description
             assigneeEmployeeId = request.assigneeEmployeeId ?: task.assigneeEmployeeId
             estimatedHours = request.estimatedHours ?: task.estimatedHours
+            plannedStartDate = request.plannedStartDate ?: task.plannedStartDate
+            plannedFinishDate = request.plannedFinishDate ?: task.plannedFinishDate
+            actualStartDate = request.actualStartDate ?: task.actualStartDate
+            actualFinishDate = request.actualFinishDate ?: task.actualFinishDate
             status = request.status ?: task.status
         }
         return projectTaskRepository.save(task)
     }
 
-    /**
-     * Sets or clears a task's parent. A null parent promotes it to a root.
-     * Rejects self-parenting, cross-project parents, and descendant cycles.
-     */
     @Transactional
     fun setParent(
         projectId: java.util.UUID,
@@ -121,6 +128,112 @@ class ProjectTaskService(
             throw BusinessRuleException("Cannot move a task under one of its own descendants")
         }
         task.parentTaskId = parentTaskId
+        return projectTaskRepository.save(task)
+    }
+
+    @Transactional
+    fun addDependency(
+        projectId: UUID,
+        successorTaskId: UUID,
+        request: CreateTaskDependencyRequest,
+        organizationId: UUID,
+    ): ProjectTaskDependency {
+        val successor = getTask(projectId, successorTaskId, organizationId)
+        val predId = request.predecessorTaskId ?: throw BusinessRuleException("Predecessor ID required")
+        val depType = request.dependencyType ?: throw BusinessRuleException("Dependency type required")
+
+        requireTaskInProject(predId, projectId, organizationId)
+        if (predId == successorTaskId) {
+            throw BusinessRuleException("A task cannot depend on itself")
+        }
+
+        val existing =
+            projectTaskDependencyRepository.findByOrganizationIdAndPredecessorTaskIdAndSuccessorTaskId(
+                organizationId,
+                predId,
+                successorTaskId,
+            )
+        if (existing != null) {
+            existing.dependencyType = depType
+            return projectTaskDependencyRepository.save(existing)
+        }
+
+        return projectTaskDependencyRepository.save(
+            ProjectTaskDependency(
+                organizationId = organizationId,
+                predecessorTaskId = predId,
+                successorTaskId = successorTaskId,
+                dependencyType = depType,
+            ),
+        )
+    }
+
+    fun getPredecessors(
+        projectId: UUID,
+        taskId: UUID,
+        organizationId: UUID,
+    ): List<ProjectTaskDependency> {
+        getTask(projectId, taskId, organizationId)
+        return projectTaskDependencyRepository.findByOrganizationIdAndSuccessorTaskId(organizationId, taskId)
+    }
+
+    fun getSuccessors(
+        projectId: UUID,
+        taskId: UUID,
+        organizationId: UUID,
+    ): List<ProjectTaskDependency> {
+        getTask(projectId, taskId, organizationId)
+        return projectTaskDependencyRepository.findByOrganizationIdAndPredecessorTaskId(organizationId, taskId)
+    }
+
+    @Transactional
+    fun recalculateSchedule(
+        projectId: UUID,
+        taskId: UUID,
+        organizationId: UUID,
+    ): ProjectTask {
+        val task = getTask(projectId, taskId, organizationId)
+        val predecessors = projectTaskDependencyRepository.findByOrganizationIdAndSuccessorTaskId(organizationId, taskId)
+
+        var earliestStart = task.plannedStartDate
+        var earliestFinish = task.plannedFinishDate
+
+        for (dep in predecessors) {
+            val pred = getTask(projectId, dep.predecessorTaskId, organizationId)
+            when (dep.dependencyType) {
+                TaskDependencyType.FINISH_TO_START -> {
+                    pred.plannedFinishDate?.let {
+                        if (earliestStart == null || it.isAfter(earliestStart)) {
+                            earliestStart = it
+                        }
+                    }
+                }
+                TaskDependencyType.START_TO_START -> {
+                    pred.plannedStartDate?.let {
+                        if (earliestStart == null || it.isAfter(earliestStart)) {
+                            earliestStart = it
+                        }
+                    }
+                }
+                TaskDependencyType.FINISH_TO_FINISH -> {
+                    pred.plannedFinishDate?.let {
+                        if (earliestFinish == null || it.isAfter(earliestFinish)) {
+                            earliestFinish = it
+                        }
+                    }
+                }
+                TaskDependencyType.START_TO_FINISH -> {
+                    pred.plannedStartDate?.let {
+                        if (earliestFinish == null || it.isAfter(earliestFinish)) {
+                            earliestFinish = it
+                        }
+                    }
+                }
+            }
+        }
+
+        task.plannedStartDate = earliestStart
+        task.plannedFinishDate = earliestFinish
         return projectTaskRepository.save(task)
     }
 
