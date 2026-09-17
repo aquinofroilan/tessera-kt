@@ -52,6 +52,6 @@ data class OnHandResponse(
 data class LotOnHandResponse(
     val productId: java.util.UUID,
     val warehouseId: java.util.UUID,
-    val lotNumber: String,
+    val lotNumber: String?,
     val quantity: BigDecimal,
 )
