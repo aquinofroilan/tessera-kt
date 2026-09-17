@@ -1,9 +1,11 @@
 package com.aquinofroilan.tessera.domain.inventory.service
 
 import com.aquinofroilan.tessera.domain.inventory.dto.CreateStockMovementRequest
+import com.aquinofroilan.tessera.domain.inventory.dto.LotOnHandResponse
 import com.aquinofroilan.tessera.domain.inventory.model.StockMovement
 import com.aquinofroilan.tessera.domain.inventory.model.StockMovementType
 import com.aquinofroilan.tessera.domain.inventory.model.Warehouse
+import com.aquinofroilan.tessera.domain.inventory.repository.ProductRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.StockMovementRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.StockOnHandRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.WarehouseRepository
@@ -21,6 +23,7 @@ class StockMovementService(
     private val stockOnHandRepository: StockOnHandRepository,
     private val inventoryCostingService: InventoryCostingService,
     private val inventoryPostingService: InventoryPostingService,
+    private val productRepository: ProductRepository,
 ) {
     @Transactional
     fun createMovement(
@@ -33,6 +36,7 @@ class StockMovementService(
         validateQuantitySign(type, quantity)
         validateUnitCost(type, request.unitCost)
         validateTransferShape(type, request.warehouseId, request.transferToWarehouseId)
+        val resolvedLot = validateLotTracking(request.productId, request.lotNumber, organizationId)
         val sourceWarehouse = loadActiveWarehouse(request.warehouseId, organizationId)
         val destWarehouse =
             if (type == StockMovementType.TRANSFER && request.transferToWarehouseId != null) {
@@ -40,7 +44,7 @@ class StockMovementService(
             } else {
                 null
             }
-        applyToCounter(type, request, organizationId, quantity, sourceWarehouse, destWarehouse)
+        applyToCounter(type, request, resolvedLot, organizationId, quantity, sourceWarehouse, destWarehouse)
 
         val movement =
             StockMovement(
@@ -49,6 +53,7 @@ class StockMovementService(
                 productId = request.productId,
                 warehouseId = request.warehouseId,
                 transferToWarehouseId = request.transferToWarehouseId,
+                lotNumber = resolvedLot,
                 quantity = quantity,
                 unitCost = request.unitCost,
                 reference = request.reference,
@@ -82,6 +87,7 @@ class StockMovementService(
         validateQuantitySign(type, quantity)
         validateUnitCost(type, request.unitCost)
         validateTransferShape(type, request.warehouseId, request.transferToWarehouseId)
+        val resolvedLot = validateLotTracking(request.productId, request.lotNumber, organizationId)
         val sourceWarehouse = loadActiveWarehouse(request.warehouseId, organizationId)
         val destWarehouse =
             if (type == StockMovementType.TRANSFER && request.transferToWarehouseId != null) {
@@ -89,7 +95,7 @@ class StockMovementService(
             } else {
                 null
             }
-        applyToCounter(type, request, organizationId, quantity, sourceWarehouse, destWarehouse)
+        applyToCounter(type, request, resolvedLot, organizationId, quantity, sourceWarehouse, destWarehouse)
         val saved =
             stockMovementRepository.save(
                 StockMovement(
@@ -98,6 +104,7 @@ class StockMovementService(
                     productId = request.productId,
                     warehouseId = request.warehouseId,
                     transferToWarehouseId = request.transferToWarehouseId,
+                    lotNumber = resolvedLot,
                     quantity = quantity,
                     unitCost = request.unitCost,
                     reference = request.reference,
@@ -177,6 +184,7 @@ class StockMovementService(
                     type = StockMovementType.ADJUSTMENT,
                     productId = original.productId,
                     warehouseId = original.warehouseId,
+                    lotNumber = original.lotNumber,
                     quantity = inverseQuantity,
                     unitCost = unitCost,
                     reference = "REVERSAL-${original.reference ?: original.id}",
@@ -199,13 +207,47 @@ class StockMovementService(
         type: StockMovementType? = null,
         from: LocalDateTime? = null,
         to: LocalDateTime? = null,
-    ): List<StockMovement> = stockMovementRepository.listMovements(organizationId, productId, warehouseId, type, from, to)
+        lotNumber: String? = null,
+    ): List<StockMovement> = stockMovementRepository.listMovements(organizationId, productId, warehouseId, type, from, to, lotNumber)
 
     fun onHand(
         organizationId: java.util.UUID,
         productId: java.util.UUID,
         warehouseId: java.util.UUID,
-    ): BigDecimal = stockOnHandRepository.get(organizationId, productId, warehouseId)
+        lotNumber: String? = null,
+    ): BigDecimal = stockOnHandRepository.get(organizationId, productId, warehouseId, lotNumber)
+
+    fun getLotBreakdown(
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
+    ): List<LotOnHandResponse> = stockOnHandRepository.getLotBreakdown(organizationId, productId, warehouseId)
+
+    fun getLotGenealogy(
+        organizationId: java.util.UUID,
+        lotNumber: String,
+    ): List<StockMovement> = stockMovementRepository.findByOrganizationIdAndLotNumberOrderByOccurredAtAsc(organizationId, lotNumber)
+
+    private fun validateLotTracking(
+        productId: java.util.UUID,
+        lotNumber: String?,
+        organizationId: java.util.UUID,
+    ): String? {
+        val product =
+            productRepository.findById(productId).orElseThrow {
+                ResourceNotFoundException("Product not found")
+            }
+        if (product.organizationId != organizationId) {
+            throw ResourceNotFoundException("Product not found")
+        }
+        if (product.isLotTracked) {
+            if (lotNumber.isNullOrBlank()) {
+                throw BusinessRuleException("Lot number is required for lot-tracked product '${product.sku}'")
+            }
+            return lotNumber.trim()
+        }
+        return lotNumber?.trim()?.takeIf { it.isNotEmpty() }
+    }
 
     private fun validateQuantitySign(
         type: StockMovementType,
@@ -281,6 +323,7 @@ class StockMovementService(
     private fun applyToCounter(
         type: StockMovementType,
         request: CreateStockMovementRequest,
+        lotNumber: String?,
         organizationId: java.util.UUID,
         quantity: BigDecimal,
         sourceWarehouse: Warehouse,
@@ -293,11 +336,12 @@ class StockMovementService(
                     organizationId,
                     request.productId,
                     sourceWarehouse.id,
+                    lotNumber,
                     sourceDelta,
                     allowNegative = sourceWarehouse.allowNegativeStock,
                 )
             if (!ok) {
-                val current = stockOnHandRepository.get(organizationId, request.productId, sourceWarehouse.id)
+                val current = stockOnHandRepository.get(organizationId, request.productId, sourceWarehouse.id, lotNumber)
                 throw BusinessRuleException(
                     "Movement would drive on-hand below zero in warehouse '${sourceWarehouse.code}' " +
                         "(current $current, requested $quantity); enable allowNegativeStock to permit",
@@ -311,6 +355,7 @@ class StockMovementService(
                 organizationId,
                 request.productId,
                 destWarehouse.id,
+                lotNumber,
                 quantity,
                 allowNegative = true,
             )

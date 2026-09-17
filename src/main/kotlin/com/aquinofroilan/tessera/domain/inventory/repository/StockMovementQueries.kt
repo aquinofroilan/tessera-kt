@@ -20,6 +20,7 @@ interface StockMovementQueries {
         type: StockMovementType?,
         from: LocalDateTime?,
         to: LocalDateTime?,
+        lotNumber: String? = null,
     ): List<StockMovement>
 
     fun onHand(
@@ -42,6 +43,7 @@ open class StockMovementQueriesImpl(
         type: StockMovementType?,
         from: LocalDateTime?,
         to: LocalDateTime?,
+        lotNumber: String?,
     ): List<StockMovement> {
         val jpql =
             buildString {
@@ -53,6 +55,7 @@ open class StockMovementQueriesImpl(
                 if (type != null) append(" AND m.type = :type")
                 if (from != null) append(" AND m.occurredAt >= :from")
                 if (to != null) append(" AND m.occurredAt <= :to")
+                if (lotNumber != null) append(" AND m.lotNumber = :lotNumber")
                 append(" ORDER BY m.occurredAt DESC")
             }
         val query = em.createQuery(jpql, StockMovement::class.java).setParameter("orgId", organizationId)
@@ -61,6 +64,7 @@ open class StockMovementQueriesImpl(
         if (type != null) query.setParameter("type", type)
         if (from != null) query.setParameter("from", from)
         if (to != null) query.setParameter("to", to)
+        if (lotNumber != null) query.setParameter("lotNumber", lotNumber)
         return query.resultList
     }
 

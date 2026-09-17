@@ -46,6 +46,7 @@ class ProductService(
                 priceCurrency = priceCurrency,
                 taxGroupId = request.taxGroupId,
                 organizationId = organizationId,
+                isLotTracked = request.isLotTracked,
             )
 
         return try {
@@ -109,6 +110,9 @@ class ProductService(
             listPrice = request.listPrice ?: existing.listPrice
             priceCurrency = newCurrency
             taxGroupId = request.taxGroupId ?: existing.taxGroupId
+            if (request.isLotTracked != null) {
+                isLotTracked = request.isLotTracked
+            }
         }
 
         return productRepository.save(existing)

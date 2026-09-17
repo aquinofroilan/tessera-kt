@@ -25,6 +25,8 @@ class StockOnHand(
     var productId: java.util.UUID,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
     var warehouseId: java.util.UUID,
+    @Column(name = "lot_number")
+    var lotNumber: String = "",
     var quantity: BigDecimal = BigDecimal.ZERO,
     @CreatedDate
     @Column(name = "created_at")
