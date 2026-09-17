@@ -1,9 +1,11 @@
 package com.aquinofroilan.tessera.domain.inventory.service
 
 import com.aquinofroilan.tessera.domain.inventory.dto.CreateStockMovementRequest
+import com.aquinofroilan.tessera.domain.inventory.dto.LotOnHandResponse
 import com.aquinofroilan.tessera.domain.inventory.model.StockMovement
 import com.aquinofroilan.tessera.domain.inventory.model.StockMovementType
 import com.aquinofroilan.tessera.domain.inventory.model.Warehouse
+import com.aquinofroilan.tessera.domain.inventory.repository.ProductRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.StockMovementRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.StockOnHandRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.WarehouseRepository
@@ -13,9 +15,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDateTime
-
-import com.aquinofroilan.tessera.domain.inventory.dto.LotOnHandResponse
-import com.aquinofroilan.tessera.domain.inventory.repository.ProductRepository
 
 @Service
 class StockMovementService(
@@ -228,14 +227,16 @@ class StockMovementService(
         organizationId: java.util.UUID,
         lotNumber: String,
     ): List<StockMovement> = stockMovementRepository.findByOrganizationIdAndLotNumberOrderByOccurredAtAsc(organizationId, lotNumber)
+
     private fun validateLotTracking(
         productId: java.util.UUID,
         lotNumber: String?,
         organizationId: java.util.UUID,
     ): String? {
-        val product = productRepository.findById(productId).orElseThrow {
-            ResourceNotFoundException("Product not found")
-        }
+        val product =
+            productRepository.findById(productId).orElseThrow {
+                ResourceNotFoundException("Product not found")
+            }
         if (product.organizationId != organizationId) {
             throw ResourceNotFoundException("Product not found")
         }
@@ -247,6 +248,7 @@ class StockMovementService(
         }
         return lotNumber?.trim()?.takeIf { it.isNotEmpty() }
     }
+
     private fun validateQuantitySign(
         type: StockMovementType,
         quantity: BigDecimal,

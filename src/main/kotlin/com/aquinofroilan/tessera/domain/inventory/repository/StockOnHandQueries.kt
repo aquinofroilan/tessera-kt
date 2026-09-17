@@ -96,8 +96,8 @@ open class StockOnHandQueriesImpl(
         productId: java.util.UUID,
         warehouseId: java.util.UUID,
         lotNumber: String?,
-    ): BigDecimal {
-        return if (lotNumber != null) {
+    ): BigDecimal =
+        if (lotNumber != null) {
             val sql =
                 """
                 SELECT quantity FROM stock_on_hand
@@ -119,7 +119,6 @@ open class StockOnHandQueriesImpl(
             val rows = jdbc.queryForList(sql, BigDecimal::class.java, organizationId, productId, warehouseId)
             rows.firstOrNull() ?: BigDecimal.ZERO
         }
-    }
 
     override fun getLotBreakdown(
         organizationId: java.util.UUID,
@@ -139,7 +138,7 @@ open class StockOnHandQueriesImpl(
                 productId = productId,
                 warehouseId = warehouseId,
                 lotNumber = rs.getString("lot_number").takeIf { it.isNotEmpty() },
-                quantity = rs.getBigDecimal("quantity")
+                quantity = rs.getBigDecimal("quantity"),
             )
         }, organizationId, productId, warehouseId)
     }
