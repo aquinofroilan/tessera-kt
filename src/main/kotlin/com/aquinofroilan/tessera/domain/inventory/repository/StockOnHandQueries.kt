@@ -1,12 +1,13 @@
 package com.aquinofroilan.tessera.domain.inventory.repository
 
+import com.aquinofroilan.tessera.domain.inventory.dto.LotOnHandResponse
 import org.springframework.jdbc.core.JdbcTemplate
 import java.math.BigDecimal
 import java.util.UUID
 
 interface StockOnHandQueries {
     /**
-     * Atomically apply [delta] to the (organizationId, productId, warehouseId) counter.
+     * Atomically apply [delta] to the (organizationId, productId, warehouseId, lotNumber) counter.
      *
      * Returns true on success, false when [allowNegative] is false and the post-state
      * would be negative (insufficient stock). The check and decrement happen in a single
@@ -17,6 +18,7 @@ interface StockOnHandQueries {
         organizationId: java.util.UUID,
         productId: java.util.UUID,
         warehouseId: java.util.UUID,
+        lotNumber: String? = null,
         delta: BigDecimal,
         allowNegative: Boolean,
     ): Boolean
@@ -25,7 +27,14 @@ interface StockOnHandQueries {
         organizationId: java.util.UUID,
         productId: java.util.UUID,
         warehouseId: java.util.UUID,
+        lotNumber: String? = null,
     ): BigDecimal
+
+    fun getLotBreakdown(
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
+    ): List<LotOnHandResponse>
 }
 
 open class StockOnHandQueriesImpl(
@@ -35,10 +44,12 @@ open class StockOnHandQueriesImpl(
         organizationId: java.util.UUID,
         productId: java.util.UUID,
         warehouseId: java.util.UUID,
+        lotNumber: String?,
         delta: BigDecimal,
         allowNegative: Boolean,
     ): Boolean {
         if (delta.signum() == 0) return true
+        val resolvedLot = lotNumber ?: ""
 
         if (!allowNegative && delta.signum() < 0) {
             // Atomic check-and-decrement on existing row only. No upsert: a missing row
@@ -51,18 +62,19 @@ open class StockOnHandQueriesImpl(
                  WHERE organization_id = ?::uuid
                    AND product_id = ?::uuid
                    AND warehouse_id = ?::uuid
+                   AND lot_number = ?
                    AND quantity >= ?
                 """.trimIndent()
-            val updated = jdbc.update(sql, delta, organizationId, productId, warehouseId, delta.negate())
+            val updated = jdbc.update(sql, delta, organizationId, productId, warehouseId, resolvedLot, delta.negate())
             return updated > 0
         }
 
         // Inbound (or allowed-negative): upsert. Postgres ON CONFLICT handles the race natively.
         val sql =
             """
-            INSERT INTO stock_on_hand (id, organization_id, product_id, warehouse_id, quantity, created_at, updated_at)
-            VALUES (?::uuid, ?::uuid, ?::uuid, ?::uuid, ?, current_timestamp, current_timestamp)
-            ON CONFLICT (organization_id, product_id, warehouse_id)
+            INSERT INTO stock_on_hand (id, organization_id, product_id, warehouse_id, lot_number, quantity, created_at, updated_at)
+            VALUES (?::uuid, ?::uuid, ?::uuid, ?::uuid, ?, ?, current_timestamp, current_timestamp)
+            ON CONFLICT (organization_id, product_id, warehouse_id, lot_number)
             DO UPDATE SET quantity = stock_on_hand.quantity + EXCLUDED.quantity,
                           updated_at = current_timestamp
             """.trimIndent()
@@ -73,6 +85,7 @@ open class StockOnHandQueriesImpl(
                 organizationId,
                 productId,
                 warehouseId,
+                resolvedLot,
                 delta,
             )
         return updated > 0
@@ -82,15 +95,52 @@ open class StockOnHandQueriesImpl(
         organizationId: java.util.UUID,
         productId: java.util.UUID,
         warehouseId: java.util.UUID,
+        lotNumber: String?,
     ): BigDecimal {
+        return if (lotNumber != null) {
+            val sql =
+                """
+                SELECT quantity FROM stock_on_hand
+                 WHERE organization_id = ?::uuid
+                   AND product_id = ?::uuid
+                   AND warehouse_id = ?::uuid
+                   AND lot_number = ?
+                """.trimIndent()
+            val rows = jdbc.queryForList(sql, BigDecimal::class.java, organizationId, productId, warehouseId, lotNumber)
+            rows.firstOrNull() ?: BigDecimal.ZERO
+        } else {
+            val sql =
+                """
+                SELECT COALESCE(SUM(quantity), 0) FROM stock_on_hand
+                 WHERE organization_id = ?::uuid
+                   AND product_id = ?::uuid
+                   AND warehouse_id = ?::uuid
+                """.trimIndent()
+            val rows = jdbc.queryForList(sql, BigDecimal::class.java, organizationId, productId, warehouseId)
+            rows.firstOrNull() ?: BigDecimal.ZERO
+        }
+    }
+
+    override fun getLotBreakdown(
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
+    ): List<LotOnHandResponse> {
         val sql =
             """
-            SELECT quantity FROM stock_on_hand
+            SELECT lot_number, quantity FROM stock_on_hand
              WHERE organization_id = ?::uuid
                AND product_id = ?::uuid
                AND warehouse_id = ?::uuid
+             ORDER BY lot_number ASC
             """.trimIndent()
-        val rows = jdbc.queryForList(sql, BigDecimal::class.java, organizationId, productId, warehouseId)
-        return rows.firstOrNull() ?: BigDecimal.ZERO
+        return jdbc.query(sql, { rs, _ ->
+            LotOnHandResponse(
+                productId = productId,
+                warehouseId = warehouseId,
+                lotNumber = rs.getString("lot_number").takeIf { it.isNotEmpty() },
+                quantity = rs.getBigDecimal("quantity")
+            )
+        }, organizationId, productId, warehouseId)
     }
 }

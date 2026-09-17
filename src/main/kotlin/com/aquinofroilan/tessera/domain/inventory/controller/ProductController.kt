@@ -96,6 +96,7 @@ class ProductController(
             priceCurrency = priceCurrency,
             taxGroupId = taxGroupId,
             organizationId = organizationId,
+            isLotTracked = isLotTracked,
             isActive = isActive,
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),
