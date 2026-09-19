@@ -25,6 +25,7 @@ data class CreateStockMovementRequest(
     @field:Size(max = 2000, message = "Notes must be 2000 characters or fewer")
     val notes: String? = null,
     val occurredAt: LocalDateTime? = null,
+    val expiryDate: java.time.LocalDate? = null,
 )
 
 data class StockMovementResponse(

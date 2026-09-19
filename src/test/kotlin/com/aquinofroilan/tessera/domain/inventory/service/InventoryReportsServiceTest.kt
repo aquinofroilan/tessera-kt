@@ -18,13 +18,15 @@ import java.util.UUID
 class InventoryReportsServiceTest {
     private lateinit var service: InventoryReportsService
     private lateinit var stockMovementRepository: StockMovementRepository
+    private lateinit var stockOnHandRepository: com.aquinofroilan.tessera.domain.inventory.repository.StockOnHandRepository
 
     private val orgId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
 
     @BeforeEach
     fun setup() {
         stockMovementRepository = mock(StockMovementRepository::class.java)
-        service = InventoryReportsService(stockMovementRepository)
+        stockOnHandRepository = mock(com.aquinofroilan.tessera.domain.inventory.repository.StockOnHandRepository::class.java)
+        service = InventoryReportsService(stockMovementRepository, stockOnHandRepository)
     }
 
     @Test

@@ -48,6 +48,7 @@ class ProductService(
                 organizationId = organizationId,
                 isLotTracked = request.isLotTracked ?: false,
                 isSerialized = request.isSerialized ?: false,
+                hasExpiry = request.hasExpiry ?: false,
             )
 
         return try {
@@ -116,6 +117,9 @@ class ProductService(
             }
             if (request.isSerialized != null) {
                 isSerialized = request.isSerialized
+            }
+            if (request.hasExpiry != null) {
+                hasExpiry = request.hasExpiry
             }
         }
 
