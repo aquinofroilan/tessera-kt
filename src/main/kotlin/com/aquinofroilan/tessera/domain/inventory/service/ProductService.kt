@@ -47,7 +47,7 @@ class ProductService(
                 taxGroupId = request.taxGroupId,
                 organizationId = organizationId,
                 isLotTracked = request.isLotTracked ?: false,
-                isSerialized = request.isSerialized,
+                isSerialized = request.isSerialized ?: false,
             )
 
         return try {

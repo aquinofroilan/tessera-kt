@@ -24,7 +24,7 @@ data class CreateProductRequest(
     val priceCurrency: String? = null,
     val taxGroupId: java.util.UUID? = null,
     val isLotTracked: Boolean? = false,
-    val isSerialized: Boolean = false,
+    val isSerialized: Boolean? = false,
 )
 
 data class UpdateProductRequest(
