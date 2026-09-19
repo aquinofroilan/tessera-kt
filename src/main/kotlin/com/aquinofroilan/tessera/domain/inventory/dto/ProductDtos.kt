@@ -23,8 +23,8 @@ data class CreateProductRequest(
     val listPrice: BigDecimal,
     val priceCurrency: String? = null,
     val taxGroupId: java.util.UUID? = null,
-    val isLotTracked: Boolean = false,
-    val isSerialized: Boolean = false,
+    val isLotTracked: Boolean? = false,
+    val isSerialized: Boolean? = false,
 )
 
 data class UpdateProductRequest(
