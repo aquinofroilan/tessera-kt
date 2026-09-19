@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDateTime
 import java.util.UUID
+import java.math.BigDecimal
 
 @RestController
 @RequestMapping("/api/v1/inventory")
@@ -105,6 +106,18 @@ class StockMovementController(
     ): ResponseEntity<Any> {
         val movements = stockMovementService.getLotGenealogy(orgId, lotNumber)
         return ResponseEntity.ok(movements.map { it.toResponse() })
+    }
+
+    @GetMapping("/picking-suggestions")
+    @PreAuthorize("hasAuthority('inventory:read')")
+    fun pickingSuggestions(
+        @CurrentOrganizationId orgId: UUID,
+        @RequestParam productId: java.util.UUID,
+        @RequestParam warehouseId: java.util.UUID,
+        @RequestParam quantity: BigDecimal,
+    ): ResponseEntity<Any> {
+        val suggestions = stockMovementService.getPickingSuggestions(orgId, productId, warehouseId, quantity)
+        return ResponseEntity.ok(suggestions)
     }
 
     private fun StockMovement.toResponse() =
