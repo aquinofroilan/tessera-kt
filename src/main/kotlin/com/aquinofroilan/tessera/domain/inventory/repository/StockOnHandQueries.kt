@@ -35,6 +35,18 @@ interface StockOnHandQueries {
         productId: java.util.UUID,
         warehouseId: java.util.UUID,
     ): List<LotOnHandResponse>
+    
+    fun getPickingSuggestions(
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
+        requestedQuantity: BigDecimal,
+    ): List<LotOnHandResponse>
+
+    fun getExpiryReport(
+        organizationId: java.util.UUID,
+        daysUntilExpiry: Int,
+    ): List<com.aquinofroilan.tessera.domain.inventory.dto.ExpiryReportLineResponse>
 }
 
 open class StockOnHandQueriesImpl(
@@ -141,5 +153,76 @@ open class StockOnHandQueriesImpl(
                 quantity = rs.getBigDecimal("quantity"),
             )
         }, organizationId, productId, warehouseId)
+    }
+    
+    override fun getPickingSuggestions(
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
+        requestedQuantity: BigDecimal,
+    ): List<LotOnHandResponse> {
+        val sql =
+            """
+            SELECT s.lot_number, s.quantity, l.expiry_date
+              FROM stock_on_hand s
+              LEFT JOIN product_lots l 
+                ON l.organization_id = s.organization_id 
+               AND l.product_id = s.product_id 
+               AND l.lot_number = s.lot_number
+             WHERE s.organization_id = ?::uuid
+               AND s.product_id = ?::uuid
+               AND s.warehouse_id = ?::uuid
+               AND s.quantity > 0
+             ORDER BY l.expiry_date ASC NULLS LAST, s.lot_number ASC
+            """.trimIndent()
+        
+        val rows = jdbc.query(sql, { rs, _ ->
+            LotOnHandResponse(
+                productId = productId,
+                warehouseId = warehouseId,
+                lotNumber = rs.getString("lot_number").takeIf { it.isNotEmpty() },
+                quantity = rs.getBigDecimal("quantity")
+            )
+        }, organizationId, productId, warehouseId)
+        
+        var remaining = requestedQuantity
+        val suggestions = mutableListOf<LotOnHandResponse>()
+        for (row in rows) {
+            if (remaining <= BigDecimal.ZERO) break
+            val toTake = row.quantity.min(remaining)
+            suggestions.add(row.copy(quantity = toTake))
+            remaining -= toTake
+        }
+        return suggestions
+    }
+
+    override fun getExpiryReport(
+        organizationId: java.util.UUID,
+        daysUntilExpiry: Int,
+    ): List<com.aquinofroilan.tessera.domain.inventory.dto.ExpiryReportLineResponse> {
+        val targetDate = java.time.LocalDate.now().plusDays(daysUntilExpiry.toLong())
+        val sql =
+            """
+            SELECT s.product_id, s.warehouse_id, s.lot_number, s.quantity, l.expiry_date
+              FROM stock_on_hand s
+              JOIN product_lots l 
+                ON l.organization_id = s.organization_id 
+               AND l.product_id = s.product_id 
+               AND l.lot_number = s.lot_number
+             WHERE s.organization_id = ?::uuid
+               AND s.quantity > 0
+               AND l.expiry_date <= ?
+             ORDER BY l.expiry_date ASC, s.product_id ASC
+            """.trimIndent()
+        
+        return jdbc.query(sql, { rs, _ ->
+            com.aquinofroilan.tessera.domain.inventory.dto.ExpiryReportLineResponse(
+                productId = rs.getObject("product_id", java.util.UUID::class.java),
+                warehouseId = rs.getObject("warehouse_id", java.util.UUID::class.java),
+                lotNumber = rs.getString("lot_number"),
+                quantity = rs.getBigDecimal("quantity"),
+                expiryDate = rs.getObject("expiry_date", java.time.LocalDate::class.java)
+            )
+        }, organizationId, targetDate)
     }
 }

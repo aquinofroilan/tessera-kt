@@ -98,6 +98,7 @@ class ProductController(
             organizationId = organizationId,
             isLotTracked = isLotTracked,
             isSerialized = isSerialized,
+            hasExpiry = hasExpiry,
             isActive = isActive,
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),

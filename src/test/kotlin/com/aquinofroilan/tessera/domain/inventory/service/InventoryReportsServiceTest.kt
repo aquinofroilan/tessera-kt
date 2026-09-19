@@ -18,13 +18,15 @@ import java.util.UUID
 class InventoryReportsServiceTest {
     private lateinit var service: InventoryReportsService
     private lateinit var stockMovementRepository: StockMovementRepository
+    private lateinit var stockOnHandRepository: com.aquinofroilan.tessera.domain.inventory.repository.StockOnHandRepository
 
     private val orgId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
 
     @BeforeEach
     fun setup() {
         stockMovementRepository = mock(StockMovementRepository::class.java)
-        service = InventoryReportsService(stockMovementRepository)
+        stockOnHandRepository = mock(com.aquinofroilan.tessera.domain.inventory.repository.StockOnHandRepository::class.java)
+        service = InventoryReportsService(stockMovementRepository, stockOnHandRepository)
     }
 
     @Test
@@ -52,7 +54,7 @@ class InventoryReportsServiceTest {
     fun `stockOnHand with asOfDate replays movements`() {
         val asOf = LocalDateTime.of(2026, 5, 1, 0, 0)
         `when`(
-            stockMovementRepository.listMovements(eq(orgId), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), eq(asOf)),
+            stockMovementRepository.listMovements(eq(orgId), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), eq(asOf), anyOrNull()),
         ).thenReturn(
             listOf(
                 movement(
@@ -134,6 +136,7 @@ class InventoryReportsServiceTest {
                 eq(orgId),
                 eq(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89")),
                 eq(java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")),
+                anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),

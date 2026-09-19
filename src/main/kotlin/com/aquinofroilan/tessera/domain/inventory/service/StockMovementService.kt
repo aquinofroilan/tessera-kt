@@ -28,6 +28,7 @@ class StockMovementService(
     private val inventoryPostingService: InventoryPostingService,
     private val productRepository: ProductRepository,
     private val productSerialRepository: com.aquinofroilan.tessera.domain.inventory.repository.ProductSerialRepository,
+    private val productLotRepository: com.aquinofroilan.tessera.domain.inventory.repository.ProductLotRepository,
 ) {
     @Transactional
     fun createMovement(
@@ -50,6 +51,7 @@ class StockMovementService(
         
         val resolvedLot = validateLotTracking(product, request.lotNumber)
         validateAndProcessSerials(product, type, quantity, request.serialNumbers, request.warehouseId, request.transferToWarehouseId, resolvedLot, organizationId)
+        validateAndProcessExpiry(product, type, resolvedLot, request.expiryDate, organizationId)
         val sourceWarehouse = loadActiveWarehouse(request.warehouseId, organizationId)
         val destWarehouse =
             if (type == StockMovementType.TRANSFER && request.transferToWarehouseId != null) {
@@ -111,6 +113,7 @@ class StockMovementService(
         
         val resolvedLot = validateLotTracking(product, request.lotNumber)
         validateAndProcessSerials(product, type, quantity, request.serialNumbers, request.warehouseId, request.transferToWarehouseId, resolvedLot, organizationId)
+        validateAndProcessExpiry(product, type, resolvedLot, request.expiryDate, organizationId)
         val sourceWarehouse = loadActiveWarehouse(request.warehouseId, organizationId)
         val destWarehouse =
             if (type == StockMovementType.TRANSFER && request.transferToWarehouseId != null) {
@@ -251,6 +254,21 @@ class StockMovementService(
         organizationId: java.util.UUID,
         lotNumber: String,
     ): List<StockMovement> = stockMovementRepository.findByOrganizationIdAndLotNumberOrderByOccurredAtAsc(organizationId, lotNumber)
+
+    fun getPickingSuggestions(
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
+        requestedQuantity: BigDecimal,
+    ): List<LotOnHandResponse> {
+        val product = productRepository.findById(productId).orElseThrow {
+            ResourceNotFoundException("Product not found")
+        }
+        if (product.organizationId != organizationId) {
+            throw ResourceNotFoundException("Product not found")
+        }
+        return stockOnHandRepository.getPickingSuggestions(organizationId, productId, warehouseId, requestedQuantity)
+    }
 
     private fun validateLotTracking(
         product: Product,
@@ -529,6 +547,62 @@ class StockMovementService(
                     productSerialRepository.save(record)
                 }
             }
+        }
+    }
+
+    private fun validateAndProcessExpiry(
+        product: Product,
+        type: StockMovementType,
+        lotNumber: String?,
+        expiryDate: java.time.LocalDate?,
+        organizationId: java.util.UUID
+    ) {
+        if (!product.hasExpiry) {
+            return
+        }
+
+        if (lotNumber.isNullOrBlank()) {
+            throw BusinessRuleException("Lot number is required for product '${product.sku}' to track expiry")
+        }
+
+        val existingLot = productLotRepository.findByOrganizationIdAndProductIdAndLotNumber(
+            organizationId, product.id, lotNumber
+        )
+
+        when (type) {
+            StockMovementType.RECEIPT, StockMovementType.OPENING_BALANCE, StockMovementType.WIP_RECEIPT -> {
+                if (existingLot != null) {
+                    // Lot already exists, optionally we can enforce that expiry matches, but for now we just allow the movement
+                    // if expiryDate is provided, update it? Or ignore? Usually expiry is set once.
+                    if (expiryDate != null && existingLot.expiryDate != expiryDate) {
+                        existingLot.expiryDate = expiryDate
+                        productLotRepository.save(existingLot)
+                    }
+                } else {
+                    if (expiryDate == null) {
+                        throw BusinessRuleException("Expiry date is required when receiving expiry-tracked product '${product.sku}'")
+                    }
+                    val newLot = com.aquinofroilan.tessera.domain.inventory.model.ProductLot(
+                        organizationId = organizationId,
+                        productId = product.id,
+                        lotNumber = lotNumber,
+                        expiryDate = expiryDate
+                    )
+                    productLotRepository.save(newLot)
+                }
+            }
+            StockMovementType.ADJUSTMENT -> {
+                if (existingLot == null && expiryDate != null) {
+                    val newLot = com.aquinofroilan.tessera.domain.inventory.model.ProductLot(
+                        organizationId = organizationId,
+                        productId = product.id,
+                        lotNumber = lotNumber,
+                        expiryDate = expiryDate
+                    )
+                    productLotRepository.save(newLot)
+                }
+            }
+            else -> {}
         }
     }
 }
