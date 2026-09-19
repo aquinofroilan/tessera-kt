@@ -24,6 +24,7 @@ data class CreateProductRequest(
     val priceCurrency: String? = null,
     val taxGroupId: java.util.UUID? = null,
     val isLotTracked: Boolean? = false,
+    val isSerialized: Boolean = false,
 )
 
 data class UpdateProductRequest(
@@ -40,6 +41,7 @@ data class UpdateProductRequest(
     val priceCurrency: String? = null,
     val taxGroupId: java.util.UUID? = null,
     val isLotTracked: Boolean? = null,
+    val isSerialized: Boolean? = null,
 )
 
 data class ProductResponse(
@@ -54,6 +56,7 @@ data class ProductResponse(
     val taxGroupId: java.util.UUID?,
     val organizationId: java.util.UUID,
     val isLotTracked: Boolean,
+    val isSerialized: Boolean,
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,
