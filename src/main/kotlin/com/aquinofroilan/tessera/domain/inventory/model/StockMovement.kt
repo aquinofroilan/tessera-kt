@@ -7,6 +7,8 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.math.BigDecimal
@@ -42,6 +44,9 @@ class StockMovement(
     var transferToWarehouseId: java.util.UUID? = null,
     @Column(name = "lot_number")
     var lotNumber: String? = null,
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "serial_numbers")
+    var serialNumbers: List<String>? = null,
     var quantity: BigDecimal,
     @Column(name = "unit_cost")
     var unitCost: BigDecimal? = null,
