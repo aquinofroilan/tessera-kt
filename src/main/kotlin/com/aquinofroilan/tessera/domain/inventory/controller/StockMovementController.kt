@@ -115,6 +115,7 @@ class StockMovementController(
             warehouseId = warehouseId,
             transferToWarehouseId = transferToWarehouseId,
             lotNumber = lotNumber,
+            serialNumbers = serialNumbers,
             quantity = quantity,
             unitCost = unitCost,
             reference = reference,
