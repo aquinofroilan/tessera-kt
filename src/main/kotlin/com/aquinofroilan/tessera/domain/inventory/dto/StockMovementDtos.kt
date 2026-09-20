@@ -14,6 +14,8 @@ data class CreateStockMovementRequest(
     @field:NotNull(message = "Warehouse ID is required")
     val warehouseId: java.util.UUID,
     val transferToWarehouseId: java.util.UUID? = null,
+    val sourceLocationId: java.util.UUID? = null,
+    val destinationLocationId: java.util.UUID? = null,
     @field:Size(max = 128, message = "Lot number must be 128 characters or fewer")
     val lotNumber: String? = null,
     val serialNumbers: List<String>? = null,
@@ -34,6 +36,8 @@ data class StockMovementResponse(
     val productId: java.util.UUID,
     val warehouseId: java.util.UUID,
     val transferToWarehouseId: java.util.UUID?,
+    val sourceLocationId: java.util.UUID?,
+    val destinationLocationId: java.util.UUID?,
     val lotNumber: String?,
     val serialNumbers: List<String>?,
     val quantity: BigDecimal,

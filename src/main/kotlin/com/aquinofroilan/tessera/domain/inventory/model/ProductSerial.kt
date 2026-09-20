@@ -38,6 +38,8 @@ class ProductSerial(
     var status: SerialStatus,
     @Column(name = "current_warehouse_id", columnDefinition = "uuid")
     var currentWarehouseId: UUID? = null,
+    @Column(name = "current_location_id", columnDefinition = "uuid")
+    var currentLocationId: UUID? = null,
     @Column(name = "lot_number")
     var lotNumber: String? = null,
     @CreatedDate

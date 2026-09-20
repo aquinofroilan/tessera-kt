@@ -6,18 +6,11 @@ import java.math.BigDecimal
 import java.util.UUID
 
 interface StockOnHandQueries {
-    /**
-     * Atomically apply [delta] to the (organizationId, productId, warehouseId, lotNumber) counter.
-     *
-     * Returns true on success, false when [allowNegative] is false and the post-state
-     * would be negative (insufficient stock). The check and decrement happen in a single
-     * SQL UPDATE with a row-level negative-stock guard, so concurrent callers cannot
-     * both succeed past a negative-stock boundary.
-     */
     fun applyDelta(
         organizationId: java.util.UUID,
         productId: java.util.UUID,
         warehouseId: java.util.UUID,
+        locationId: java.util.UUID? = null,
         lotNumber: String? = null,
         delta: BigDecimal,
         allowNegative: Boolean,
@@ -64,6 +57,7 @@ open class StockOnHandQueriesImpl(
         organizationId: java.util.UUID,
         productId: java.util.UUID,
         warehouseId: java.util.UUID,
+        locationId: java.util.UUID?,
         lotNumber: String?,
         delta: BigDecimal,
         allowNegative: Boolean,
@@ -72,8 +66,6 @@ open class StockOnHandQueriesImpl(
         val resolvedLot = lotNumber ?: ""
 
         if (!allowNegative && delta.signum() < 0) {
-            // Atomic check-and-decrement on existing row only. No upsert: a missing row
-            // means quantity is implicitly 0, which fails the guard for an outbound delta.
             val sql =
                 """
                 UPDATE stock_on_hand
@@ -82,19 +74,19 @@ open class StockOnHandQueriesImpl(
                  WHERE organization_id = ?::uuid
                    AND product_id = ?::uuid
                    AND warehouse_id = ?::uuid
+                   AND COALESCE(location_id, '00000000-0000-0000-0000-000000000000'::uuid) = COALESCE(?::uuid, '00000000-0000-0000-0000-000000000000'::uuid)
                    AND lot_number = ?
                    AND quantity - held_quantity >= ?
                 """.trimIndent()
-            val updated = jdbc.update(sql, delta, organizationId, productId, warehouseId, resolvedLot, delta.negate())
+            val updated = jdbc.update(sql, delta, organizationId, productId, warehouseId, locationId, resolvedLot, delta.negate())
             return updated > 0
         }
 
-        // Inbound (or allowed-negative): upsert. Postgres ON CONFLICT handles the race natively.
         val sql =
             """
-            INSERT INTO stock_on_hand (id, organization_id, product_id, warehouse_id, lot_number, quantity, created_at, updated_at)
-            VALUES (?::uuid, ?::uuid, ?::uuid, ?::uuid, ?, ?, current_timestamp, current_timestamp)
-            ON CONFLICT (organization_id, product_id, warehouse_id, lot_number)
+            INSERT INTO stock_on_hand (id, organization_id, product_id, warehouse_id, location_id, lot_number, quantity, created_at, updated_at)
+            VALUES (?::uuid, ?::uuid, ?::uuid, ?::uuid, ?::uuid, ?, ?, current_timestamp, current_timestamp)
+            ON CONFLICT (organization_id, product_id, warehouse_id, COALESCE(location_id, '00000000-0000-0000-0000-000000000000'::uuid), lot_number)
             DO UPDATE SET quantity = stock_on_hand.quantity + EXCLUDED.quantity,
                           updated_at = current_timestamp
             """.trimIndent()
@@ -105,6 +97,7 @@ open class StockOnHandQueriesImpl(
                 organizationId,
                 productId,
                 warehouseId,
+                locationId,
                 resolvedLot,
                 delta,
             )

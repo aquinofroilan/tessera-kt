@@ -58,6 +58,8 @@ class StockMovementService(
             request.serialNumbers,
             request.warehouseId,
             request.transferToWarehouseId,
+            request.sourceLocationId,
+            request.destinationLocationId,
             resolvedLot,
             organizationId,
         )
@@ -69,7 +71,17 @@ class StockMovementService(
             } else {
                 null
             }
-        applyToCounter(type, request, resolvedLot, organizationId, quantity, sourceWarehouse, destWarehouse)
+        applyToCounter(
+            type,
+            request,
+            resolvedLot,
+            organizationId,
+            quantity,
+            sourceWarehouse,
+            destWarehouse,
+            request.sourceLocationId,
+            request.destinationLocationId,
+        )
 
         val movement =
             StockMovement(
@@ -78,6 +90,8 @@ class StockMovementService(
                 productId = request.productId,
                 warehouseId = request.warehouseId,
                 transferToWarehouseId = request.transferToWarehouseId,
+                sourceLocationId = request.sourceLocationId,
+                destinationLocationId = request.destinationLocationId,
                 lotNumber = resolvedLot,
                 serialNumbers = request.serialNumbers,
                 quantity = quantity,
@@ -130,6 +144,8 @@ class StockMovementService(
             request.serialNumbers,
             request.warehouseId,
             request.transferToWarehouseId,
+            request.sourceLocationId,
+            request.destinationLocationId,
             resolvedLot,
             organizationId,
         )
@@ -141,7 +157,17 @@ class StockMovementService(
             } else {
                 null
             }
-        applyToCounter(type, request, resolvedLot, organizationId, quantity, sourceWarehouse, destWarehouse)
+        applyToCounter(
+            type,
+            request,
+            resolvedLot,
+            organizationId,
+            quantity,
+            sourceWarehouse,
+            destWarehouse,
+            request.sourceLocationId,
+            request.destinationLocationId,
+        )
         val saved =
             stockMovementRepository.save(
                 StockMovement(
@@ -150,6 +176,8 @@ class StockMovementService(
                     productId = request.productId,
                     warehouseId = request.warehouseId,
                     transferToWarehouseId = request.transferToWarehouseId,
+                    sourceLocationId = request.sourceLocationId,
+                    destinationLocationId = request.destinationLocationId,
                     lotNumber = resolvedLot,
                     serialNumbers = request.serialNumbers,
                     quantity = quantity,
@@ -383,6 +411,8 @@ class StockMovementService(
         quantity: BigDecimal,
         sourceWarehouse: Warehouse,
         destWarehouse: Warehouse?,
+        sourceLocationId: java.util.UUID?,
+        destLocationId: java.util.UUID?,
     ) {
         val sourceDelta = sourceDelta(type, quantity)
         if (sourceDelta.signum() != 0) {
@@ -391,6 +421,7 @@ class StockMovementService(
                     organizationId,
                     request.productId,
                     sourceWarehouse.id,
+                    sourceLocationId,
                     lotNumber,
                     sourceDelta,
                     allowNegative = sourceWarehouse.allowNegativeStock,
@@ -410,6 +441,7 @@ class StockMovementService(
                 organizationId,
                 request.productId,
                 destWarehouse.id,
+                destLocationId,
                 lotNumber,
                 quantity,
                 allowNegative = true,
@@ -440,6 +472,8 @@ class StockMovementService(
         serialNumbers: List<String>?,
         sourceWarehouseId: java.util.UUID,
         destWarehouseId: java.util.UUID?,
+        sourceLocationId: java.util.UUID?,
+        destLocationId: java.util.UUID?,
         lotNumber: String?,
         organizationId: java.util.UUID,
     ) {
@@ -487,6 +521,7 @@ class StockMovementService(
                         )
                     record.status = SerialStatus.IN_STOCK
                     record.currentWarehouseId = sourceWarehouseId
+                    record.currentLocationId = sourceLocationId
                     record.lotNumber = lotNumber
                     productSerialRepository.save(record)
                 }
@@ -504,6 +539,7 @@ class StockMovementService(
                     }
                     existing.status = SerialStatus.ISSUED
                     existing.currentWarehouseId = null
+                    existing.currentLocationId = null
                     productSerialRepository.save(existing)
                 }
             }
@@ -519,6 +555,7 @@ class StockMovementService(
                         throw BusinessRuleException("Serial number '$sn' is not in warehouse $sourceWarehouseId")
                     }
                     existing.currentWarehouseId = destWarehouseId
+                    existing.currentLocationId = destLocationId
                     productSerialRepository.save(existing)
                 }
             }
@@ -538,6 +575,7 @@ class StockMovementService(
                             )
                         record.status = SerialStatus.IN_STOCK
                         record.currentWarehouseId = sourceWarehouseId
+                        record.currentLocationId = sourceLocationId
                         record.lotNumber = lotNumber
                         productSerialRepository.save(record)
                     }
@@ -554,6 +592,7 @@ class StockMovementService(
                         }
                         existing.status = SerialStatus.ADJUSTED_OUT
                         existing.currentWarehouseId = null
+                        existing.currentLocationId = null
                         productSerialRepository.save(existing)
                     }
                 }
@@ -574,6 +613,7 @@ class StockMovementService(
                         )
                     record.status = SerialStatus.IN_STOCK
                     record.currentWarehouseId = sourceWarehouseId
+                    record.currentLocationId = sourceLocationId
                     record.lotNumber = lotNumber
                     productSerialRepository.save(record)
                 }
