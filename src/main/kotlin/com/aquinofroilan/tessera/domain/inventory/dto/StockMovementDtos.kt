@@ -14,6 +14,11 @@ data class CreateStockMovementRequest(
     @field:NotNull(message = "Warehouse ID is required")
     val warehouseId: java.util.UUID,
     val transferToWarehouseId: java.util.UUID? = null,
+    val sourceLocationId: java.util.UUID? = null,
+    val destinationLocationId: java.util.UUID? = null,
+    @field:Size(max = 128, message = "Lot number must be 128 characters or fewer")
+    val lotNumber: String? = null,
+    val serialNumbers: List<String>? = null,
     @field:NotNull(message = "Quantity is required")
     val quantity: BigDecimal?,
     val unitCost: BigDecimal? = null,
@@ -22,6 +27,7 @@ data class CreateStockMovementRequest(
     @field:Size(max = 2000, message = "Notes must be 2000 characters or fewer")
     val notes: String? = null,
     val occurredAt: LocalDateTime? = null,
+    val expiryDate: java.time.LocalDate? = null,
 )
 
 data class StockMovementResponse(
@@ -30,6 +36,10 @@ data class StockMovementResponse(
     val productId: java.util.UUID,
     val warehouseId: java.util.UUID,
     val transferToWarehouseId: java.util.UUID?,
+    val sourceLocationId: java.util.UUID?,
+    val destinationLocationId: java.util.UUID?,
+    val lotNumber: String?,
+    val serialNumbers: List<String>?,
     val quantity: BigDecimal,
     val unitCost: BigDecimal?,
     val reference: String?,
@@ -43,5 +53,12 @@ data class StockMovementResponse(
 data class OnHandResponse(
     val productId: java.util.UUID,
     val warehouseId: java.util.UUID,
+    val quantity: BigDecimal,
+)
+
+data class LotOnHandResponse(
+    val productId: java.util.UUID,
+    val warehouseId: java.util.UUID,
+    val lotNumber: String?,
     val quantity: BigDecimal,
 )

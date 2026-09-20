@@ -46,6 +46,9 @@ class ProductService(
                 priceCurrency = priceCurrency,
                 taxGroupId = request.taxGroupId,
                 organizationId = organizationId,
+                isLotTracked = request.isLotTracked ?: false,
+                isSerialized = request.isSerialized ?: false,
+                hasExpiry = request.hasExpiry ?: false,
             )
 
         return try {
@@ -109,6 +112,15 @@ class ProductService(
             listPrice = request.listPrice ?: existing.listPrice
             priceCurrency = newCurrency
             taxGroupId = request.taxGroupId ?: existing.taxGroupId
+            if (request.isLotTracked != null) {
+                isLotTracked = request.isLotTracked
+            }
+            if (request.isSerialized != null) {
+                isSerialized = request.isSerialized
+            }
+            if (request.hasExpiry != null) {
+                hasExpiry = request.hasExpiry
+            }
         }
 
         return productRepository.save(existing)

@@ -142,6 +142,7 @@ class InventoryGraphqlController(
         @Argument type: String?,
         @Argument from: String?,
         @Argument to: String?,
+        @Argument lotNumber: String?,
     ): Any =
         support.unwrap(
             stockMovementController.listMovements(
@@ -151,6 +152,7 @@ class InventoryGraphqlController(
                 type?.let { StockMovementType.valueOf(it) },
                 from?.let(LocalDateTime::parse),
                 to?.let(LocalDateTime::parse),
+                lotNumber,
             ),
         )
 
@@ -159,7 +161,8 @@ class InventoryGraphqlController(
     fun stockOnHand(
         @Argument productId: java.util.UUID,
         @Argument warehouseId: java.util.UUID,
-    ): Any = support.unwrap(stockMovementController.onHand(support.orgId(), productId, warehouseId))
+        @Argument lotNumber: String?,
+    ): Any = support.unwrap(stockMovementController.onHand(support.orgId(), productId, warehouseId, lotNumber))
 
     @MutationMapping
     @PreAuthorize("hasAuthority('inventory:write')")

@@ -35,6 +35,12 @@ class Product(
     var uomId: UUID? = null,
     @Column(name = "organization_id", columnDefinition = "uuid")
     var organizationId: java.util.UUID,
+    @Column(name = "is_lot_tracked")
+    var isLotTracked: Boolean = false,
+    @Column(name = "is_serialized")
+    var isSerialized: Boolean = false,
+    @Column(name = "has_expiry")
+    var hasExpiry: Boolean = false,
     @Column(name = "is_active")
     var isActive: Boolean = true,
     @CreatedDate

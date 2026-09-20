@@ -8,30 +8,25 @@ import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
 @Entity
-@Table(name = "stock_on_hand")
+@Table(name = "product_lots")
 @EntityListeners(AuditingEntityListener::class)
-class StockOnHand(
+class ProductLot(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
+    var id: UUID = UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: java.util.UUID,
+    var organizationId: UUID,
     @Column(name = "product_id", columnDefinition = "uuid")
-    var productId: java.util.UUID,
-    @Column(name = "warehouse_id", columnDefinition = "uuid")
-    var warehouseId: java.util.UUID,
-    @Column(name = "location_id", columnDefinition = "uuid")
-    var locationId: java.util.UUID? = null,
+    var productId: UUID,
     @Column(name = "lot_number")
-    var lotNumber: String = "",
-    var quantity: BigDecimal = BigDecimal.ZERO,
-    @Column(name = "held_quantity")
-    var heldQuantity: BigDecimal = BigDecimal.ZERO,
+    var lotNumber: String,
+    @Column(name = "expiry_date")
+    var expiryDate: LocalDate? = null,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

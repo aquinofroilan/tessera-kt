@@ -1,9 +1,14 @@
 package com.aquinofroilan.tessera.domain.inventory.service
 
 import com.aquinofroilan.tessera.domain.inventory.dto.CreateStockMovementRequest
+import com.aquinofroilan.tessera.domain.inventory.dto.LotOnHandResponse
+import com.aquinofroilan.tessera.domain.inventory.model.Product
+import com.aquinofroilan.tessera.domain.inventory.model.ProductSerial
+import com.aquinofroilan.tessera.domain.inventory.model.SerialStatus
 import com.aquinofroilan.tessera.domain.inventory.model.StockMovement
 import com.aquinofroilan.tessera.domain.inventory.model.StockMovementType
 import com.aquinofroilan.tessera.domain.inventory.model.Warehouse
+import com.aquinofroilan.tessera.domain.inventory.repository.ProductRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.StockMovementRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.StockOnHandRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.WarehouseRepository
@@ -21,6 +26,9 @@ class StockMovementService(
     private val stockOnHandRepository: StockOnHandRepository,
     private val inventoryCostingService: InventoryCostingService,
     private val inventoryPostingService: InventoryPostingService,
+    private val productRepository: ProductRepository,
+    private val productSerialRepository: com.aquinofroilan.tessera.domain.inventory.repository.ProductSerialRepository,
+    private val productLotRepository: com.aquinofroilan.tessera.domain.inventory.repository.ProductLotRepository,
 ) {
     @Transactional
     fun createMovement(
@@ -33,6 +41,29 @@ class StockMovementService(
         validateQuantitySign(type, quantity)
         validateUnitCost(type, request.unitCost)
         validateTransferShape(type, request.warehouseId, request.transferToWarehouseId)
+
+        val product =
+            productRepository.findById(request.productId).orElseThrow {
+                ResourceNotFoundException("Product not found")
+            }
+        if (product.organizationId != organizationId) {
+            throw ResourceNotFoundException("Product not found")
+        }
+
+        val resolvedLot = validateLotTracking(product, request.lotNumber)
+        validateAndProcessSerials(
+            product,
+            type,
+            quantity,
+            request.serialNumbers,
+            request.warehouseId,
+            request.transferToWarehouseId,
+            request.sourceLocationId,
+            request.destinationLocationId,
+            resolvedLot,
+            organizationId,
+        )
+        validateAndProcessExpiry(product, type, resolvedLot, request.expiryDate, organizationId)
         val sourceWarehouse = loadActiveWarehouse(request.warehouseId, organizationId)
         val destWarehouse =
             if (type == StockMovementType.TRANSFER && request.transferToWarehouseId != null) {
@@ -40,7 +71,17 @@ class StockMovementService(
             } else {
                 null
             }
-        applyToCounter(type, request, organizationId, quantity, sourceWarehouse, destWarehouse)
+        applyToCounter(
+            type,
+            request,
+            resolvedLot,
+            organizationId,
+            quantity,
+            sourceWarehouse,
+            destWarehouse,
+            request.sourceLocationId,
+            request.destinationLocationId,
+        )
 
         val movement =
             StockMovement(
@@ -49,6 +90,10 @@ class StockMovementService(
                 productId = request.productId,
                 warehouseId = request.warehouseId,
                 transferToWarehouseId = request.transferToWarehouseId,
+                sourceLocationId = request.sourceLocationId,
+                destinationLocationId = request.destinationLocationId,
+                lotNumber = resolvedLot,
+                serialNumbers = request.serialNumbers,
                 quantity = quantity,
                 unitCost = request.unitCost,
                 reference = request.reference,
@@ -82,6 +127,29 @@ class StockMovementService(
         validateQuantitySign(type, quantity)
         validateUnitCost(type, request.unitCost)
         validateTransferShape(type, request.warehouseId, request.transferToWarehouseId)
+
+        val product =
+            productRepository.findById(request.productId).orElseThrow {
+                ResourceNotFoundException("Product not found")
+            }
+        if (product.organizationId != organizationId) {
+            throw ResourceNotFoundException("Product not found")
+        }
+
+        val resolvedLot = validateLotTracking(product, request.lotNumber)
+        validateAndProcessSerials(
+            product,
+            type,
+            quantity,
+            request.serialNumbers,
+            request.warehouseId,
+            request.transferToWarehouseId,
+            request.sourceLocationId,
+            request.destinationLocationId,
+            resolvedLot,
+            organizationId,
+        )
+        validateAndProcessExpiry(product, type, resolvedLot, request.expiryDate, organizationId)
         val sourceWarehouse = loadActiveWarehouse(request.warehouseId, organizationId)
         val destWarehouse =
             if (type == StockMovementType.TRANSFER && request.transferToWarehouseId != null) {
@@ -89,7 +157,17 @@ class StockMovementService(
             } else {
                 null
             }
-        applyToCounter(type, request, organizationId, quantity, sourceWarehouse, destWarehouse)
+        applyToCounter(
+            type,
+            request,
+            resolvedLot,
+            organizationId,
+            quantity,
+            sourceWarehouse,
+            destWarehouse,
+            request.sourceLocationId,
+            request.destinationLocationId,
+        )
         val saved =
             stockMovementRepository.save(
                 StockMovement(
@@ -98,6 +176,10 @@ class StockMovementService(
                     productId = request.productId,
                     warehouseId = request.warehouseId,
                     transferToWarehouseId = request.transferToWarehouseId,
+                    sourceLocationId = request.sourceLocationId,
+                    destinationLocationId = request.destinationLocationId,
+                    lotNumber = resolvedLot,
+                    serialNumbers = request.serialNumbers,
                     quantity = quantity,
                     unitCost = request.unitCost,
                     reference = request.reference,
@@ -177,6 +259,7 @@ class StockMovementService(
                     type = StockMovementType.ADJUSTMENT,
                     productId = original.productId,
                     warehouseId = original.warehouseId,
+                    lotNumber = original.lotNumber,
                     quantity = inverseQuantity,
                     unitCost = unitCost,
                     reference = "REVERSAL-${original.reference ?: original.id}",
@@ -199,13 +282,55 @@ class StockMovementService(
         type: StockMovementType? = null,
         from: LocalDateTime? = null,
         to: LocalDateTime? = null,
-    ): List<StockMovement> = stockMovementRepository.listMovements(organizationId, productId, warehouseId, type, from, to)
+        lotNumber: String? = null,
+    ): List<StockMovement> = stockMovementRepository.listMovements(organizationId, productId, warehouseId, type, from, to, lotNumber)
 
     fun onHand(
         organizationId: java.util.UUID,
         productId: java.util.UUID,
         warehouseId: java.util.UUID,
-    ): BigDecimal = stockOnHandRepository.get(organizationId, productId, warehouseId)
+        lotNumber: String? = null,
+    ): BigDecimal = stockOnHandRepository.get(organizationId, productId, warehouseId, lotNumber)
+
+    fun getLotBreakdown(
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
+    ): List<LotOnHandResponse> = stockOnHandRepository.getLotBreakdown(organizationId, productId, warehouseId)
+
+    fun getLotGenealogy(
+        organizationId: java.util.UUID,
+        lotNumber: String,
+    ): List<StockMovement> = stockMovementRepository.findByOrganizationIdAndLotNumberOrderByOccurredAtAsc(organizationId, lotNumber)
+
+    fun getPickingSuggestions(
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
+        requestedQuantity: BigDecimal,
+    ): List<LotOnHandResponse> {
+        val product =
+            productRepository.findById(productId).orElseThrow {
+                ResourceNotFoundException("Product not found")
+            }
+        if (product.organizationId != organizationId) {
+            throw ResourceNotFoundException("Product not found")
+        }
+        return stockOnHandRepository.getPickingSuggestions(organizationId, productId, warehouseId, requestedQuantity)
+    }
+
+    private fun validateLotTracking(
+        product: Product,
+        lotNumber: String?,
+    ): String? {
+        if (product.isLotTracked) {
+            if (lotNumber.isNullOrBlank()) {
+                throw BusinessRuleException("Lot number is required for lot-tracked product '${product.sku}'")
+            }
+            return lotNumber.trim()
+        }
+        return lotNumber?.trim()?.takeIf { it.isNotEmpty() }
+    }
 
     private fun validateQuantitySign(
         type: StockMovementType,
@@ -281,10 +406,13 @@ class StockMovementService(
     private fun applyToCounter(
         type: StockMovementType,
         request: CreateStockMovementRequest,
+        lotNumber: String?,
         organizationId: java.util.UUID,
         quantity: BigDecimal,
         sourceWarehouse: Warehouse,
         destWarehouse: Warehouse?,
+        sourceLocationId: java.util.UUID?,
+        destLocationId: java.util.UUID?,
     ) {
         val sourceDelta = sourceDelta(type, quantity)
         if (sourceDelta.signum() != 0) {
@@ -293,11 +421,13 @@ class StockMovementService(
                     organizationId,
                     request.productId,
                     sourceWarehouse.id,
+                    sourceLocationId,
+                    lotNumber,
                     sourceDelta,
                     allowNegative = sourceWarehouse.allowNegativeStock,
                 )
             if (!ok) {
-                val current = stockOnHandRepository.get(organizationId, request.productId, sourceWarehouse.id)
+                val current = stockOnHandRepository.get(organizationId, request.productId, sourceWarehouse.id, lotNumber)
                 throw BusinessRuleException(
                     "Movement would drive on-hand below zero in warehouse '${sourceWarehouse.code}' " +
                         "(current $current, requested $quantity); enable allowNegativeStock to permit",
@@ -311,6 +441,8 @@ class StockMovementService(
                 organizationId,
                 request.productId,
                 destWarehouse.id,
+                destLocationId,
+                lotNumber,
                 quantity,
                 allowNegative = true,
             )
@@ -332,4 +464,221 @@ class StockMovementService(
             -> quantity.negate()
             StockMovementType.ADJUSTMENT -> quantity
         }
+
+    private fun validateAndProcessSerials(
+        product: Product,
+        type: StockMovementType,
+        quantity: BigDecimal,
+        serialNumbers: List<String>?,
+        sourceWarehouseId: java.util.UUID,
+        destWarehouseId: java.util.UUID?,
+        sourceLocationId: java.util.UUID?,
+        destLocationId: java.util.UUID?,
+        lotNumber: String?,
+        organizationId: java.util.UUID,
+    ) {
+        if (!product.isSerialized) {
+            if (!serialNumbers.isNullOrEmpty()) {
+                throw BusinessRuleException("Serial numbers cannot be provided for non-serialized product '${product.sku}'")
+            }
+            return
+        }
+
+        if (serialNumbers.isNullOrEmpty()) {
+            throw BusinessRuleException("Serial numbers are required for serialized product '${product.sku}'")
+        }
+
+        if (quantity.scale() > 0 && quantity.stripTrailingZeros().scale() > 0) {
+            throw BusinessRuleException("Quantity must be a whole number for serialized product '${product.sku}'")
+        }
+
+        val requiredCount = quantity.abs().intValueExact()
+        if (serialNumbers.size != requiredCount) {
+            throw BusinessRuleException("Expected $requiredCount serial numbers but got ${serialNumbers.size}")
+        }
+
+        val existingSerials =
+            productSerialRepository
+                .findByOrganizationIdAndProductIdAndSerialNumberIn(
+                    organizationId,
+                    product.id,
+                    serialNumbers,
+                ).associateBy { it.serialNumber }
+
+        when (type) {
+            StockMovementType.RECEIPT, StockMovementType.OPENING_BALANCE -> {
+                for (sn in serialNumbers) {
+                    val existing = existingSerials[sn]
+                    if (existing != null && existing.status == SerialStatus.IN_STOCK) {
+                        throw BusinessRuleException("Serial number '$sn' is already in stock")
+                    }
+                    val record =
+                        existing ?: ProductSerial(
+                            organizationId = organizationId,
+                            productId = product.id,
+                            serialNumber = sn,
+                            status = SerialStatus.IN_STOCK,
+                        )
+                    record.status = SerialStatus.IN_STOCK
+                    record.currentWarehouseId = sourceWarehouseId
+                    record.currentLocationId = sourceLocationId
+                    record.lotNumber = lotNumber
+                    productSerialRepository.save(record)
+                }
+            }
+            StockMovementType.ISSUE, StockMovementType.WIP_ISSUE -> {
+                for (sn in serialNumbers) {
+                    val existing =
+                        existingSerials[sn]
+                            ?: throw BusinessRuleException("Serial number '$sn' does not exist")
+                    if (existing.status != SerialStatus.IN_STOCK) {
+                        throw BusinessRuleException("Serial number '$sn' is not in stock")
+                    }
+                    if (existing.currentWarehouseId != sourceWarehouseId) {
+                        throw BusinessRuleException("Serial number '$sn' is not in warehouse $sourceWarehouseId")
+                    }
+                    existing.status = SerialStatus.ISSUED
+                    existing.currentWarehouseId = null
+                    existing.currentLocationId = null
+                    productSerialRepository.save(existing)
+                }
+            }
+            StockMovementType.TRANSFER -> {
+                for (sn in serialNumbers) {
+                    val existing =
+                        existingSerials[sn]
+                            ?: throw BusinessRuleException("Serial number '$sn' does not exist")
+                    if (existing.status != SerialStatus.IN_STOCK) {
+                        throw BusinessRuleException("Serial number '$sn' is not in stock")
+                    }
+                    if (existing.currentWarehouseId != sourceWarehouseId) {
+                        throw BusinessRuleException("Serial number '$sn' is not in warehouse $sourceWarehouseId")
+                    }
+                    existing.currentWarehouseId = destWarehouseId
+                    existing.currentLocationId = destLocationId
+                    productSerialRepository.save(existing)
+                }
+            }
+            StockMovementType.ADJUSTMENT -> {
+                if (quantity.signum() > 0) {
+                    for (sn in serialNumbers) {
+                        val existing = existingSerials[sn]
+                        if (existing != null && existing.status == SerialStatus.IN_STOCK) {
+                            throw BusinessRuleException("Serial number '$sn' is already in stock")
+                        }
+                        val record =
+                            existing ?: ProductSerial(
+                                organizationId = organizationId,
+                                productId = product.id,
+                                serialNumber = sn,
+                                status = SerialStatus.IN_STOCK,
+                            )
+                        record.status = SerialStatus.IN_STOCK
+                        record.currentWarehouseId = sourceWarehouseId
+                        record.currentLocationId = sourceLocationId
+                        record.lotNumber = lotNumber
+                        productSerialRepository.save(record)
+                    }
+                } else {
+                    for (sn in serialNumbers) {
+                        val existing =
+                            existingSerials[sn]
+                                ?: throw BusinessRuleException("Serial number '$sn' does not exist")
+                        if (existing.status != SerialStatus.IN_STOCK) {
+                            throw BusinessRuleException("Serial number '$sn' is not in stock")
+                        }
+                        if (existing.currentWarehouseId != sourceWarehouseId) {
+                            throw BusinessRuleException("Serial number '$sn' is not in warehouse $sourceWarehouseId")
+                        }
+                        existing.status = SerialStatus.ADJUSTED_OUT
+                        existing.currentWarehouseId = null
+                        existing.currentLocationId = null
+                        productSerialRepository.save(existing)
+                    }
+                }
+            }
+            StockMovementType.WIP_RECEIPT -> {
+                // Similar to RECEIPT
+                for (sn in serialNumbers) {
+                    val existing = existingSerials[sn]
+                    if (existing != null && existing.status == SerialStatus.IN_STOCK) {
+                        throw BusinessRuleException("Serial number '$sn' is already in stock")
+                    }
+                    val record =
+                        existing ?: ProductSerial(
+                            organizationId = organizationId,
+                            productId = product.id,
+                            serialNumber = sn,
+                            status = SerialStatus.IN_STOCK,
+                        )
+                    record.status = SerialStatus.IN_STOCK
+                    record.currentWarehouseId = sourceWarehouseId
+                    record.currentLocationId = sourceLocationId
+                    record.lotNumber = lotNumber
+                    productSerialRepository.save(record)
+                }
+            }
+        }
+    }
+
+    private fun validateAndProcessExpiry(
+        product: Product,
+        type: StockMovementType,
+        lotNumber: String?,
+        expiryDate: java.time.LocalDate?,
+        organizationId: java.util.UUID,
+    ) {
+        if (!product.hasExpiry) {
+            return
+        }
+
+        if (lotNumber.isNullOrBlank()) {
+            throw BusinessRuleException("Lot number is required for product '${product.sku}' to track expiry")
+        }
+
+        val existingLot =
+            productLotRepository.findByOrganizationIdAndProductIdAndLotNumber(
+                organizationId,
+                product.id,
+                lotNumber,
+            )
+
+        when (type) {
+            StockMovementType.RECEIPT, StockMovementType.OPENING_BALANCE, StockMovementType.WIP_RECEIPT -> {
+                if (existingLot != null) {
+                    // Lot already exists, optionally we can enforce that expiry matches, but for now we just allow the movement
+                    // if expiryDate is provided, update it? Or ignore? Usually expiry is set once.
+                    if (expiryDate != null && existingLot.expiryDate != expiryDate) {
+                        existingLot.expiryDate = expiryDate
+                        productLotRepository.save(existingLot)
+                    }
+                } else {
+                    if (expiryDate == null) {
+                        throw BusinessRuleException("Expiry date is required when receiving expiry-tracked product '${product.sku}'")
+                    }
+                    val newLot =
+                        com.aquinofroilan.tessera.domain.inventory.model.ProductLot(
+                            organizationId = organizationId,
+                            productId = product.id,
+                            lotNumber = lotNumber,
+                            expiryDate = expiryDate,
+                        )
+                    productLotRepository.save(newLot)
+                }
+            }
+            StockMovementType.ADJUSTMENT -> {
+                if (existingLot == null && expiryDate != null) {
+                    val newLot =
+                        com.aquinofroilan.tessera.domain.inventory.model.ProductLot(
+                            organizationId = organizationId,
+                            productId = product.id,
+                            lotNumber = lotNumber,
+                            expiryDate = expiryDate,
+                        )
+                    productLotRepository.save(newLot)
+                }
+            }
+            else -> {}
+        }
+    }
 }

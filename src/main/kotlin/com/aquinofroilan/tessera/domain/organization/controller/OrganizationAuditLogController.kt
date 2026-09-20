@@ -33,13 +33,14 @@ class OrganizationAuditLogController(
         @RequestParam(required = false) category: AuditCategory?,
         @RequestParam(required = false) action: String?,
         @RequestParam(required = false) entityType: String?,
+        @RequestParam(required = false) actorId: UUID?,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) from: LocalDateTime?,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) to: LocalDateTime?,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
     ): ResponseEntity<Page<AuditLogResponse>> {
         val pageable = PageRequest.of(page.coerceAtLeast(0), size.coerceIn(1, 100), Sort.by(Sort.Direction.DESC, "createdAt"))
-        val result = auditService.getAuditLogs(orgId, category, action, entityType, from, to, pageable)
+        val result = auditService.getAuditLogs(orgId, category, action, entityType, actorId, from, to, pageable)
         return ResponseEntity.ok(result)
     }
 

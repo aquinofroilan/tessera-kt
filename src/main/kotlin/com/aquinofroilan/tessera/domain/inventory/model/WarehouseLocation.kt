@@ -3,37 +3,43 @@ package com.aquinofroilan.tessera.domain.inventory.model
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 
+enum class LocationType {
+    ZONE,
+    AISLE,
+    RACK,
+    SHELF,
+    BIN,
+}
+
 @Entity
-@Table(name = "stock_on_hand")
+@Table(name = "warehouse_locations")
 @EntityListeners(AuditingEntityListener::class)
-class StockOnHand(
+class WarehouseLocation(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
+    var id: UUID = UUID.randomUUID(),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: java.util.UUID,
-    @Column(name = "product_id", columnDefinition = "uuid")
-    var productId: java.util.UUID,
+    var organizationId: UUID,
     @Column(name = "warehouse_id", columnDefinition = "uuid")
-    var warehouseId: java.util.UUID,
-    @Column(name = "location_id", columnDefinition = "uuid")
-    var locationId: java.util.UUID? = null,
-    @Column(name = "lot_number")
-    var lotNumber: String = "",
-    var quantity: BigDecimal = BigDecimal.ZERO,
-    @Column(name = "held_quantity")
-    var heldQuantity: BigDecimal = BigDecimal.ZERO,
+    var warehouseId: UUID,
+    @Column(name = "parent_location_id", columnDefinition = "uuid")
+    var parentLocationId: UUID? = null,
+    var code: String,
+    @Enumerated(EnumType.STRING)
+    var type: LocationType,
+    var barcode: String? = null,
     @CreatedDate
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     @Column(name = "updated_at")

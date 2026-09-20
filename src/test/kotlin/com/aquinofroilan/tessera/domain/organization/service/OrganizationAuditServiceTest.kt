@@ -113,7 +113,7 @@ class OrganizationAuditServiceTest {
         `when`(auditLogRepository.findAll(any<Specification<OrganizationAuditLog>>(), any<PageRequest>()))
             .thenReturn(page)
 
-        val result = service.getAuditLogs(orgId, AuditCategory.LIFECYCLE, null, null, null, null, PageRequest.of(0, 10))
+        val result = service.getAuditLogs(organizationId = orgId, category = AuditCategory.LIFECYCLE, pageable = PageRequest.of(0, 10))
 
         assertEquals(1, result.totalElements)
         val first = result.content[0]

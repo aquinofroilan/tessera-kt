@@ -23,6 +23,9 @@ data class CreateProductRequest(
     val listPrice: BigDecimal,
     val priceCurrency: String? = null,
     val taxGroupId: java.util.UUID? = null,
+    val isLotTracked: Boolean? = false,
+    val isSerialized: Boolean? = false,
+    val hasExpiry: Boolean? = false,
 )
 
 data class UpdateProductRequest(
@@ -38,6 +41,9 @@ data class UpdateProductRequest(
     val listPrice: BigDecimal? = null,
     val priceCurrency: String? = null,
     val taxGroupId: java.util.UUID? = null,
+    val isLotTracked: Boolean? = null,
+    val isSerialized: Boolean? = null,
+    val hasExpiry: Boolean? = null,
 )
 
 data class ProductResponse(
@@ -51,6 +57,9 @@ data class ProductResponse(
     val priceCurrency: String,
     val taxGroupId: java.util.UUID?,
     val organizationId: java.util.UUID,
+    val isLotTracked: Boolean,
+    val isSerialized: Boolean,
+    val hasExpiry: Boolean,
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,

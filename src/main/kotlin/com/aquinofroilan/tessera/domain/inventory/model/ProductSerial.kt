@@ -3,35 +3,45 @@ package com.aquinofroilan.tessera.domain.inventory.model
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 
+enum class SerialStatus {
+    IN_STOCK,
+    ISSUED,
+    ADJUSTED_OUT,
+    QUARANTINED,
+}
+
 @Entity
-@Table(name = "stock_on_hand")
+@Table(name = "product_serials")
 @EntityListeners(AuditingEntityListener::class)
-class StockOnHand(
+class ProductSerial(
     @Id
     @Column(columnDefinition = "uuid")
-    var id: java.util.UUID = java.util.UUID.ofEpochMillis(System.currentTimeMillis()),
+    var id: UUID = UUID.ofEpochMillis(System.currentTimeMillis()),
     @Column(name = "organization_id", columnDefinition = "uuid")
-    var organizationId: java.util.UUID,
+    var organizationId: UUID,
     @Column(name = "product_id", columnDefinition = "uuid")
-    var productId: java.util.UUID,
-    @Column(name = "warehouse_id", columnDefinition = "uuid")
-    var warehouseId: java.util.UUID,
-    @Column(name = "location_id", columnDefinition = "uuid")
-    var locationId: java.util.UUID? = null,
+    var productId: UUID,
+    @Column(name = "serial_number")
+    var serialNumber: String,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    var status: SerialStatus,
+    @Column(name = "current_warehouse_id", columnDefinition = "uuid")
+    var currentWarehouseId: UUID? = null,
+    @Column(name = "current_location_id", columnDefinition = "uuid")
+    var currentLocationId: UUID? = null,
     @Column(name = "lot_number")
-    var lotNumber: String = "",
-    var quantity: BigDecimal = BigDecimal.ZERO,
-    @Column(name = "held_quantity")
-    var heldQuantity: BigDecimal = BigDecimal.ZERO,
+    var lotNumber: String? = null,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

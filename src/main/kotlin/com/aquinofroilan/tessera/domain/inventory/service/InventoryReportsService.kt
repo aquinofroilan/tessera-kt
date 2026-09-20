@@ -1,5 +1,6 @@
 package com.aquinofroilan.tessera.domain.inventory.service
 
+import com.aquinofroilan.tessera.domain.inventory.dto.ExpiryReportResponse
 import com.aquinofroilan.tessera.domain.inventory.dto.MovementHistoryLineResponse
 import com.aquinofroilan.tessera.domain.inventory.dto.MovementHistoryResponse
 import com.aquinofroilan.tessera.domain.inventory.dto.StockOnHandLineResponse
@@ -8,6 +9,7 @@ import com.aquinofroilan.tessera.domain.inventory.model.StockMovement
 import com.aquinofroilan.tessera.domain.inventory.model.StockMovementType
 import com.aquinofroilan.tessera.domain.inventory.repository.OnHandKey
 import com.aquinofroilan.tessera.domain.inventory.repository.StockMovementRepository
+import com.aquinofroilan.tessera.domain.inventory.repository.StockOnHandRepository
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -15,7 +17,16 @@ import java.time.LocalDateTime
 @Service
 class InventoryReportsService(
     private val stockMovementRepository: StockMovementRepository,
+    private val stockOnHandRepository: StockOnHandRepository,
 ) {
+    fun expiryReport(
+        organizationId: java.util.UUID,
+        daysUntilExpiry: Int,
+    ): ExpiryReportResponse {
+        val lines = stockOnHandRepository.getExpiryReport(organizationId, daysUntilExpiry)
+        return ExpiryReportResponse(lines = lines)
+    }
+
     fun stockOnHand(
         organizationId: java.util.UUID,
         productId: java.util.UUID?,
