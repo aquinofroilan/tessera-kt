@@ -28,29 +28,24 @@ class InventoryHoldController(
         @RequestBody request: PlaceHoldRequest,
         @CurrentOrganizationId organizationId: UUID,
         @CurrentUserId userId: UUID,
-    ): InventoryHold {
-        return inventoryHoldService.placeOnHold(request, organizationId, userId)
-    }
+    ): InventoryHold = inventoryHoldService.placeOnHold(request, organizationId, userId)
 
     @PostMapping("/{id}/release")
     fun releaseHold(
         @PathVariable id: UUID,
         @CurrentOrganizationId organizationId: UUID,
         @CurrentUserId userId: UUID,
-    ): InventoryHold {
-        return inventoryHoldService.releaseHold(id, organizationId, userId)
-    }
+    ): InventoryHold = inventoryHoldService.releaseHold(id, organizationId, userId)
 
     @GetMapping
     fun listHolds(
         @RequestParam(required = false) productId: UUID?,
         @CurrentOrganizationId organizationId: UUID,
         pageable: Pageable,
-    ): Page<InventoryHold> {
-        return if (productId != null) {
+    ): Page<InventoryHold> =
+        if (productId != null) {
             inventoryHoldRepository.findByOrganizationIdAndProductId(organizationId, productId, pageable)
         } else {
             inventoryHoldRepository.findByOrganizationId(organizationId, pageable)
         }
-    }
 }
