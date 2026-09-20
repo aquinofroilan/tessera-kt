@@ -23,6 +23,14 @@ interface StockOnHandQueries {
         allowNegative: Boolean,
     ): Boolean
 
+    fun applyHold(
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
+        lotNumber: String? = null,
+        delta: java.math.BigDecimal,
+    ): Boolean
+
     fun get(
         organizationId: java.util.UUID,
         productId: java.util.UUID,
@@ -75,7 +83,7 @@ open class StockOnHandQueriesImpl(
                    AND product_id = ?::uuid
                    AND warehouse_id = ?::uuid
                    AND lot_number = ?
-                   AND quantity >= ?
+                   AND quantity - held_quantity >= ?
                 """.trimIndent()
             val updated = jdbc.update(sql, delta, organizationId, productId, warehouseId, resolvedLot, delta.negate())
             return updated > 0
@@ -101,6 +109,49 @@ open class StockOnHandQueriesImpl(
                 delta,
             )
         return updated > 0
+    }
+
+    override fun applyHold(
+        organizationId: java.util.UUID,
+        productId: java.util.UUID,
+        warehouseId: java.util.UUID,
+        lotNumber: String?,
+        delta: java.math.BigDecimal,
+    ): Boolean {
+        if (delta.signum() == 0) return true
+        val resolvedLot = lotNumber ?: ""
+
+        if (delta.signum() > 0) {
+            // Increasing hold -> ensure enough available stock
+            val sql =
+                """
+                UPDATE stock_on_hand
+                   SET held_quantity = held_quantity + ?,
+                       updated_at = current_timestamp
+                 WHERE organization_id = ?::uuid
+                   AND product_id = ?::uuid
+                   AND warehouse_id = ?::uuid
+                   AND lot_number = ?
+                   AND quantity - (held_quantity + ?) >= 0
+                """
+            val updated = jdbc.update(sql, delta, organizationId, productId, warehouseId, resolvedLot, delta)
+            return updated > 0
+        } else {
+            // Decreasing hold -> just subtract
+            val sql =
+                """
+                UPDATE stock_on_hand
+                   SET held_quantity = held_quantity + ?,
+                       updated_at = current_timestamp
+                 WHERE organization_id = ?::uuid
+                   AND product_id = ?::uuid
+                   AND warehouse_id = ?::uuid
+                   AND lot_number = ?
+                   AND held_quantity + ? >= 0
+                """
+            val updated = jdbc.update(sql, delta, organizationId, productId, warehouseId, resolvedLot, delta)
+            return updated > 0
+        }
     }
 
     override fun get(
