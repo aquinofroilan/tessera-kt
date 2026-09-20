@@ -42,6 +42,10 @@ class StockMovement(
     var warehouseId: java.util.UUID,
     @Column(name = "transfer_to_warehouse_id", columnDefinition = "uuid")
     var transferToWarehouseId: java.util.UUID? = null,
+    @Column(name = "source_location_id", columnDefinition = "uuid")
+    var sourceLocationId: java.util.UUID? = null,
+    @Column(name = "destination_location_id", columnDefinition = "uuid")
+    var destinationLocationId: java.util.UUID? = null,
     @Column(name = "lot_number")
     var lotNumber: String? = null,
     @JdbcTypeCode(SqlTypes.JSON)

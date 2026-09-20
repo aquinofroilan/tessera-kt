@@ -127,6 +127,8 @@ class StockMovementController(
             productId = productId,
             warehouseId = warehouseId,
             transferToWarehouseId = transferToWarehouseId,
+            sourceLocationId = sourceLocationId,
+            destinationLocationId = destinationLocationId,
             lotNumber = lotNumber,
             serialNumbers = serialNumbers,
             quantity = quantity,
