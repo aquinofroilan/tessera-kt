@@ -3,7 +3,6 @@ package com.aquinofroilan.tessera.domain.inventory.service
 import com.aquinofroilan.tessera.domain.inventory.dto.CreateWarehouseLocationRequest
 import com.aquinofroilan.tessera.domain.inventory.model.LocationType
 import com.aquinofroilan.tessera.domain.inventory.model.Warehouse
-import com.aquinofroilan.tessera.domain.inventory.model.WarehouseLocation
 import com.aquinofroilan.tessera.domain.inventory.repository.WarehouseLocationRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.WarehouseRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -18,7 +17,6 @@ import java.util.Optional
 import java.util.UUID
 
 class WarehouseLocationServiceTest {
-
     private lateinit var warehouseRepository: WarehouseRepository
     private lateinit var warehouseLocationRepository: WarehouseLocationRepository
     private lateinit var service: WarehouseLocationService
@@ -32,12 +30,13 @@ class WarehouseLocationServiceTest {
         warehouseLocationRepository = mock()
         service = WarehouseLocationService(warehouseLocationRepository, warehouseRepository)
 
-        val warehouse = Warehouse(
-            id = warehouseId,
-            organizationId = orgId,
-            code = "WH1",
-            name = "Warehouse 1"
-        )
+        val warehouse =
+            Warehouse(
+                id = warehouseId,
+                organizationId = orgId,
+                code = "WH1",
+                name = "Warehouse 1",
+            )
         whenever(warehouseRepository.findById(warehouseId)).thenReturn(Optional.of(warehouse))
     }
 
@@ -46,11 +45,12 @@ class WarehouseLocationServiceTest {
         whenever(warehouseLocationRepository.existsByOrganizationIdAndWarehouseIdAndCode(orgId, warehouseId, "A1")).thenReturn(false)
         whenever(warehouseLocationRepository.save(any())).thenAnswer { it.arguments[0] }
 
-        val request = CreateWarehouseLocationRequest(
-            warehouseId = warehouseId,
-            code = "A1",
-            type = LocationType.BIN
-        )
+        val request =
+            CreateWarehouseLocationRequest(
+                warehouseId = warehouseId,
+                code = "A1",
+                type = LocationType.BIN,
+            )
 
         val result = service.createLocation(request, orgId)
         assertThat(result.code).isEqualTo("A1")
@@ -61,11 +61,12 @@ class WarehouseLocationServiceTest {
     fun `createLocation fails if code exists`() {
         whenever(warehouseLocationRepository.existsByOrganizationIdAndWarehouseIdAndCode(orgId, warehouseId, "A1")).thenReturn(true)
 
-        val request = CreateWarehouseLocationRequest(
-            warehouseId = warehouseId,
-            code = "A1",
-            type = LocationType.BIN
-        )
+        val request =
+            CreateWarehouseLocationRequest(
+                warehouseId = warehouseId,
+                code = "A1",
+                type = LocationType.BIN,
+            )
 
         assertThrows<BusinessRuleException> {
             service.createLocation(request, orgId)

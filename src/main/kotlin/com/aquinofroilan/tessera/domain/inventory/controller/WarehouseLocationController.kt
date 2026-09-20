@@ -45,12 +45,13 @@ class WarehouseLocationController(
         return ResponseEntity.ok(locations.map { it.toResponse() })
     }
 
-    private fun WarehouseLocation.toResponse() = WarehouseLocationResponse(
-        id = id,
-        warehouseId = warehouseId,
-        parentLocationId = parentLocationId,
-        code = code,
-        type = type,
-        barcode = barcode,
-    )
+    private fun WarehouseLocation.toResponse() =
+        WarehouseLocationResponse(
+            id = id,
+            warehouseId = warehouseId,
+            parentLocationId = parentLocationId,
+            code = code,
+            type = type,
+            barcode = barcode,
+        )
 }

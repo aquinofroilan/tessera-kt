@@ -20,9 +20,10 @@ class WarehouseLocationService(
         request: CreateWarehouseLocationRequest,
         organizationId: UUID,
     ): WarehouseLocation {
-        val warehouse = warehouseRepository.findById(request.warehouseId).orElseThrow {
-            ResourceNotFoundException("Warehouse not found")
-        }
+        val warehouse =
+            warehouseRepository.findById(request.warehouseId).orElseThrow {
+                ResourceNotFoundException("Warehouse not found")
+            }
         if (warehouse.organizationId != organizationId) {
             throw ResourceNotFoundException("Warehouse not found")
         }
@@ -32,9 +33,10 @@ class WarehouseLocationService(
         }
 
         if (request.parentLocationId != null) {
-            val parent = warehouseLocationRepository.findById(request.parentLocationId).orElseThrow {
-                ResourceNotFoundException("Parent location not found")
-            }
+            val parent =
+                warehouseLocationRepository.findById(request.parentLocationId).orElseThrow {
+                    ResourceNotFoundException("Parent location not found")
+                }
             if (parent.organizationId != organizationId || parent.warehouseId != request.warehouseId) {
                 throw ResourceNotFoundException("Parent location not found in this warehouse")
             }
@@ -42,14 +44,15 @@ class WarehouseLocationService(
 
         val type = request.type ?: throw BusinessRuleException("Type is required")
 
-        val location = WarehouseLocation(
-            organizationId = organizationId,
-            warehouseId = request.warehouseId,
-            parentLocationId = request.parentLocationId,
-            code = request.code,
-            type = type,
-            barcode = request.barcode,
-        )
+        val location =
+            WarehouseLocation(
+                organizationId = organizationId,
+                warehouseId = request.warehouseId,
+                parentLocationId = request.parentLocationId,
+                code = request.code,
+                type = type,
+                barcode = request.barcode,
+            )
         return warehouseLocationRepository.save(location)
     }
 
@@ -57,9 +60,10 @@ class WarehouseLocationService(
         organizationId: UUID,
         warehouseId: UUID,
     ): List<WarehouseLocation> {
-        val warehouse = warehouseRepository.findById(warehouseId).orElseThrow {
-            ResourceNotFoundException("Warehouse not found")
-        }
+        val warehouse =
+            warehouseRepository.findById(warehouseId).orElseThrow {
+                ResourceNotFoundException("Warehouse not found")
+            }
         if (warehouse.organizationId != organizationId) {
             throw ResourceNotFoundException("Warehouse not found")
         }

@@ -7,6 +7,14 @@ import java.util.UUID
 
 @Repository
 interface WarehouseLocationRepository : JpaRepository<WarehouseLocation, UUID> {
-    fun findByOrganizationIdAndWarehouseId(organizationId: UUID, warehouseId: UUID): List<WarehouseLocation>
-    fun existsByOrganizationIdAndWarehouseIdAndCode(organizationId: UUID, warehouseId: UUID, code: String): Boolean
+    fun findByOrganizationIdAndWarehouseId(
+        organizationId: UUID,
+        warehouseId: UUID,
+    ): List<WarehouseLocation>
+
+    fun existsByOrganizationIdAndWarehouseIdAndCode(
+        organizationId: UUID,
+        warehouseId: UUID,
+        code: String,
+    ): Boolean
 }

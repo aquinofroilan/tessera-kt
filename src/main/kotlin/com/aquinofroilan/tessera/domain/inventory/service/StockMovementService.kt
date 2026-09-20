@@ -72,8 +72,15 @@ class StockMovementService(
                 null
             }
         applyToCounter(
-            type, request, resolvedLot, organizationId, quantity, sourceWarehouse, destWarehouse,
-            request.sourceLocationId, request.destinationLocationId
+            type,
+            request,
+            resolvedLot,
+            organizationId,
+            quantity,
+            sourceWarehouse,
+            destWarehouse,
+            request.sourceLocationId,
+            request.destinationLocationId,
         )
 
         val movement =
@@ -151,8 +158,15 @@ class StockMovementService(
                 null
             }
         applyToCounter(
-            type, request, resolvedLot, organizationId, quantity, sourceWarehouse, destWarehouse,
-            request.sourceLocationId, request.destinationLocationId
+            type,
+            request,
+            resolvedLot,
+            organizationId,
+            quantity,
+            sourceWarehouse,
+            destWarehouse,
+            request.sourceLocationId,
+            request.destinationLocationId,
         )
         val saved =
             stockMovementRepository.save(
