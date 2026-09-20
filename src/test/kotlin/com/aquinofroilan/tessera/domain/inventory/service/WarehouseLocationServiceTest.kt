@@ -3,6 +3,7 @@ package com.aquinofroilan.tessera.domain.inventory.service
 import com.aquinofroilan.tessera.domain.inventory.dto.CreateWarehouseLocationRequest
 import com.aquinofroilan.tessera.domain.inventory.model.LocationType
 import com.aquinofroilan.tessera.domain.inventory.model.Warehouse
+import com.aquinofroilan.tessera.domain.inventory.model.WarehouseLocation
 import com.aquinofroilan.tessera.domain.inventory.repository.WarehouseLocationRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.WarehouseRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -43,7 +44,7 @@ class WarehouseLocationServiceTest {
     @Test
     fun `createLocation succeeds`() {
         whenever(warehouseLocationRepository.existsByOrganizationIdAndWarehouseIdAndCode(orgId, warehouseId, "A1")).thenReturn(false)
-        whenever(warehouseLocationRepository.save(any())).thenAnswer { it.arguments[0] }
+        whenever(warehouseLocationRepository.save(any<WarehouseLocation>())).thenAnswer { it.arguments[0] as WarehouseLocation }
 
         val request =
             CreateWarehouseLocationRequest(
