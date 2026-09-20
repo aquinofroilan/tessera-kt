@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 @Service
-class ReportDeliveryJob(
+class ScheduledReportDeliveryJob(
     private val scheduledReportRepository: ScheduledReportRepository,
     private val inventoryValuationService: InventoryValuationService,
     private val inventoryReportsService: InventoryReportsService,

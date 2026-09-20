@@ -97,7 +97,7 @@ class ScheduledReportService(
     }
 
     private fun scheduleJob(report: ScheduledReport) {
-        jobScheduler.scheduleRecurrently<ReportDeliveryJob>(report.id.toString(), report.cronExpression) {
+        jobScheduler.scheduleRecurrently<ScheduledReportDeliveryJob>(report.id.toString(), report.cronExpression) {
             it.deliverReport(report.id)
         }
     }
