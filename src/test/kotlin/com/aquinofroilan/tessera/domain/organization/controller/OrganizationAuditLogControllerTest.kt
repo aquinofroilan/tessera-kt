@@ -150,8 +150,9 @@ class OrganizationAuditLogControllerTest {
     @Test
     fun `GET audit logs should return 200 with paginated audit logs`() {
         val page = PageImpl(listOf(createAuditLogResponse()))
-        `when`(auditService.getAuditLogs(eq(testOrgId), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), any()))
-            .thenReturn(page)
+        `when`(
+            auditService.getAuditLogs(eq(testOrgId), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), any()),
+        ).thenReturn(page)
 
         mockMvc
             .perform(get("/api/v1/organization/audit-logs"))
