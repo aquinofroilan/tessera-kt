@@ -28,6 +28,8 @@ class StockOnHand(
     @Column(name = "lot_number")
     var lotNumber: String = "",
     var quantity: BigDecimal = BigDecimal.ZERO,
+    @Column(name = "held_quantity")
+    var heldQuantity: BigDecimal = BigDecimal.ZERO,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,

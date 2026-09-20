@@ -7,23 +7,24 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
+import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 
-enum class SerialStatus {
-    IN_STOCK,
-    ISSUED,
-    ADJUSTED_OUT,
-    QUARANTINED,
+enum class HoldStatus {
+    ACTIVE,
+    RELEASED,
 }
 
 @Entity
-@Table(name = "product_serials")
+@Table(name = "inventory_holds")
 @EntityListeners(AuditingEntityListener::class)
-class ProductSerial(
+class InventoryHold(
     @Id
     @Column(columnDefinition = "uuid")
     var id: UUID = UUID.ofEpochMillis(System.currentTimeMillis()),
@@ -31,19 +32,26 @@ class ProductSerial(
     var organizationId: UUID,
     @Column(name = "product_id", columnDefinition = "uuid")
     var productId: UUID,
-    @Column(name = "serial_number")
-    var serialNumber: String,
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    var status: SerialStatus,
-    @Column(name = "current_warehouse_id", columnDefinition = "uuid")
-    var currentWarehouseId: UUID? = null,
+    @Column(name = "warehouse_id", columnDefinition = "uuid")
+    var warehouseId: UUID,
     @Column(name = "lot_number")
     var lotNumber: String? = null,
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "serial_numbers", columnDefinition = "jsonb")
+    var serialNumbers: List<String>? = null,
+    var quantity: BigDecimal,
+    var reference: String? = null,
+    var notes: String? = null,
+    @Enumerated(EnumType.STRING)
+    var status: HoldStatus = HoldStatus.ACTIVE,
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime? = null,
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    var updatedAt: LocalDateTime? = null,
+    @CreatedBy
+    @Column(name = "created_by", columnDefinition = "uuid")
+    var createdBy: UUID? = null,
+    @Column(name = "released_at")
+    var releasedAt: LocalDateTime? = null,
+    @Column(name = "released_by", columnDefinition = "uuid")
+    var releasedBy: UUID? = null,
 )
