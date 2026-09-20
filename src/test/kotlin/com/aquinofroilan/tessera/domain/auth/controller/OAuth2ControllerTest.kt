@@ -30,14 +30,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.util.UUID
 
 @WebMvcTest(controllers = [OAuth2Controller::class])
-@Import(TestSecurityConfig::class, TesseraPermissionEvaluator::class)
+@Import(com.aquinofroilan.tessera.config.WebMvcConfig::class, com.aquinofroilan.tessera.aspect.LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
 @ActiveProfiles("test")
 class OAuth2ControllerTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
-    @Autowired
-    private lateinit var objectMapper: ObjectMapper
+    private val objectMapper = ObjectMapper()
 
     @MockitoBean
     private lateinit var oauth2Service: OAuth2Service
