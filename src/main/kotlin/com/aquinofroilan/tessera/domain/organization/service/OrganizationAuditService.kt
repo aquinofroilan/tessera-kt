@@ -80,6 +80,7 @@ class OrganizationAuditService(
         category: AuditCategory? = null,
         action: String? = null,
         entityType: String? = null,
+        actorId: UUID? = null,
         from: LocalDateTime? = null,
         to: LocalDateTime? = null,
         pageable: Pageable,
@@ -91,6 +92,7 @@ class OrganizationAuditService(
                 category?.let { predicates.add(cb.equal(root.get<AuditCategory>("category"), it)) }
                 action?.let { predicates.add(cb.equal(root.get<String>("action"), it)) }
                 entityType?.let { predicates.add(cb.equal(root.get<String>("entityType"), it)) }
+                actorId?.let { predicates.add(cb.equal(root.get<UUID>("actorId"), it)) }
                 from?.let { predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), it)) }
                 to?.let { predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), it)) }
 
