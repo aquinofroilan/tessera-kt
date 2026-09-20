@@ -11,19 +11,19 @@ interface ProductSerialRepository : JpaRepository<ProductSerial, UUID> {
     fun findByOrganizationIdAndProductIdAndSerialNumber(
         organizationId: UUID,
         productId: UUID,
-        serialNumber: String
+        serialNumber: String,
     ): ProductSerial?
 
     fun findByOrganizationIdAndProductIdAndSerialNumberIn(
         organizationId: UUID,
         productId: UUID,
-        serialNumbers: List<String>
+        serialNumbers: List<String>,
     ): List<ProductSerial>
-    
+
     fun findByOrganizationIdAndProductIdAndStatusAndCurrentWarehouseId(
         organizationId: UUID,
         productId: UUID,
         status: SerialStatus,
-        currentWarehouseId: UUID
+        currentWarehouseId: UUID,
     ): List<ProductSerial>
 }

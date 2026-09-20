@@ -40,16 +40,26 @@ class StockMovementService(
         validateQuantitySign(type, quantity)
         validateUnitCost(type, request.unitCost)
         validateTransferShape(type, request.warehouseId, request.transferToWarehouseId)
-        
-        val product = productRepository.findById(request.productId).orElseThrow {
-            ResourceNotFoundException("Product not found")
-        }
+
+        val product =
+            productRepository.findById(request.productId).orElseThrow {
+                ResourceNotFoundException("Product not found")
+            }
         if (product.organizationId != organizationId) {
             throw ResourceNotFoundException("Product not found")
         }
-        
+
         val resolvedLot = validateLotTracking(product, request.lotNumber)
-        validateAndProcessSerials(product, type, quantity, request.serialNumbers, request.warehouseId, request.transferToWarehouseId, resolvedLot, organizationId)
+        validateAndProcessSerials(
+            product,
+            type,
+            quantity,
+            request.serialNumbers,
+            request.warehouseId,
+            request.transferToWarehouseId,
+            resolvedLot,
+            organizationId,
+        )
         val sourceWarehouse = loadActiveWarehouse(request.warehouseId, organizationId)
         val destWarehouse =
             if (type == StockMovementType.TRANSFER && request.transferToWarehouseId != null) {
@@ -101,16 +111,26 @@ class StockMovementService(
         validateQuantitySign(type, quantity)
         validateUnitCost(type, request.unitCost)
         validateTransferShape(type, request.warehouseId, request.transferToWarehouseId)
-        
-        val product = productRepository.findById(request.productId).orElseThrow {
-            ResourceNotFoundException("Product not found")
-        }
+
+        val product =
+            productRepository.findById(request.productId).orElseThrow {
+                ResourceNotFoundException("Product not found")
+            }
         if (product.organizationId != organizationId) {
             throw ResourceNotFoundException("Product not found")
         }
-        
+
         val resolvedLot = validateLotTracking(product, request.lotNumber)
-        validateAndProcessSerials(product, type, quantity, request.serialNumbers, request.warehouseId, request.transferToWarehouseId, resolvedLot, organizationId)
+        validateAndProcessSerials(
+            product,
+            type,
+            quantity,
+            request.serialNumbers,
+            request.warehouseId,
+            request.transferToWarehouseId,
+            resolvedLot,
+            organizationId,
+        )
         val sourceWarehouse = loadActiveWarehouse(request.warehouseId, organizationId)
         val destWarehouse =
             if (type == StockMovementType.TRANSFER && request.transferToWarehouseId != null) {
@@ -424,9 +444,13 @@ class StockMovementService(
             throw BusinessRuleException("Expected $requiredCount serial numbers but got ${serialNumbers.size}")
         }
 
-        val existingSerials = productSerialRepository.findByOrganizationIdAndProductIdAndSerialNumberIn(
-            organizationId, product.id, serialNumbers
-        ).associateBy { it.serialNumber }
+        val existingSerials =
+            productSerialRepository
+                .findByOrganizationIdAndProductIdAndSerialNumberIn(
+                    organizationId,
+                    product.id,
+                    serialNumbers,
+                ).associateBy { it.serialNumber }
 
         when (type) {
             StockMovementType.RECEIPT, StockMovementType.OPENING_BALANCE -> {
@@ -435,12 +459,13 @@ class StockMovementService(
                     if (existing != null && existing.status == SerialStatus.IN_STOCK) {
                         throw BusinessRuleException("Serial number '$sn' is already in stock")
                     }
-                    val record = existing ?: ProductSerial(
-                        organizationId = organizationId,
-                        productId = product.id,
-                        serialNumber = sn,
-                        status = SerialStatus.IN_STOCK
-                    )
+                    val record =
+                        existing ?: ProductSerial(
+                            organizationId = organizationId,
+                            productId = product.id,
+                            serialNumber = sn,
+                            status = SerialStatus.IN_STOCK,
+                        )
                     record.status = SerialStatus.IN_STOCK
                     record.currentWarehouseId = sourceWarehouseId
                     record.lotNumber = lotNumber
@@ -449,8 +474,9 @@ class StockMovementService(
             }
             StockMovementType.ISSUE, StockMovementType.WIP_ISSUE -> {
                 for (sn in serialNumbers) {
-                    val existing = existingSerials[sn]
-                        ?: throw BusinessRuleException("Serial number '$sn' does not exist")
+                    val existing =
+                        existingSerials[sn]
+                            ?: throw BusinessRuleException("Serial number '$sn' does not exist")
                     if (existing.status != SerialStatus.IN_STOCK) {
                         throw BusinessRuleException("Serial number '$sn' is not in stock")
                     }
@@ -464,8 +490,9 @@ class StockMovementService(
             }
             StockMovementType.TRANSFER -> {
                 for (sn in serialNumbers) {
-                    val existing = existingSerials[sn]
-                        ?: throw BusinessRuleException("Serial number '$sn' does not exist")
+                    val existing =
+                        existingSerials[sn]
+                            ?: throw BusinessRuleException("Serial number '$sn' does not exist")
                     if (existing.status != SerialStatus.IN_STOCK) {
                         throw BusinessRuleException("Serial number '$sn' is not in stock")
                     }
@@ -483,12 +510,13 @@ class StockMovementService(
                         if (existing != null && existing.status == SerialStatus.IN_STOCK) {
                             throw BusinessRuleException("Serial number '$sn' is already in stock")
                         }
-                        val record = existing ?: ProductSerial(
-                            organizationId = organizationId,
-                            productId = product.id,
-                            serialNumber = sn,
-                            status = SerialStatus.IN_STOCK
-                        )
+                        val record =
+                            existing ?: ProductSerial(
+                                organizationId = organizationId,
+                                productId = product.id,
+                                serialNumber = sn,
+                                status = SerialStatus.IN_STOCK,
+                            )
                         record.status = SerialStatus.IN_STOCK
                         record.currentWarehouseId = sourceWarehouseId
                         record.lotNumber = lotNumber
@@ -496,8 +524,9 @@ class StockMovementService(
                     }
                 } else {
                     for (sn in serialNumbers) {
-                        val existing = existingSerials[sn]
-                            ?: throw BusinessRuleException("Serial number '$sn' does not exist")
+                        val existing =
+                            existingSerials[sn]
+                                ?: throw BusinessRuleException("Serial number '$sn' does not exist")
                         if (existing.status != SerialStatus.IN_STOCK) {
                             throw BusinessRuleException("Serial number '$sn' is not in stock")
                         }
@@ -517,12 +546,13 @@ class StockMovementService(
                     if (existing != null && existing.status == SerialStatus.IN_STOCK) {
                         throw BusinessRuleException("Serial number '$sn' is already in stock")
                     }
-                    val record = existing ?: ProductSerial(
-                        organizationId = organizationId,
-                        productId = product.id,
-                        serialNumber = sn,
-                        status = SerialStatus.IN_STOCK
-                    )
+                    val record =
+                        existing ?: ProductSerial(
+                            organizationId = organizationId,
+                            productId = product.id,
+                            serialNumber = sn,
+                            status = SerialStatus.IN_STOCK,
+                        )
                     record.status = SerialStatus.IN_STOCK
                     record.currentWarehouseId = sourceWarehouseId
                     record.lotNumber = lotNumber

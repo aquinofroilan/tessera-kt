@@ -16,7 +16,7 @@ import java.util.UUID
 enum class SerialStatus {
     IN_STOCK,
     ISSUED,
-    ADJUSTED_OUT
+    ADJUSTED_OUT,
 }
 
 @Entity
