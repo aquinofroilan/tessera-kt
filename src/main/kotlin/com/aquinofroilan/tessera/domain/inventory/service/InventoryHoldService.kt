@@ -7,7 +7,7 @@ import com.aquinofroilan.tessera.domain.inventory.model.SerialStatus
 import com.aquinofroilan.tessera.domain.inventory.repository.InventoryHoldRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.ProductRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.ProductSerialRepository
-import com.aquinofroilan.tessera.domain.inventory.repository.StockOnHandQueries
+import com.aquinofroilan.tessera.domain.inventory.repository.StockOnHandRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import org.springframework.stereotype.Service
@@ -21,7 +21,7 @@ class InventoryHoldService(
     private val inventoryHoldRepository: InventoryHoldRepository,
     private val productRepository: ProductRepository,
     private val productSerialRepository: ProductSerialRepository,
-    private val stockOnHandQueries: StockOnHandQueries,
+    private val stockOnHandQueries: StockOnHandRepository,
 ) {
     @Transactional
     fun placeOnHold(

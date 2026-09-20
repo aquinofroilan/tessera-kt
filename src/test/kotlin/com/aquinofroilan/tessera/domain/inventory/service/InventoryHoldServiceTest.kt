@@ -9,7 +9,7 @@ import com.aquinofroilan.tessera.domain.inventory.model.SerialStatus
 import com.aquinofroilan.tessera.domain.inventory.repository.InventoryHoldRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.ProductRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.ProductSerialRepository
-import com.aquinofroilan.tessera.domain.inventory.repository.StockOnHandQueries
+import com.aquinofroilan.tessera.domain.inventory.repository.StockOnHandRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -38,7 +38,7 @@ class InventoryHoldServiceTest {
     private lateinit var productSerialRepository: ProductSerialRepository
 
     @Mock
-    private lateinit var stockOnHandQueries: StockOnHandQueries
+    private lateinit var stockOnHandQueries: StockOnHandRepository
 
     private lateinit var service: InventoryHoldService
 
