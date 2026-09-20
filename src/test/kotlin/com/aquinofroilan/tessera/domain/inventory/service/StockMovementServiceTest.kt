@@ -34,6 +34,7 @@ class StockMovementServiceTest {
     private lateinit var inventoryCostingService: InventoryCostingService
     private lateinit var inventoryPostingService: InventoryPostingService
     private lateinit var productRepository: com.aquinofroilan.tessera.domain.inventory.repository.ProductRepository
+    private lateinit var productSerialRepository: com.aquinofroilan.tessera.domain.inventory.repository.ProductSerialRepository
 
     private val orgId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
     private val userId = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
@@ -49,8 +50,10 @@ class StockMovementServiceTest {
         inventoryCostingService = mock(InventoryCostingService::class.java)
         inventoryPostingService = mock(InventoryPostingService::class.java)
         productRepository = mock(com.aquinofroilan.tessera.domain.inventory.repository.ProductRepository::class.java)
+        productSerialRepository = mock(com.aquinofroilan.tessera.domain.inventory.repository.ProductSerialRepository::class.java)
         whenever(stockOnHandRepository.applyDelta(any(), any(), any(), anyOrNull(), any(), any())).thenReturn(true)
         whenever(inventoryCostingService.apply(any())).thenReturn(BigDecimal.ZERO)
+        whenever(productSerialRepository.findByOrganizationIdAndProductIdAndSerialNumberIn(any(), any(), any())).thenReturn(emptyList())
 
         // default mock product so validation passes
         val mockProduct =
@@ -62,6 +65,7 @@ class StockMovementServiceTest {
                 priceCurrency = "USD",
                 organizationId = orgId,
                 isLotTracked = false,
+                isSerialized = false,
             )
         whenever(productRepository.findById(any())).thenReturn(Optional.of(mockProduct))
 
@@ -73,6 +77,7 @@ class StockMovementServiceTest {
                 inventoryCostingService,
                 inventoryPostingService,
                 productRepository,
+                productSerialRepository,
             )
     }
 

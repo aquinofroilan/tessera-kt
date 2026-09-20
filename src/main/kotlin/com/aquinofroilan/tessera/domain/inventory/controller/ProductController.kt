@@ -97,6 +97,7 @@ class ProductController(
             taxGroupId = taxGroupId,
             organizationId = organizationId,
             isLotTracked = isLotTracked,
+            isSerialized = isSerialized,
             isActive = isActive,
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),
