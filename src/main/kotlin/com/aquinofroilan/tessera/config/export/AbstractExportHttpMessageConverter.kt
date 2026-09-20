@@ -1,5 +1,11 @@
 package com.aquinofroilan.tessera.config.export
 
+import com.aquinofroilan.tessera.domain.finance.dto.ApAgingReportResponse
+import com.aquinofroilan.tessera.domain.finance.dto.ArAgingReportResponse
+import com.aquinofroilan.tessera.domain.finance.dto.BalanceSheetResponse
+import com.aquinofroilan.tessera.domain.finance.dto.ComparativeTrialBalanceResponse
+import com.aquinofroilan.tessera.domain.finance.dto.IncomeStatementResponse
+import com.aquinofroilan.tessera.domain.finance.dto.TrialBalanceResponse
 import org.springframework.data.domain.Page
 import org.springframework.http.HttpInputMessage
 import org.springframework.http.HttpOutputMessage
@@ -12,10 +18,15 @@ abstract class AbstractExportHttpMessageConverter(
     supportedMediaType: MediaType,
     private val objectMapper: ObjectMapper,
 ) : AbstractHttpMessageConverter<Any>(supportedMediaType) {
-    override fun supports(clazz: Class<*>): Boolean {
-        // We support Lists and Pages
-        return List::class.java.isAssignableFrom(clazz) || Page::class.java.isAssignableFrom(clazz)
-    }
+    override fun supports(clazz: Class<*>): Boolean =
+        List::class.java.isAssignableFrom(clazz) ||
+            Page::class.java.isAssignableFrom(clazz) ||
+            clazz == TrialBalanceResponse::class.java ||
+            clazz == ComparativeTrialBalanceResponse::class.java ||
+            clazz == IncomeStatementResponse::class.java ||
+            clazz == BalanceSheetResponse::class.java ||
+            clazz == ArAgingReportResponse::class.java ||
+            clazz == ApAgingReportResponse::class.java
 
     override fun readInternal(
         clazz: Class<out Any>,
@@ -30,6 +41,12 @@ abstract class AbstractExportHttpMessageConverter(
             when (t) {
                 is Page<*> -> t.content
                 is List<*> -> t
+                is TrialBalanceResponse -> FinancialStatementFlattener.flattenTrialBalance(t)
+                is ComparativeTrialBalanceResponse -> FinancialStatementFlattener.flattenComparativeTrialBalance(t)
+                is IncomeStatementResponse -> FinancialStatementFlattener.flattenIncomeStatement(t)
+                is BalanceSheetResponse -> FinancialStatementFlattener.flattenBalanceSheet(t)
+                is ArAgingReportResponse -> FinancialStatementFlattener.flattenArAging(t)
+                is ApAgingReportResponse -> FinancialStatementFlattener.flattenApAging(t)
                 else -> emptyList<Any>()
             }
 

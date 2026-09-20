@@ -70,6 +70,22 @@ interface JournalEntryRepository :
         date: LocalDate,
     ): List<JournalEntry>
 
+    @org.springframework.data.jpa.repository.Query(
+        """
+        SELECT j FROM JournalEntry j
+        JOIN j.lines l
+        WHERE j.organizationId = :organizationId
+        AND j.status = 'POSTED'
+        AND l.accountId = :accountId
+        ORDER BY j.date DESC, j.createdAt DESC
+    """,
+    )
+    fun findRecentByAccount(
+        organizationId: java.util.UUID,
+        accountId: java.util.UUID,
+        pageable: org.springframework.data.domain.Pageable,
+    ): List<JournalEntry>
+
     fun countByOrganizationId(organizationId: java.util.UUID): Long
 
     fun existsByOrganizationIdAndSourceReference(

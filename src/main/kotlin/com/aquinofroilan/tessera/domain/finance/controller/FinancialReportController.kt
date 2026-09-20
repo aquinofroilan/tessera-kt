@@ -22,6 +22,15 @@ class FinancialReportController(
     private val financialReportService: FinancialReportService,
     private val authContext: AuthenticationContext,
 ) {
+    @GetMapping("/cash-bank-summary")
+    @PreAuthorize("hasAuthority('journal:read')")
+    fun getCashBankSummary(
+        @CurrentOrganizationId orgId: UUID,
+    ): ResponseEntity<Any> {
+        val report = financialReportService.getCashAndBankSummary(orgId)
+        return ResponseEntity.ok(report)
+    }
+
     @GetMapping("/trial-balance")
     @PreAuthorize("hasAuthority('journal:read')")
     fun getTrialBalance(
