@@ -46,7 +46,7 @@ class ProductService(
                 priceCurrency = priceCurrency,
                 taxGroupId = request.taxGroupId,
                 organizationId = organizationId,
-                isLotTracked = request.isLotTracked,
+                isLotTracked = request.isLotTracked ?: false,
             )
 
         return try {

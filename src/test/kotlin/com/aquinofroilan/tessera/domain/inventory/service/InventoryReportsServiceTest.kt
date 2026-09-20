@@ -52,7 +52,7 @@ class InventoryReportsServiceTest {
     fun `stockOnHand with asOfDate replays movements`() {
         val asOf = LocalDateTime.of(2026, 5, 1, 0, 0)
         `when`(
-            stockMovementRepository.listMovements(eq(orgId), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), eq(asOf)),
+            stockMovementRepository.listMovements(eq(orgId), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), eq(asOf), anyOrNull()),
         ).thenReturn(
             listOf(
                 movement(
@@ -134,6 +134,7 @@ class InventoryReportsServiceTest {
                 eq(orgId),
                 eq(java.util.UUID.fromString("c2cf5eda-4c7a-30a7-9e0b-be843869ca89")),
                 eq(java.util.UUID.fromString("c91d2c12-b2b4-3634-a3bb-d0ff561af4ff")),
+                anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),
                 anyOrNull(),
