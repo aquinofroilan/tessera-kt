@@ -62,4 +62,11 @@ class InventoryReportsController(
     fun lowStock(
         @CurrentOrganizationId orgId: UUID,
     ): ResponseEntity<Any> = ResponseEntity.ok(reorderRuleService.lowStockReport(orgId))
+
+    @GetMapping("/expiry")
+    @PreAuthorize("hasAuthority('inventory:read')")
+    fun expiryReport(
+        @CurrentOrganizationId orgId: UUID,
+        @RequestParam(defaultValue = "30") daysUntilExpiry: Int,
+    ): ResponseEntity<Any> = ResponseEntity.ok(inventoryReportsService.expiryReport(orgId, daysUntilExpiry))
 }

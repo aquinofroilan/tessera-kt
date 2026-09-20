@@ -39,6 +39,8 @@ class Product(
     var isLotTracked: Boolean = false,
     @Column(name = "is_serialized")
     var isSerialized: Boolean = false,
+    @Column(name = "has_expiry")
+    var hasExpiry: Boolean = false,
     @Column(name = "is_active")
     var isActive: Boolean = true,
     @CreatedDate
