@@ -12,4 +12,9 @@ interface StockMovementRepository :
         organizationId: java.util.UUID,
         reference: String,
     ): List<StockMovement>
+
+    fun findByOrganizationIdAndLotNumberOrderByOccurredAtAsc(
+        organizationId: java.util.UUID,
+        lotNumber: String,
+    ): List<StockMovement>
 }

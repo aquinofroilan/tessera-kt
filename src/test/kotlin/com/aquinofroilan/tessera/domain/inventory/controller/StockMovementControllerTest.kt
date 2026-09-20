@@ -180,7 +180,7 @@ class StockMovementControllerTest {
 
     @Test
     fun `GET movements should return 200`() {
-        `when`(stockMovementService.listMovements(any(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull()))
+        `when`(stockMovementService.listMovements(any(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull()))
             .thenReturn(listOf(mockMovement()))
         mockMvc
             .perform(get("/api/v1/inventory/movements"))
@@ -190,7 +190,7 @@ class StockMovementControllerTest {
 
     @Test
     fun `GET stock-on-hand should return quantity`() {
-        `when`(stockMovementService.onHand(any(), any(), any())).thenReturn(BigDecimal("42"))
+        `when`(stockMovementService.onHand(any(), any(), any(), anyOrNull())).thenReturn(BigDecimal("42"))
         mockMvc
             .perform(
                 get("/api/v1/inventory/stock-on-hand")

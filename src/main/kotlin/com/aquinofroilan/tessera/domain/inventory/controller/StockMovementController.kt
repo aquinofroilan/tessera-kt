@@ -68,8 +68,9 @@ class StockMovementController(
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         to: LocalDateTime?,
+        @RequestParam(required = false) lotNumber: String?,
     ): ResponseEntity<Any> {
-        val movements = stockMovementService.listMovements(orgId, productId, warehouseId, type, from, to)
+        val movements = stockMovementService.listMovements(orgId, productId, warehouseId, type, from, to, lotNumber)
         return ResponseEntity.ok(movements.map { it.toResponse() })
     }
 
@@ -79,9 +80,31 @@ class StockMovementController(
         @CurrentOrganizationId orgId: UUID,
         @RequestParam productId: java.util.UUID,
         @RequestParam warehouseId: java.util.UUID,
+        @RequestParam(required = false) lotNumber: String?,
     ): ResponseEntity<Any> {
-        val qty = stockMovementService.onHand(orgId, productId, warehouseId)
+        val qty = stockMovementService.onHand(orgId, productId, warehouseId, lotNumber)
         return ResponseEntity.ok(OnHandResponse(productId = productId, warehouseId = warehouseId, quantity = qty))
+    }
+
+    @GetMapping("/stock-on-hand/lots")
+    @PreAuthorize("hasAuthority('inventory:read')")
+    fun onHandLots(
+        @CurrentOrganizationId orgId: UUID,
+        @RequestParam productId: java.util.UUID,
+        @RequestParam warehouseId: java.util.UUID,
+    ): ResponseEntity<Any> {
+        val breakdown = stockMovementService.getLotBreakdown(orgId, productId, warehouseId)
+        return ResponseEntity.ok(breakdown)
+    }
+
+    @GetMapping("/lots/{lotNumber}/genealogy")
+    @PreAuthorize("hasAuthority('inventory:read')")
+    fun lotGenealogy(
+        @CurrentOrganizationId orgId: UUID,
+        @PathVariable lotNumber: String,
+    ): ResponseEntity<Any> {
+        val movements = stockMovementService.getLotGenealogy(orgId, lotNumber)
+        return ResponseEntity.ok(movements.map { it.toResponse() })
     }
 
     private fun StockMovement.toResponse() =
@@ -91,6 +114,7 @@ class StockMovementController(
             productId = productId,
             warehouseId = warehouseId,
             transferToWarehouseId = transferToWarehouseId,
+            lotNumber = lotNumber,
             quantity = quantity,
             unitCost = unitCost,
             reference = reference,
