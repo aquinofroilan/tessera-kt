@@ -56,6 +56,7 @@ class SecurityConfig(
                 it.requestMatchers("/auth/api-keys", "/auth/api-keys/**").authenticated()
                 it.requestMatchers("/finance/**").authenticated()
                 it.requestMatchers("/auth/**").permitAll()
+                it.requestMatchers(HttpMethod.POST, "/api/v1/oauth2/token").permitAll()
                 it.requestMatchers("/health/**").permitAll()
                 it.requestMatchers("/graphql").permitAll()
                 if (environment.acceptsProfiles(Profiles.of("dev", "test"))) {
