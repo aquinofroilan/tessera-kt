@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "com.aquinofroilan"
-version = "1.4.0"
+version = "1.7.0"
 description = "Tessera an ERP System"
 
 java {
