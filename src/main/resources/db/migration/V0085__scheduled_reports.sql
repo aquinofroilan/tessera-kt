@@ -1,6 +1,6 @@
 CREATE TABLE scheduled_reports (
     id UUID PRIMARY KEY,
-    organization_id UUID NOT NULL REFERENCES organizations(id),
+    organization_id UUID NOT NULL REFERENCES organizations(uuid),
     name VARCHAR(255) NOT NULL,
     report_type VARCHAR(255) NOT NULL,
     format VARCHAR(50) NOT NULL,
