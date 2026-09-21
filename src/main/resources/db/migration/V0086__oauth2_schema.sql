@@ -15,7 +15,7 @@ CREATE TABLE oauth2_codes (
     code VARCHAR(100) PRIMARY KEY,
     client_id VARCHAR(100) NOT NULL REFERENCES oauth2_clients(client_id),
     organization_id UUID NOT NULL REFERENCES organizations(uuid),
-    user_id UUID NOT NULL REFERENCES users(id),
+    user_id UUID NOT NULL REFERENCES users(uuid),
     scopes JSONB NOT NULL,
     redirect_uri VARCHAR(255) NOT NULL,
     expires_at TIMESTAMP NOT NULL,
