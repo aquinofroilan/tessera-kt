@@ -1,6 +1,8 @@
 package com.aquinofroilan.tessera.domain.finance.service
 
 import com.aquinofroilan.tessera.domain.finance.dto.BalanceSheetResponse
+import com.aquinofroilan.tessera.domain.finance.dto.CashBankActivityLine
+import com.aquinofroilan.tessera.domain.finance.dto.CashBankSummaryResponse
 import com.aquinofroilan.tessera.domain.finance.dto.ComparativePeriodMeta
 import com.aquinofroilan.tessera.domain.finance.dto.ComparativeTrialBalanceResponse
 import com.aquinofroilan.tessera.domain.finance.dto.IncomeStatementResponse
@@ -11,6 +13,7 @@ import com.aquinofroilan.tessera.domain.finance.model.AccountType
 import com.aquinofroilan.tessera.domain.finance.repository.AccountRepository
 import com.aquinofroilan.tessera.domain.finance.repository.JournalEntryRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -21,6 +24,52 @@ class FinancialReportService(
     private val accountRepository: AccountRepository,
     private val journalEntryService: JournalEntryService,
 ) {
+    fun getCashAndBankSummary(organizationId: java.util.UUID): List<CashBankSummaryResponse> {
+        val accounts =
+            accountRepository
+                .findByOrganizationIdAndIsActive(organizationId, true)
+                .filter {
+                    it.type == AccountType.ASSET &&
+                        (it.name.contains("Cash", ignoreCase = true) || it.name.contains("Bank", ignoreCase = true))
+                }
+
+        return accounts
+            .map { account ->
+                val balance = journalEntryService.getAccountBalance(account.id, organizationId)
+                val recentEntries =
+                    journalEntryRepository.findRecentByAccount(
+                        organizationId,
+                        account.id,
+                        PageRequest.of(0, 5),
+                    )
+
+                val recentActivity =
+                    recentEntries
+                        .flatMap { entry ->
+                            entry.lines.filter { it.accountId == account.id }.map { line ->
+                                CashBankActivityLine(
+                                    journalEntryId = entry.id,
+                                    entryDate = entry.date.atStartOfDay(),
+                                    description = entry.description,
+                                    debit = line.debit,
+                                    credit = line.credit,
+                                    balanceAfter = null,
+                                )
+                            }
+                        }.sortedByDescending { it.entryDate }
+                        .take(5)
+
+                CashBankSummaryResponse(
+                    accountId = account.id,
+                    accountCode = account.code,
+                    accountName = account.name,
+                    type = account.type.name,
+                    currentBalance = balance.balance,
+                    recentActivity = recentActivity,
+                )
+            }.sortedBy { it.accountCode }
+    }
+
     fun getComparativeTrialBalance(
         organizationId: java.util.UUID,
         asOfDate: LocalDate?,
