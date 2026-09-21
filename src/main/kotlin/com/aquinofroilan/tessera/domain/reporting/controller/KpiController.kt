@@ -9,6 +9,7 @@ import com.aquinofroilan.tessera.domain.reporting.model.KpiDefinition
 import com.aquinofroilan.tessera.domain.reporting.model.KpiValue
 import com.aquinofroilan.tessera.domain.reporting.service.KpiService
 import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -25,6 +26,7 @@ import java.util.UUID
 @RestController
 @RequestMapping("/api/v1/reporting/kpis")
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
+@Tag(name = "KPI Tracking", description = "Endpoints for managing and recording Key Performance Indicators")
 class KpiController(
     private val kpiService: KpiService,
 ) {
