@@ -30,7 +30,12 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.util.UUID
 
 @WebMvcTest(controllers = [OAuth2Controller::class])
-@Import(com.aquinofroilan.tessera.config.WebMvcConfig::class, com.aquinofroilan.tessera.aspect.LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
+@Import(
+    com.aquinofroilan.tessera.config.WebMvcConfig::class,
+    com.aquinofroilan.tessera.aspect.LoggingAspect::class,
+    TestSecurityConfig::class,
+    TesseraPermissionEvaluator::class,
+)
 @ActiveProfiles("test")
 class OAuth2ControllerTest {
     @Autowired
