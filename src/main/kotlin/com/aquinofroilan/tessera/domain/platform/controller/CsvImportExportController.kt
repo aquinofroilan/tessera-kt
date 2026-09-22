@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile
 import java.util.UUID
 
 @RestController
-@RequestMapping("/io/csv")
+@RequestMapping("/api/v1/io/csv")
 @Loggable(logParameters = false, logReturnValue = false, level = LogLevel.INFO)
 class CsvImportExportController(
     private val csvService: CsvImportExportService,

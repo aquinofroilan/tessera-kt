@@ -22,7 +22,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
  * client doesn't have to make a second request to bootstrap.
  */
 @RestController
-@RequestMapping("/notifications")
+@RequestMapping("/api/v1/notifications")
 class NotificationStreamController(
     private val notificationService: NotificationService,
     private val streamRegistry: NotificationStreamRegistry,
