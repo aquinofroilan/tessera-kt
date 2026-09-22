@@ -11,12 +11,13 @@ import com.stripe.net.Webhook
 import com.stripe.param.checkout.SessionCreateParams
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
 @Service
 class StripeGatewayServiceImpl(
-    private val orchestrator: PaymentOrchestrator,
+    @Lazy private val orchestrator: PaymentOrchestrator,
     @Value("\${stripe.secret-key:sk_test_placeholder}") private val secretKey: String,
     @Value("\${stripe.webhook-secret:whsec_placeholder}") private val webhookSecret: String,
 ) : PaymentGatewayService {
