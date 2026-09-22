@@ -57,6 +57,7 @@ class SecurityConfig(
                 it.requestMatchers("/finance/**").authenticated()
                 it.requestMatchers("/auth/**").permitAll()
                 it.requestMatchers(HttpMethod.POST, "/api/v1/oauth2/token").permitAll()
+                it.requestMatchers(HttpMethod.POST, "/api/v1/integrations/payments/webhooks/**").permitAll()
                 it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/docs").permitAll()
                 it.requestMatchers("/health/**").permitAll()
                 it.requestMatchers("/graphql").permitAll()
