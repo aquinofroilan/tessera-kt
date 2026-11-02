@@ -47,15 +47,33 @@ class SecurityConfig(
             .cors { it.configurationSource(corsConfigurationSource()) }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
-                it.requestMatchers("/auth/change-password").authenticated()
-                it.requestMatchers("/auth/sessions", "/auth/sessions/**").authenticated()
-                it.requestMatchers(HttpMethod.POST, "/auth/invitations").authenticated()
-                it.requestMatchers(HttpMethod.GET, "/auth/invitations").authenticated()
-                it.requestMatchers(HttpMethod.DELETE, "/auth/invitations/*").authenticated()
-                it.requestMatchers("/auth/organizations", "/auth/organizations/**").authenticated()
-                it.requestMatchers("/auth/api-keys", "/auth/api-keys/**").authenticated()
-                it.requestMatchers("/finance/**").authenticated()
-                it.requestMatchers("/auth/**").permitAll()
+                it.requestMatchers("/api/v1/auth/change-password", "/auth/change-password").authenticated()
+                it
+                    .requestMatchers(
+                        "/api/v1/auth/sessions",
+                        "/api/v1/auth/sessions/**",
+                        "/auth/sessions",
+                        "/auth/sessions/**",
+                    ).authenticated()
+                it.requestMatchers(HttpMethod.POST, "/api/v1/auth/invitations", "/auth/invitations").authenticated()
+                it.requestMatchers(HttpMethod.GET, "/api/v1/auth/invitations", "/auth/invitations").authenticated()
+                it.requestMatchers(HttpMethod.DELETE, "/api/v1/auth/invitations/*", "/auth/invitations/*").authenticated()
+                it
+                    .requestMatchers(
+                        "/api/v1/auth/organizations",
+                        "/api/v1/auth/organizations/**",
+                        "/auth/organizations",
+                        "/auth/organizations/**",
+                    ).authenticated()
+                it
+                    .requestMatchers(
+                        "/api/v1/auth/api-keys",
+                        "/api/v1/auth/api-keys/**",
+                        "/auth/api-keys",
+                        "/auth/api-keys/**",
+                    ).authenticated()
+                it.requestMatchers("/api/v1/finance/**", "/finance/**").authenticated()
+                it.requestMatchers("/api/v1/auth/**", "/auth/**").permitAll()
                 it.requestMatchers(HttpMethod.POST, "/api/v1/oauth2/token").permitAll()
                 it.requestMatchers("/health/**").permitAll()
                 it.requestMatchers("/graphql").permitAll()

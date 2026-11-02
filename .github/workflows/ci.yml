@@ -78,7 +78,7 @@ jobs:
               cat app.log
               exit 1
             fi
-            if curl -sf http://localhost:8080/api/health > /dev/null 2>&1; then
+            if curl -sf http://localhost:8080/health > /dev/null 2>&1; then
               echo "Application is up!"
               break
             fi
@@ -87,7 +87,7 @@ jobs:
           done
 
           echo "Testing health endpoint..."
-          HEALTH_RESPONSE=$(curl -sf http://localhost:8080/api/health)
+          HEALTH_RESPONSE=$(curl -sf http://localhost:8080/health)
           echo "Health response: $HEALTH_RESPONSE"
 
           if echo "$HEALTH_RESPONSE" | grep -q '"status":"UP"'; then

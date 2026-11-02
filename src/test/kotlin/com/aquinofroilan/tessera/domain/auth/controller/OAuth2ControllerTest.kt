@@ -156,4 +156,49 @@ class OAuth2ControllerTest {
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$.access_token").value("ts_api_testtoken"))
     }
+
+    @Test
+    fun `exchangeToken should accept form encoded requests`() {
+        val response =
+            TokenExchangeResponse(
+                access_token = "ts_api_testtoken",
+                expires_in = 3600,
+            )
+
+        whenever(oauth2Service.exchangeToken(any())).thenReturn(response)
+
+        mockMvc
+            .perform(
+                post("/api/v1/oauth2/token")
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .param("grant_type", "authorization_code")
+                    .param("code", "auth_code_xyz")
+                    .param("redirect_uri", "https://app.test.com/callback")
+                    .param("client_id", "client_123")
+                    .param("client_secret", "secret_abc"),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.access_token").value("ts_api_testtoken"))
+    }
+
+    @Test
+    fun `exchangeToken should accept password grant`() {
+        whenever(oauth2Service.exchangePasswordToken("test-user", "test-password")).thenReturn(
+            TokenExchangeResponse(
+                access_token = "ts_api_testtoken",
+                expires_in = 3600,
+            ),
+        )
+
+        mockMvc
+            .perform(
+                post("/api/v1/oauth2/token")
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .param("grant_type", "password")
+                    .param("username", "test-user")
+                    .param("password", "test-password"),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.access_token").value("ts_api_testtoken"))
+    }
 }

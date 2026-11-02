@@ -9,13 +9,16 @@ import com.aquinofroilan.tessera.domain.auth.dto.RegisterOAuth2ClientResponse
 import com.aquinofroilan.tessera.domain.auth.dto.TokenExchangeRequest
 import com.aquinofroilan.tessera.domain.auth.dto.TokenExchangeResponse
 import com.aquinofroilan.tessera.domain.auth.service.OAuth2Service
+import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
@@ -48,4 +51,35 @@ class OAuth2Controller(
     fun exchangeToken(
         @RequestBody request: TokenExchangeRequest,
     ): ResponseEntity<TokenExchangeResponse> = ResponseEntity.ok(oauth2Service.exchangeToken(request))
+
+    @PostMapping("/token", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
+    fun exchangeTokenForm(
+        @RequestParam("grant_type") grantType: String,
+        @RequestParam(required = false) code: String?,
+        @RequestParam("redirect_uri", required = false) redirectUri: String?,
+        @RequestParam("client_id", required = false) clientId: String?,
+        @RequestParam("client_secret", required = false) clientSecret: String?,
+        @RequestParam(required = false) username: String?,
+        @RequestParam(required = false) password: String?,
+    ): ResponseEntity<TokenExchangeResponse> =
+        if (grantType == "password") {
+            ResponseEntity.ok(
+                oauth2Service.exchangePasswordToken(
+                    username = username ?: throw BusinessRuleException("username is required"),
+                    password = password ?: throw BusinessRuleException("password is required"),
+                ),
+            )
+        } else {
+            ResponseEntity.ok(
+                oauth2Service.exchangeToken(
+                    TokenExchangeRequest(
+                        grantType = grantType,
+                        code = code ?: throw BusinessRuleException("code is required"),
+                        redirectUri = redirectUri ?: throw BusinessRuleException("redirect_uri is required"),
+                        clientId = clientId ?: throw BusinessRuleException("client_id is required"),
+                        clientSecret = clientSecret ?: throw BusinessRuleException("client_secret is required"),
+                    ),
+                ),
+            )
+        }
 }
