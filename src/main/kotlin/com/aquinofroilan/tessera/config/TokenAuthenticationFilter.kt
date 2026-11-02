@@ -100,7 +100,7 @@ class TokenAuthenticationFilter(
                 val apiKey = apiKeyService.authenticateByApiKey(token)
                 if (apiKey != null) {
                     val authorities = apiKey.permissions.map { SimpleGrantedAuthority(it) }
-                    val principal = ApiKeyPrincipal(apiKey.id, apiKey.name, apiKey.organizationId)
+                    val principal = ApiKeyPrincipal(apiKey.id, apiKey.name, apiKey.organizationId, apiKey.createdBy)
                     val authentication = UsernamePasswordAuthenticationToken(principal, null, authorities)
                     authentication.details = ApiKeyContext(apiKey.id, apiKey.organizationId)
                     SecurityContextHolder.getContext().authentication = authentication
