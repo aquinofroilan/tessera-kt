@@ -39,7 +39,7 @@ class User(
         orphanRemoval = true,
         fetch = FetchType.EAGER,
     )
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     var roleAssignments: List<RoleAssignment> = emptyList(),
     @CreatedDate
     @Column(name = "created_at")
