@@ -249,6 +249,23 @@ class AuthServiceTest {
     }
 
     @Test
+    fun `login should accept email as identifier`() {
+        val request = LoginRequest(username = "TEST@EXAMPLE.COM", password = "password123")
+        val user = createMockUser()
+
+        `when`(userRepository.findByUsername(request.username)).thenReturn(Optional.empty())
+        `when`(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user))
+        `when`(passwordEncoder.matches(request.password, user.passwordHash)).thenReturn(true)
+        `when`(sessionTokenRepository.save(any<SessionToken>())).thenReturn(createMockSessionToken())
+        `when`(refreshTokenRepository.save(any<RefreshToken>())).thenAnswer { it.arguments[0] }
+
+        val result = authService.login(request)
+
+        assertThat(result.username).isEqualTo(user.username)
+        verify(userRepository).findByEmail("test@example.com")
+    }
+
+    @Test
     fun `login should return auth response with access token and refresh token`() {
         val request = LoginRequest(username = "testuser", password = "password123")
         val user = createMockUser()

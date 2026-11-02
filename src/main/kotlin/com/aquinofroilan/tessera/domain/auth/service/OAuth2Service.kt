@@ -10,6 +10,8 @@ import com.aquinofroilan.tessera.domain.auth.model.OAuth2Client
 import com.aquinofroilan.tessera.domain.auth.model.OAuth2Code
 import com.aquinofroilan.tessera.domain.auth.repository.OAuth2ClientRepository
 import com.aquinofroilan.tessera.domain.auth.repository.OAuth2CodeRepository
+import com.aquinofroilan.tessera.domain.auth.repository.UserRepository
+import com.aquinofroilan.tessera.exception.AuthenticationException
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import com.aquinofroilan.tessera.security.Permissions
@@ -20,12 +22,14 @@ import java.security.SecureRandom
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.Base64
+import java.util.Locale
 import java.util.UUID
 
 @Service
 class OAuth2Service(
     private val clientRepository: OAuth2ClientRepository,
     private val codeRepository: OAuth2CodeRepository,
+    private val userRepository: UserRepository,
     private val apiKeyService: ApiKeyService,
     private val passwordEncoder: PasswordEncoder,
 ) {
@@ -158,6 +162,40 @@ class OAuth2Service(
         return TokenExchangeResponse(
             access_token = rawKey,
             expires_in = 31536000, // default 1 year for now, could be short-lived
+        )
+    }
+
+    @Transactional
+    fun exchangePasswordToken(
+        username: String,
+        password: String,
+    ): TokenExchangeResponse {
+        val user =
+            userRepository
+                .findByUsername(username)
+                .orElseGet {
+                    userRepository
+                        .findByEmail(username.lowercase(Locale.ROOT))
+                        .orElseThrow { AuthenticationException("Invalid username or password") }
+                }
+
+        if (!user.isActive || !passwordEncoder.matches(password, user.passwordHash)) {
+            throw AuthenticationException("Invalid username or password")
+        }
+
+        val (_, rawKey) =
+            apiKeyService.createApiKey(
+                name = "OAuth2 password grant: ${user.username}",
+                permissions = Permissions.ALL_PERMISSIONS.toList(),
+                organizationId = user.organizationId,
+                createdBy = user.uuid,
+                creatorPermissions = Permissions.ALL_PERMISSIONS.toSet(),
+                expiresAt = null,
+            )
+
+        return TokenExchangeResponse(
+            access_token = rawKey,
+            expires_in = 31536000,
         )
     }
 }
