@@ -15,8 +15,7 @@ data class CreateProductRequest(
     val name: String,
     @field:Size(max = 2000, message = "Description must be 2000 characters or fewer")
     val description: String? = null,
-    @field:Size(max = 128, message = "Category must be 128 characters or fewer")
-    val category: String? = null,
+    val categoryId: UUID? = null,
     @field:Size(max = 2048, message = "Image URL must be 2048 characters or fewer")
     val imageUrl: String? = null,
     @field:DecimalMin(value = "0.0", message = "List price must be zero or positive")
@@ -33,8 +32,7 @@ data class UpdateProductRequest(
     val name: String? = null,
     @field:Size(max = 2000, message = "Description must be 2000 characters or fewer")
     val description: String? = null,
-    @field:Size(max = 128, message = "Category must be 128 characters or fewer")
-    val category: String? = null,
+    val categoryId: UUID? = null,
     @field:Size(max = 2048, message = "Image URL must be 2048 characters or fewer")
     val imageUrl: String? = null,
     @field:DecimalMin(value = "0.0", message = "List price must be zero or positive")
@@ -51,7 +49,7 @@ data class ProductResponse(
     val sku: String,
     val name: String,
     val description: String?,
-    val category: String?,
+    val categoryId: UUID?,
     val imageUrl: String?,
     val listPrice: BigDecimal,
     val priceCurrency: String,

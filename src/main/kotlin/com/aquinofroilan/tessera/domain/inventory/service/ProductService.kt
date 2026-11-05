@@ -5,6 +5,7 @@ import com.aquinofroilan.tessera.domain.finance.service.TaxGroupService
 import com.aquinofroilan.tessera.domain.inventory.dto.CreateProductRequest
 import com.aquinofroilan.tessera.domain.inventory.dto.UpdateProductRequest
 import com.aquinofroilan.tessera.domain.inventory.model.Product
+import com.aquinofroilan.tessera.domain.inventory.repository.ProductCategoryRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.ProductRepository
 import com.aquinofroilan.tessera.domain.organization.repository.OrganizationRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
@@ -17,6 +18,7 @@ import java.util.UUID
 @Service
 class ProductService(
     private val productRepository: ProductRepository,
+    private val categoryRepository: ProductCategoryRepository,
     private val organizationRepository: OrganizationRepository,
     private val currencyService: CurrencyService,
     private val taxGroupService: TaxGroupService,
@@ -40,7 +42,7 @@ class ProductService(
                 sku = sku,
                 name = name,
                 description = request.description,
-                category = request.category,
+                categoryId = request.categoryId?.also { validateCategory(it, organizationId) },
                 imageUrl = request.imageUrl,
                 listPrice = request.listPrice,
                 priceCurrency = priceCurrency,
@@ -77,10 +79,10 @@ class ProductService(
 
     fun listProducts(
         organizationId: java.util.UUID,
-        category: String? = null,
+        categoryId: UUID? = null,
         isActive: Boolean = true,
         search: String? = null,
-    ): List<Product> = productRepository.search(organizationId, isActive, category, search)
+    ): List<Product> = productRepository.search(organizationId, isActive, categoryId, search)
 
     @Transactional
     fun updateProduct(
@@ -100,6 +102,9 @@ class ProductService(
         if (request.taxGroupId != null && request.taxGroupId != existing.taxGroupId) {
             validateTaxGroup(request.taxGroupId, organizationId)
         }
+        if (request.categoryId != null && request.categoryId != existing.categoryId) {
+            validateCategory(request.categoryId, organizationId)
+        }
 
         val newName =
             request.name?.let { requireNonBlankTrimmed(it, "Product name") } ?: existing.name
@@ -107,7 +112,7 @@ class ProductService(
         existing.apply {
             name = newName
             description = request.description ?: existing.description
-            category = request.category ?: existing.category
+            categoryId = request.categoryId ?: existing.categoryId
             imageUrl = request.imageUrl ?: existing.imageUrl
             listPrice = request.listPrice ?: existing.listPrice
             priceCurrency = newCurrency
@@ -160,6 +165,18 @@ class ProductService(
         if (!group.isActive) {
             throw BusinessRuleException("Tax group '${group.code}' is inactive")
         }
+    }
+
+    private fun validateCategory(
+        categoryId: UUID,
+        organizationId: UUID,
+    ) {
+        val category =
+            categoryRepository.findById(categoryId).orElseThrow {
+                ResourceNotFoundException("Product category not found")
+            }
+        if (category.organizationId != organizationId) throw ResourceNotFoundException("Product category not found")
+        if (!category.isActive) throw BusinessRuleException("Product category '${category.name}' is inactive")
     }
 
     private fun getBaseCurrency(organizationId: java.util.UUID): String =
