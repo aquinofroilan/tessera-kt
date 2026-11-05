@@ -25,9 +25,10 @@ class ProductCategoryService(
     ): ProductCategory {
         val name = request.name.trim()
         ensureUnique(name, organizationId)
-        val category = repository.save(
-            ProductCategory(organizationId = organizationId, name = name, description = request.description),
-        )
+        val category =
+            repository.save(
+                ProductCategory(organizationId = organizationId, name = name, description = request.description),
+            )
         auditService.logEvent(
             organizationId = organizationId,
             action = AuditAction.PRODUCT_CATEGORY_CREATED.name,
