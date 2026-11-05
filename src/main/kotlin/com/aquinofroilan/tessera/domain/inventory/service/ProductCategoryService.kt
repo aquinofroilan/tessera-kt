@@ -4,6 +4,9 @@ import com.aquinofroilan.tessera.domain.inventory.dto.CreateProductCategoryReque
 import com.aquinofroilan.tessera.domain.inventory.dto.UpdateProductCategoryRequest
 import com.aquinofroilan.tessera.domain.inventory.model.ProductCategory
 import com.aquinofroilan.tessera.domain.inventory.repository.ProductCategoryRepository
+import com.aquinofroilan.tessera.domain.organization.model.AuditAction
+import com.aquinofroilan.tessera.domain.organization.model.AuditCategory
+import com.aquinofroilan.tessera.domain.organization.service.OrganizationAuditService
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import org.springframework.stereotype.Service
@@ -13,6 +16,7 @@ import java.util.UUID
 @Service
 class ProductCategoryService(
     private val repository: ProductCategoryRepository,
+    private val auditService: OrganizationAuditService,
 ) {
     @Transactional
     fun create(
@@ -21,7 +25,18 @@ class ProductCategoryService(
     ): ProductCategory {
         val name = request.name.trim()
         ensureUnique(name, organizationId)
-        return repository.save(ProductCategory(organizationId = organizationId, name = name, description = request.description))
+        val category = repository.save(
+            ProductCategory(organizationId = organizationId, name = name, description = request.description),
+        )
+        auditService.logEvent(
+            organizationId = organizationId,
+            action = AuditAction.PRODUCT_CATEGORY_CREATED.name,
+            category = AuditCategory.INVENTORY,
+            entityType = "PRODUCT_CATEGORY",
+            entityId = category.id.toString(),
+            newValue = category.toAuditSnapshot(),
+        )
+        return category
     }
 
     fun list(
@@ -53,12 +68,23 @@ class ProductCategoryService(
         organizationId: UUID,
     ): ProductCategory {
         val category = get(id, organizationId)
+        val oldValue = category.toAuditSnapshot()
         val name = request.name?.trim() ?: category.name
         if (name != category.name) ensureUnique(name, organizationId)
         category.name = name
         category.description = request.description ?: category.description
         category.isActive = request.isActive ?: category.isActive
-        return repository.save(category)
+        val updated = repository.save(category)
+        auditService.logEvent(
+            organizationId = organizationId,
+            action = AuditAction.PRODUCT_CATEGORY_UPDATED.name,
+            category = AuditCategory.INVENTORY,
+            entityType = "PRODUCT_CATEGORY",
+            entityId = updated.id.toString(),
+            oldValue = oldValue,
+            newValue = updated.toAuditSnapshot(),
+        )
+        return updated
     }
 
     @Transactional
@@ -68,8 +94,19 @@ class ProductCategoryService(
     ): ProductCategory {
         val category = get(id, organizationId)
         if (!category.isActive) throw BusinessRuleException("Product category '${category.name}' is already inactive")
+        val oldValue = category.toAuditSnapshot()
         category.isActive = false
-        return repository.save(category)
+        val deactivated = repository.save(category)
+        auditService.logEvent(
+            organizationId = organizationId,
+            action = AuditAction.PRODUCT_CATEGORY_DEACTIVATED.name,
+            category = AuditCategory.INVENTORY,
+            entityType = "PRODUCT_CATEGORY",
+            entityId = deactivated.id.toString(),
+            oldValue = oldValue,
+            newValue = deactivated.toAuditSnapshot(),
+        )
+        return deactivated
     }
 
     private fun ensureUnique(
@@ -81,4 +118,12 @@ class ProductCategoryService(
             throw BusinessRuleException("Product category '$name' already exists in this organization")
         }
     }
+
+    private fun ProductCategory.toAuditSnapshot() =
+        mapOf(
+            "id" to id,
+            "name" to name,
+            "description" to description,
+            "isActive" to isActive,
+        )
 }
