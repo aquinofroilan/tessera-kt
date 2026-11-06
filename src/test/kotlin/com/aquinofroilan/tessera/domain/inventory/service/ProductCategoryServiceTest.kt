@@ -4,6 +4,7 @@ import com.aquinofroilan.tessera.domain.inventory.dto.CreateProductCategoryReque
 import com.aquinofroilan.tessera.domain.inventory.dto.UpdateProductCategoryRequest
 import com.aquinofroilan.tessera.domain.inventory.model.ProductCategory
 import com.aquinofroilan.tessera.domain.inventory.repository.ProductCategoryRepository
+import com.aquinofroilan.tessera.domain.organization.service.OrganizationAuditService
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import org.assertj.core.api.Assertions.assertThat
@@ -18,6 +19,7 @@ import java.util.UUID
 
 class ProductCategoryServiceTest {
     private lateinit var repository: ProductCategoryRepository
+    private lateinit var auditService: OrganizationAuditService
     private lateinit var service: ProductCategoryService
 
     private val organizationId = UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
@@ -26,7 +28,8 @@ class ProductCategoryServiceTest {
     @BeforeEach
     fun setUp() {
         repository = mock(ProductCategoryRepository::class.java)
-        service = ProductCategoryService(repository)
+        auditService = mock(OrganizationAuditService::class.java)
+        service = ProductCategoryService(repository, auditService)
     }
 
     @Test
