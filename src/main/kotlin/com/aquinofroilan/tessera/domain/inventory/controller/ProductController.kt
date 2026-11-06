@@ -45,11 +45,11 @@ class ProductController(
     @PreAuthorize("hasAuthority('inventory:read')")
     fun listProducts(
         @CurrentOrganizationId orgId: UUID,
-        @RequestParam(required = false) category: String?,
+        @RequestParam(required = false) categoryId: java.util.UUID?,
         @RequestParam(required = false, defaultValue = "true") isActive: Boolean,
         @RequestParam(required = false) search: String?,
     ): ResponseEntity<Any> {
-        val products = productService.listProducts(orgId, category, isActive, search)
+        val products = productService.listProducts(orgId, categoryId, isActive, search)
         return ResponseEntity.ok(products.map { it.toResponse() })
     }
 
@@ -90,7 +90,7 @@ class ProductController(
             sku = sku,
             name = name,
             description = description,
-            category = category,
+            categoryId = categoryId,
             imageUrl = imageUrl,
             listPrice = listPrice,
             priceCurrency = priceCurrency,

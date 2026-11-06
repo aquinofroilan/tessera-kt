@@ -54,6 +54,7 @@ enum class AuditCategory {
     LIFECYCLE,
     BILLING,
     FEATURE_FLAGS,
+    INVENTORY,
 }
 
 enum class AuditAction {
@@ -68,4 +69,7 @@ enum class AuditAction {
     MEMBER_JOINED,
     MEMBER_ROLE_CHANGED,
     MEMBER_REMOVED,
+    PRODUCT_CATEGORY_CREATED,
+    PRODUCT_CATEGORY_UPDATED,
+    PRODUCT_CATEGORY_DEACTIVATED,
 }

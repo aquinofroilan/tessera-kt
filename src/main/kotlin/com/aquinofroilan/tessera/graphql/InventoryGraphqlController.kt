@@ -69,10 +69,10 @@ class InventoryGraphqlController(
     @QueryMapping
     @PreAuthorize("hasAuthority('inventory:read')")
     fun products(
-        @Argument category: String?,
+        @Argument categoryId: java.util.UUID?,
         @Argument isActive: Boolean?,
         @Argument search: String?,
-    ): Any = support.unwrap(productController.listProducts(support.orgId(), category, isActive ?: true, search))
+    ): Any = support.unwrap(productController.listProducts(support.orgId(), categoryId, isActive ?: true, search))
 
     @QueryMapping
     @PreAuthorize("hasAuthority('inventory:read')")
