@@ -55,6 +55,7 @@ class SecurityConfig(
                 it.requestMatchers("/auth/organizations", "/auth/organizations/**").authenticated()
                 it.requestMatchers("/auth/api-keys", "/auth/api-keys/**").authenticated()
                 it.requestMatchers("/finance/**").authenticated()
+                it.requestMatchers(HttpMethod.POST, "/api/v1/auth/signin").permitAll()
                 it.requestMatchers("/auth/**").permitAll()
                 it.requestMatchers(HttpMethod.POST, "/api/v1/oauth2/token").permitAll()
                 it.requestMatchers(HttpMethod.POST, "/api/v1/integrations/payments/webhooks/**").permitAll()
