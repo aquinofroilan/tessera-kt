@@ -151,8 +151,12 @@ class OAuth2ControllerTest {
             .perform(
                 post("/api/v1/oauth2/token")
                     .with(csrf())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)),
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .param("grant_type", request.grantType)
+                    .param("code", request.code)
+                    .param("redirect_uri", request.redirectUri)
+                    .param("client_id", request.clientId)
+                    .param("client_secret", request.clientSecret),
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$.access_token").value("ts_api_testtoken"))
     }

@@ -11,11 +11,13 @@ import com.aquinofroilan.tessera.domain.auth.dto.TokenExchangeResponse
 import com.aquinofroilan.tessera.domain.auth.service.OAuth2Service
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
@@ -44,8 +46,23 @@ class OAuth2Controller(
     }
 
     // This endpoint must be publicly accessible (PermitAll in SecurityConfig)
-    @PostMapping("/token")
+    @PostMapping("/token", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     fun exchangeToken(
-        @RequestBody request: TokenExchangeRequest,
-    ): ResponseEntity<TokenExchangeResponse> = ResponseEntity.ok(oauth2Service.exchangeToken(request))
+        @RequestParam("grant_type") grantType: String,
+        @RequestParam("code") code: String,
+        @RequestParam("redirect_uri") redirectUri: String,
+        @RequestParam("client_id") clientId: String,
+        @RequestParam("client_secret") clientSecret: String,
+    ): ResponseEntity<TokenExchangeResponse> =
+        ResponseEntity.ok(
+            oauth2Service.exchangeToken(
+                TokenExchangeRequest(
+                    grantType = grantType,
+                    code = code,
+                    redirectUri = redirectUri,
+                    clientId = clientId,
+                    clientSecret = clientSecret,
+                ),
+            ),
+        )
 }
