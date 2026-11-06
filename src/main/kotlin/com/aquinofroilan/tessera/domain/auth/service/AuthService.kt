@@ -108,12 +108,9 @@ class AuthService(
         val user =
             userRepository
                 .findByUsername(request.username)
-                .orElseGet {
-                    userRepository
-                        .findByEmail(request.username.lowercase(Locale.ROOT))
-                        .orElseThrow { AuthenticationException("Invalid username or password") }
-                }
-        System.out.println(user)
+                .or { userRepository.findByEmailIgnoreCase(request.username) }
+                .orElseThrow { AuthenticationException("Invalid username or password") }
+
         if (!user.isActive) {
             throw AuthenticationException("User account is inactive")
         }
