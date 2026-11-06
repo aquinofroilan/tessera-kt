@@ -14,6 +14,7 @@ import com.aquinofroilan.tessera.domain.auth.service.ApiKeyService
 import com.aquinofroilan.tessera.domain.auth.service.AuthService
 import com.aquinofroilan.tessera.domain.finance.service.AccountService
 import com.aquinofroilan.tessera.domain.finance.service.JournalEntryService
+import com.aquinofroilan.tessera.domain.inventory.dto.CreateProductRequest
 import com.aquinofroilan.tessera.domain.inventory.model.Product
 import com.aquinofroilan.tessera.domain.inventory.service.ProductService
 import com.aquinofroilan.tessera.domain.organization.repository.OrganizationRepository
@@ -29,6 +30,8 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.context.annotation.Import
@@ -148,7 +151,12 @@ class ProductControllerTest {
 
     @Test
     fun `POST products should return 201 when created`() {
-        val product = createMockProduct()
+        val product =
+            createMockProduct().apply {
+                isLotTracked = true
+                isSerialized = true
+                hasExpiry = true
+            }
         `when`(productService.createProduct(any(), any())).thenReturn(product)
 
         mockMvc
@@ -160,14 +168,32 @@ class ProductControllerTest {
                             "sku": "WIDGET-001",
                             "name": "Widget",
                             "description": "A test widget",
-                            "category": "Hardware",
+                            "categoryId": "00000000-0000-0000-0000-000000000123",
                             "imageUrl": "https://example.com/image.jpg",
                             "listPrice": "99.99",
                             "priceCurrency": "USD",
-                            "taxGroupId": "00000000-0000-0000-0000-000000000199"
+                            "taxGroupId": "00000000-0000-0000-0000-000000000199",
+                            "isLotTracked": true,
+                            "isSerialized": true,
+                            "hasExpiry": true
                         }""",
                     ),
             ).andExpect(status().isCreated)
+            .andExpect(jsonPath("$.categoryId").value("00000000-0000-0000-0000-000000000123"))
+            .andExpect(jsonPath("$.isLotTracked").value(true))
+            .andExpect(jsonPath("$.isSerialized").value(true))
+            .andExpect(jsonPath("$.hasExpiry").value(true))
+            .andExpect(jsonPath("$.isActive").value(true))
+            .andExpect(jsonPath("$.listPrice").value(99.99))
+
+        val requestCaptor = argumentCaptor<CreateProductRequest>()
+        verify(productService).createProduct(requestCaptor.capture(), any())
+        org.assertj.core.api.Assertions
+            .assertThat(requestCaptor.firstValue.isLotTracked)
+            .isTrue()
+        org.assertj.core.api.Assertions
+            .assertThat(requestCaptor.firstValue.isSerialized)
+            .isTrue()
     }
 
     @Test
@@ -278,6 +304,14 @@ class ProductControllerTest {
             .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.sku").value("WIDGET-001"))
             .andExpect(jsonPath("$.name").value("Widget"))
+            .andExpect(jsonPath("$.categoryId").value("00000000-0000-0000-0000-000000000123"))
+            .andExpect(jsonPath("$.imageUrl").value("https://example.com/image.jpg"))
+            .andExpect(jsonPath("$.listPrice").value(99.99))
+            .andExpect(jsonPath("$.priceCurrency").value("USD"))
+            .andExpect(jsonPath("$.isLotTracked").value(false))
+            .andExpect(jsonPath("$.isSerialized").value(false))
+            .andExpect(jsonPath("$.hasExpiry").value(false))
+            .andExpect(jsonPath("$.isActive").value(true))
     }
 
     @Test
@@ -304,6 +338,8 @@ class ProductControllerTest {
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000199"))
             .andExpect(jsonPath("$.name").value("Updated Widget"))
+            .andExpect(jsonPath("$.categoryId").value("00000000-0000-0000-0000-000000000123"))
+            .andExpect(jsonPath("$.isActive").value(true))
     }
 
     @Test
