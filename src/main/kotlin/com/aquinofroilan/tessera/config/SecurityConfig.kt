@@ -73,6 +73,7 @@ class SecurityConfig(
                         "/auth/api-keys/**",
                     ).authenticated()
                 it.requestMatchers("/api/v1/finance/**", "/finance/**").authenticated()
+                it.requestMatchers(HttpMethod.POST, "/api/v1/auth/signin").permitAll()
                 it.requestMatchers("/api/v1/auth/**", "/auth/**").permitAll()
                 it.requestMatchers(HttpMethod.POST, "/api/v1/oauth2/token").permitAll()
                 it.requestMatchers(HttpMethod.POST, "/api/v1/integrations/payments/webhooks/**").permitAll()
