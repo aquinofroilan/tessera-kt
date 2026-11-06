@@ -2,6 +2,7 @@ package com.aquinofroilan.tessera.domain.inventory.dto
 
 import com.aquinofroilan.tessera.domain.inventory.model.ProductVariant
 import com.aquinofroilan.tessera.domain.inventory.model.UnitOfMeasure
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
@@ -65,28 +66,38 @@ data class UpdateProductVariantRequest(
     val name: String? = null,
     val skuSuffix: String? = null,
     val attributes: Map<String, Any>? = null,
+    @param:JsonProperty("isActive")
+    @get:JsonProperty("isActive")
     val isActive: Boolean? = null,
 )
 
 data class ProductVariantResponse(
     val id: UUID,
+    val organizationId: UUID,
     val productId: UUID,
     val code: String,
     val name: String,
     val skuSuffix: String?,
     val attributes: Map<String, Any>,
+    @param:JsonProperty("isActive")
+    @get:JsonProperty("isActive")
     val isActive: Boolean,
+    val createdAt: String?,
+    val updatedAt: String?,
 ) {
     companion object {
         fun from(v: ProductVariant) =
             ProductVariantResponse(
                 id = v.id,
+                organizationId = v.organizationId,
                 productId = v.productId,
                 code = v.code,
                 name = v.name,
                 skuSuffix = v.skuSuffix,
                 attributes = v.attributes,
                 isActive = v.isActive,
+                createdAt = v.createdAt?.toString(),
+                updatedAt = v.updatedAt?.toString(),
             )
     }
 }
