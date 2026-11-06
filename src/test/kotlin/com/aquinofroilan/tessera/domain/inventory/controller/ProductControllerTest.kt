@@ -28,9 +28,9 @@ import com.aquinofroilan.tessera.util.TokenHasher
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
-import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
@@ -151,11 +151,12 @@ class ProductControllerTest {
 
     @Test
     fun `POST products should return 201 when created`() {
-        val product = createMockProduct().apply {
-            isLotTracked = true
-            isSerialized = true
-            hasExpiry = true
-        }
+        val product =
+            createMockProduct().apply {
+                isLotTracked = true
+                isSerialized = true
+                hasExpiry = true
+            }
         `when`(productService.createProduct(any(), any())).thenReturn(product)
 
         mockMvc
@@ -187,8 +188,12 @@ class ProductControllerTest {
 
         val requestCaptor = argumentCaptor<CreateProductRequest>()
         verify(productService).createProduct(requestCaptor.capture(), any())
-        org.assertj.core.api.Assertions.assertThat(requestCaptor.firstValue.isLotTracked).isTrue()
-        org.assertj.core.api.Assertions.assertThat(requestCaptor.firstValue.isSerialized).isTrue()
+        org.assertj.core.api.Assertions
+            .assertThat(requestCaptor.firstValue.isLotTracked)
+            .isTrue()
+        org.assertj.core.api.Assertions
+            .assertThat(requestCaptor.firstValue.isSerialized)
+            .isTrue()
     }
 
     @Test
