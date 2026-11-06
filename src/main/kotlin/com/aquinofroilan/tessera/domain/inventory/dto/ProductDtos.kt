@@ -1,5 +1,6 @@
 package com.aquinofroilan.tessera.domain.inventory.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -22,7 +23,11 @@ data class CreateProductRequest(
     val listPrice: BigDecimal,
     val priceCurrency: String? = null,
     val taxGroupId: java.util.UUID? = null,
+    @param:JsonProperty("isLotTracked")
+    @get:JsonProperty("isLotTracked")
     val isLotTracked: Boolean? = false,
+    @param:JsonProperty("isSerialized")
+    @get:JsonProperty("isSerialized")
     val isSerialized: Boolean? = false,
     val hasExpiry: Boolean? = false,
 )
@@ -39,7 +44,11 @@ data class UpdateProductRequest(
     val listPrice: BigDecimal? = null,
     val priceCurrency: String? = null,
     val taxGroupId: java.util.UUID? = null,
+    @param:JsonProperty("isLotTracked")
+    @get:JsonProperty("isLotTracked")
     val isLotTracked: Boolean? = null,
+    @param:JsonProperty("isSerialized")
+    @get:JsonProperty("isSerialized")
     val isSerialized: Boolean? = null,
     val hasExpiry: Boolean? = null,
 )
@@ -55,9 +64,15 @@ data class ProductResponse(
     val priceCurrency: String,
     val taxGroupId: java.util.UUID?,
     val organizationId: java.util.UUID,
+    @param:JsonProperty("isLotTracked")
+    @get:JsonProperty("isLotTracked")
     val isLotTracked: Boolean,
+    @param:JsonProperty("isSerialized")
+    @get:JsonProperty("isSerialized")
     val isSerialized: Boolean,
     val hasExpiry: Boolean,
+    @param:JsonProperty("isActive")
+    @get:JsonProperty("isActive")
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,
