@@ -7,7 +7,7 @@ interface ProductQueries {
     fun search(
         organizationId: java.util.UUID,
         isActive: Boolean,
-        category: String?,
+        categoryId: java.util.UUID?,
         term: String?,
     ): List<Product>
 }
@@ -18,15 +18,15 @@ open class ProductQueriesImpl(
     override fun search(
         organizationId: java.util.UUID,
         isActive: Boolean,
-        category: String?,
+        categoryId: java.util.UUID?,
         term: String?,
     ): List<Product> {
         val cleaned = term?.trim()?.takeIf { it.isNotEmpty() }
         val jpql =
             buildString {
                 append("SELECT p FROM Product p WHERE p.organizationId = :orgId AND p.isActive = :active")
-                if (category != null) {
-                    append(" AND p.category = :category")
+                if (categoryId != null) {
+                    append(" AND p.categoryId = :categoryId")
                 }
                 if (cleaned != null) {
                     append(" AND (LOWER(p.sku) LIKE :q OR LOWER(p.name) LIKE :q)")
@@ -38,8 +38,8 @@ open class ProductQueriesImpl(
                 .createQuery(jpql, Product::class.java)
                 .setParameter("orgId", organizationId)
                 .setParameter("active", isActive)
-        if (category != null) {
-            query.setParameter("category", category)
+        if (categoryId != null) {
+            query.setParameter("categoryId", categoryId)
         }
         if (cleaned != null) {
             query.setParameter("q", "%${cleaned.lowercase()}%")

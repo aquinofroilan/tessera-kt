@@ -135,7 +135,7 @@ class ProductControllerTest {
             sku = "WIDGET-001",
             name = "Widget",
             description = "A test widget",
-            category = "Hardware",
+            categoryId = UUID.fromString("00000000-0000-0000-0000-000000000123"),
             imageUrl = "https://example.com/image.jpg",
             listPrice = BigDecimal("99.99"),
             priceCurrency = "USD",
@@ -240,7 +240,7 @@ class ProductControllerTest {
         `when`(productService.listProducts(any(), any(), any(), anyOrNull())).thenReturn(products)
 
         mockMvc
-            .perform(get("/api/v1/inventory/products").param("category", "Hardware"))
+            .perform(get("/api/v1/inventory/products").param("categoryId", "00000000-0000-0000-0000-000000000123"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
     }

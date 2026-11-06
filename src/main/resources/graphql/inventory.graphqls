@@ -1,5 +1,5 @@
 extend type Query {
-  products(category: String, isActive: Boolean, search: String): JSON!
+  products(categoryId: ID, isActive: Boolean, search: String): JSON!
   product(id: ID!): JSON!
 
   warehouses(isActive: Boolean, search: String): JSON!
