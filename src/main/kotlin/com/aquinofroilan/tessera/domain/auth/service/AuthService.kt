@@ -108,6 +108,7 @@ class AuthService(
         val user =
             userRepository
                 .findByUsername(request.username)
+                .or { userRepository.findByEmailIgnoreCase(request.username) }
                 .orElseThrow { AuthenticationException("Invalid username or password") }
 
         if (!user.isActive) {
