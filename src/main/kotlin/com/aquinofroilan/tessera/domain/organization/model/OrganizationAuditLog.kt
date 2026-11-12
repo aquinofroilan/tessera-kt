@@ -55,6 +55,7 @@ enum class AuditCategory {
     BILLING,
     FEATURE_FLAGS,
     INVENTORY,
+    FINANCE,
 }
 
 enum class AuditAction {
@@ -72,4 +73,7 @@ enum class AuditAction {
     PRODUCT_CATEGORY_CREATED,
     PRODUCT_CATEGORY_UPDATED,
     PRODUCT_CATEGORY_DEACTIVATED,
+    TAX_GROUP_CREATED,
+    TAX_GROUP_UPDATED,
+    TAX_GROUP_DEACTIVATED,
 }

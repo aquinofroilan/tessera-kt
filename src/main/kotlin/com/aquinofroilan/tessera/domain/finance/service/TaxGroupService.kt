@@ -9,6 +9,9 @@ import com.aquinofroilan.tessera.domain.finance.repository.AccountRepository
 import com.aquinofroilan.tessera.domain.finance.repository.JournalEntryRepository
 import com.aquinofroilan.tessera.domain.finance.repository.TaxGroupRepository
 import com.aquinofroilan.tessera.domain.finance.repository.TaxRateRepository
+import com.aquinofroilan.tessera.domain.organization.model.AuditAction
+import com.aquinofroilan.tessera.domain.organization.model.AuditCategory
+import com.aquinofroilan.tessera.domain.organization.service.OrganizationAuditService
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import org.springframework.dao.DuplicateKeyException
@@ -24,6 +27,7 @@ class TaxGroupService(
     private val taxRateRepository: TaxRateRepository,
     private val accountRepository: AccountRepository,
     private val journalEntryRepository: JournalEntryRepository,
+    private val auditService: OrganizationAuditService,
 ) {
     @Transactional
     fun createTaxGroup(
@@ -46,14 +50,24 @@ class TaxGroupService(
                 organizationId = organizationId,
             )
 
-        return try {
-            taxGroupRepository.save(taxGroup)
-        } catch (e: DuplicateKeyException) {
-            throw BusinessRuleException(
-                "Tax group code '${request.code}' already exists in this organization",
-                e,
-            )
-        }
+        val created =
+            try {
+                taxGroupRepository.save(taxGroup)
+            } catch (e: DuplicateKeyException) {
+                throw BusinessRuleException(
+                    "Tax group code '${request.code}' already exists in this organization",
+                    e,
+                )
+            }
+        auditService.logEvent(
+            organizationId = organizationId,
+            action = AuditAction.TAX_GROUP_CREATED.name,
+            category = AuditCategory.FINANCE,
+            entityType = "TAX_GROUP",
+            entityId = created.id.toString(),
+            newValue = created.toAuditSnapshot(),
+        )
+        return created
     }
 
     fun getTaxGroup(
@@ -105,6 +119,7 @@ class TaxGroupService(
         organizationId: java.util.UUID,
     ): TaxGroup {
         val taxGroup = getTaxGroup(taxGroupId, organizationId)
+        val oldValue = taxGroup.toAuditSnapshot()
 
         if (!taxGroup.isActive) {
             throw BusinessRuleException("Cannot update inactive tax group")
@@ -127,7 +142,17 @@ class TaxGroupService(
             this.combinedRate = combinedRate
         }
 
-        return taxGroupRepository.save(taxGroup)
+        val updated = taxGroupRepository.save(taxGroup)
+        auditService.logEvent(
+            organizationId = organizationId,
+            action = AuditAction.TAX_GROUP_UPDATED.name,
+            category = AuditCategory.FINANCE,
+            entityType = "TAX_GROUP",
+            entityId = updated.id.toString(),
+            oldValue = oldValue,
+            newValue = updated.toAuditSnapshot(),
+        )
+        return updated
     }
 
     @Transactional
@@ -141,8 +166,19 @@ class TaxGroupService(
             throw BusinessRuleException("Tax group is already inactive")
         }
 
+        val oldValue = taxGroup.toAuditSnapshot()
         taxGroup.isActive = false
-        return taxGroupRepository.save(taxGroup)
+        val deactivated = taxGroupRepository.save(taxGroup)
+        auditService.logEvent(
+            organizationId = organizationId,
+            action = AuditAction.TAX_GROUP_DEACTIVATED.name,
+            category = AuditCategory.FINANCE,
+            entityType = "TAX_GROUP",
+            entityId = deactivated.id.toString(),
+            oldValue = oldValue,
+            newValue = deactivated.toAuditSnapshot(),
+        )
+        return deactivated
     }
 
     fun calculateTaxAmount(
@@ -225,4 +261,15 @@ class TaxGroupService(
 
         return rates
     }
+
+    private fun TaxGroup.toAuditSnapshot() =
+        mapOf(
+            "id" to id,
+            "name" to name,
+            "code" to code,
+            "taxRateIds" to taxRateIds,
+            "combinedRate" to combinedRate,
+            "organizationId" to organizationId,
+            "isActive" to isActive,
+        )
 }
