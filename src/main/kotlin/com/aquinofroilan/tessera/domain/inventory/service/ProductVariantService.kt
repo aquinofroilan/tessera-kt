@@ -66,6 +66,12 @@ class ProductVariantService(
         return variantRepository.findByOrganizationIdAndProductId(organizationId, productId)
     }
 
+    fun listOrganizationVariants(
+        organizationId: UUID,
+        productId: UUID? = null,
+        isActive: Boolean? = null,
+    ): List<ProductVariant> = variantRepository.findScopedVariants(organizationId, productId, isActive)
+
     @Transactional
     fun updateVariant(
         id: UUID,
