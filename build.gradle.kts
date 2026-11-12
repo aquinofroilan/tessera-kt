@@ -59,7 +59,7 @@ dependencies {
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-authorization-server")
-    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.3.1")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-database-postgresql")
