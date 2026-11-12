@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.util.Optional
@@ -74,5 +75,16 @@ class ProductVariantServiceTest {
         assertThatThrownBy {
             service.createVariant(productId, CreateProductVariantRequest(code = "RED-L", name = "y"), orgId)
         }.isInstanceOf(BusinessRuleException::class.java)
+    }
+
+    @Test
+    fun `list organization variants forwards organization and optional filters`() {
+        val activeOnly = true
+        whenever(repository.findScopedVariants(orgId, productId, activeOnly)).thenReturn(emptyList())
+
+        val result = service.listOrganizationVariants(orgId, productId, activeOnly)
+
+        assertThat(result).isEmpty()
+        verify(repository).findScopedVariants(orgId, productId, activeOnly)
     }
 }
