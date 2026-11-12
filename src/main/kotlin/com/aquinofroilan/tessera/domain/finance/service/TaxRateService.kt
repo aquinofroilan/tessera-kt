@@ -5,6 +5,9 @@ import com.aquinofroilan.tessera.domain.finance.dto.UpdateTaxRateRequest
 import com.aquinofroilan.tessera.domain.finance.model.TaxRate
 import com.aquinofroilan.tessera.domain.finance.repository.TaxGroupRepository
 import com.aquinofroilan.tessera.domain.finance.repository.TaxRateRepository
+import com.aquinofroilan.tessera.domain.organization.model.AuditAction
+import com.aquinofroilan.tessera.domain.organization.model.AuditCategory
+import com.aquinofroilan.tessera.domain.organization.service.OrganizationAuditService
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import org.springframework.dao.DuplicateKeyException
@@ -16,6 +19,7 @@ import java.math.BigDecimal
 class TaxRateService(
     private val taxRateRepository: TaxRateRepository,
     private val taxGroupRepository: TaxGroupRepository,
+    private val auditService: OrganizationAuditService,
 ) {
     @Transactional
     fun createTaxRate(
@@ -31,14 +35,24 @@ class TaxRateService(
                 organizationId = organizationId,
             )
 
-        return try {
-            taxRateRepository.save(taxRate)
-        } catch (e: DuplicateKeyException) {
-            throw BusinessRuleException(
-                "Tax rate code '${request.code}' already exists in this organization",
-                e,
-            )
-        }
+        val created =
+            try {
+                taxRateRepository.save(taxRate)
+            } catch (e: DuplicateKeyException) {
+                throw BusinessRuleException(
+                    "Tax rate code '${request.code}' already exists in this organization",
+                    e,
+                )
+            }
+        auditService.logEvent(
+            organizationId = organizationId,
+            action = AuditAction.TAX_RATE_CREATED.name,
+            category = AuditCategory.FINANCE,
+            entityType = "TAX_RATE",
+            entityId = created.id.toString(),
+            newValue = created.toAuditSnapshot(),
+        )
+        return created
     }
 
     fun getTaxRate(
@@ -72,6 +86,7 @@ class TaxRateService(
         organizationId: java.util.UUID,
     ): TaxRate {
         val taxRate = getTaxRate(taxRateId, organizationId)
+        val oldValue = taxRate.toAuditSnapshot()
         val previousPercentage = taxRate.percentage
 
         if (!taxRate.isActive) {
@@ -100,6 +115,15 @@ class TaxRateService(
             cascadeCombinedRate(taxRateId, organizationId)
         }
 
+        auditService.logEvent(
+            organizationId = organizationId,
+            action = AuditAction.TAX_RATE_UPDATED.name,
+            category = AuditCategory.FINANCE,
+            entityType = "TAX_RATE",
+            entityId = saved.id.toString(),
+            oldValue = oldValue,
+            newValue = saved.toAuditSnapshot(),
+        )
         return saved
     }
 
@@ -122,8 +146,19 @@ class TaxRateService(
             throw BusinessRuleException("Cannot deactivate tax rate used in active tax groups")
         }
 
+        val oldValue = taxRate.toAuditSnapshot()
         taxRate.isActive = false
-        return taxRateRepository.save(taxRate)
+        val deactivated = taxRateRepository.save(taxRate)
+        auditService.logEvent(
+            organizationId = organizationId,
+            action = AuditAction.TAX_RATE_DEACTIVATED.name,
+            category = AuditCategory.FINANCE,
+            entityType = "TAX_RATE",
+            entityId = deactivated.id.toString(),
+            oldValue = oldValue,
+            newValue = deactivated.toAuditSnapshot(),
+        )
+        return deactivated
     }
 
     private fun cascadeCombinedRate(
@@ -154,4 +189,15 @@ class TaxRateService(
             taxGroupRepository.save(group)
         }
     }
+
+    private fun TaxRate.toAuditSnapshot() =
+        mapOf(
+            "id" to id,
+            "name" to name,
+            "code" to code,
+            "percentage" to percentage,
+            "authority" to authority,
+            "organizationId" to organizationId,
+            "isActive" to isActive,
+        )
 }
