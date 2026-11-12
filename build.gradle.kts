@@ -56,7 +56,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-mail")
     implementation("org.springframework.boot:spring-boot-health:4.0.1")
     implementation("org.aspectj:aspectjweaver")
-    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
+    implementation("io.github.cdimascio:dotenv-kotlin:6.5.1")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-authorization-server")
     implementation("com.github.ben-manes.caffeine:caffeine:3.3.1")
