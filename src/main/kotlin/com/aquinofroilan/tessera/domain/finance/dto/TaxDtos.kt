@@ -1,5 +1,6 @@
 package com.aquinofroilan.tessera.domain.finance.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Positive
@@ -49,6 +50,8 @@ data class TaxRateResponse(
     val percentage: BigDecimal,
     val authority: String,
     val organizationId: java.util.UUID,
+    @param:JsonProperty("isActive")
+    @get:JsonProperty("isActive")
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,
@@ -61,6 +64,8 @@ data class TaxGroupResponse(
     val taxRates: List<TaxRateResponse>,
     val combinedRate: BigDecimal,
     val organizationId: java.util.UUID,
+    @param:JsonProperty("isActive")
+    @get:JsonProperty("isActive")
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,
