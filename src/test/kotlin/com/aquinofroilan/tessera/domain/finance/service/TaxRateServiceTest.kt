@@ -6,6 +6,9 @@ import com.aquinofroilan.tessera.domain.finance.model.TaxGroup
 import com.aquinofroilan.tessera.domain.finance.model.TaxRate
 import com.aquinofroilan.tessera.domain.finance.repository.TaxGroupRepository
 import com.aquinofroilan.tessera.domain.finance.repository.TaxRateRepository
+import com.aquinofroilan.tessera.domain.organization.model.AuditAction
+import com.aquinofroilan.tessera.domain.organization.model.AuditCategory
+import com.aquinofroilan.tessera.domain.organization.service.OrganizationAuditService
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import org.assertj.core.api.Assertions.assertThat
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import java.math.BigDecimal
@@ -23,6 +27,7 @@ class TaxRateServiceTest {
     private lateinit var taxRateService: TaxRateService
     private lateinit var taxRateRepository: TaxRateRepository
     private lateinit var taxGroupRepository: TaxGroupRepository
+    private lateinit var auditService: OrganizationAuditService
 
     private val orgId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
 
@@ -30,7 +35,8 @@ class TaxRateServiceTest {
     fun setup() {
         taxRateRepository = mock(TaxRateRepository::class.java)
         taxGroupRepository = mock(TaxGroupRepository::class.java)
-        taxRateService = TaxRateService(taxRateRepository, taxGroupRepository)
+        auditService = mock(OrganizationAuditService::class.java)
+        taxRateService = TaxRateService(taxRateRepository, taxGroupRepository, auditService)
     }
 
     @Test
@@ -52,6 +58,23 @@ class TaxRateServiceTest {
         assertThat(result.percentage).isEqualByComparingTo(BigDecimal("8.00"))
         assertThat(result.authority).isEqualTo("State")
         assertThat(result.isActive).isTrue()
+        verify(auditService).logEvent(
+            organizationId = orgId,
+            action = AuditAction.TAX_RATE_CREATED.name,
+            category = AuditCategory.FINANCE,
+            entityType = "TAX_RATE",
+            entityId = result.id.toString(),
+            newValue =
+                mapOf(
+                    "id" to result.id,
+                    "name" to "State Sales Tax",
+                    "code" to "SST",
+                    "percentage" to BigDecimal("8.00"),
+                    "authority" to "State",
+                    "organizationId" to orgId,
+                    "isActive" to true,
+                ),
+        )
     }
 
     @Test
@@ -98,6 +121,33 @@ class TaxRateServiceTest {
         )
 
         verify(taxGroupRepository).save(any<TaxGroup>())
+        verify(auditService).logEvent(
+            organizationId = orgId,
+            action = AuditAction.TAX_RATE_UPDATED.name,
+            category = AuditCategory.FINANCE,
+            entityType = "TAX_RATE",
+            entityId = updatedRate.id.toString(),
+            oldValue =
+                mapOf(
+                    "id" to rate.id,
+                    "name" to "State Sales Tax",
+                    "code" to "SST",
+                    "percentage" to BigDecimal("8.00"),
+                    "authority" to "State",
+                    "organizationId" to orgId,
+                    "isActive" to true,
+                ),
+            newValue =
+                mapOf(
+                    "id" to updatedRate.id,
+                    "name" to "State Sales Tax",
+                    "code" to "SST",
+                    "percentage" to BigDecimal("10.00"),
+                    "authority" to "State",
+                    "organizationId" to orgId,
+                    "isActive" to true,
+                ),
+        )
     }
 
     @Test
@@ -163,6 +213,7 @@ class TaxRateServiceTest {
                 taxRateService.deleteTaxRate(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), orgId)
             }
         assertThat(exception.message).contains("active tax groups")
+        verifyNoInteractions(auditService)
     }
 
     @Test
@@ -180,6 +231,33 @@ class TaxRateServiceTest {
 
         val result = taxRateService.deleteTaxRate(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"), orgId)
         assertThat(result.isActive).isFalse()
+        verify(auditService).logEvent(
+            organizationId = orgId,
+            action = AuditAction.TAX_RATE_DEACTIVATED.name,
+            category = AuditCategory.FINANCE,
+            entityType = "TAX_RATE",
+            entityId = result.id.toString(),
+            oldValue =
+                mapOf(
+                    "id" to result.id,
+                    "name" to "State Sales Tax",
+                    "code" to "SST",
+                    "percentage" to BigDecimal("8.00"),
+                    "authority" to "State",
+                    "organizationId" to orgId,
+                    "isActive" to true,
+                ),
+            newValue =
+                mapOf(
+                    "id" to result.id,
+                    "name" to "State Sales Tax",
+                    "code" to "SST",
+                    "percentage" to BigDecimal("8.00"),
+                    "authority" to "State",
+                    "organizationId" to orgId,
+                    "isActive" to false,
+                ),
+        )
     }
 
     private fun createTaxRate(
