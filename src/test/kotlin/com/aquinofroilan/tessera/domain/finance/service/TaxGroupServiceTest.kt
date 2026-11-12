@@ -11,6 +11,9 @@ import com.aquinofroilan.tessera.domain.finance.repository.AccountTotals
 import com.aquinofroilan.tessera.domain.finance.repository.JournalEntryRepository
 import com.aquinofroilan.tessera.domain.finance.repository.TaxGroupRepository
 import com.aquinofroilan.tessera.domain.finance.repository.TaxRateRepository
+import com.aquinofroilan.tessera.domain.organization.model.AuditAction
+import com.aquinofroilan.tessera.domain.organization.model.AuditCategory
+import com.aquinofroilan.tessera.domain.organization.service.OrganizationAuditService
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -19,6 +22,7 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.verify
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.Optional
@@ -29,6 +33,7 @@ class TaxGroupServiceTest {
     private lateinit var taxRateRepository: TaxRateRepository
     private lateinit var accountRepository: AccountRepository
     private lateinit var journalEntryRepository: JournalEntryRepository
+    private lateinit var auditService: OrganizationAuditService
 
     private val orgId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
 
@@ -38,8 +43,9 @@ class TaxGroupServiceTest {
         taxRateRepository = mock(TaxRateRepository::class.java)
         accountRepository = mock(AccountRepository::class.java)
         journalEntryRepository = mock(JournalEntryRepository::class.java)
+        auditService = mock(OrganizationAuditService::class.java)
         taxGroupService =
-            TaxGroupService(taxGroupRepository, taxRateRepository, accountRepository, journalEntryRepository)
+            TaxGroupService(taxGroupRepository, taxRateRepository, accountRepository, journalEntryRepository, auditService)
     }
 
     @Test
@@ -72,6 +78,23 @@ class TaxGroupServiceTest {
 
         assertThat(result.combinedRate).isEqualByComparingTo(BigDecimal("8.50"))
         assertThat(result.taxRateIds).hasSize(2)
+        verify(auditService).logEvent(
+            organizationId = orgId,
+            action = AuditAction.TAX_GROUP_CREATED.name,
+            category = AuditCategory.FINANCE,
+            entityType = "TAX_GROUP",
+            entityId = result.id.toString(),
+            newValue =
+                mapOf(
+                    "id" to result.id,
+                    "name" to "NY Combined",
+                    "code" to "NYC",
+                    "taxRateIds" to result.taxRateIds,
+                    "combinedRate" to BigDecimal("8.50"),
+                    "organizationId" to orgId,
+                    "isActive" to true,
+                ),
+        )
     }
 
     @Test
@@ -161,6 +184,83 @@ class TaxGroupServiceTest {
             )
 
         assertThat(result.combinedRate).isEqualByComparingTo(BigDecimal("10.00"))
+        verify(auditService).logEvent(
+            organizationId = orgId,
+            action = AuditAction.TAX_GROUP_UPDATED.name,
+            category = AuditCategory.FINANCE,
+            entityType = "TAX_GROUP",
+            entityId = result.id.toString(),
+            oldValue =
+                mapOf(
+                    "id" to result.id,
+                    "name" to "Old Group",
+                    "code" to "OLD",
+                    "taxRateIds" to listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")),
+                    "combinedRate" to BigDecimal("4.00"),
+                    "organizationId" to orgId,
+                    "isActive" to true,
+                ),
+            newValue =
+                mapOf(
+                    "id" to result.id,
+                    "name" to "Old Group",
+                    "code" to "OLD",
+                    "taxRateIds" to
+                        listOf(
+                            java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                            java.util.UUID.fromString("00000000-0000-0000-0000-000000000002"),
+                        ),
+                    "combinedRate" to BigDecimal("10.00"),
+                    "organizationId" to orgId,
+                    "isActive" to true,
+                ),
+        )
+    }
+
+    @Test
+    fun `delete should audit tax group deactivation with before and after values`() {
+        val group =
+            TaxGroup(
+                id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000011"),
+                name = "Sales Tax",
+                code = "SALE",
+                taxRateIds = listOf(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")),
+                combinedRate = BigDecimal("8.00"),
+                organizationId = orgId,
+            )
+        `when`(taxGroupRepository.findById(group.id)).thenReturn(Optional.of(group))
+        `when`(taxGroupRepository.save(any<TaxGroup>())).thenAnswer { it.arguments[0] }
+
+        val result = taxGroupService.deleteTaxGroup(group.id, orgId)
+
+        assertThat(result.isActive).isFalse()
+        verify(auditService).logEvent(
+            organizationId = orgId,
+            action = AuditAction.TAX_GROUP_DEACTIVATED.name,
+            category = AuditCategory.FINANCE,
+            entityType = "TAX_GROUP",
+            entityId = group.id.toString(),
+            oldValue =
+                mapOf(
+                    "id" to group.id,
+                    "name" to "Sales Tax",
+                    "code" to "SALE",
+                    "taxRateIds" to group.taxRateIds,
+                    "combinedRate" to BigDecimal("8.00"),
+                    "organizationId" to orgId,
+                    "isActive" to true,
+                ),
+            newValue =
+                mapOf(
+                    "id" to group.id,
+                    "name" to "Sales Tax",
+                    "code" to "SALE",
+                    "taxRateIds" to group.taxRateIds,
+                    "combinedRate" to BigDecimal("8.00"),
+                    "organizationId" to orgId,
+                    "isActive" to false,
+                ),
+        )
     }
 
     @Test
