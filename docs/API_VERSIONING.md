@@ -3,7 +3,7 @@
 Tessera employs a strict versioning strategy to ensure stability and predictability for all API consumers, especially custom third-party integrations and internal mobile clients.
 
 ## 1. Version Format
-All public-facing API endpoints must be explicitly versioned in their URI paths. 
+All public-facing API endpoints must be explicitly versioned in their URI paths.
 **Format**: `/api/v{MAJOR_VERSION}/...` (e.g., `/api/v1/finance/ap/bills`).
 
 - **Infrastructure Endpoints**: Operational endpoints like `/health`, `/actuator`, and `/graphql` (if schema evolution handles backward compatibility internally) are intentionally left unversioned.
