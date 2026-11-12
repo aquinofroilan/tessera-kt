@@ -43,7 +43,7 @@ dependencies {
     implementation("com.github.librepdf:openpdf:1.3.30")
     implementation("com.posthog.java:posthog:1.2.0")
     implementation("org.springframework.boot:spring-boot-starter-amqp")
-    implementation("org.jobrunr:jobrunr-spring-boot-4-starter:8.8.2")
+    implementation("org.jobrunr:jobrunr-spring-boot-4-starter:9.0.3")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.bouncycastle:bcprov-jdk18on:1.86")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
