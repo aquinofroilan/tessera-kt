@@ -254,7 +254,7 @@ class AuthServiceTest {
         val user = createMockUser()
 
         `when`(userRepository.findByUsername(request.username)).thenReturn(Optional.empty())
-        `when`(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user))
+        `when`(userRepository.findByEmailIgnoreCase(request.username)).thenReturn(Optional.of(user))
         `when`(passwordEncoder.matches(request.password, user.passwordHash)).thenReturn(true)
         `when`(sessionTokenRepository.save(any<SessionToken>())).thenReturn(createMockSessionToken())
         `when`(refreshTokenRepository.save(any<RefreshToken>())).thenAnswer { it.arguments[0] }
@@ -262,7 +262,7 @@ class AuthServiceTest {
         val result = authService.login(request)
 
         assertThat(result.username).isEqualTo(user.username)
-        verify(userRepository).findByEmail("test@example.com")
+        verify(userRepository).findByEmailIgnoreCase(request.username)
     }
 
     @Test

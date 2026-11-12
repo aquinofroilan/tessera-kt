@@ -27,7 +27,7 @@ class CsvImportExportService(
     private val vendorService: VendorService,
 ) {
     private val productHeaders =
-        listOf("sku", "name", "description", "category", "imageUrl", "listPrice", "priceCurrency", "taxGroupId")
+        listOf("sku", "name", "description", "categoryId", "imageUrl", "listPrice", "priceCurrency", "taxGroupId")
     private val customerHeaders =
         listOf("name", "contactName", "contactEmail", "contactPhone", "paymentTermDays", "defaultRevenueAccountId")
     private val vendorHeaders =
@@ -42,7 +42,7 @@ class CsvImportExportService(
                         "sku" to it.sku,
                         "name" to it.name,
                         "description" to (it.description ?: ""),
-                        "category" to (it.category ?: ""),
+                        "categoryId" to (it.categoryId ?: ""),
                         "imageUrl" to (it.imageUrl ?: ""),
                         "listPrice" to it.listPrice.toPlainString(),
                         "priceCurrency" to it.priceCurrency,
@@ -104,7 +104,7 @@ class CsvImportExportService(
                         sku = sku,
                         name = name,
                         description = row["description"]?.ifBlank { null },
-                        category = row["category"]?.ifBlank { null },
+                        categoryId = row["categoryId"]?.takeIf { it.isNotBlank() }?.let { java.util.UUID.fromString(it) },
                         imageUrl = row["imageUrl"]?.ifBlank { null },
                         listPrice = listPrice,
                         priceCurrency = row["priceCurrency"]?.ifBlank { null },

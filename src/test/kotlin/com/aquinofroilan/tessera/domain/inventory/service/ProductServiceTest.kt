@@ -7,6 +7,7 @@ import com.aquinofroilan.tessera.domain.finance.service.TaxGroupService
 import com.aquinofroilan.tessera.domain.inventory.dto.CreateProductRequest
 import com.aquinofroilan.tessera.domain.inventory.dto.UpdateProductRequest
 import com.aquinofroilan.tessera.domain.inventory.model.Product
+import com.aquinofroilan.tessera.domain.inventory.repository.ProductCategoryRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.ProductRepository
 import com.aquinofroilan.tessera.domain.organization.model.Organizations
 import com.aquinofroilan.tessera.domain.organization.repository.OrganizationRepository
@@ -26,6 +27,7 @@ import java.util.Optional
 class ProductServiceTest {
     private lateinit var productService: ProductService
     private lateinit var productRepository: ProductRepository
+    private lateinit var categoryRepository: ProductCategoryRepository
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var currencyService: CurrencyService
     private lateinit var taxGroupService: TaxGroupService
@@ -36,11 +38,12 @@ class ProductServiceTest {
     @BeforeEach
     fun setup() {
         productRepository = mock(ProductRepository::class.java)
+        categoryRepository = mock(ProductCategoryRepository::class.java)
         organizationRepository = mock(OrganizationRepository::class.java)
         currencyService = mock(CurrencyService::class.java)
         taxGroupService = mock(TaxGroupService::class.java)
         productService =
-            ProductService(productRepository, organizationRepository, currencyService, taxGroupService)
+            ProductService(productRepository, categoryRepository, organizationRepository, currencyService, taxGroupService)
     }
 
     private fun createMockProduct(
@@ -53,7 +56,7 @@ class ProductServiceTest {
         sku = sku,
         name = "Widget",
         description = "A test widget",
-        category = "Hardware",
+        categoryId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000123"),
         imageUrl = "https://example.com/image.jpg",
         listPrice = BigDecimal("99.99"),
         priceCurrency = priceCurrency,
@@ -246,12 +249,13 @@ class ProductServiceTest {
     @Test
     fun `listProducts passes category through to repository`() {
         val product = createMockProduct()
-        `when`(productRepository.search(orgId, true, "Hardware", null)).thenReturn(listOf(product))
+        val categoryId = product.categoryId
+        `when`(productRepository.search(orgId, true, categoryId, null)).thenReturn(listOf(product))
 
-        val result = productService.listProducts(orgId, category = "Hardware")
+        val result = productService.listProducts(orgId, categoryId = categoryId)
 
         assertThat(result).hasSize(1)
-        assertThat(result[0].category).isEqualTo("Hardware")
+        assertThat(result[0].categoryId).isEqualTo(categoryId)
     }
 
     @Test
@@ -268,12 +272,13 @@ class ProductServiceTest {
     @Test
     fun `listProducts combines category and isActive filters`() {
         val product = createMockProduct()
-        `when`(productRepository.search(orgId, true, "Hardware", null)).thenReturn(listOf(product))
+        val categoryId = product.categoryId
+        `when`(productRepository.search(orgId, true, categoryId, null)).thenReturn(listOf(product))
 
-        val result = productService.listProducts(orgId, category = "Hardware", isActive = true)
+        val result = productService.listProducts(orgId, categoryId = categoryId, isActive = true)
 
         assertThat(result).hasSize(1)
-        assertThat(result[0].category).isEqualTo("Hardware")
+        assertThat(result[0].categoryId).isEqualTo(categoryId)
     }
 
     @Test

@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "com.aquinofroilan"
-version = "1.8.2"
+version = "1.9.0"
 description = "Tessera an ERP System"
 
 java {
@@ -45,9 +45,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("org.jobrunr:jobrunr-spring-boot-4-starter:8.8.2")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.86")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+    implementation("com.stripe:stripe-java:28.1.0")
     implementation("org.springframework.boot:spring-boot-starter-graphql")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-mail")

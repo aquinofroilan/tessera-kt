@@ -22,7 +22,8 @@ class Product(
     var sku: String,
     var name: String,
     var description: String? = null,
-    var category: String? = null,
+    @Column(name = "category_id", columnDefinition = "uuid")
+    var categoryId: UUID? = null,
     @Column(name = "image_url")
     var imageUrl: String? = null,
     @Column(name = "list_price")

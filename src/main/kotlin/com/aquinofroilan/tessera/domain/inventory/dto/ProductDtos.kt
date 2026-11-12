@@ -1,5 +1,6 @@
 package com.aquinofroilan.tessera.domain.inventory.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -15,15 +16,18 @@ data class CreateProductRequest(
     val name: String,
     @field:Size(max = 2000, message = "Description must be 2000 characters or fewer")
     val description: String? = null,
-    @field:Size(max = 128, message = "Category must be 128 characters or fewer")
-    val category: String? = null,
+    val categoryId: UUID? = null,
     @field:Size(max = 2048, message = "Image URL must be 2048 characters or fewer")
     val imageUrl: String? = null,
     @field:DecimalMin(value = "0.0", message = "List price must be zero or positive")
     val listPrice: BigDecimal,
     val priceCurrency: String? = null,
     val taxGroupId: java.util.UUID? = null,
+    @param:JsonProperty("isLotTracked")
+    @get:JsonProperty("isLotTracked")
     val isLotTracked: Boolean? = false,
+    @param:JsonProperty("isSerialized")
+    @get:JsonProperty("isSerialized")
     val isSerialized: Boolean? = false,
     val hasExpiry: Boolean? = false,
 )
@@ -33,15 +37,18 @@ data class UpdateProductRequest(
     val name: String? = null,
     @field:Size(max = 2000, message = "Description must be 2000 characters or fewer")
     val description: String? = null,
-    @field:Size(max = 128, message = "Category must be 128 characters or fewer")
-    val category: String? = null,
+    val categoryId: UUID? = null,
     @field:Size(max = 2048, message = "Image URL must be 2048 characters or fewer")
     val imageUrl: String? = null,
     @field:DecimalMin(value = "0.0", message = "List price must be zero or positive")
     val listPrice: BigDecimal? = null,
     val priceCurrency: String? = null,
     val taxGroupId: java.util.UUID? = null,
+    @param:JsonProperty("isLotTracked")
+    @get:JsonProperty("isLotTracked")
     val isLotTracked: Boolean? = null,
+    @param:JsonProperty("isSerialized")
+    @get:JsonProperty("isSerialized")
     val isSerialized: Boolean? = null,
     val hasExpiry: Boolean? = null,
 )
@@ -51,15 +58,21 @@ data class ProductResponse(
     val sku: String,
     val name: String,
     val description: String?,
-    val category: String?,
+    val categoryId: UUID?,
     val imageUrl: String?,
     val listPrice: BigDecimal,
     val priceCurrency: String,
     val taxGroupId: java.util.UUID?,
     val organizationId: java.util.UUID,
+    @param:JsonProperty("isLotTracked")
+    @get:JsonProperty("isLotTracked")
     val isLotTracked: Boolean,
+    @param:JsonProperty("isSerialized")
+    @get:JsonProperty("isSerialized")
     val isSerialized: Boolean,
     val hasExpiry: Boolean,
+    @param:JsonProperty("isActive")
+    @get:JsonProperty("isActive")
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,

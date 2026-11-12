@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
 data class LoginRequest(
-    @field:NotBlank(message = "Username is required")
+    @field:NotBlank(message = "Username or email is required")
     val username: String,
     @field:NotBlank(message = "Password is required")
     val password: String,

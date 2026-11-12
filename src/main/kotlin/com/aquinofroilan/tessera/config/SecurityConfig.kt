@@ -73,8 +73,11 @@ class SecurityConfig(
                         "/auth/api-keys/**",
                     ).authenticated()
                 it.requestMatchers("/api/v1/finance/**", "/finance/**").authenticated()
+                it.requestMatchers(HttpMethod.POST, "/api/v1/auth/signin").permitAll()
                 it.requestMatchers("/api/v1/auth/**", "/auth/**").permitAll()
                 it.requestMatchers(HttpMethod.POST, "/api/v1/oauth2/token").permitAll()
+                it.requestMatchers(HttpMethod.POST, "/api/v1/integrations/payments/webhooks/**").permitAll()
+                it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/docs").permitAll()
                 it.requestMatchers("/health/**").permitAll()
                 it.requestMatchers("/graphql").permitAll()
                 if (environment.acceptsProfiles(Profiles.of("dev", "test"))) {
@@ -113,7 +116,7 @@ class SecurityConfig(
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
         configuration.allowedOrigins = corsAllowedOrigins.split(",").map { it.trim() }
-        configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        configuration.allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
         configuration.allowedHeaders = listOf("*")
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)
