@@ -50,7 +50,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 import java.util.UUID
 
-@WebMvcTest(controllers = [ProductVariantController::class])
+@WebMvcTest(controllers = [ProductVariantController::class, OrganizationProductVariantController::class])
 @Import(WebMvcConfig::class, LoggingAspect::class, TestSecurityConfig::class, TesseraPermissionEvaluator::class)
 @ActiveProfiles("test")
 class ProductVariantControllerTest {
@@ -195,6 +195,38 @@ class ProductVariantControllerTest {
             .andExpect(jsonPath("$[0].isActive").value(true))
             .andExpect(jsonPath("$[0].createdAt").exists())
             .andExpect(jsonPath("$[0].updatedAt").exists())
+    }
+
+    @Test
+    fun `GET organization variants uses current organization and returns product id`() {
+        `when`(variantService.listOrganizationVariants(organizationId, null, null))
+            .thenReturn(listOf(createMockVariant()))
+
+        mockMvc
+            .perform(get("/api/v1/inventory/variants"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].id").value(variantId.toString()))
+            .andExpect(jsonPath("$[0].organizationId").value(organizationId.toString()))
+            .andExpect(jsonPath("$[0].productId").value(productId.toString()))
+            .andExpect(jsonPath("$[0].code").value("ETCH-PMP-3200-480V"))
+
+        verify(variantService).listOrganizationVariants(organizationId, null, null)
+    }
+
+    @Test
+    fun `GET organization variants accepts product and active filters`() {
+        `when`(variantService.listOrganizationVariants(organizationId, productId, true))
+            .thenReturn(listOf(createMockVariant()))
+
+        mockMvc
+            .perform(
+                get("/api/v1/inventory/variants")
+                    .param("productId", productId.toString())
+                    .param("isActive", "true"),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].productId").value(productId.toString()))
+
+        verify(variantService).listOrganizationVariants(organizationId, productId, true)
     }
 
     @Test
