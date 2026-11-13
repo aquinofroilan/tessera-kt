@@ -1,5 +1,6 @@
 package com.aquinofroilan.tessera.domain.inventory.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
@@ -45,6 +46,8 @@ data class WarehouseResponse(
     val country: String?,
     val allowNegativeStock: Boolean,
     val organizationId: java.util.UUID,
+    @param:JsonProperty("isActive")
+    @get:JsonProperty("isActive")
     val isActive: Boolean,
     val createdAt: String?,
     val updatedAt: String?,
