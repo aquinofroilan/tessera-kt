@@ -10,6 +10,8 @@ import com.aquinofroilan.tessera.domain.organization.model.AuditCategory
 import com.aquinofroilan.tessera.domain.organization.service.OrganizationAuditService
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -77,6 +79,17 @@ class TaxRateService(
             taxRateRepository.findByOrganizationIdAndIsActive(organizationId, true)
         } else {
             taxRateRepository.findByOrganizationId(organizationId)
+        }
+
+    fun listTaxRates(
+        organizationId: java.util.UUID,
+        activeOnly: Boolean,
+        pageable: Pageable,
+    ): Page<TaxRate> =
+        if (activeOnly) {
+            taxRateRepository.findByOrganizationIdAndIsActive(organizationId, true, pageable)
+        } else {
+            taxRateRepository.findByOrganizationId(organizationId, pageable)
         }
 
     @Transactional

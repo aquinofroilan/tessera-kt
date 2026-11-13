@@ -11,6 +11,8 @@ import com.aquinofroilan.tessera.domain.organization.repository.OrganizationRepo
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import org.springframework.dao.DuplicateKeyException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -83,6 +85,14 @@ class ProductService(
         isActive: Boolean = true,
         search: String? = null,
     ): List<Product> = productRepository.search(organizationId, isActive, categoryId, search)
+
+    fun listProducts(
+        organizationId: UUID,
+        categoryId: UUID?,
+        isActive: Boolean,
+        search: String?,
+        pageable: Pageable,
+    ): Page<Product> = productRepository.search(organizationId, isActive, categoryId, search, pageable)
 
     @Transactional
     fun updateProduct(

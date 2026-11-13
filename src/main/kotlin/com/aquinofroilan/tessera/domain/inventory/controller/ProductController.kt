@@ -9,7 +9,10 @@ import com.aquinofroilan.tessera.domain.inventory.model.Product
 import com.aquinofroilan.tessera.domain.inventory.service.ProductService
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.util.PaginationResponse
+import com.aquinofroilan.tessera.util.optionalPageable
 import jakarta.validation.Valid
+import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -48,9 +51,17 @@ class ProductController(
         @RequestParam(required = false) categoryId: java.util.UUID?,
         @RequestParam(required = false, defaultValue = "true") isActive: Boolean,
         @RequestParam(required = false) search: String?,
+        @RequestParam(required = false) page: Int? = null,
+        @RequestParam(required = false) size: Int? = null,
     ): ResponseEntity<Any> {
-        val products = productService.listProducts(orgId, categoryId, isActive, search)
-        return ResponseEntity.ok(products.map { it.toResponse() })
+        val pageable = optionalPageable(page, size, Sort.by("sku").ascending().and(Sort.by("id").ascending()))
+        return if (pageable.isUnpaged) {
+            val products = productService.listProducts(orgId, categoryId, isActive, search)
+            ResponseEntity.ok(products.map { it.toResponse() })
+        } else {
+            val products = productService.listProducts(orgId, categoryId, isActive, search, pageable)
+            ResponseEntity.ok(PaginationResponse.from(products.map { it.toResponse() }))
+        }
     }
 
     @GetMapping("/{id}")
