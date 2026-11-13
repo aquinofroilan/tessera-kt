@@ -31,9 +31,9 @@ data class UnitOfMeasure(
     @Column(name = "is_active")
     val isActive: Boolean = true,
     @CreatedDate
-    @Column(name = "created_at")
-    val createdAt: LocalDateTime? = null,
+    @Column(name = "created_at", updatable = false)
+    var createdAt: LocalDateTime? = null,
     @LastModifiedDate
     @Column(name = "updated_at")
-    val updatedAt: LocalDateTime? = null,
+    var updatedAt: LocalDateTime? = null,
 )
