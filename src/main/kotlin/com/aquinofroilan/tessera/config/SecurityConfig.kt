@@ -1,12 +1,15 @@
 package com.aquinofroilan.tessera.config
 
 import com.aquinofroilan.tessera.security.TesseraPermissionEvaluator
+import com.aquinofroilan.tessera.exception.ApiProblemDetails
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
 import org.springframework.core.env.Profiles
 import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
@@ -20,6 +23,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import tools.jackson.databind.ObjectMapper
 
 @Configuration
 @EnableWebSecurity
@@ -27,6 +31,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 class SecurityConfig(
     private val tokenAuthenticationFilter: TokenAuthenticationFilter,
     private val environment: Environment,
+    private val objectMapper: ObjectMapper,
     @Value("\${spring.web.cors.allowed-origins:http://localhost:3000,http://localhost:8080}")
     private val corsAllowedOrigins: String,
 ) {
@@ -90,15 +95,31 @@ class SecurityConfig(
                 it.requestMatchers("/actuator/prometheus").permitAll()
                 it.anyRequest().authenticated()
             }.exceptionHandling {
-                it.authenticationEntryPoint { _, resp, _ ->
-                    resp.status = 401
-                    resp.contentType = "application/json"
-                    resp.writer.write("""{"error":"Authentication required"}""")
+                it.authenticationEntryPoint { req, resp, _ ->
+                    resp.status = HttpStatus.UNAUTHORIZED.value()
+                    resp.contentType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
+                    objectMapper.writeValue(
+                        resp.outputStream,
+                        ApiProblemDetails.create(
+                            HttpStatus.UNAUTHORIZED,
+                            "AUTHENTICATION_REQUIRED",
+                            "Authentication required",
+                            req.requestURI,
+                        ),
+                    )
                 }
-                it.accessDeniedHandler { _, resp, _ ->
-                    resp.status = 403
-                    resp.contentType = "application/json"
-                    resp.writer.write("""{"error":"Insufficient permissions"}""")
+                it.accessDeniedHandler { req, resp, _ ->
+                    resp.status = HttpStatus.FORBIDDEN.value()
+                    resp.contentType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
+                    objectMapper.writeValue(
+                        resp.outputStream,
+                        ApiProblemDetails.create(
+                            HttpStatus.FORBIDDEN,
+                            "ACCESS_DENIED",
+                            "Insufficient permissions",
+                            req.requestURI,
+                        ),
+                    )
                 }
             }.addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
 
