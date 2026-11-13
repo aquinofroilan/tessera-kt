@@ -5,7 +5,10 @@ import com.aquinofroilan.tessera.domain.inventory.dto.ProductCategoryResponse
 import com.aquinofroilan.tessera.domain.inventory.dto.UpdateProductCategoryRequest
 import com.aquinofroilan.tessera.domain.inventory.service.ProductCategoryService
 import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.util.PaginationResponse
+import com.aquinofroilan.tessera.util.optionalPageable
 import jakarta.validation.Valid
+import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -37,7 +40,17 @@ class ProductCategoryController(
     fun list(
         @CurrentOrganizationId orgId: UUID,
         @RequestParam(defaultValue = "true") activeOnly: Boolean,
-    ) = ResponseEntity.ok(service.list(orgId, activeOnly).map(ProductCategoryResponse::from))
+        @RequestParam(required = false) page: Int? = null,
+        @RequestParam(required = false) size: Int? = null,
+    ): ResponseEntity<Any> {
+        val pageable = optionalPageable(page, size, Sort.by("name").ascending().and(Sort.by("id").ascending()))
+        return if (pageable.isUnpaged) {
+            ResponseEntity.ok(service.list(orgId, activeOnly).map(ProductCategoryResponse::from))
+        } else {
+            val categories = service.list(orgId, activeOnly, pageable)
+            ResponseEntity.ok(PaginationResponse.from(categories.map(ProductCategoryResponse::from)))
+        }
+    }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:read')")

@@ -1,6 +1,8 @@
 package com.aquinofroilan.tessera.domain.inventory.repository
 
 import com.aquinofroilan.tessera.domain.inventory.model.ProductVariant
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -16,7 +18,7 @@ interface ProductVariantRepository : JpaRepository<ProductVariant, UUID> {
         WHERE v.organizationId = :organizationId
           AND (:productId IS NULL OR v.productId = :productId)
           AND (:isActive IS NULL OR v.isActive = :isActive)
-        ORDER BY v.productId, v.code
+        ORDER BY v.productId, v.code, v.id
         """,
     )
     fun findScopedVariants(
@@ -25,10 +27,31 @@ interface ProductVariantRepository : JpaRepository<ProductVariant, UUID> {
         @Param("isActive") isActive: Boolean?,
     ): List<ProductVariant>
 
-    fun findByOrganizationIdAndProductId(
+    @Query(
+        """
+        SELECT v FROM ProductVariant v
+        WHERE v.organizationId = :organizationId
+          AND (:productId IS NULL OR v.productId = :productId)
+          AND (:isActive IS NULL OR v.isActive = :isActive)
+        """,
+    )
+    fun findScopedVariantsPage(
+        @Param("organizationId") organizationId: UUID,
+        @Param("productId") productId: UUID?,
+        @Param("isActive") isActive: Boolean?,
+        pageable: Pageable,
+    ): Page<ProductVariant>
+
+    fun findByOrganizationIdAndProductIdOrderByCodeAscIdAsc(
         organizationId: UUID,
         productId: UUID,
     ): List<ProductVariant>
+
+    fun findByOrganizationIdAndProductId(
+        organizationId: UUID,
+        productId: UUID,
+        pageable: Pageable,
+    ): Page<ProductVariant>
 
     fun findByProductIdAndCode(
         productId: UUID,

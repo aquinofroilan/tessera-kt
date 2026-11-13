@@ -14,9 +14,12 @@ import com.aquinofroilan.tessera.domain.finance.service.TaxGroupService
 import com.aquinofroilan.tessera.domain.finance.service.TaxRateService
 import com.aquinofroilan.tessera.security.AuthenticationContext
 import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.util.PaginationResponse
+import com.aquinofroilan.tessera.util.optionalPageable
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.data.domain.Sort
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -52,9 +55,25 @@ class TaxController(
     fun listTaxRates(
         @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) active: Boolean?,
+        @RequestParam(required = false) page: Int? = null,
+        @RequestParam(required = false) size: Int? = null,
     ): ResponseEntity<Any> {
-        val rates = taxRateService.listTaxRates(orgId, active ?: false)
-        return ResponseEntity.ok(rates.map { it.toResponse() })
+        val pageable =
+            optionalPageable(
+                page,
+                size,
+                Sort.by(Sort.Order.asc("name"), Sort.Order.asc("id")),
+            )
+        if (pageable.isUnpaged) {
+            val rates = taxRateService.listTaxRates(orgId, active ?: false)
+            return ResponseEntity.ok(rates.map { it.toResponse() })
+        }
+
+        val rates =
+            taxRateService
+                .listTaxRates(orgId, active ?: false, pageable)
+                .map { it.toResponse() }
+        return ResponseEntity.ok(PaginationResponse.from(rates))
     }
 
     @GetMapping("/rates/{id}")
@@ -107,24 +126,27 @@ class TaxController(
     fun listTaxGroups(
         @CurrentOrganizationId orgId: UUID,
         @RequestParam(required = false) active: Boolean?,
+        @RequestParam(required = false) page: Int? = null,
+        @RequestParam(required = false) size: Int? = null,
     ): ResponseEntity<Any> {
-        val groups = taxGroupService.listTaxGroups(orgId, active ?: false)
-        val allRateIds = groups.flatMap { it.taxRateIds }.distinct()
-        val allRates =
-            if (allRateIds.isNotEmpty()) {
-                taxGroupService
-                    .loadRatesByIds(allRateIds)
-                    .filter { it.organizationId == orgId }
-                    .associateBy { it.id }
-            } else {
-                emptyMap()
-            }
-        return ResponseEntity.ok(
-            groups.map { group ->
-                val rates = group.taxRateIds.mapNotNull { allRates[it] }
-                group.toResponse(rates)
-            },
-        )
+        val pageable =
+            optionalPageable(
+                page,
+                size,
+                Sort.by(Sort.Order.asc("name"), Sort.Order.asc("id")),
+            )
+        if (pageable.isUnpaged) {
+            val groups = taxGroupService.listTaxGroups(orgId, active ?: false)
+            val allRates = loadRatesForGroups(groups, orgId)
+            return ResponseEntity.ok(
+                groups.map { group -> group.toResponse(group.taxRateIds.mapNotNull { allRates[it] }) },
+            )
+        }
+
+        val groups = taxGroupService.listTaxGroups(orgId, active ?: false, pageable)
+        val allRates = loadRatesForGroups(groups.content, orgId)
+        val responses = groups.map { group -> group.toResponse(group.taxRateIds.mapNotNull { allRates[it] }) }
+        return ResponseEntity.ok(PaginationResponse.from(responses))
     }
 
     @GetMapping("/groups/{id}")
@@ -182,6 +204,19 @@ class TaxController(
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),
         )
+
+    private fun loadRatesForGroups(
+        groups: List<TaxGroup>,
+        organizationId: UUID,
+    ): Map<UUID, TaxRate> {
+        val rateIds = groups.flatMap { it.taxRateIds }.distinct()
+        if (rateIds.isEmpty()) return emptyMap()
+
+        return taxGroupService
+            .loadRatesByIds(rateIds)
+            .filter { it.organizationId == organizationId }
+            .associateBy { it.id }
+    }
 
     private fun TaxGroup.toResponse(rates: List<TaxRate>) =
         TaxGroupResponse(
