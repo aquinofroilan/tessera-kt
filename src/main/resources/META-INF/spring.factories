@@ -1,2 +1,2 @@
-org.springframework.context.ApplicationContextInitializer=\
-com.aquinofroilan.tessera.config.EnvironmentInitializer
+org.springframework.boot.EnvironmentPostProcessor=\
+com.aquinofroilan.tessera.config.DotenvEnvironmentPostProcessor

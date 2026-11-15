@@ -5,7 +5,9 @@ import com.aquinofroilan.tessera.domain.inventory.dto.UpdateUomRequest
 import com.aquinofroilan.tessera.domain.inventory.model.UnitOfMeasure
 import com.aquinofroilan.tessera.domain.inventory.repository.UnitOfMeasureRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
+import com.aquinofroilan.tessera.exception.ConflictException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
+import com.aquinofroilan.tessera.exception.UnprocessableRequestException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -25,12 +27,12 @@ class UnitOfMeasureService(
         val code = request.code.trim().uppercase()
         if (code.isBlank()) throw BusinessRuleException("Code cannot be blank")
         uomRepository.findByOrganizationIdAndCode(organizationId, code).ifPresent {
-            throw BusinessRuleException("UoM with code '$code' already exists")
+            throw ConflictException("UoM with code '$code' already exists")
         }
         if (request.baseUomId != null) {
             val base = getUom(request.baseUomId, organizationId)
             if (base.baseUomId != null) {
-                throw BusinessRuleException("base UoM must itself be a base (no chained conversions)")
+                throw UnprocessableRequestException("Base UoM must itself be a base (no chained conversions).")
             }
         }
         val factor = request.conversionFactor ?: BigDecimal.ONE
@@ -50,7 +52,16 @@ class UnitOfMeasureService(
         return try {
             uomRepository.save(uom)
         } catch (e: DataIntegrityViolationException) {
-            throw BusinessRuleException("UoM with code '$code' already exists")
+            var cause: Throwable? = e
+            while (cause != null) {
+                if (cause is org.hibernate.exception.ConstraintViolationException &&
+                    cause.constraintName == "inv_uoms_unique_code_per_org"
+                ) {
+                    throw ConflictException("UoM with code '$code' already exists", e)
+                }
+                cause = cause.cause
+            }
+            throw e
         }
     }
 
@@ -89,7 +100,7 @@ class UnitOfMeasureService(
         if (request.baseUomId != null) {
             val base = getUom(request.baseUomId, organizationId)
             if (base.baseUomId != null) {
-                throw BusinessRuleException("base UoM must itself be a base (no chained conversions)")
+                throw UnprocessableRequestException("Base UoM must itself be a base (no chained conversions).")
             }
         }
         val newFactor = request.conversionFactor ?: u.conversionFactor
