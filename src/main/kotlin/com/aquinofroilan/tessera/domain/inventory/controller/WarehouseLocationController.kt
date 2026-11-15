@@ -5,10 +5,14 @@ import com.aquinofroilan.tessera.annotation.Loggable
 import com.aquinofroilan.tessera.domain.inventory.dto.CreateWarehouseLocationRequest
 import com.aquinofroilan.tessera.domain.inventory.dto.UpdateWarehouseLocationRequest
 import com.aquinofroilan.tessera.domain.inventory.dto.WarehouseLocationResponse
+import com.aquinofroilan.tessera.domain.inventory.model.LocationType
 import com.aquinofroilan.tessera.domain.inventory.model.WarehouseLocation
 import com.aquinofroilan.tessera.domain.inventory.service.WarehouseLocationService
 import com.aquinofroilan.tessera.security.CurrentOrganizationId
+import com.aquinofroilan.tessera.util.PaginationResponse
+import com.aquinofroilan.tessera.util.optionalPageable
 import jakarta.validation.Valid
+import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -44,10 +48,15 @@ class WarehouseLocationController(
     fun listLocations(
         @CurrentOrganizationId orgId: UUID,
         @RequestParam warehouseId: UUID,
-        @RequestParam(defaultValue = "true") activeOnly: Boolean,
-    ): ResponseEntity<List<WarehouseLocationResponse>> {
-        val locations = warehouseLocationService.listLocations(orgId, warehouseId, activeOnly)
-        return ResponseEntity.ok(locations.map { it.toResponse() })
+        @RequestParam(required = false) parentLocationId: UUID?,
+        @RequestParam(required = false) type: LocationType?,
+        @RequestParam(required = false) isActive: Boolean?,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "100") size: Int,
+    ): ResponseEntity<PaginationResponse<WarehouseLocationResponse>> {
+        val pageable = optionalPageable(page, size, Sort.by("code").ascending().and(Sort.by("id").ascending()))
+        val locations = warehouseLocationService.listLocations(orgId, warehouseId, parentLocationId, type, isActive, pageable)
+        return ResponseEntity.ok(PaginationResponse.from(locations.map { it.toResponse() }))
     }
 
     @GetMapping("/{id}")
@@ -84,5 +93,10 @@ class WarehouseLocationController(
             type = type,
             barcode = barcode,
             isActive = isActive,
+            isLocked = isLocked,
+            isPickable = isPickable,
+            isReceivable = isReceivable,
+            maxWeightKg = maxWeightKg,
+            maxVolumeCbm = maxVolumeCbm,
         )
 }

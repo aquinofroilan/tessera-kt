@@ -2,19 +2,24 @@ package com.aquinofroilan.tessera.domain.inventory.service
 
 import com.aquinofroilan.tessera.domain.inventory.dto.CreateWarehouseLocationRequest
 import com.aquinofroilan.tessera.domain.inventory.dto.UpdateWarehouseLocationRequest
+import com.aquinofroilan.tessera.domain.inventory.model.LocationType
 import com.aquinofroilan.tessera.domain.inventory.model.WarehouseLocation
 import com.aquinofroilan.tessera.domain.inventory.repository.WarehouseLocationRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.WarehouseRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.util.UUID
 
 @Service
 class WarehouseLocationService(
     private val warehouseLocationRepository: WarehouseLocationRepository,
     private val warehouseRepository: WarehouseRepository,
+    private val locationCapacityService: WarehouseLocationCapacityService,
 ) {
     @Transactional
     fun createLocation(
@@ -49,6 +54,12 @@ class WarehouseLocationService(
                 code = request.code,
                 type = type,
                 barcode = request.barcode,
+                isActive = request.isActive,
+                isLocked = request.isLocked,
+                isPickable = request.isPickable,
+                isReceivable = request.isReceivable,
+                maxWeightKg = request.maxWeightKg,
+                maxVolumeCbm = request.maxVolumeCbm,
             )
         return warehouseLocationRepository.save(location)
     }
@@ -56,14 +67,20 @@ class WarehouseLocationService(
     fun listLocations(
         organizationId: UUID,
         warehouseId: UUID,
-        activeOnly: Boolean = true,
-    ): List<WarehouseLocation> {
+        parentLocationId: UUID?,
+        type: LocationType?,
+        isActive: Boolean?,
+        pageable: Pageable,
+    ): Page<WarehouseLocation> {
         validateWarehouse(warehouseId, organizationId)
-        return if (activeOnly) {
-            warehouseLocationRepository.findByOrganizationIdAndWarehouseIdAndIsActiveTrue(organizationId, warehouseId)
-        } else {
-            warehouseLocationRepository.findByOrganizationIdAndWarehouseId(organizationId, warehouseId)
-        }
+        return warehouseLocationRepository.search(
+            organizationId,
+            warehouseId,
+            parentLocationId,
+            type,
+            isActive,
+            pageable,
+        )
     }
 
     fun getLocation(
@@ -103,6 +120,17 @@ class WarehouseLocationService(
 
         request.type?.let { location.type = it }
         if (request.barcode != null) location.barcode = request.barcode
+        request.isLocked?.let { location.isLocked = it }
+        request.isPickable?.let { location.isPickable = it }
+        request.isReceivable?.let { location.isReceivable = it }
+        if (request.maxWeightKgProvided) {
+            validatePositiveCapacity(request.maxWeightKg, "maximum weight")
+            location.maxWeightKg = request.maxWeightKg
+        }
+        if (request.maxVolumeCbmProvided) {
+            validatePositiveCapacity(request.maxVolumeCbm, "maximum volume")
+            location.maxVolumeCbm = request.maxVolumeCbm
+        }
 
         if (request.isActive == false) ensureNoActiveChildren(location, organizationId)
         if (request.isActive == true && location.parentLocationId != null) {
@@ -110,7 +138,19 @@ class WarehouseLocationService(
             if (!parent.isActive) throw BusinessRuleException("Cannot activate a location under an inactive parent")
         }
         request.isActive?.let { location.isActive = it }
+        if (request.maxWeightKgProvided || request.maxVolumeCbmProvided) {
+            locationCapacityService.validateCurrentStock(location, organizationId)
+        }
         return warehouseLocationRepository.save(location)
+    }
+
+    private fun validatePositiveCapacity(
+        value: BigDecimal?,
+        name: String,
+    ) {
+        if (value != null && value.signum() <= 0) {
+            throw BusinessRuleException("Location $name must be positive")
+        }
     }
 
     @Transactional

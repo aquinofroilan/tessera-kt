@@ -38,6 +38,7 @@ class StockMovementServiceTest {
     private lateinit var productSerialRepository: com.aquinofroilan.tessera.domain.inventory.repository.ProductSerialRepository
     private lateinit var productLotRepository: com.aquinofroilan.tessera.domain.inventory.repository.ProductLotRepository
     private lateinit var warehouseLocationRepository: WarehouseLocationRepository
+    private lateinit var locationCapacityService: WarehouseLocationCapacityService
 
     private val orgId = java.util.UUID.fromString("6c2f6004-070c-3d2d-9893-030d9211c19d")
     private val userId = java.util.UUID.fromString("3a01035d-c5db-3981-bf73-f18b3a0c1df9")
@@ -56,6 +57,7 @@ class StockMovementServiceTest {
         productSerialRepository = mock(com.aquinofroilan.tessera.domain.inventory.repository.ProductSerialRepository::class.java)
         productLotRepository = mock(com.aquinofroilan.tessera.domain.inventory.repository.ProductLotRepository::class.java)
         warehouseLocationRepository = mock(WarehouseLocationRepository::class.java)
+        locationCapacityService = mock(WarehouseLocationCapacityService::class.java)
         whenever(stockOnHandRepository.applyDelta(any(), any(), any(), anyOrNull(), anyOrNull(), any(), any())).thenReturn(true)
         whenever(inventoryCostingService.apply(any())).thenReturn(BigDecimal.ZERO)
         whenever(productSerialRepository.findByOrganizationIdAndProductIdAndSerialNumberIn(any(), any(), any())).thenReturn(emptyList())
@@ -86,6 +88,7 @@ class StockMovementServiceTest {
                 productSerialRepository,
                 productLotRepository,
                 warehouseLocationRepository,
+                locationCapacityService,
             )
     }
 
