@@ -12,9 +12,27 @@ interface WarehouseLocationRepository : JpaRepository<WarehouseLocation, UUID> {
         warehouseId: UUID,
     ): List<WarehouseLocation>
 
+    fun findByOrganizationIdAndWarehouseIdAndIsActiveTrue(
+        organizationId: UUID,
+        warehouseId: UUID,
+    ): List<WarehouseLocation>
+
     fun existsByOrganizationIdAndWarehouseIdAndCode(
         organizationId: UUID,
         warehouseId: UUID,
         code: String,
+    ): Boolean
+
+    fun existsByOrganizationIdAndWarehouseIdAndCodeAndIdNot(
+        organizationId: UUID,
+        warehouseId: UUID,
+        code: String,
+        id: UUID,
+    ): Boolean
+
+    fun existsByOrganizationIdAndWarehouseIdAndParentLocationIdAndIsActiveTrue(
+        organizationId: UUID,
+        warehouseId: UUID,
+        parentLocationId: UUID,
     ): Boolean
 }

@@ -11,6 +11,7 @@ import com.aquinofroilan.tessera.domain.inventory.model.Warehouse
 import com.aquinofroilan.tessera.domain.inventory.repository.ProductRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.StockMovementRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.StockOnHandRepository
+import com.aquinofroilan.tessera.domain.inventory.repository.WarehouseLocationRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.WarehouseRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
@@ -29,6 +30,7 @@ class StockMovementService(
     private val productRepository: ProductRepository,
     private val productSerialRepository: com.aquinofroilan.tessera.domain.inventory.repository.ProductSerialRepository,
     private val productLotRepository: com.aquinofroilan.tessera.domain.inventory.repository.ProductLotRepository,
+    private val warehouseLocationRepository: WarehouseLocationRepository,
 ) {
     @Transactional
     fun createMovement(
@@ -50,6 +52,7 @@ class StockMovementService(
             throw ResourceNotFoundException("Product not found")
         }
 
+        validateLocationAssignments(type, quantity, request, organizationId)
         val resolvedLot = validateLotTracking(product, request.lotNumber)
         validateAndProcessSerials(
             product,
@@ -136,6 +139,7 @@ class StockMovementService(
             throw ResourceNotFoundException("Product not found")
         }
 
+        validateLocationAssignments(type, quantity, request, organizationId)
         val resolvedLot = validateLotTracking(product, request.lotNumber)
         validateAndProcessSerials(
             product,
@@ -383,6 +387,60 @@ class StockMovementService(
             }
         } else if (transferToWarehouseId != null) {
             throw BusinessRuleException("transferToWarehouseId only applies to TRANSFER movements")
+        }
+    }
+
+    private fun validateLocationAssignments(
+        type: StockMovementType,
+        quantity: BigDecimal,
+        request: CreateStockMovementRequest,
+        organizationId: java.util.UUID,
+    ) {
+        val sourceMustBeActive =
+            when (type) {
+                StockMovementType.RECEIPT,
+                StockMovementType.OPENING_BALANCE,
+                StockMovementType.WIP_RECEIPT,
+                -> true
+                StockMovementType.ADJUSTMENT -> quantity.signum() > 0
+                StockMovementType.ISSUE,
+                StockMovementType.TRANSFER,
+                StockMovementType.WIP_ISSUE,
+                -> false
+            }
+        request.sourceLocationId?.let { locationId ->
+            validateLocation(
+                locationId = locationId,
+                expectedWarehouseId = request.warehouseId,
+                organizationId = organizationId,
+                requireActive = sourceMustBeActive,
+            )
+        }
+        request.destinationLocationId?.let { locationId ->
+            validateLocation(
+                locationId = locationId,
+                expectedWarehouseId = request.transferToWarehouseId ?: request.warehouseId,
+                organizationId = organizationId,
+                requireActive = true,
+            )
+        }
+    }
+
+    private fun validateLocation(
+        locationId: java.util.UUID,
+        expectedWarehouseId: java.util.UUID,
+        organizationId: java.util.UUID,
+        requireActive: Boolean,
+    ) {
+        val location =
+            warehouseLocationRepository.findById(locationId).orElseThrow {
+                ResourceNotFoundException("Location not found")
+            }
+        if (location.organizationId != organizationId || location.warehouseId != expectedWarehouseId) {
+            throw ResourceNotFoundException("Location not found in this warehouse")
+        }
+        if (requireActive && !location.isActive) {
+            throw BusinessRuleException("Cannot assign inventory to inactive location '${location.code}'")
         }
     }
 

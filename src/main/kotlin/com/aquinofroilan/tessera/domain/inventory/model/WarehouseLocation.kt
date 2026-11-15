@@ -38,6 +38,8 @@ class WarehouseLocation(
     @Enumerated(EnumType.STRING)
     var type: LocationType,
     var barcode: String? = null,
+    @Column(name = "is_active", nullable = false)
+    var isActive: Boolean = true,
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     var createdAt: LocalDateTime? = null,
