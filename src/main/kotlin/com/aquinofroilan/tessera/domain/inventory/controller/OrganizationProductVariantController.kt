@@ -27,7 +27,9 @@ class OrganizationProductVariantController(
     fun list(
         @CurrentOrganizationId organizationId: UUID,
         @RequestParam(required = false) productId: UUID?,
+        @RequestParam(required = false) categoryId: UUID?,
         @RequestParam(required = false) isActive: Boolean?,
+        @RequestParam(required = false) search: String?,
         @RequestParam(required = false) page: Int? = null,
         @RequestParam(required = false) size: Int? = null,
     ): ResponseEntity<Any> {
@@ -37,14 +39,36 @@ class OrganizationProductVariantController(
                 size,
                 Sort.by("productId").ascending().and(Sort.by("code").ascending()).and(Sort.by("id").ascending()),
             )
+        val normalizedSearch = search?.trim()?.takeIf(String::isNotEmpty)
+        val hasExtendedFilters = categoryId != null || normalizedSearch != null
         return if (pageable.isUnpaged) {
-            ResponseEntity.ok(
-                variantService
-                    .listOrganizationVariants(organizationId, productId, isActive)
-                    .map(ProductVariantResponse::from),
-            )
+            val variants =
+                if (hasExtendedFilters) {
+                    variantService.listOrganizationVariantsFiltered(
+                        organizationId,
+                        productId,
+                        categoryId,
+                        isActive,
+                        normalizedSearch,
+                    )
+                } else {
+                    variantService.listOrganizationVariants(organizationId, productId, isActive)
+                }
+            ResponseEntity.ok(variants.map(ProductVariantResponse::from))
         } else {
-            val variants = variantService.listOrganizationVariants(organizationId, productId, isActive, pageable)
+            val variants =
+                if (hasExtendedFilters) {
+                    variantService.listOrganizationVariantsFiltered(
+                        organizationId,
+                        productId,
+                        categoryId,
+                        isActive,
+                        normalizedSearch,
+                        pageable,
+                    )
+                } else {
+                    variantService.listOrganizationVariants(organizationId, productId, isActive, pageable)
+                }
             ResponseEntity.ok(PaginationResponse.from(variants.map(ProductVariantResponse::from)))
         }
     }

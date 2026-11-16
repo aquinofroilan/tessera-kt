@@ -90,6 +90,38 @@ class ProductVariantService(
         pageable: Pageable,
     ): Page<ProductVariant> = variantRepository.findScopedVariantsPage(organizationId, productId, isActive, pageable)
 
+    fun listOrganizationVariantsFiltered(
+        organizationId: UUID,
+        productId: UUID?,
+        categoryId: UUID?,
+        isActive: Boolean?,
+        search: String?,
+    ): List<ProductVariant> =
+        variantRepository.findOrganizationVariantsFiltered(
+            organizationId,
+            productId,
+            categoryId,
+            isActive,
+            search,
+        )
+
+    fun listOrganizationVariantsFiltered(
+        organizationId: UUID,
+        productId: UUID?,
+        categoryId: UUID?,
+        isActive: Boolean?,
+        search: String?,
+        pageable: Pageable,
+    ): Page<ProductVariant> =
+        variantRepository.findOrganizationVariantsFilteredPage(
+            organizationId,
+            productId,
+            categoryId,
+            isActive,
+            search,
+            pageable,
+        )
+
     @Transactional
     fun updateVariant(
         id: UUID,
