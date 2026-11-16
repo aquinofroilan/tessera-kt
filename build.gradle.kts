@@ -54,7 +54,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-graphql")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-mail")
-    implementation("org.springframework.boot:spring-boot-health:4.0.1")
+    implementation("org.springframework.boot:spring-boot-health:4.1.2")
     implementation("org.aspectj:aspectjweaver")
     implementation("io.github.cdimascio:dotenv-kotlin:6.5.1")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
