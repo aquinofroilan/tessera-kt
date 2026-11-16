@@ -1,6 +1,8 @@
 package com.aquinofroilan.tessera.domain.inventory.dto
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonSetter
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -36,12 +38,11 @@ data class CreateProductRequest(
     val unitVolumeCbm: BigDecimal? = null,
 )
 
-data class UpdateProductRequest(
+class UpdateProductRequest(
     @field:Size(max = 255, message = "Product name must be 255 characters or fewer")
     val name: String? = null,
     @field:Size(max = 2000, message = "Description must be 2000 characters or fewer")
     val description: String? = null,
-    val categoryId: UUID? = null,
     @field:Size(max = 2048, message = "Image URL must be 2048 characters or fewer")
     val imageUrl: String? = null,
     @field:DecimalMin(value = "0.0", message = "List price must be zero or positive")
@@ -59,7 +60,20 @@ data class UpdateProductRequest(
     val unitWeightKg: BigDecimal? = null,
     @field:DecimalMin(value = "0.0", message = "Unit volume must be zero or positive")
     val unitVolumeCbm: BigDecimal? = null,
-)
+) {
+    var categoryId: UUID? = null
+        private set
+
+    @get:JsonIgnore
+    var categoryIdProvided: Boolean = false
+        private set
+
+    @JsonSetter("categoryId")
+    fun assignCategoryId(value: UUID?) {
+        categoryId = value
+        categoryIdProvided = true
+    }
+}
 
 data class ProductResponse(
     val id: java.util.UUID,
