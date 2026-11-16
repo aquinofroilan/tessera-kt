@@ -53,6 +53,8 @@ class ProductService(
                 isLotTracked = request.isLotTracked ?: false,
                 isSerialized = request.isSerialized ?: false,
                 hasExpiry = request.hasExpiry ?: false,
+                unitWeightKg = request.unitWeightKg,
+                unitVolumeCbm = request.unitVolumeCbm,
             )
 
         return try {
@@ -135,6 +137,12 @@ class ProductService(
             }
             if (request.hasExpiry != null) {
                 hasExpiry = request.hasExpiry
+            }
+            if (request.unitWeightKg != null) {
+                unitWeightKg = request.unitWeightKg
+            }
+            if (request.unitVolumeCbm != null) {
+                unitVolumeCbm = request.unitVolumeCbm
             }
         }
 

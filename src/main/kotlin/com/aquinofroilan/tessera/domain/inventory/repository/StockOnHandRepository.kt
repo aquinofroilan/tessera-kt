@@ -10,6 +10,12 @@ interface StockOnHandRepository :
     StockOnHandQueries {
     fun findByOrganizationId(organizationId: java.util.UUID): List<StockOnHand>
 
+    fun findByOrganizationIdAndWarehouseIdAndLocationId(
+        organizationId: java.util.UUID,
+        warehouseId: java.util.UUID,
+        locationId: java.util.UUID,
+    ): List<StockOnHand>
+
     fun findByOrganizationIdAndProductIdAndWarehouseId(
         organizationId: java.util.UUID,
         productId: java.util.UUID,

@@ -111,6 +111,8 @@ class ProductController(
             isSerialized = isSerialized,
             hasExpiry = hasExpiry,
             isActive = isActive,
+            unitWeightKg = unitWeightKg,
+            unitVolumeCbm = unitVolumeCbm,
             createdAt = createdAt?.toString(),
             updatedAt = updatedAt?.toString(),
         )

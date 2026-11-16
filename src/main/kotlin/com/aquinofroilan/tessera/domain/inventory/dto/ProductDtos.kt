@@ -30,6 +30,10 @@ data class CreateProductRequest(
     @get:JsonProperty("isSerialized")
     val isSerialized: Boolean? = false,
     val hasExpiry: Boolean? = false,
+    @field:DecimalMin(value = "0.0", message = "Unit weight must be zero or positive")
+    val unitWeightKg: BigDecimal? = null,
+    @field:DecimalMin(value = "0.0", message = "Unit volume must be zero or positive")
+    val unitVolumeCbm: BigDecimal? = null,
 )
 
 data class UpdateProductRequest(
@@ -51,6 +55,10 @@ data class UpdateProductRequest(
     @get:JsonProperty("isSerialized")
     val isSerialized: Boolean? = null,
     val hasExpiry: Boolean? = null,
+    @field:DecimalMin(value = "0.0", message = "Unit weight must be zero or positive")
+    val unitWeightKg: BigDecimal? = null,
+    @field:DecimalMin(value = "0.0", message = "Unit volume must be zero or positive")
+    val unitVolumeCbm: BigDecimal? = null,
 )
 
 data class ProductResponse(
@@ -74,6 +82,8 @@ data class ProductResponse(
     @param:JsonProperty("isActive")
     @get:JsonProperty("isActive")
     val isActive: Boolean,
+    val unitWeightKg: BigDecimal?,
+    val unitVolumeCbm: BigDecimal?,
     val createdAt: String?,
     val updatedAt: String?,
 )

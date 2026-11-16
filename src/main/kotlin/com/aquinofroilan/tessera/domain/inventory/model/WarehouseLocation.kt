@@ -10,6 +10,7 @@ import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -38,6 +39,18 @@ class WarehouseLocation(
     @Enumerated(EnumType.STRING)
     var type: LocationType,
     var barcode: String? = null,
+    @Column(name = "is_active", nullable = false)
+    var isActive: Boolean = true,
+    @Column(name = "is_locked", nullable = false)
+    var isLocked: Boolean = false,
+    @Column(name = "is_pickable", nullable = false)
+    var isPickable: Boolean = true,
+    @Column(name = "is_receivable", nullable = false)
+    var isReceivable: Boolean = true,
+    @Column(name = "max_weight_kg", precision = 18, scale = 6)
+    var maxWeightKg: BigDecimal? = null,
+    @Column(name = "max_volume_cbm", precision = 18, scale = 6)
+    var maxVolumeCbm: BigDecimal? = null,
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     var createdAt: LocalDateTime? = null,

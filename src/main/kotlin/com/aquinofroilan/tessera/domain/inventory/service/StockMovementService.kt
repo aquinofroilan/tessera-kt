@@ -11,6 +11,7 @@ import com.aquinofroilan.tessera.domain.inventory.model.Warehouse
 import com.aquinofroilan.tessera.domain.inventory.repository.ProductRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.StockMovementRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.StockOnHandRepository
+import com.aquinofroilan.tessera.domain.inventory.repository.WarehouseLocationRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.WarehouseRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
@@ -29,6 +30,8 @@ class StockMovementService(
     private val productRepository: ProductRepository,
     private val productSerialRepository: com.aquinofroilan.tessera.domain.inventory.repository.ProductSerialRepository,
     private val productLotRepository: com.aquinofroilan.tessera.domain.inventory.repository.ProductLotRepository,
+    private val warehouseLocationRepository: WarehouseLocationRepository,
+    private val locationCapacityService: WarehouseLocationCapacityService,
 ) {
     @Transactional
     fun createMovement(
@@ -50,6 +53,7 @@ class StockMovementService(
             throw ResourceNotFoundException("Product not found")
         }
 
+        validateLocationAssignments(type, quantity, request, product, organizationId)
         val resolvedLot = validateLotTracking(product, request.lotNumber)
         validateAndProcessSerials(
             product,
@@ -136,6 +140,7 @@ class StockMovementService(
             throw ResourceNotFoundException("Product not found")
         }
 
+        validateLocationAssignments(type, quantity, request, product, organizationId)
         val resolvedLot = validateLotTracking(product, request.lotNumber)
         validateAndProcessSerials(
             product,
@@ -384,6 +389,77 @@ class StockMovementService(
         } else if (transferToWarehouseId != null) {
             throw BusinessRuleException("transferToWarehouseId only applies to TRANSFER movements")
         }
+    }
+
+    private fun validateLocationAssignments(
+        type: StockMovementType,
+        quantity: BigDecimal,
+        request: CreateStockMovementRequest,
+        product: Product,
+        organizationId: java.util.UUID,
+    ) {
+        val sourceDelta = sourceDelta(type, quantity)
+        val sourceReceivesStock = sourceDelta.signum() > 0
+        request.sourceLocationId?.let { locationId ->
+            val sourceLocation =
+                validateLocation(
+                    locationId = locationId,
+                    expectedWarehouseId = request.warehouseId,
+                    organizationId = organizationId,
+                    receivesStock = sourceReceivesStock,
+                )
+            if (sourceReceivesStock) {
+                locationCapacityService.validateIncomingStock(sourceLocation, product, sourceDelta, organizationId)
+            }
+        }
+        request.destinationLocationId?.let { locationId ->
+            val destinationLocation =
+                validateLocation(
+                    locationId = locationId,
+                    expectedWarehouseId = request.transferToWarehouseId ?: request.warehouseId,
+                    organizationId = organizationId,
+                    receivesStock = true,
+                )
+            if (type == StockMovementType.TRANSFER) {
+                locationCapacityService.validateIncomingStock(destinationLocation, product, quantity, organizationId)
+            }
+        }
+    }
+
+    private fun validateLocation(
+        locationId: java.util.UUID,
+        expectedWarehouseId: java.util.UUID,
+        organizationId: java.util.UUID,
+        receivesStock: Boolean,
+    ): com.aquinofroilan.tessera.domain.inventory.model.WarehouseLocation {
+        val location =
+            warehouseLocationRepository.findById(locationId).orElseThrow {
+                ResourceNotFoundException("Location not found")
+            }
+        if (location.organizationId != organizationId || location.warehouseId != expectedWarehouseId) {
+            throw ResourceNotFoundException("Location not found in this warehouse")
+        }
+        if (location.isLocked) throw BusinessRuleException("Location " + location.code + " is locked")
+        if (receivesStock && !location.isActive) throw BusinessRuleException("Cannot receive stock into an inactive location")
+        if (receivesStock && !location.isReceivable) throw BusinessRuleException("Location does not allow receiving inventory")
+        if (!receivesStock && !location.isPickable) throw BusinessRuleException("Location does not allow picking inventory")
+
+        val visited = mutableSetOf(location.id)
+        var parentId = location.parentLocationId
+        while (parentId != null) {
+            if (!visited.add(parentId)) throw BusinessRuleException("The location hierarchy contains a cycle")
+            val parent =
+                warehouseLocationRepository.findById(parentId).orElseThrow {
+                    ResourceNotFoundException("Parent location not found")
+                }
+            if (parent.organizationId != organizationId || parent.warehouseId != expectedWarehouseId) {
+                throw ResourceNotFoundException("Parent location not found in this warehouse")
+            }
+            if (parent.isLocked) throw BusinessRuleException("An ancestor location is locked")
+            if (receivesStock && !parent.isActive) throw BusinessRuleException("Cannot receive stock under an inactive location")
+            parentId = parent.parentLocationId
+        }
+        return location
     }
 
     private fun loadActiveWarehouse(
