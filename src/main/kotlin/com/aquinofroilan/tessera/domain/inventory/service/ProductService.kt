@@ -114,8 +114,8 @@ class ProductService(
         if (request.taxGroupId != null && request.taxGroupId != existing.taxGroupId) {
             validateTaxGroup(request.taxGroupId, organizationId)
         }
-        if (request.categoryId != null && request.categoryId != existing.categoryId) {
-            validateCategory(request.categoryId, organizationId)
+        if (request.categoryIdProvided) {
+            request.categoryId?.let { validateCategory(it, organizationId) }
         }
 
         val newName =
@@ -124,7 +124,9 @@ class ProductService(
         existing.apply {
             name = newName
             description = request.description ?: existing.description
-            categoryId = request.categoryId ?: existing.categoryId
+            if (request.categoryIdProvided) {
+                categoryId = request.categoryId
+            }
             imageUrl = request.imageUrl ?: existing.imageUrl
             listPrice = request.listPrice ?: existing.listPrice
             priceCurrency = newCurrency
