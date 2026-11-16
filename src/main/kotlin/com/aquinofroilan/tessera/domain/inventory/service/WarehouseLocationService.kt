@@ -1,19 +1,25 @@
 package com.aquinofroilan.tessera.domain.inventory.service
 
 import com.aquinofroilan.tessera.domain.inventory.dto.CreateWarehouseLocationRequest
+import com.aquinofroilan.tessera.domain.inventory.dto.UpdateWarehouseLocationRequest
+import com.aquinofroilan.tessera.domain.inventory.model.LocationType
 import com.aquinofroilan.tessera.domain.inventory.model.WarehouseLocation
 import com.aquinofroilan.tessera.domain.inventory.repository.WarehouseLocationRepository
 import com.aquinofroilan.tessera.domain.inventory.repository.WarehouseRepository
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.util.UUID
 
 @Service
 class WarehouseLocationService(
     private val warehouseLocationRepository: WarehouseLocationRepository,
     private val warehouseRepository: WarehouseRepository,
+    private val locationCapacityService: WarehouseLocationCapacityService,
 ) {
     @Transactional
     fun createLocation(
@@ -33,13 +39,9 @@ class WarehouseLocationService(
         }
 
         if (request.parentLocationId != null) {
-            val parent =
-                warehouseLocationRepository.findById(request.parentLocationId).orElseThrow {
-                    ResourceNotFoundException("Parent location not found")
-                }
-            if (parent.organizationId != organizationId || parent.warehouseId != request.warehouseId) {
-                throw ResourceNotFoundException("Parent location not found in this warehouse")
-            }
+            val parent = loadLocation(request.parentLocationId, organizationId)
+            validateSameWarehouse(parent, request.warehouseId)
+            if (!parent.isActive) throw BusinessRuleException("Cannot create a location under an inactive parent")
         }
 
         val type = request.type ?: throw BusinessRuleException("Type is required")
@@ -52,6 +54,12 @@ class WarehouseLocationService(
                 code = request.code,
                 type = type,
                 barcode = request.barcode,
+                isActive = request.isActive,
+                isLocked = request.isLocked,
+                isPickable = request.isPickable,
+                isReceivable = request.isReceivable,
+                maxWeightKg = request.maxWeightKg,
+                maxVolumeCbm = request.maxVolumeCbm,
             )
         return warehouseLocationRepository.save(location)
     }
@@ -59,14 +67,164 @@ class WarehouseLocationService(
     fun listLocations(
         organizationId: UUID,
         warehouseId: UUID,
-    ): List<WarehouseLocation> {
+        parentLocationId: UUID?,
+        type: LocationType?,
+        isActive: Boolean?,
+        pageable: Pageable,
+    ): Page<WarehouseLocation> {
+        validateWarehouse(warehouseId, organizationId)
+        return warehouseLocationRepository.search(
+            organizationId,
+            warehouseId,
+            parentLocationId,
+            type,
+            isActive,
+            pageable,
+        )
+    }
+
+    fun getLocation(
+        id: UUID,
+        organizationId: UUID,
+    ): WarehouseLocation = loadLocation(id, organizationId)
+
+    @Transactional
+    fun updateLocation(
+        id: UUID,
+        request: UpdateWarehouseLocationRequest,
+        organizationId: UUID,
+    ): WarehouseLocation {
+        val location = loadLocation(id, organizationId)
+
+        request.code?.let { code ->
+            if (code.isBlank()) throw BusinessRuleException("Location code cannot be blank")
+            if (code != location.code &&
+                warehouseLocationRepository.existsByOrganizationIdAndWarehouseIdAndCodeAndIdNot(
+                    organizationId,
+                    location.warehouseId,
+                    code,
+                    location.id,
+                )
+            ) {
+                throw BusinessRuleException("Location with code '$code' already exists in this warehouse")
+            }
+            location.code = code
+        }
+
+        if (request.parentLocationIdProvided) {
+            location.parentLocationId = request.parentLocationId?.let { parentId ->
+                validateParent(location, parentId, organizationId)
+                parentId
+            }
+        }
+
+        request.type?.let { location.type = it }
+        if (request.barcode != null) location.barcode = request.barcode
+        request.isLocked?.let { location.isLocked = it }
+        request.isPickable?.let { location.isPickable = it }
+        request.isReceivable?.let { location.isReceivable = it }
+        if (request.maxWeightKgProvided) {
+            validatePositiveCapacity(request.maxWeightKg, "maximum weight")
+            location.maxWeightKg = request.maxWeightKg
+        }
+        if (request.maxVolumeCbmProvided) {
+            validatePositiveCapacity(request.maxVolumeCbm, "maximum volume")
+            location.maxVolumeCbm = request.maxVolumeCbm
+        }
+
+        if (request.isActive == false) ensureNoActiveChildren(location, organizationId)
+        if (request.isActive == true && location.parentLocationId != null) {
+            val parent = loadLocation(location.parentLocationId!!, organizationId)
+            if (!parent.isActive) throw BusinessRuleException("Cannot activate a location under an inactive parent")
+        }
+        request.isActive?.let { location.isActive = it }
+        if (request.maxWeightKgProvided || request.maxVolumeCbmProvided) {
+            locationCapacityService.validateCurrentStock(location, organizationId)
+        }
+        return warehouseLocationRepository.save(location)
+    }
+
+    private fun validatePositiveCapacity(
+        value: BigDecimal?,
+        name: String,
+    ) {
+        if (value != null && value.signum() <= 0) {
+            throw BusinessRuleException("Location $name must be positive")
+        }
+    }
+
+    @Transactional
+    fun deactivateLocation(
+        id: UUID,
+        organizationId: UUID,
+    ): WarehouseLocation {
+        val location = loadLocation(id, organizationId)
+        if (!location.isActive) return location
+        ensureNoActiveChildren(location, organizationId)
+        location.isActive = false
+        return warehouseLocationRepository.save(location)
+    }
+
+    private fun validateParent(
+        location: WarehouseLocation,
+        parentId: UUID,
+        organizationId: UUID,
+    ) {
+        if (parentId == location.id) throw BusinessRuleException("A location cannot be its own parent")
+        val visited = mutableSetOf<UUID>()
+        var ancestor: WarehouseLocation? = loadLocation(parentId, organizationId)
+        while (ancestor != null) {
+            validateSameWarehouse(ancestor, location.warehouseId)
+            if (!ancestor.isActive) throw BusinessRuleException("Cannot assign an inactive parent location")
+            if (ancestor.id == location.id) throw BusinessRuleException("Reparenting would create a location hierarchy cycle")
+            if (!visited.add(ancestor.id)) throw BusinessRuleException("The existing location hierarchy contains a cycle")
+            ancestor = ancestor.parentLocationId?.let { loadLocation(it, organizationId) }
+        }
+    }
+
+    private fun ensureNoActiveChildren(
+        location: WarehouseLocation,
+        organizationId: UUID,
+    ) {
+        if (warehouseLocationRepository.existsByOrganizationIdAndWarehouseIdAndParentLocationIdAndIsActiveTrue(
+                organizationId,
+                location.warehouseId,
+                location.id,
+            )
+        ) {
+            throw BusinessRuleException("Deactivate or reparent active child locations first")
+        }
+    }
+
+    private fun loadLocation(
+        id: UUID,
+        organizationId: UUID,
+    ): WarehouseLocation {
+        val location =
+            warehouseLocationRepository.findById(id).orElseThrow {
+                ResourceNotFoundException("Location not found")
+            }
+        if (location.organizationId != organizationId) throw ResourceNotFoundException("Location not found")
+        return location
+    }
+
+    private fun validateWarehouse(
+        warehouseId: UUID,
+        organizationId: UUID,
+    ) {
         val warehouse =
             warehouseRepository.findById(warehouseId).orElseThrow {
                 ResourceNotFoundException("Warehouse not found")
             }
-        if (warehouse.organizationId != organizationId) {
-            throw ResourceNotFoundException("Warehouse not found")
+        if (warehouse.organizationId != organizationId) throw ResourceNotFoundException("Warehouse not found")
+    }
+
+    private fun validateSameWarehouse(
+        location: WarehouseLocation,
+        warehouseId: UUID,
+    ) {
+        if (location.warehouseId != warehouseId) {
+            throw ResourceNotFoundException("Location not found in this warehouse")
         }
-        return warehouseLocationRepository.findByOrganizationIdAndWarehouseId(organizationId, warehouseId)
     }
 }

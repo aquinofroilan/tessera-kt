@@ -9,7 +9,7 @@ import java.io.Serializable
 class TesseraPermissionEvaluator : PermissionEvaluator {
     override fun hasPermission(
         authentication: Authentication,
-        targetDomainObject: Any,
+        targetDomainObject: Any?,
         permission: Any,
     ): Boolean {
         if (authentication.authorities.any { it.authority == "ROLE_SUPER_ADMIN" }) {

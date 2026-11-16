@@ -11,6 +11,8 @@ import com.aquinofroilan.tessera.domain.organization.repository.OrganizationRepo
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import org.springframework.dao.DuplicateKeyException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -51,6 +53,8 @@ class ProductService(
                 isLotTracked = request.isLotTracked ?: false,
                 isSerialized = request.isSerialized ?: false,
                 hasExpiry = request.hasExpiry ?: false,
+                unitWeightKg = request.unitWeightKg,
+                unitVolumeCbm = request.unitVolumeCbm,
             )
 
         return try {
@@ -84,6 +88,14 @@ class ProductService(
         search: String? = null,
     ): List<Product> = productRepository.search(organizationId, isActive, categoryId, search)
 
+    fun listProducts(
+        organizationId: UUID,
+        categoryId: UUID?,
+        isActive: Boolean,
+        search: String?,
+        pageable: Pageable,
+    ): Page<Product> = productRepository.search(organizationId, isActive, categoryId, search, pageable)
+
     @Transactional
     fun updateProduct(
         productId: java.util.UUID,
@@ -102,8 +114,8 @@ class ProductService(
         if (request.taxGroupId != null && request.taxGroupId != existing.taxGroupId) {
             validateTaxGroup(request.taxGroupId, organizationId)
         }
-        if (request.categoryId != null && request.categoryId != existing.categoryId) {
-            validateCategory(request.categoryId, organizationId)
+        if (request.categoryIdProvided) {
+            request.categoryId?.let { validateCategory(it, organizationId) }
         }
 
         val newName =
@@ -112,7 +124,9 @@ class ProductService(
         existing.apply {
             name = newName
             description = request.description ?: existing.description
-            categoryId = request.categoryId ?: existing.categoryId
+            if (request.categoryIdProvided) {
+                categoryId = request.categoryId
+            }
             imageUrl = request.imageUrl ?: existing.imageUrl
             listPrice = request.listPrice ?: existing.listPrice
             priceCurrency = newCurrency
@@ -125,6 +139,12 @@ class ProductService(
             }
             if (request.hasExpiry != null) {
                 hasExpiry = request.hasExpiry
+            }
+            if (request.unitWeightKg != null) {
+                unitWeightKg = request.unitWeightKg
+            }
+            if (request.unitVolumeCbm != null) {
+                unitVolumeCbm = request.unitVolumeCbm
             }
         }
 

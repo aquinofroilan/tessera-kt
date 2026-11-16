@@ -7,6 +7,8 @@ import com.aquinofroilan.tessera.domain.inventory.repository.ProductVariantRepos
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -63,7 +65,16 @@ class ProductVariantService(
         organizationId: UUID,
     ): List<ProductVariant> {
         productService.getProduct(productId, organizationId)
-        return variantRepository.findByOrganizationIdAndProductId(organizationId, productId)
+        return variantRepository.findByOrganizationIdAndProductIdOrderByCodeAscIdAsc(organizationId, productId)
+    }
+
+    fun listVariants(
+        productId: UUID,
+        organizationId: UUID,
+        pageable: Pageable,
+    ): Page<ProductVariant> {
+        productService.getProduct(productId, organizationId)
+        return variantRepository.findByOrganizationIdAndProductId(organizationId, productId, pageable)
     }
 
     fun listOrganizationVariants(
@@ -71,6 +82,45 @@ class ProductVariantService(
         productId: UUID? = null,
         isActive: Boolean? = null,
     ): List<ProductVariant> = variantRepository.findScopedVariants(organizationId, productId, isActive)
+
+    fun listOrganizationVariants(
+        organizationId: UUID,
+        productId: UUID?,
+        isActive: Boolean?,
+        pageable: Pageable,
+    ): Page<ProductVariant> = variantRepository.findScopedVariantsPage(organizationId, productId, isActive, pageable)
+
+    fun listOrganizationVariantsFiltered(
+        organizationId: UUID,
+        productId: UUID?,
+        categoryId: UUID?,
+        isActive: Boolean?,
+        search: String?,
+    ): List<ProductVariant> =
+        variantRepository.findOrganizationVariantsFiltered(
+            organizationId,
+            productId,
+            categoryId,
+            isActive,
+            search,
+        )
+
+    fun listOrganizationVariantsFiltered(
+        organizationId: UUID,
+        productId: UUID?,
+        categoryId: UUID?,
+        isActive: Boolean?,
+        search: String?,
+        pageable: Pageable,
+    ): Page<ProductVariant> =
+        variantRepository.findOrganizationVariantsFilteredPage(
+            organizationId,
+            productId,
+            categoryId,
+            isActive,
+            search,
+            pageable,
+        )
 
     @Transactional
     fun updateVariant(

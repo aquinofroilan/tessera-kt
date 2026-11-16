@@ -50,4 +50,8 @@ class Product(
     @LastModifiedDate
     @Column(name = "updated_at")
     var updatedAt: LocalDateTime? = null,
+    @Column(name = "unit_weight_kg", precision = 18, scale = 6)
+    var unitWeightKg: BigDecimal? = null,
+    @Column(name = "unit_volume_cbm", precision = 18, scale = 6)
+    var unitVolumeCbm: BigDecimal? = null,
 )

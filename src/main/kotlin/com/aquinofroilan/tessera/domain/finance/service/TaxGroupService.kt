@@ -14,6 +14,8 @@ import com.aquinofroilan.tessera.domain.organization.model.AuditCategory
 import com.aquinofroilan.tessera.domain.organization.service.OrganizationAuditService
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -110,6 +112,17 @@ class TaxGroupService(
             taxGroupRepository.findByOrganizationIdAndIsActive(organizationId, true)
         } else {
             taxGroupRepository.findByOrganizationId(organizationId)
+        }
+
+    fun listTaxGroups(
+        organizationId: java.util.UUID,
+        activeOnly: Boolean,
+        pageable: Pageable,
+    ): Page<TaxGroup> =
+        if (activeOnly) {
+            taxGroupRepository.findByOrganizationIdAndIsActive(organizationId, true, pageable)
+        } else {
+            taxGroupRepository.findByOrganizationId(organizationId, pageable)
         }
 
     @Transactional

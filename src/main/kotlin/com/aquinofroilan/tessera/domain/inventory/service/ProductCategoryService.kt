@@ -9,6 +9,8 @@ import com.aquinofroilan.tessera.domain.organization.model.AuditCategory
 import com.aquinofroilan.tessera.domain.organization.service.OrganizationAuditService
 import com.aquinofroilan.tessera.exception.BusinessRuleException
 import com.aquinofroilan.tessera.exception.ResourceNotFoundException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -45,9 +47,20 @@ class ProductCategoryService(
         activeOnly: Boolean,
     ): List<ProductCategory> =
         if (activeOnly) {
-            repository.findByOrganizationIdAndIsActive(organizationId, true)
+            repository.findByOrganizationIdAndIsActiveOrderByNameAscIdAsc(organizationId, true)
         } else {
-            repository.findByOrganizationId(organizationId)
+            repository.findByOrganizationIdOrderByNameAscIdAsc(organizationId)
+        }
+
+    fun list(
+        organizationId: UUID,
+        activeOnly: Boolean,
+        pageable: Pageable,
+    ): Page<ProductCategory> =
+        if (activeOnly) {
+            repository.findByOrganizationIdAndIsActive(organizationId, true, pageable)
+        } else {
+            repository.findByOrganizationId(organizationId, pageable)
         }
 
     fun get(

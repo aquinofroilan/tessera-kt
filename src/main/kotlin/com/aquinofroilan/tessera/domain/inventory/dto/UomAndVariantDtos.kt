@@ -37,6 +37,8 @@ data class UomResponse(
     val description: String?,
     val baseUomId: UUID?,
     val conversionFactor: BigDecimal,
+    @param:JsonProperty("isActive")
+    @get:JsonProperty("isActive")
     val isActive: Boolean,
 ) {
     companion object {

@@ -29,7 +29,7 @@ class WarehouseLocationServiceTest {
     fun setUp() {
         warehouseRepository = mock()
         warehouseLocationRepository = mock()
-        service = WarehouseLocationService(warehouseLocationRepository, warehouseRepository)
+        service = WarehouseLocationService(warehouseLocationRepository, warehouseRepository, mock())
 
         val warehouse =
             Warehouse(
