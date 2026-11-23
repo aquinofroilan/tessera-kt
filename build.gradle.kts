@@ -38,7 +38,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.apache.poi:poi-ooxml:5.2.3")
+    implementation("org.apache.poi:poi-ooxml:6.0.0")
     implementation("org.bouncycastle:bcprov-jdk18on:1.86")
     implementation("com.github.librepdf:openpdf:1.3.30")
     implementation("com.posthog.java:posthog:1.2.0")
